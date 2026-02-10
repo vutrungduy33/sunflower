@@ -1,0 +1,61 @@
+name: Deploy Backend To ECS
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "sunflower-backend/**"
+      - "docker-compose.yml"
+      - ".github/workflows/deploy-backend.yml"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.ECS_HOST }}
+          username: ${{ secrets.ECS_USER }}
+          port: ${{ secrets.ECS_PORT }}
+          key: ${{ secrets.ECS_SSH_KEY }}
+          script_stop: true
+          script: |
+            set -euo pipefail
+            REPO_URL="https://github.com/vutrungduy33/sunflower.git"
+            DEPLOY_PATH="${{ secrets.DEPLOY_PATH }}"
+
+            mkdir -p "$DEPLOY_PATH"
+            cd "$DEPLOY_PATH"
+
+            if [ ! -d .git ]; then
+              git clone "$REPO_URL" .
+            fi
+
+            git fetch origin main
+            git checkout main
+            git reset --hard origin/main
+
+            if docker compose version >/dev/null 2>&1; then
+              COMPOSE_CMD="docker compose"
+            elif command -v docker-compose >/dev/null 2>&1; then
+              COMPOSE_CMD="docker-compose"
+            else
+              echo "docker compose is not installed on ECS"
+              exit 1
+            fi
+
+            $COMPOSE_CMD up -d --build backend
+
+            for i in $(seq 1 20); do
+              if curl -fsS http://127.0.0.1:8080/api/health >/dev/null; then
+                echo "Backend health check passed."
+                exit 0
+              fi
+              sleep 3
+            done
+
+            echo "Backend health check failed."
+            exit 1
