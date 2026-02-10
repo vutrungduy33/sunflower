@@ -1,0 +1,13 @@
+.DS_Store
+**/.DS_Store
+
+# macOS
+.AppleDouble
+.LSOverride
+
+# IDE
+.idea/
+.vscode/
+
+# Logs
+*.log
