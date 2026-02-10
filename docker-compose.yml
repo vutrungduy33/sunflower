@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: sunflower-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: sunflower
+      MYSQL_USER: sunflower
+      MYSQL_PASSWORD: sunflower
+      TZ: Asia/Shanghai
+    ports:
+      - "3306:3306"
+    volumes:
+      - sunflower_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./sunflower-backend
+      dockerfile: Dockerfile
+    container_name: sunflower-backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:mysql://mysql:3306/sunflower?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+      DB_USERNAME: sunflower
+      DB_PASSWORD: sunflower
+    ports:
+      - "8080:8080"
+
+volumes:
+  sunflower_mysql_data:

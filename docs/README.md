@@ -36,7 +36,7 @@
 - 数据库：MySQL（见数据字典与索引设计）
 - 管理后台：Web（技术栈待落地）
 
-说明：目前 `sunflower-backend/` 为空，`docker-compose` 配置尚未落地。
+说明：`sunflower-backend/` 已初始化 Spring Boot 单体基础结构，根目录已提供 `docker-compose.yml`（MySQL + backend）。
 
 ## 4. 文档索引
 - `docs/PRD.md`：需求规格与开发计划（范围、优先级、里程碑）
@@ -80,10 +80,11 @@
 │  ├─ utils/
 │  ├─ project.config.json
 │  └─ project.private.config.json
-└─ sunflower-backend/             # Spring Boot 后端（待初始化）
+├─ sunflower-backend/             # Spring Boot 后端基础工程
+└─ docker-compose.yml             # 本地联调（MySQL + backend）
 ```
 
 ## 6. 建议补齐（下一步）
-- 在 `sunflower-backend/` 初始化 Spring Boot 单体结构
-- 增加 `docker-compose.yml`（MySQL + 后端服务）
-- 补充后端说明文档
+- 补充业务模块实现（auth/room/order/content）
+- 增加数据库建表脚本与初始化数据
+- 补充接口实现与联调说明

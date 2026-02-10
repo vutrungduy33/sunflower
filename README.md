@@ -12,7 +12,7 @@
 
 ## 3. 技术栈与运行形态
 - 前端：微信小程序（原生框架）
-- 后端：Spring Boot 单体（计划基于 docker-compose 构建）
+- 后端：Spring Boot 单体（基于 docker-compose 本地联调）
 - 数据库：MySQL
 - 管理后台：Web（技术栈待落地）
 
@@ -36,7 +36,8 @@
 ├─ README.md                      # 项目总览（含历史调研资料）
 ├─ docs/                          # 产品与技术文档
 ├─ sunflower-miniapp/             # 微信小程序工程
-└─ sunflower-backend/             # Spring Boot 后端（待初始化）
+├─ sunflower-backend/             # Spring Boot 后端基础工程
+└─ docker-compose.yml             # 本地联调（MySQL + backend）
 ```
 
 ---
