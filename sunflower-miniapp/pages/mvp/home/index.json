@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "向日葵湖景美宿",
+  "navigationStyle": "default",
+  "usingComponents": {
+    "mvp-tabbar": "/components/mvp-tabbar/index",
+    "t-button": "tdesign-miniprogram/button/button",
+    "t-icon": "tdesign-miniprogram/icon/icon"
+  }
+}

@@ -1,0 +1,29 @@
+<view class="mvp-page">
+  <view class="mvp-section">
+    <view class="mvp-section__title">地图总览</view>
+    <map class="map-panel" latitude="{{latitude}}" longitude="{{longitude}}" scale="12" markers="{{markers}}"></map>
+  </view>
+
+  <view class="mvp-section">
+    <view class="mvp-section__title">景点与服务点</view>
+    <view class="poi-card" wx:for="{{poiList}}" wx:key="id">
+      <view class="poi-card__head">
+        <view class="poi-card__name">{{item.name}}</view>
+        <view class="poi-card__distance">{{item.distanceKm}} km</view>
+      </view>
+      <view class="poi-card__meta">{{item.category}} · {{item.summary}}</view>
+      <t-button
+        size="small"
+        theme="primary"
+        variant="outline"
+        data-name="{{item.name}}"
+        data-latitude="{{item.latitude}}"
+        data-longitude="{{item.longitude}}"
+        bindtap="openNavigation"
+        >导航前往</t-button
+      >
+    </view>
+  </view>
+</view>
+
+<mvp-tabbar current="map" />

@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "订单中心",
+  "navigationStyle": "default",
+  "usingComponents": {
+    "t-button": "tdesign-miniprogram/button/button"
+  }
+}

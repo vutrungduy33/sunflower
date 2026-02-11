@@ -1,0 +1,67 @@
+<view class="detail-page" wx:if="{{room}}">
+  <image class="room-cover" mode="aspectFill" src="{{room.cover}}" />
+
+  <view class="detail-body">
+    <view class="detail-section">
+      <view class="room-name">{{room.name}}</view>
+      <view class="room-subtitle">{{room.subtitle}}</view>
+      <view class="room-meta">{{room.area}}㎡ · {{room.capacity}}人 · {{room.bedType}}</view>
+      <view class="tags">
+        <text class="tag" wx:for="{{room.tags}}" wx:key="*this">{{item}}</text>
+      </view>
+    </view>
+
+    <view class="detail-section">
+      <view class="section-title">入住日期</view>
+      <view class="date-row">
+        <view class="date-item">
+          <text class="date-label">入住</text>
+          <picker mode="date" value="{{checkInDate}}" start="{{today}}" bindchange="onCheckInChange">
+            <view class="date-value">{{checkInDate}}</view>
+          </picker>
+        </view>
+        <view class="date-item">
+          <text class="date-label">退房</text>
+          <picker mode="date" value="{{checkOutDate}}" start="{{today}}" bindchange="onCheckOutChange">
+            <view class="date-value">{{checkOutDate}}</view>
+          </picker>
+        </view>
+      </view>
+      <view class="mvp-muted">共 {{nights}} 晚</view>
+    </view>
+
+    <view class="detail-section">
+      <view class="section-title">14 天价格日历</view>
+      <scroll-view class="calendar-scroll" scroll-x="true">
+        <view class="calendar-list">
+          <view class="calendar-card" wx:for="{{calendar}}" wx:key="date">
+            <view class="calendar-date">{{item.date}}</view>
+            <view class="calendar-weekday">{{item.weekdayLabel}}</view>
+            <view class="calendar-price">¥{{item.price}}</view>
+            <view class="calendar-stock">库存 {{item.stock}}</view>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+
+    <view class="detail-section">
+      <view class="section-title">房间设施</view>
+      <view class="tags">
+        <text class="tag tag-light" wx:for="{{room.amenities}}" wx:key="*this">{{item}}</text>
+      </view>
+    </view>
+
+    <view class="detail-section">
+      <view class="section-title">预订规则</view>
+      <view class="rule-item" wx:for="{{room.rules}}" wx:key="*this">• {{item}}</view>
+    </view>
+  </view>
+
+  <view class="action-bar">
+    <view>
+      <view class="action-total">合计 ¥{{totalAmount}}</view>
+      <view class="action-sub">{{nights}} 晚 · {{room.breakfast}}</view>
+    </view>
+    <t-button theme="primary" size="small" bindtap="goCreateOrder">立即下单</t-button>
+  </view>
+</view>

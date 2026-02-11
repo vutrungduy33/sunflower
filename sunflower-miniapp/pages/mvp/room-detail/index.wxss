@@ -1,0 +1,168 @@
+.detail-page {
+  min-height: 100vh;
+  background: #f5f7fa;
+  padding-bottom: 160rpx;
+}
+
+.room-cover {
+  width: 100%;
+  height: 420rpx;
+}
+
+.detail-body {
+  margin-top: -36rpx;
+  border-top-left-radius: 32rpx;
+  border-top-right-radius: 32rpx;
+  background: #f5f7fa;
+  padding: 24rpx;
+  box-sizing: border-box;
+}
+
+.detail-section {
+  background: #ffffff;
+  border-radius: 20rpx;
+  padding: 22rpx;
+  margin-bottom: 18rpx;
+}
+
+.room-name {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #111827;
+}
+
+.room-subtitle {
+  margin-top: 8rpx;
+  color: #4b5563;
+  font-size: 24rpx;
+}
+
+.room-meta {
+  margin-top: 10rpx;
+  color: #6b7280;
+  font-size: 23rpx;
+}
+
+.tags {
+  margin-top: 14rpx;
+}
+
+.tag {
+  display: inline-flex;
+  height: 44rpx;
+  line-height: 44rpx;
+  padding: 0 14rpx;
+  border-radius: 999rpx;
+  background: #eaf5ea;
+  color: #2e7d32;
+  font-size: 22rpx;
+  margin-right: 10rpx;
+  margin-bottom: 10rpx;
+}
+
+.tag-light {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.section-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 14rpx;
+}
+
+.date-row {
+  display: flex;
+  gap: 14rpx;
+  margin-bottom: 12rpx;
+}
+
+.date-item {
+  flex: 1;
+  background: #f8fafc;
+  border-radius: 16rpx;
+  padding: 14rpx;
+}
+
+.date-label {
+  display: block;
+  color: #6b7280;
+  font-size: 22rpx;
+}
+
+.date-value {
+  margin-top: 8rpx;
+  color: #111827;
+  font-size: 25rpx;
+}
+
+.calendar-scroll {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.calendar-list {
+  display: inline-flex;
+  gap: 12rpx;
+}
+
+.calendar-card {
+  width: 180rpx;
+  border-radius: 14rpx;
+  background: #f8fafc;
+  padding: 14rpx;
+  box-sizing: border-box;
+}
+
+.calendar-date {
+  font-size: 22rpx;
+  color: #111827;
+}
+
+.calendar-weekday,
+.calendar-stock {
+  margin-top: 6rpx;
+  font-size: 20rpx;
+  color: #6b7280;
+}
+
+.calendar-price {
+  margin-top: 10rpx;
+  font-size: 28rpx;
+  color: #d32f2f;
+  font-weight: 600;
+}
+
+.rule-item {
+  color: #374151;
+  font-size: 24rpx;
+  line-height: 1.7;
+}
+
+.action-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 116rpx;
+  background: #ffffff;
+  border-top: 1rpx solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 24rpx;
+  padding-bottom: constant(safe-area-inset-bottom);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.action-total {
+  font-size: 30rpx;
+  color: #d32f2f;
+  font-weight: 700;
+}
+
+.action-sub {
+  font-size: 22rpx;
+  color: #6b7280;
+}

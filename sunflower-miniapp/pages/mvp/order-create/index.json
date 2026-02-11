@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "填写订单",
+  "navigationStyle": "default",
+  "usingComponents": {
+    "t-button": "tdesign-miniprogram/button/button"
+  }
+}

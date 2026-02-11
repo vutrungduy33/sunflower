@@ -1,0 +1,84 @@
+@import '../common.wxss';
+
+.filter-row {
+  display: flex;
+  gap: 16rpx;
+}
+
+.filter-field {
+  flex: 1;
+  background: #f8fafc;
+  border-radius: 16rpx;
+  padding: 16rpx;
+}
+
+.filter-label {
+  display: block;
+  font-size: 22rpx;
+  color: #6b7280;
+}
+
+.filter-value {
+  margin-top: 8rpx;
+  font-size: 26rpx;
+  color: #111827;
+}
+
+.search-row {
+  display: flex;
+  align-items: center;
+  margin-top: 18rpx;
+  gap: 14rpx;
+}
+
+.search-input {
+  flex: 1;
+  height: 72rpx;
+  background: #f8fafc;
+  border-radius: 16rpx;
+  padding: 0 20rpx;
+  font-size: 24rpx;
+}
+
+.room-card {
+  background: #f8fafc;
+  border-radius: 20rpx;
+  overflow: hidden;
+  margin-bottom: 18rpx;
+}
+
+.room-card:last-child {
+  margin-bottom: 0;
+}
+
+.room-card__image {
+  width: 100%;
+  height: 260rpx;
+}
+
+.room-card__body {
+  padding: 20rpx;
+}
+
+.room-card__name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #111827;
+}
+
+.room-card__meta {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #6b7280;
+}
+
+.room-card__tags {
+  margin-top: 12rpx;
+}
+
+.room-card__footer {
+  margin-top: 12rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}

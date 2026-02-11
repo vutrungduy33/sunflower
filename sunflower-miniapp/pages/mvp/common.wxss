@@ -1,0 +1,60 @@
+.mvp-page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f7fbf7 0%, #f5f7fa 40%, #f5f7fa 100%);
+  padding: 24rpx;
+  box-sizing: border-box;
+  padding-bottom: 156rpx;
+}
+
+.mvp-section {
+  background: #ffffff;
+  border-radius: 24rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 8rpx 24rpx rgba(15, 23, 42, 0.05);
+}
+
+.mvp-section__title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 16rpx;
+}
+
+.mvp-muted {
+  color: #6b7280;
+  font-size: 24rpx;
+}
+
+.mvp-price {
+  color: #d32f2f;
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.mvp-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44rpx;
+  padding: 0 14rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  color: #2e7d32;
+  background: #eaf5ea;
+  margin-right: 12rpx;
+  margin-bottom: 12rpx;
+}
+
+.mvp-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16rpx;
+}
+
+.mvp-empty {
+  text-align: center;
+  color: #9ca3af;
+  font-size: 24rpx;
+  padding: 36rpx 0;
+}

@@ -1,6 +1,14 @@
 {
   "darkmode": true,
   "pages": [
+    "pages/mvp/home/index",
+    "pages/mvp/booking/index",
+    "pages/mvp/map/index",
+    "pages/mvp/discover/index",
+    "pages/mvp/mine/index",
+    "pages/mvp/room-detail/index",
+    "pages/mvp/order-create/index",
+    "pages/mvp/order-list/index",
     "pages/home/home",
     "pages/button/button",
     "pages/button/skyline/button",
@@ -146,7 +154,7 @@
     "t-navbar": "tdesign-miniprogram/navbar/navbar"
   },
   "window": {
-    "navigationBarTitleText": "TDesign",
+    "navigationBarTitleText": "向日葵湖景美宿",
     "navigationStyle": "custom",
     "navigationBarTextStyle": "@navTxtStyle"
   },

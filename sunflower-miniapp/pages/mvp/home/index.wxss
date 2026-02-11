@@ -1,0 +1,137 @@
+@import '../common.wxss';
+
+.hero-card {
+  background: linear-gradient(135deg, #2e7d32, #66bb6a);
+  border-radius: 28rpx;
+  padding: 30rpx;
+  color: #ffffff;
+  margin-bottom: 20rpx;
+}
+
+.hero-card__title {
+  font-size: 34rpx;
+  font-weight: 700;
+}
+
+.hero-card__desc {
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  opacity: 0.92;
+}
+
+.hero-card__actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 24rpx;
+}
+
+.banner-swiper {
+  height: 200rpx;
+}
+
+.banner-item {
+  height: 100%;
+  border-radius: 20rpx;
+  background: linear-gradient(120deg, #fef7e0, #ffe2b8);
+  padding: 22rpx;
+  box-sizing: border-box;
+}
+
+.banner-item__title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #7a4100;
+}
+
+.banner-item__subtitle {
+  margin-top: 10rpx;
+  color: #9a5b13;
+  font-size: 24rpx;
+}
+
+.banner-item__cta {
+  margin-top: 22rpx;
+  color: #bf360c;
+  font-size: 22rpx;
+}
+
+.service-card {
+  background: #f8fafc;
+  border-radius: 18rpx;
+  padding: 20rpx;
+}
+
+.service-card__name {
+  font-size: 26rpx;
+  color: #111827;
+  margin-top: 12rpx;
+  font-weight: 500;
+}
+
+.service-card__desc {
+  font-size: 22rpx;
+  color: #6b7280;
+  margin-top: 8rpx;
+}
+
+.room-card {
+  display: flex;
+  border-radius: 20rpx;
+  overflow: hidden;
+  background: #f8fafc;
+  margin-bottom: 16rpx;
+}
+
+.room-card:last-child {
+  margin-bottom: 0;
+}
+
+.room-card__image {
+  width: 210rpx;
+  height: 170rpx;
+  flex-shrink: 0;
+}
+
+.room-card__content {
+  flex: 1;
+  padding: 18rpx;
+}
+
+.room-card__name {
+  font-size: 28rpx;
+  color: #111827;
+  font-weight: 600;
+}
+
+.room-card__subtitle {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #6b7280;
+}
+
+.room-card__footer {
+  margin-top: 14rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.benefit-item {
+  display: flex;
+  align-items: center;
+  color: #374151;
+  font-size: 24rpx;
+  margin-bottom: 12rpx;
+}
+
+.benefit-item:last-child {
+  margin-bottom: 0;
+}
+
+.benefit-item__dot {
+  width: 10rpx;
+  height: 10rpx;
+  background: #2e7d32;
+  border-radius: 50%;
+  margin-right: 12rpx;
+}

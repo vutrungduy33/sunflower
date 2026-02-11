@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "我的",
+  "navigationStyle": "default",
+  "usingComponents": {
+    "mvp-tabbar": "/components/mvp-tabbar/index",
+    "t-button": "tdesign-miniprogram/button/button"
+  }
+}

@@ -1,8 +1,19 @@
 # MVP 原型页清单（小程序 + 后台）
 
 > 面向 Java/Spring + MySQL 的 MVP 范围，以 P0/P1 为主。
+> 前端实现同步：见 `docs/Miniapp-Frontend-MVP.md`（截至 2026-02-11）。
 
 ## 1) 小程序端（MVP）
+
+### 已落地页面映射（一期）
+- 首页：`pages/mvp/home/index`
+- 预订（房型列表）：`pages/mvp/booking/index`
+- 房型详情：`pages/mvp/room-detail/index`
+- 订单填写/确认：`pages/mvp/order-create/index`
+- 订单中心：`pages/mvp/order-list/index`
+- 地图：`pages/mvp/map/index`
+- 发现：`pages/mvp/discover/index`
+- 我的：`pages/mvp/mine/index`
 
 ### 1. 首页
 **主要区块**

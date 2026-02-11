@@ -20,6 +20,7 @@
 - `/Users/chenyao/dev/miniapp/sunflower/docs/README.md`：文档索引与开发概览
 - `/Users/chenyao/dev/miniapp/sunflower/docs/PRD.md`：需求规格与开发计划
 - `/Users/chenyao/dev/miniapp/sunflower/docs/Prototype.md`：MVP 原型页面清单
+- `/Users/chenyao/dev/miniapp/sunflower/docs/Miniapp-Frontend-MVP.md`：小程序前端一期 MVP 说明（页面/流程/API 映射）
 - `/Users/chenyao/dev/miniapp/sunflower/docs/IA.md`：信息架构（小程序 + 后台）
 - `/Users/chenyao/dev/miniapp/sunflower/docs/Flows.md`：关键业务流程与状态
 - `/Users/chenyao/dev/miniapp/sunflower/docs/API.md`：REST 接口清单
@@ -29,6 +30,11 @@
 - `/Users/chenyao/dev/miniapp/sunflower/docs/Analytics.md`：埋点与报表 SQL 模板
 - `/Users/chenyao/dev/miniapp/sunflower/docs/Backlog.md`：Sprint Backlog（MVP）
 - `/Users/chenyao/dev/miniapp/sunflower/docs/CI-CD.md`：GitHub Actions CI/CD
+
+## 4.1 当前研发进展（截至 2026-02-11）
+- 小程序一期 MVP 已落地于：`/Users/chenyao/dev/miniapp/sunflower/sunflower-miniapp/pages/mvp`
+- 已完成前端闭环：首页 → 预订 → 房型详情 → 填单 → 支付（模拟）→ 订单中心
+- 当前使用本地 mock + storage，后续按 `docs/API.md` 进行后端联调替换
 
 ## 5. 仓库结构（概览）
 ```

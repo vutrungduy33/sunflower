@@ -41,6 +41,7 @@
 ## 4. 文档索引
 - `docs/PRD.md`：需求规格与开发计划（范围、优先级、里程碑）
 - `docs/Prototype.md`：MVP 原型页面清单
+- `docs/Miniapp-Frontend-MVP.md`：小程序前端一期 MVP 设计与实现说明
 - `docs/IA.md`：信息架构（小程序 + 后台）
 - `docs/Flows.md`：关键业务流程与状态
 - `docs/API.md`：REST 接口清单
@@ -60,6 +61,7 @@
 │  ├─ README.md                   # 本文档
 │  ├─ PRD.md
 │  ├─ Prototype.md
+│  ├─ Miniapp-Frontend-MVP.md
 │  ├─ IA.md
 │  ├─ Flows.md
 │  ├─ API.md
@@ -84,7 +86,13 @@
 └─ docker-compose.yml             # 本地联调（MySQL + backend）
 ```
 
-## 6. 建议补齐（下一步）
-- 补充业务模块实现（auth/room/order/content）
+## 6. 当前进展（截至 2026-02-11）
+- 小程序一期 MVP 前端已落地：`pages/mvp/*`
+- 已完成链路：首页 → 预订 → 房型详情 → 填单 → 支付（模拟）→ 订单中心
+- 已完成能力：手机号绑定、订单状态流转（待支付/待入住/已完成/已取消）、地图与发现页浏览
+- 当前数据源为本地 mock + storage，后续可按 `docs/API.md` 逐步替换为真实接口
+
+## 7. 建议补齐（下一步）
+- 后端补充 auth/room/order/content 业务接口实现
 - 增加数据库建表脚本与初始化数据
-- 补充接口实现与联调说明
+- 按 `docs/Miniapp-Frontend-MVP.md` 的 API 映射进行前后端联调

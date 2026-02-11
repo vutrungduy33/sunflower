@@ -46,12 +46,18 @@
   "compileType": "miniprogram",
   "libVersion": "3.14.2",
   "appid": "wx190aa0fb0a719b6e",
-  "projectname": "TDesign",
+  "projectname": "sunflower-miniapp",
   "simulatorType": "wechat",
   "simulatorPluginLibVersion": {},
   "condition": {
     "miniprogram": {
       "list": [
+        {
+          "name": "mvp-home",
+          "pathName": "pages/mvp/home/index",
+          "query": "",
+          "scene": null
+        },
         {
           "name": "skyline-home",
           "pathName": "pages/home/home",

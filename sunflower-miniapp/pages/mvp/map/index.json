@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "泸沽湖地图",
+  "navigationStyle": "default",
+  "usingComponents": {
+    "mvp-tabbar": "/components/mvp-tabbar/index",
+    "t-button": "tdesign-miniprogram/button/button"
+  }
+}

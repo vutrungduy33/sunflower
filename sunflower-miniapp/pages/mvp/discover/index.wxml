@@ -1,0 +1,20 @@
+<view class="mvp-page">
+  <view class="mvp-section discover-header">
+    <view>
+      <view class="mvp-section__title">住客游记与点评</view>
+      <view class="mvp-muted">一期提供内容浏览，二期开放发布与互动</view>
+    </view>
+    <t-button size="small" theme="primary" bindtap="onPublish">发布游记</t-button>
+  </view>
+
+  <view class="mvp-section" wx:for="{{notes}}" wx:key="id">
+    <view class="note-title">{{item.title}}</view>
+    <view class="note-author">{{item.author}} · 👍 {{item.likes}}</view>
+    <view class="note-summary">{{item.summary}}</view>
+    <view class="note-tags">
+      <text class="mvp-tag" wx:for="{{item.tags}}" wx:key="*this">{{item}}</text>
+    </view>
+  </view>
+</view>
+
+<mvp-tabbar current="discover" />

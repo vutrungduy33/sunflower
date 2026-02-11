@@ -1,0 +1,82 @@
+.create-page {
+  min-height: 100vh;
+  background: #f5f7fa;
+  padding: 24rpx;
+  box-sizing: border-box;
+  padding-bottom: 64rpx;
+}
+
+.create-section {
+  background: #ffffff;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+}
+
+.section-title {
+  font-size: 30rpx;
+  color: #111827;
+  font-weight: 600;
+  margin-bottom: 16rpx;
+}
+
+.room-name {
+  font-size: 28rpx;
+  color: #111827;
+  font-weight: 500;
+  margin-bottom: 10rpx;
+}
+
+.mvp-muted {
+  color: #6b7280;
+  font-size: 22rpx;
+}
+
+.price-line {
+  margin-top: 12rpx;
+  color: #111827;
+  font-size: 26rpx;
+}
+
+.price-value {
+  color: #d32f2f;
+  font-size: 34rpx;
+  font-weight: 700;
+}
+
+.field {
+  margin-bottom: 16rpx;
+}
+
+.field:last-child {
+  margin-bottom: 0;
+}
+
+.field-label {
+  display: block;
+  color: #4b5563;
+  font-size: 22rpx;
+  margin-bottom: 8rpx;
+}
+
+.field-input {
+  height: 76rpx;
+  border-radius: 14rpx;
+  background: #f8fafc;
+  padding: 0 18rpx;
+  font-size: 24rpx;
+}
+
+.field-textarea {
+  width: 100%;
+  min-height: 140rpx;
+  border-radius: 14rpx;
+  background: #f8fafc;
+  padding: 16rpx 18rpx;
+  box-sizing: border-box;
+  font-size: 24rpx;
+}
+
+.submit-panel {
+  margin-top: 32rpx;
+}

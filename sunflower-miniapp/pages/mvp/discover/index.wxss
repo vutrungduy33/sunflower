@@ -1,0 +1,30 @@
+@import '../common.wxss';
+
+.discover-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.note-title {
+  font-size: 30rpx;
+  color: #111827;
+  font-weight: 600;
+}
+
+.note-author {
+  margin-top: 8rpx;
+  color: #6b7280;
+  font-size: 22rpx;
+}
+
+.note-summary {
+  margin-top: 14rpx;
+  color: #374151;
+  font-size: 24rpx;
+  line-height: 1.6;
+}
+
+.note-tags {
+  margin-top: 14rpx;
+}

@@ -1,0 +1,46 @@
+<view class="create-page" wx:if="{{room}}">
+  <view class="create-section">
+    <view class="section-title">房型信息</view>
+    <view class="room-name">{{room.name}}</view>
+    <view class="mvp-muted">{{checkInDate}} 至 {{checkOutDate}} · 共 {{nights}} 晚</view>
+    <view class="price-line">总价 <text class="price-value">¥{{totalAmount}}</text></view>
+  </view>
+
+  <view class="create-section">
+    <view class="section-title">入住信息</view>
+    <view class="field">
+      <text class="field-label">入住人姓名</text>
+      <input class="field-input" placeholder="请输入姓名" value="{{form.guestName}}" data-field="guestName" bindinput="onInput" />
+    </view>
+    <view class="field">
+      <text class="field-label">手机号</text>
+      <input
+        class="field-input"
+        type="number"
+        maxlength="11"
+        placeholder="用于入住联系"
+        value="{{form.guestPhone}}"
+        data-field="guestPhone"
+        bindinput="onInput"
+      />
+    </view>
+    <view class="field">
+      <text class="field-label">预计到店时间</text>
+      <input class="field-input" placeholder="例如 18:00" value="{{form.arrivalTime}}" data-field="arrivalTime" bindinput="onInput" />
+    </view>
+    <view class="field">
+      <text class="field-label">备注</text>
+      <textarea
+        class="field-textarea"
+        placeholder="可填写接驳需求、亲子用品需求等"
+        value="{{form.remark}}"
+        data-field="remark"
+        bindinput="onInput"
+      ></textarea>
+    </view>
+  </view>
+
+  <view class="submit-panel">
+    <t-button theme="primary" loading="{{submitting}}" block="true" bindtap="submitOrder">提交订单并支付</t-button>
+  </view>
+</view>

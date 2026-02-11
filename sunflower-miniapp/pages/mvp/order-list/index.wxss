@@ -1,0 +1,119 @@
+.order-page {
+  min-height: 100vh;
+  background: #f5f7fa;
+  padding: 20rpx;
+  box-sizing: border-box;
+}
+
+.status-scroll {
+  white-space: nowrap;
+  margin-bottom: 20rpx;
+}
+
+.status-list {
+  display: inline-flex;
+  gap: 12rpx;
+}
+
+.status-item {
+  min-width: 120rpx;
+  text-align: center;
+  height: 56rpx;
+  line-height: 56rpx;
+  padding: 0 16rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  color: #6b7280;
+  background: #e5e7eb;
+}
+
+.status-item--active {
+  color: #ffffff;
+  background: #2e7d32;
+}
+
+.order-card {
+  background: #ffffff;
+  border-radius: 20rpx;
+  padding: 22rpx;
+  margin-bottom: 16rpx;
+}
+
+.order-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.order-card__no {
+  color: #6b7280;
+  font-size: 22rpx;
+}
+
+.order-status {
+  font-size: 22rpx;
+  padding: 6rpx 12rpx;
+  border-radius: 999rpx;
+}
+
+.order-status--PENDING_PAYMENT {
+  color: #b45309;
+  background: #fef3c7;
+}
+
+.order-status--CONFIRMED {
+  color: #2e7d32;
+  background: #e8f5e9;
+}
+
+.order-status--COMPLETED {
+  color: #4b5563;
+  background: #f3f4f6;
+}
+
+.order-status--CANCELLED {
+  color: #7f1d1d;
+  background: #fee2e2;
+}
+
+.order-card__room {
+  margin-top: 12rpx;
+  font-size: 28rpx;
+  color: #111827;
+  font-weight: 600;
+}
+
+.order-card__meta {
+  margin-top: 8rpx;
+  color: #6b7280;
+  font-size: 23rpx;
+}
+
+.order-card__footer {
+  margin-top: 16rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.order-price {
+  color: #d32f2f;
+  font-size: 34rpx;
+  font-weight: 700;
+}
+
+.order-actions {
+  display: flex;
+  gap: 12rpx;
+}
+
+.empty {
+  min-height: 420rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  justify-content: center;
+  align-items: center;
+  color: #9ca3af;
+  font-size: 24rpx;
+}
