@@ -22,7 +22,7 @@ Spring Boot 单体后端基础工程。
 docker run --rm -it \
   -v "$PWD":/workspace \
   -w /workspace \
-  maven:3.9.9-eclipse-temurin-11 \
+  maven:3.9.6-eclipse-temurin-11 \
   mvn spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
@@ -31,7 +31,7 @@ docker run --rm -it \
 docker run --rm -it \
   -v "$PWD":/workspace \
   -w /workspace \
-  maven:3.9.9-eclipse-temurin-11 \
+  maven:3.9.6-eclipse-temurin-11 \
   mvn test
 ```
 
