@@ -32,7 +32,7 @@ services:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      DB_URL: jdbc:mysql://mysql:3306/sunflower?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+      DB_URL: jdbc:mysql://mysql:3306/sunflower?useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
       DB_USERNAME: sunflower
       DB_PASSWORD: sunflower
     ports:

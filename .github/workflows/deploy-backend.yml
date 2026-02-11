@@ -58,6 +58,7 @@ jobs:
               fi
               sleep 3
             done
-
+            
             echo "Backend health check failed."
+            docker logs --tail 200 sunflower-backend || true
             exit 1
