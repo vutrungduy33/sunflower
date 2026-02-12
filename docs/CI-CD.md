@@ -1,20 +1,68 @@
-# GitHub Actions CI/CD（阿里云 ECS）
+# GitHub Actions CI/CD
 
-## 1) 工作流说明
+## 1. 工作流总览
+
+当前包含两个工作流：
+
+1. `pr-stage-gate.yml`：PR 门禁（质量检查）
+2. `deploy-backend.yml`：主分支后端部署到 ECS
+
+---
+
+## 2. PR 门禁（强制）
+
+工作流路径：`.github/workflows/pr-stage-gate.yml`
+
+触发条件：
+
+- `pull_request`（opened / synchronize / reopened / ready_for_review / edited）
+- 草稿 PR（draft）不会执行门禁
+
+门禁项：
+
+1. 分支命名规范检查  
+   - 必须匹配：`codex/s<stage>-<slug>`  
+   - 示例：`codex/s1-db-migration`
+
+2. 提交信息规范检查  
+   - PR 内所有 commit subject 必须以前缀 `[Sx]` 开头  
+   - 示例：`[S1] add flyway baseline migration`
+
+3. Stage Guard 检查  
+   - `make stage-pre STAGE=Sx`
+   - `make stage-post STAGE=Sx`
+
+4. 自动化测试  
+   - `cd sunflower-backend && mvn -B test`
+
+5. API 契约同步提醒（非阻塞）  
+   - 若后端 `Controller/DTO` 变更但未同步小程序 API 调用或 API 文档，工作流给出 warning
+
+说明：
+
+- PR 必须通过以上门禁才能合并（需在仓库分支保护规则中把该 workflow 设为 Required）。
+
+---
+
+## 3. 部署流程（ECS）
 
 工作流路径：`.github/workflows/deploy-backend.yml`
 
 触发条件：
+
 - push 到 `main`
 - 且变更命中 `sunflower-backend/**` 或 `docker-compose.yml`
 
 执行流程：
+
 1. GitHub Actions 通过 SSH 连接 ECS
 2. 在 ECS 的部署目录拉取最新代码
 3. 执行 `docker compose up -d --build backend`
 4. 对 `http://127.0.0.1:8080/api/health` 做健康检查
 
-## 2) 必要 Secrets
+---
+
+## 4. 必要 Secrets（部署）
 
 在 GitHub 仓库 `Settings -> Secrets and variables -> Actions` 添加：
 
@@ -24,28 +72,11 @@
 - `ECS_SSH_KEY`：登录 ECS 的私钥内容
 - `DEPLOY_PATH`：服务器部署目录（例如 `/opt/sunflower`）
 
-## 3) 服务器侧准备
+---
 
-首次在 ECS 执行：
+## 5. 本地对应命令
 
-```bash
-curl -fsSL https://get.docker.com | sh
-systemctl enable --now docker
-
-mkdir -p /opt/sunflower
-cd /opt/sunflower
-git clone https://github.com/vutrungduy33/sunflower.git .
-docker compose up -d --build
-```
-
-## 4) 验证
-
-1. 提交并推送后端代码到 `main`
-2. 在 GitHub Actions 查看 `Deploy Backend To ECS` 任务
-3. 任务成功后，访问 ECS 的 `8080` 端口或 Nginx 反向代理地址
-
-## 5) 可选增强
-
-- 在 ECS 上接 Nginx + HTTPS（80/443）
-- 为 Actions 增加手动触发 `workflow_dispatch`
-- 部署前自动备份旧镜像并支持回滚
+- Stage 前检查：`make stage-pre STAGE=Sx`
+- Stage 后检查：`make stage-post STAGE=Sx`
+- 分支/提交规范检查：`make convention-check BRANCH=codex/s1-xxx BASE_SHA=<base> HEAD_SHA=<head>`
+- API 契约提醒检查：`make api-contract-check RANGE=main..HEAD`
