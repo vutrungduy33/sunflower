@@ -4,6 +4,16 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MVP_PAGES_DIR="$ROOT_DIR/sunflower-miniapp/pages/mvp"
 
+has_match() {
+  local pattern="$1"
+  local file="$2"
+  if command -v rg >/dev/null 2>&1; then
+    rg -q -- "$pattern" "$file"
+  else
+    grep -Eq -- "$pattern" "$file"
+  fi
+}
+
 if [[ ! -d "$MVP_PAGES_DIR" ]]; then
   echo "[mvp-nav-guard] INFO: mvp pages directory not found, skip"
   exit 0
@@ -12,11 +22,11 @@ fi
 missing_pages=()
 
 while IFS= read -r page_wxml; do
-  if rg -q "<mvp-tabbar" "$page_wxml"; then
+  if has_match "<mvp-tabbar" "$page_wxml"; then
     continue
   fi
 
-  if rg -q "<mvp-nav-actions" "$page_wxml"; then
+  if has_match "<mvp-nav-actions" "$page_wxml"; then
     continue
   fi
 
