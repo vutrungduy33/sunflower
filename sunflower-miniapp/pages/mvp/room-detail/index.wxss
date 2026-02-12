@@ -4,6 +4,10 @@
   padding-bottom: 160rpx;
 }
 
+.detail-nav {
+  padding: 20rpx 20rpx 0;
+}
+
 .room-cover {
   width: 100%;
   height: 420rpx;
@@ -165,4 +169,15 @@
 .action-sub {
   font-size: 22rpx;
   color: #6b7280;
+}
+
+.mvp-empty {
+  min-height: 420rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 24rpx;
+  padding: 0 40rpx;
 }

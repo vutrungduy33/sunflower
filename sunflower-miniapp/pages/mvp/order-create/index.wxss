@@ -80,3 +80,14 @@
 .submit-panel {
   margin-top: 32rpx;
 }
+
+.mvp-empty {
+  min-height: 320rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 24rpx;
+  padding: 0 40rpx;
+}

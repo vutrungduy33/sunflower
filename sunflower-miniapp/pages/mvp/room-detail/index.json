@@ -2,6 +2,7 @@
   "navigationBarTitleText": "房型详情",
   "navigationStyle": "default",
   "usingComponents": {
+    "mvp-nav-actions": "/components/mvp-nav-actions/index",
     "t-button": "tdesign-miniprogram/button/button",
     "t-icon": "tdesign-miniprogram/icon/icon"
   }

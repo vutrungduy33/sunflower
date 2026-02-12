@@ -1,6 +1,7 @@
 const { getDefaultBookingDate } = require('./date');
 
 const STORAGE_KEY_API_BASE_URL = 'SUNFLOWER_API_BASE_URL';
+const STORAGE_KEY_AUTH_TOKEN = 'SUNFLOWER_AUTH_TOKEN';
 const DEFAULT_API_BASE_URL = 'http://8.155.148.126';
 
 function safeGetApp() {
@@ -32,6 +33,26 @@ function setApiBaseUrl(baseUrl) {
   return value;
 }
 
+function getAuthToken() {
+  return `${wx.getStorageSync(STORAGE_KEY_AUTH_TOKEN) || ''}`.trim();
+}
+
+function setAuthToken(token) {
+  const normalized = `${token || ''}`.trim();
+  if (!normalized) {
+    return;
+  }
+  wx.setStorageSync(STORAGE_KEY_AUTH_TOKEN, normalized);
+}
+
+function clearAuthToken() {
+  try {
+    wx.removeStorageSync(STORAGE_KEY_AUTH_TOKEN);
+  } catch (error) {
+    // Ignore cleanup failures to avoid masking the original request error.
+  }
+}
+
 function buildUrl(path) {
   if (!path.startsWith('/')) {
     throw new Error(`非法 API 路径: ${path}`);
@@ -41,6 +62,7 @@ function buildUrl(path) {
 
 function request(path, options = {}) {
   return new Promise((resolve, reject) => {
+    const authToken = getAuthToken();
     wx.request({
       url: buildUrl(path),
       method: options.method || 'GET',
@@ -48,10 +70,17 @@ function request(path, options = {}) {
       timeout: options.timeout || 12000,
       header: {
         'content-type': 'application/json',
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
         ...(options.header || {}),
       },
       success(response) {
         const { statusCode, data } = response;
+        if (statusCode === 401) {
+          clearAuthToken();
+          reject(new Error('登录态已失效，请重新进入首页'));
+          return;
+        }
+
         if (statusCode < 200 || statusCode >= 300) {
           reject(new Error((data && data.message) || `请求失败(${statusCode})`));
           return;
@@ -59,6 +88,9 @@ function request(path, options = {}) {
 
         if (data && typeof data.code === 'number') {
           if (data.code !== 0) {
+            if (data.code === 401) {
+              clearAuthToken();
+            }
             reject(new Error(data.message || '请求失败'));
             return;
           }
@@ -88,12 +120,16 @@ function withQuery(params = {}) {
 }
 
 async function wechatLogin(code) {
-  return request('/api/auth/wechat/login', {
+  const loginData = await request('/api/auth/wechat/login', {
     method: 'POST',
     data: {
       code: `${code || 'anonymous'}`,
     },
   });
+  if (loginData && loginData.token) {
+    setAuthToken(loginData.token);
+  }
+  return loginData;
 }
 
 async function fetchHomeData() {

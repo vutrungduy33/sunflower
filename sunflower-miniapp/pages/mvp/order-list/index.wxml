@@ -1,4 +1,6 @@
 <view class="order-page">
+  <mvp-nav-actions />
+
   <scroll-view class="status-scroll" scroll-x="true">
     <view class="status-list">
       <view

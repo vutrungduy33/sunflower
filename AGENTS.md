@@ -35,6 +35,20 @@ These rules apply to all coding tasks in this repository.
    - Branch naming must follow `codex/s<stage>-<slug>` (example: `codex/s1-db-migration`).
    - Commit subject must start with stage prefix (example: `[S1] add flyway baseline`).
 
+## Frontend component policy (mandatory)
+
+1. Prefer TDesign components:
+   - In miniapp frontend work, prioritize official `tdesign-miniprogram` components and patterns.
+
+2. Minimize new custom components:
+   - Do not introduce new custom components unless there is a clear functional gap that TDesign cannot cover.
+
+3. Ask before introducing new components:
+   - Before adding any new custom component, explicitly ask for user confirmation and explain why TDesign is insufficient for this case.
+
+4. Keep custom components thin when approved:
+   - If a custom component is approved, keep it focused on business behavior/composition and reuse TDesign primitives for UI as much as possible.
+
 ## Stage report format
 
 Use `/Users/chenyao/dev/miniapp/sunflower/docs/stage-reports/_TEMPLATE.md` and keep all required headings.
