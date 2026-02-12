@@ -1,8 +1,7 @@
 const { getDefaultBookingDate } = require('./date');
 
 const STORAGE_KEY_API_BASE_URL = 'SUNFLOWER_API_BASE_URL';
-const STORAGE_KEY_AUTH_TOKEN = 'mock_token';
-const LEGACY_STORAGE_KEY_AUTH_TOKEN = 'SUNFLOWER_AUTH_TOKEN';
+const STORAGE_KEY_AUTH_TOKEN = 'SUNFLOWER_AUTH_TOKEN';
 const DEFAULT_API_BASE_URL = 'http://8.155.148.126';
 const AUTH_EXPIRED_MESSAGE = '登录态已失效，请重新进入首页';
 
@@ -45,17 +44,11 @@ function setAuthToken(token) {
     return;
   }
   wx.setStorageSync(STORAGE_KEY_AUTH_TOKEN, normalized);
-  try {
-    wx.removeStorageSync(LEGACY_STORAGE_KEY_AUTH_TOKEN);
-  } catch (error) {
-    // Ignore legacy key cleanup failure.
-  }
 }
 
 function clearAuthToken() {
   try {
     wx.removeStorageSync(STORAGE_KEY_AUTH_TOKEN);
-    wx.removeStorageSync(LEGACY_STORAGE_KEY_AUTH_TOKEN);
   } catch (error) {
     // Ignore cleanup failures to avoid masking the original request error.
   }
