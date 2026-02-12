@@ -34,7 +34,9 @@
 ## 4.1 当前研发进展（截至 2026-02-11）
 - 小程序一期 MVP 已落地于：`/Users/chenyao/dev/miniapp/sunflower/sunflower-miniapp/pages/mvp`
 - 已完成前端闭环：首页 → 预订 → 房型详情 → 填单 → 支付（模拟）→ 订单中心
-- 当前使用本地 mock + storage，后续按 `docs/API.md` 进行后端联调替换
+- 后端一期 API 已落地于：`/Users/chenyao/dev/miniapp/sunflower/sunflower-backend`
+- 当前可联调接口已覆盖：登录、用户资料、房型、价格日历、订单主链路、POI、游记读取
+- 现阶段后端数据源为内存种子数据（重启会重置），下一步切换 MySQL 持久化
 
 ## 5. 仓库结构（概览）
 ```

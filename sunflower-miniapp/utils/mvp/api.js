@@ -1,139 +1,179 @@
-const {
-  homeBanners,
-  memberBenefits,
-  poiList,
-  roomList,
-  serviceEntries,
-  travelNotes,
-  getPriceCalendar,
-  getRoomById,
-} = require('./mock');
 const { getDefaultBookingDate } = require('./date');
-const {
-  bindPhone,
-  cancelOrder,
-  createOrder,
-  getOrderById,
-  getOrders,
-  getProfile,
-  payOrder,
-  seedDemoData,
-  updateProfile,
-} = require('./store');
 
-seedDemoData();
+const STORAGE_KEY_API_BASE_URL = 'SUNFLOWER_API_BASE_URL';
+const DEFAULT_API_BASE_URL = 'http://8.155.148.126';
 
-function requestDelay(ms = 150) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
+function safeGetApp() {
+  try {
+    return getApp();
+  } catch (error) {
+    return null;
+  }
+}
+
+function getApiBaseUrl() {
+  const app = safeGetApp();
+  const appBaseUrl = app && app.globalData ? app.globalData.apiBaseUrl : '';
+  const storageBaseUrl = wx.getStorageSync(STORAGE_KEY_API_BASE_URL);
+  const value = `${storageBaseUrl || appBaseUrl || DEFAULT_API_BASE_URL}`.trim();
+  return value.replace(/\/+$/, '');
+}
+
+function setApiBaseUrl(baseUrl) {
+  const value = `${baseUrl || ''}`.trim().replace(/\/+$/, '');
+  if (!value) {
+    throw new Error('API 地址不能为空');
+  }
+  wx.setStorageSync(STORAGE_KEY_API_BASE_URL, value);
+  const app = safeGetApp();
+  if (app && app.globalData) {
+    app.globalData.apiBaseUrl = value;
+  }
+  return value;
+}
+
+function buildUrl(path) {
+  if (!path.startsWith('/')) {
+    throw new Error(`非法 API 路径: ${path}`);
+  }
+  return `${getApiBaseUrl()}${path}`;
+}
+
+function request(path, options = {}) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: buildUrl(path),
+      method: options.method || 'GET',
+      data: options.data,
+      timeout: options.timeout || 12000,
+      header: {
+        'content-type': 'application/json',
+        ...(options.header || {}),
+      },
+      success(response) {
+        const { statusCode, data } = response;
+        if (statusCode < 200 || statusCode >= 300) {
+          reject(new Error((data && data.message) || `请求失败(${statusCode})`));
+          return;
+        }
+
+        if (data && typeof data.code === 'number') {
+          if (data.code !== 0) {
+            reject(new Error(data.message || '请求失败'));
+            return;
+          }
+          resolve(data.data);
+          return;
+        }
+
+        resolve(data);
+      },
+      fail(error) {
+        reject(new Error((error && error.errMsg) || '网络异常，请检查后端服务'));
+      },
+    });
   });
 }
 
-function toRoomCard(room, checkInDate) {
-  const calendar = getPriceCalendar(room.id, checkInDate);
-  const todayPrice = calendar[0] ? calendar[0].price : room.basePrice;
-  return {
-    ...room,
-    todayPrice,
-    stock: calendar[0] ? calendar[0].stock : 0,
-  };
+function withQuery(params = {}) {
+  const query = {};
+  Object.keys(params).forEach((key) => {
+    const value = params[key];
+    if (value === undefined || value === null || `${value}`.trim() === '') {
+      return;
+    }
+    query[key] = value;
+  });
+  return query;
 }
 
 async function wechatLogin(code) {
-  await requestDelay();
-  const profile = getProfile();
-  return {
-    token: `mock_token_${Date.now()}`,
-    openId: `mock_openid_${code || 'anonymous'}`,
-    profile,
-  };
+  return request('/api/auth/wechat/login', {
+    method: 'POST',
+    data: {
+      code: `${code || 'anonymous'}`,
+    },
+  });
 }
 
 async function fetchHomeData() {
-  await requestDelay();
   const { checkIn } = getDefaultBookingDate();
-  return {
-    banners: homeBanners,
-    services: serviceEntries,
-    featuredRooms: roomList.slice(0, 2).map((room) => toRoomCard(room, checkIn)),
-    memberBenefits,
-  };
+  return request('/api/content/home', {
+    data: {
+      checkInDate: checkIn,
+    },
+  });
 }
 
 async function fetchRooms(params = {}) {
-  await requestDelay();
-  const checkInDate = params.checkInDate;
-  const keyword = `${params.keyword || ''}`.trim();
-  return roomList
-    .filter((room) => {
-      if (!keyword) {
-        return true;
-      }
-      return room.name.includes(keyword) || room.subtitle.includes(keyword) || room.scenicType.includes(keyword);
-    })
-    .map((room) => toRoomCard(room, checkInDate));
+  return request('/api/rooms', {
+    data: withQuery({
+      checkInDate: params.checkInDate,
+      keyword: params.keyword,
+    }),
+  });
 }
 
 async function fetchRoomDetail(roomId, checkInDate) {
-  await requestDelay();
-  const room = getRoomById(roomId);
-  if (!room) {
-    throw new Error('房型不存在');
-  }
-  return {
-    ...room,
-    calendar: getPriceCalendar(room.id, checkInDate),
-  };
+  return request(`/api/rooms/${roomId}`, {
+    data: withQuery({ checkInDate }),
+  });
 }
 
 async function fetchPoiList() {
-  await requestDelay();
-  return poiList;
+  return request('/api/poi');
 }
 
 async function fetchTravelNotes() {
-  await requestDelay();
-  return travelNotes;
+  return request('/api/posts');
 }
 
 async function fetchProfile() {
-  await requestDelay();
-  return getProfile();
+  return request('/api/users/me');
 }
 
 async function patchProfile(payload) {
-  await requestDelay();
-  return updateProfile(payload);
+  return request('/api/users/me', {
+    method: 'PATCH',
+    data: payload,
+  });
 }
 
 async function postBindPhone(phone) {
-  await requestDelay();
-  return bindPhone(phone);
+  return request('/api/auth/bind-phone', {
+    method: 'POST',
+    data: {
+      phone,
+    },
+  });
 }
 
 async function postCreateOrder(payload) {
-  await requestDelay();
-  return createOrder(payload);
+  return request('/api/orders', {
+    method: 'POST',
+    data: payload,
+  });
 }
 
 async function postPayOrder(orderId) {
-  await requestDelay();
-  return payOrder(orderId);
+  return request(`/api/orders/${orderId}/pay`, {
+    method: 'POST',
+  });
 }
 
 async function fetchOrders() {
-  await requestDelay();
-  return getOrders();
+  return request('/api/orders');
 }
 
 async function fetchOrderDetail(orderId) {
-  await requestDelay();
-  return getOrderById(orderId);
+  return request(`/api/orders/${orderId}`);
 }
 
-async function postCancelOrder(orderId) {
-  await requestDelay();
-  return cancelOrder(orderId);
+async function postCancelOrder(orderId, reason = '') {
+  return request(`/api/orders/${orderId}/cancel`, {
+    method: 'POST',
+    data: reason ? { reason } : {},
+  });
 }
 
 module.exports = {
@@ -150,5 +190,6 @@ module.exports = {
   postCancelOrder,
   postCreateOrder,
   postPayOrder,
+  setApiBaseUrl,
   wechatLogin,
 };

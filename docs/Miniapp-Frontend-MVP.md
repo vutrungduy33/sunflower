@@ -14,7 +14,7 @@
 - 首页基础内容与服务入口
 - 地图 POI 浏览、发现内容浏览
 
-说明：一期为前端业务骨架，数据层使用本地 mock + storage，便于并行开发与后续接口联调。
+说明：一期为前端业务骨架，页面层已切换到真实后端 API；`mock/store` 作为历史数据与回归参考保留。
 
 ## 2. 工程落地结构
 
@@ -23,7 +23,7 @@
 新增目录：
 - `pages/mvp/*`：一期业务页面
 - `components/mvp-tabbar`：底部 5 导航组件
-- `utils/mvp/*`：前端数据层（mock / store / api / tracker）
+- `utils/mvp/*`：前端数据层（api / tracker 为当前使用；mock / store 为历史保留）
 
 ## 3. 页面路由清单（已实现）
 
@@ -65,36 +65,40 @@
   - 订单创建/支付/取消状态流转
 
 - `utils/mvp/api.js`
-  - 统一“伪 API”层，页面不直接读写 storage
-  - 便于后续无痛切换真实后端接口
+  - 统一 API 层，页面不直接读写 storage
+  - 2026-02-11 起已切换为真实后端 `wx.request` 调用
 
 - `utils/mvp/tracker.js`
   - MVP 埋点记录：`wx_login_success`、`bind_phone_success`、`room_view`、`order_create`、`order_pay_success`
 
-## 6. 与后端 API 映射（联调目标）
+## 6. 与后端 API 映射（联调状态）
 
-| 前端方法（当前） | 目标后端接口（后续） |
-|---|---|
-| `wechatLogin` | `POST /api/auth/wechat/login` |
-| `postBindPhone` | `POST /api/auth/bind-phone` |
-| `fetchProfile` / `patchProfile` | `GET/PATCH /api/users/me` |
-| `fetchRooms` | `GET /api/rooms` |
-| `fetchRoomDetail` | `GET /api/rooms/{id}` + `GET /api/rooms/{id}/calendar` |
-| `postCreateOrder` | `POST /api/orders` |
-| `postPayOrder` | `POST /api/orders/{id}/pay` |
-| `fetchOrders` | `GET /api/orders` |
-| `postCancelOrder` | `POST /api/orders/{id}/cancel` |
-| `fetchPoiList` | `GET /api/poi` |
-| `fetchTravelNotes` | `GET /api/posts` |
+| 前端方法（当前） | 后端接口 | 状态 |
+|---|---|---|
+| `wechatLogin` | `POST /api/auth/wechat/login` | 已实现 |
+| `postBindPhone` | `POST /api/auth/bind-phone` | 已实现 |
+| `fetchProfile` / `patchProfile` | `GET/PATCH /api/users/me` | 已实现 |
+| `fetchHomeData` | `GET /api/content/home` | 已实现 |
+| `fetchRooms` | `GET /api/rooms` | 已实现 |
+| `fetchRoomDetail` | `GET /api/rooms/{id}` + `GET /api/rooms/{id}/calendar` | 已实现 |
+| `postCreateOrder` | `POST /api/orders` | 已实现 |
+| `postPayOrder` | `POST /api/orders/{id}/pay` | 已实现 |
+| `fetchOrders` | `GET /api/orders` | 已实现 |
+| `postCancelOrder` | `POST /api/orders/{id}/cancel` | 已实现 |
+| `fetchPoiList` | `GET /api/poi` | 已实现 |
+| `fetchTravelNotes` | `GET /api/posts` | 已实现 |
 
-## 7. 联调切换建议
+## 7. 联调切换结果（已完成）
 
-当后端接口可用后，只需要在 `utils/mvp/api.js` 中替换实现：
-- 保持方法签名不变
-- 将本地 mock 改为 `wx.request`
-- 保留 `store` 仅做轻量缓存（非事实源）
+`utils/mvp/api.js` 已完成 mock -> real 切换：
+- 保持页面层方法签名不变
+- 使用 `wx.request` 对接 `sunflower-backend`
+- `mock/store` 不再作为事实源
 
-这样可避免页面层大面积改动。
+当前联调配置：
+- 默认后端地址：`http://8.155.148.126`（Nginx 80 反向代理到后端 8080）
+- 支持 `SUNFLOWER_API_BASE_URL` 动态覆盖
+- 后端一期接口为内存种子数据模式（服务重启会重置）
 
 ## 8. 当前边界与下阶段
 
@@ -106,7 +110,7 @@
 - 真正微信支付与退款
 
 二期建议优先：
-1. 接后端真实登录/房型/订单接口
+1. 将后端联调数据从内存种子切换到 MySQL 持久化
 2. 接入微信支付与退款状态机
 3. 完成服务订单（接驳/猪槽船）
 4. 补齐优惠券与会员权益
