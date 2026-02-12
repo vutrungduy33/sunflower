@@ -43,7 +43,7 @@ Page({
         tagsText: profile.tags.join(' / '),
       });
     } catch (error) {
-      wx.showToast({ title: '个人页加载失败', icon: 'none' });
+      wx.showToast({ title: error.message || '个人页加载失败', icon: 'none' });
     } finally {
       this.setData({ loading: false });
     }
@@ -68,7 +68,7 @@ Page({
       this.setData({ profile, tagsText: profile.tags.join(' / ') });
       wx.showToast({ title: '昵称已更新', icon: 'success' });
     } catch (error) {
-      wx.showToast({ title: '更新失败', icon: 'none' });
+      wx.showToast({ title: error.message || '更新失败', icon: 'none' });
     }
   },
 
@@ -85,7 +85,7 @@ Page({
       track('bind_phone_success', { source: 'mine' });
       wx.showToast({ title: '绑定成功', icon: 'success' });
     } catch (error) {
-      wx.showToast({ title: '绑定失败', icon: 'none' });
+      wx.showToast({ title: error.message || '绑定失败', icon: 'none' });
     }
   },
 
