@@ -29,6 +29,13 @@ jobs:
       - name: Stage pre-check
         run: make stage-pre STAGE=${{ steps.conventions.outputs.stage }}
 
+      - name: Install ripgrep
+        run: |
+          if ! command -v rg >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y ripgrep
+          fi
+
       - name: Miniapp subpage navigation guard
         run: ./scripts/check_mvp_subpage_nav.sh
 
