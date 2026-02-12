@@ -9,22 +9,21 @@ public class ProfileDto {
     private String nickName;
     private String phone;
     private List<String> tags;
-    @JsonProperty("isPhoneBound")
-    private boolean isPhoneBound;
+    private boolean phoneBound;
 
     public ProfileDto() {
         this.tags = new ArrayList<>();
     }
 
-    public ProfileDto(String nickName, String phone, List<String> tags, boolean isPhoneBound) {
+    public ProfileDto(String nickName, String phone, List<String> tags, boolean phoneBound) {
         this.nickName = nickName;
         this.phone = phone;
         this.tags = new ArrayList<>(tags);
-        this.isPhoneBound = isPhoneBound;
+        this.phoneBound = phoneBound;
     }
 
     public ProfileDto copy() {
-        return new ProfileDto(this.nickName, this.phone, this.tags, this.isPhoneBound);
+        return new ProfileDto(this.nickName, this.phone, this.tags, this.phoneBound);
     }
 
     public String getNickName() {
@@ -51,11 +50,12 @@ public class ProfileDto {
         this.tags = new ArrayList<>(tags);
     }
 
+    @JsonProperty("isPhoneBound")
     public boolean isPhoneBound() {
-        return isPhoneBound;
+        return phoneBound;
     }
 
     public void setPhoneBound(boolean phoneBound) {
-        isPhoneBound = phoneBound;
+        this.phoneBound = phoneBound;
     }
 }
