@@ -28,6 +28,16 @@ warn() {
   echo "[stage-guard] WARN: $*" >&2
 }
 
+has_match() {
+  local pattern="$1"
+  local file="$2"
+  if command -v rg >/dev/null 2>&1; then
+    rg -q -- "$pattern" "$file"
+  else
+    grep -Eq -- "$pattern" "$file"
+  fi
+}
+
 mode="${1:-}"
 stage="${2:-}"
 
@@ -52,23 +62,25 @@ if [[ ! -f "$BACKLOG_FILE" ]]; then
   fail "missing backlog file: $BACKLOG_FILE"
 fi
 
-if ! rg -q "^### ${stage}\\b" "$PLAN_FILE"; then
+stage_boundary="([^[:alnum:]_]|$)"
+
+if ! has_match "^###[[:space:]]+${stage}${stage_boundary}" "$PLAN_FILE"; then
   fail "${stage} not found in docs/Agent-Stage-Plan.md"
 fi
 
-if ! rg -q "^- \\[( |x)\\] ${stage}\\b" "$BACKLOG_FILE"; then
+if ! has_match "^- \\[( |x)\\][[:space:]]+${stage}${stage_boundary}" "$BACKLOG_FILE"; then
   fail "${stage} not found in docs/Backlog.md status list"
 fi
 
 if [[ "$mode" == "pre" ]]; then
-  if rg -q "^- \\[x\\] ${stage}\\b" "$BACKLOG_FILE"; then
+  if has_match "^- \\[x\\][[:space:]]+${stage}${stage_boundary}" "$BACKLOG_FILE"; then
     warn "${stage} is already marked complete in docs/Backlog.md"
   fi
   echo "[stage-guard] PRE-CHECK PASS for ${stage}"
   exit 0
 fi
 
-if ! rg -q "^- \\[x\\] ${stage}\\b" "$BACKLOG_FILE"; then
+if ! has_match "^- \\[x\\][[:space:]]+${stage}${stage_boundary}" "$BACKLOG_FILE"; then
   fail "${stage} must be marked [x] in docs/Backlog.md for post-check"
 fi
 
@@ -88,12 +100,12 @@ required_headers=(
 )
 
 for header in "${required_headers[@]}"; do
-  if ! rg -q "^${header}$" "$report_file"; then
+  if ! has_match "^${header}$" "$report_file"; then
     fail "stage report missing required heading '${header}'"
   fi
 done
 
-if ! rg -q "^- \\[x\\] " "$report_file"; then
+if ! has_match "^- \\[x\\] " "$report_file"; then
   fail "stage report must include at least one checked item '- [x]' (DoD evidence)"
 fi
 

@@ -23,6 +23,15 @@ warn_msg() {
   fi
 }
 
+stdin_has_match() {
+  local pattern="$1"
+  if command -v rg >/dev/null 2>&1; then
+    rg -q -- "$pattern"
+  else
+    grep -Eq -- "$pattern"
+  fi
+}
+
 strict=0
 range=""
 
@@ -72,11 +81,11 @@ fi
 backend_contract_touched=0
 sync_touched=0
 
-if echo "$changed_files" | rg -q "^sunflower-backend/src/main/java/.*/.*Controller\\.java$|^sunflower-backend/src/main/java/.*/dto/"; then
+if echo "$changed_files" | stdin_has_match "^sunflower-backend/src/main/java/.*/.*Controller\\.java$|^sunflower-backend/src/main/java/.*/dto/"; then
   backend_contract_touched=1
 fi
 
-if echo "$changed_files" | rg -q "^sunflower-miniapp/utils/mvp/api\\.js$|^docs/API\\.md$|^docs/API-Schemas\\.md$"; then
+if echo "$changed_files" | stdin_has_match "^sunflower-miniapp/utils/mvp/api\\.js$|^docs/API\\.md$|^docs/API-Schemas\\.md$"; then
   sync_touched=1
 fi
 
