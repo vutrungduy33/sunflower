@@ -3,6 +3,7 @@ const { getDefaultBookingDate } = require('./date');
 const STORAGE_KEY_API_BASE_URL = 'SUNFLOWER_API_BASE_URL';
 const STORAGE_KEY_AUTH_TOKEN = 'SUNFLOWER_AUTH_TOKEN';
 const DEFAULT_API_BASE_URL = 'http://8.155.148.126';
+const AUTH_EXPIRED_MESSAGE = '登录态已失效，请重新进入首页';
 
 function safeGetApp() {
   try {
@@ -63,6 +64,11 @@ function buildUrl(path) {
 function request(path, options = {}) {
   return new Promise((resolve, reject) => {
     const authToken = getAuthToken();
+    if (options.requireAuth && !authToken) {
+      reject(new Error(AUTH_EXPIRED_MESSAGE));
+      return;
+    }
+
     wx.request({
       url: buildUrl(path),
       method: options.method || 'GET',
@@ -77,7 +83,7 @@ function request(path, options = {}) {
         const { statusCode, data } = response;
         if (statusCode === 401) {
           clearAuthToken();
-          reject(new Error('登录态已失效，请重新进入首页'));
+          reject(new Error(AUTH_EXPIRED_MESSAGE));
           return;
         }
 
@@ -90,6 +96,8 @@ function request(path, options = {}) {
           if (data.code !== 0) {
             if (data.code === 401) {
               clearAuthToken();
+              reject(new Error(AUTH_EXPIRED_MESSAGE));
+              return;
             }
             reject(new Error(data.message || '请求失败'));
             return;
@@ -165,12 +173,15 @@ async function fetchTravelNotes() {
 }
 
 async function fetchProfile() {
-  return request('/api/users/me');
+  return request('/api/users/me', {
+    requireAuth: true,
+  });
 }
 
 async function patchProfile(payload) {
   return request('/api/users/me', {
     method: 'PATCH',
+    requireAuth: true,
     data: payload,
   });
 }
@@ -178,6 +189,7 @@ async function patchProfile(payload) {
 async function postBindPhone(phone) {
   return request('/api/auth/bind-phone', {
     method: 'POST',
+    requireAuth: true,
     data: {
       phone,
     },
@@ -187,6 +199,7 @@ async function postBindPhone(phone) {
 async function postCreateOrder(payload) {
   return request('/api/orders', {
     method: 'POST',
+    requireAuth: true,
     data: payload,
   });
 }
@@ -194,20 +207,26 @@ async function postCreateOrder(payload) {
 async function postPayOrder(orderId) {
   return request(`/api/orders/${orderId}/pay`, {
     method: 'POST',
+    requireAuth: true,
   });
 }
 
 async function fetchOrders() {
-  return request('/api/orders');
+  return request('/api/orders', {
+    requireAuth: true,
+  });
 }
 
 async function fetchOrderDetail(orderId) {
-  return request(`/api/orders/${orderId}`);
+  return request(`/api/orders/${orderId}`, {
+    requireAuth: true,
+  });
 }
 
 async function postCancelOrder(orderId, reason = '') {
   return request(`/api/orders/${orderId}/cancel`, {
     method: 'POST',
+    requireAuth: true,
     data: reason ? { reason } : {},
   });
 }

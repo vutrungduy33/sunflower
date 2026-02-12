@@ -28,7 +28,7 @@ Page({
         this.applyFilter();
       });
     } catch (error) {
-      wx.showToast({ title: '订单加载失败', icon: 'none' });
+      wx.showToast({ title: error.message || '订单加载失败', icon: 'none' });
     } finally {
       this.setData({ loading: false });
     }

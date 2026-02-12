@@ -15,8 +15,22 @@ Component({
   },
 
   methods: {
+    normalizeRoute(route) {
+      if (!route) {
+        return '';
+      }
+      return route.startsWith('/') ? route : `/${route}`;
+    },
+
     goBack() {
       const pages = getCurrentPages();
+      const previousPage = pages.length > 1 ? pages[pages.length - 2] : null;
+      const previousRoute = this.normalizeRoute(previousPage ? previousPage.route : '');
+      if (previousRoute === this.properties.homePath) {
+        this.goHome();
+        return;
+      }
+
       if (pages.length > 1) {
         wx.navigateBack({ delta: 1 });
         return;
