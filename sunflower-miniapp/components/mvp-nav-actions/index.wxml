@@ -1,0 +1,4 @@
+<view class="mvp-nav-actions">
+  <t-button size="small" theme="default" variant="outline" bindtap="goBack">{{backLabel}}</t-button>
+  <t-button size="small" theme="default" variant="outline" bindtap="goHome">{{homeLabel}}</t-button>
+</view>

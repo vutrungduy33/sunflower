@@ -2,6 +2,7 @@
   "navigationBarTitleText": "订单中心",
   "navigationStyle": "default",
   "usingComponents": {
+    "mvp-nav-actions": "/components/mvp-nav-actions/index",
     "t-button": "tdesign-miniprogram/button/button"
   }
 }

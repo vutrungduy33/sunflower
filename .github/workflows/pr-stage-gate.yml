@@ -29,6 +29,9 @@ jobs:
       - name: Stage pre-check
         run: make stage-pre STAGE=${{ steps.conventions.outputs.stage }}
 
+      - name: Miniapp subpage navigation guard
+        run: ./scripts/check_mvp_subpage_nav.sh
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
