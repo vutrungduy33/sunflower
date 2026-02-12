@@ -1,6 +1,9 @@
 spring:
   application:
     name: sunflower-backend
+  flyway:
+    enabled: true
+    locations: classpath:db/migration/common
 
 server:
   port: 8080

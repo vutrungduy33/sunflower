@@ -4,6 +4,8 @@ spring:
     username: sunflower
     password: sunflower
     driver-class-name: com.mysql.cj.jdbc.Driver
+  flyway:
+    locations: classpath:db/migration/common,classpath:db/migration/dev
   jpa:
     hibernate:
       ddl-auto: none
