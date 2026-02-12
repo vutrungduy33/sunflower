@@ -1,0 +1,48 @@
+name: PR Stage Gate
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, edited]
+
+jobs:
+  gate:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Prepare scripts
+        run: chmod +x scripts/*.sh
+
+      - name: Check branch and commit conventions
+        id: conventions
+        run: |
+          ./scripts/check_stage_convention.sh \
+            "${GITHUB_HEAD_REF}" \
+            "${{ github.event.pull_request.base.sha }}" \
+            "${{ github.event.pull_request.head.sha }}"
+
+      - name: Stage pre-check
+        run: make stage-pre STAGE=${{ steps.conventions.outputs.stage }}
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "11"
+          cache: maven
+
+      - name: Backend automated tests
+        run: cd sunflower-backend && mvn -B test
+
+      - name: Stage post-check
+        run: make stage-post STAGE=${{ steps.conventions.outputs.stage }}
+
+      - name: API contract reminder
+        run: |
+          ./scripts/api_contract_guard.sh \
+            "${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}"

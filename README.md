@@ -19,6 +19,7 @@
 ## 4. 文档索引
 - `/Users/chenyao/dev/miniapp/sunflower/docs/README.md`：文档索引与开发概览
 - `/Users/chenyao/dev/miniapp/sunflower/docs/PRD.md`：需求规格与开发计划
+- `/Users/chenyao/dev/miniapp/sunflower/docs/Agent-Stage-Plan.md`：按“一次对话=一个 Stage”的执行计划
 - `/Users/chenyao/dev/miniapp/sunflower/docs/Prototype.md`：MVP 原型页面清单
 - `/Users/chenyao/dev/miniapp/sunflower/docs/Miniapp-Frontend-MVP.md`：小程序前端一期 MVP 说明（页面/流程/API 映射）
 - `/Users/chenyao/dev/miniapp/sunflower/docs/IA.md`：信息架构（小程序 + 后台）
@@ -28,15 +29,20 @@
 - `/Users/chenyao/dev/miniapp/sunflower/docs/DB-Design.md`：数据库索引与约束设计
 - `/Users/chenyao/dev/miniapp/sunflower/docs/DataDictionary.md`：核心表数据字典
 - `/Users/chenyao/dev/miniapp/sunflower/docs/Analytics.md`：埋点与报表 SQL 模板
-- `/Users/chenyao/dev/miniapp/sunflower/docs/Backlog.md`：Sprint Backlog（MVP）
+- `/Users/chenyao/dev/miniapp/sunflower/docs/Backlog.md`：Stage Backlog（执行状态）
+- `/Users/chenyao/dev/miniapp/sunflower/docs/Definition-of-Done.md`：Stage 完成清单（DoD）
+- `/Users/chenyao/dev/miniapp/sunflower/docs/stage-reports/README.md`：Stage 执行报告规范
 - `/Users/chenyao/dev/miniapp/sunflower/docs/CI-CD.md`：GitHub Actions CI/CD
 
-## 4.1 当前研发进展（截至 2026-02-11）
+## 4.1 当前研发进展（截至 2026-02-12）
 - 小程序一期 MVP 已落地于：`/Users/chenyao/dev/miniapp/sunflower/sunflower-miniapp/pages/mvp`
 - 已完成前端闭环：首页 → 预订 → 房型详情 → 填单 → 支付（模拟）→ 订单中心
 - 后端一期 API 已落地于：`/Users/chenyao/dev/miniapp/sunflower/sunflower-backend`
 - 当前可联调接口已覆盖：登录、用户资料、房型、价格日历、订单主链路、POI、游记读取
 - 现阶段后端数据源为内存种子数据（重启会重置），下一步切换 MySQL 持久化
+- 后台管理系统（Web）尚未开发，已拆分为 S1-S14 逐 Stage 执行
+- 已新增 Stage 守卫脚本：`make stage-pre STAGE=Sx` / `make stage-post STAGE=Sx`
+- 已新增 PR 门禁：Stage Guard + 后端自动化测试 + 分支/提交规范校验
 
 ## 5. 仓库结构（概览）
 ```

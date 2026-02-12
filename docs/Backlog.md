@@ -1,28 +1,38 @@
-# Sprint Backlog（MVP）
+# Stage Backlog（V1）
 
-> 建议 2 周一个 Sprint。以下按 3 个 Sprint（6 周）组织。
-> 更新时间：2026-02-11
+> 更新时间：2026-02-12  
+> 执行基线：`docs/Agent-Stage-Plan.md`  
+> 规则：每个 Stage 必须在一次与 Agent 的对话中完成开发与测试。
+> 守卫命令：`make stage-pre STAGE=Sx` / `make stage-post STAGE=Sx`
+> DoD：`docs/Definition-of-Done.md`
+> Git 规范：`codex/s<stage>-<slug>` + commit 前缀 `[Sx]`
 
-## Sprint 1（基础能力）
-- [x] 用户登录（微信 code 换取 session，当前前端为 mock 登录）  
-- [x] 用户资料/手机号绑定（小程序“我的”页已实现）  
-- [x] 房型列表/详情/价格日历（小程序已实现）  
-- [x] 订单创建与支付（小程序已实现，支付为模拟流程）  
-- [ ] 后台房型管理  
-- [ ] 后台订单列表  
+## 状态看板
 
-已落地页面：`pages/mvp/home/index`、`pages/mvp/booking/index`、`pages/mvp/room-detail/index`、`pages/mvp/order-create/index`、`pages/mvp/order-list/index`、`pages/mvp/mine/index`
+- [x] S0 目标重确认与文档分期
+- [ ] S1 数据库与迁移底座
+- [ ] S2 房型模块落库（替换 RoomService 硬编码）
+- [ ] S3 用户与认证落库（替换 User/Auth 硬编码）
+- [ ] S4 订单落库与事务化
+- [ ] S5 小程序联调收口（鉴权与错误兜底）
+- [ ] S6 订单改期与退款（小程序 + 后端）
+- [ ] S7 管理端后端 API（房型/价格/库存）
+- [ ] S8 管理端后端 API（订单与经营概览）
+- [ ] S9 管理后台工程初始化（Web）
+- [ ] S10 管理后台登录与权限骨架
+- [ ] S11 管理后台页面（房型管理）
+- [ ] S12 管理后台页面（价格日历与库存）
+- [ ] S13 管理后台页面（订单与售后）
+- [ ] S14 联调收口、CI 门禁与发布验收
 
-## Sprint 2（业务闭环）
-- [x] 订单取消（小程序订单中心已支持）  
-- [ ] 订单改期/退款  
-- [ ] 餐饮商品管理与点单  
-- [ ] 服务订单（接驳/猪槽船）  
-- [ ] 订单状态流转  
-- [x] 内容基础（景点/攻略浏览入口已在小程序 MVP 提供）  
+## 里程碑映射
 
-## Sprint 3（运营与沉淀）
-- [ ] 评价与游记（发布/审核）  
-- [ ] 优惠券/会员权益  
-- [ ] 报表与对账  
-- [ ] 运营配置与内容审核  
+- M1：S1-S6
+- M2：S7-S13
+- M3：S14
+
+## 当前优先执行
+
+1. S1 数据库与迁移底座
+2. S2 房型模块落库
+3. S3 用户与认证落库
