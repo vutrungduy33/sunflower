@@ -95,6 +95,27 @@ class MvpApiIntegrationTests {
     }
 
     @Test
+    void shouldRejectInvalidRoomDateParams() throws Exception {
+        mockMvc
+            .perform(get("/api/rooms").param("checkInDate", "2026/02/12"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value(40000))
+            .andExpect(jsonPath("$.message").value("日期 格式必须是 yyyy-MM-dd"));
+
+        mockMvc
+            .perform(get("/api/rooms/room-lake-101/calendar").param("startDate", "bad-date"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value(40000))
+            .andExpect(jsonPath("$.message").value("日期 格式必须是 yyyy-MM-dd"));
+
+        mockMvc
+            .perform(get("/api/rooms/room-lake-101/calendar").param("startDate", "2026-02-12").param("days", "0"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value(40000))
+            .andExpect(jsonPath("$.message").value("days 范围必须在 1-31"));
+    }
+
+    @Test
     void shouldCreatePayCancelAndQueryOrder() throws Exception {
         MvcResult createResult = mockMvc
             .perform(
