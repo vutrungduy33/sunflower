@@ -49,24 +49,15 @@ jobs:
                 exit $status
               fi
             }
-            echo "[deploy] helper ready"
 
             AUTH_TOKEN_SECRET="$(printf '%s' "${AUTH_TOKEN_SECRET:-}" | tr -d '\r\n')"
-            echo "[deploy] normalized AUTH_TOKEN_SECRET"
             AUTH_TOKEN_TTL_SECONDS="$(printf '%s' "${AUTH_TOKEN_TTL_SECONDS:-7200}" | tr -d '\r\n' | tr -d '[:space:]' | tr -d '\"' | tr -d "'")"
-            echo "[deploy] normalized AUTH_TOKEN_TTL_SECONDS"
             WECHAT_AUTH_MOCK_ENABLED="$(printf '%s' "${WECHAT_AUTH_MOCK_ENABLED:-false}" | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')"
-            echo "[deploy] normalized WECHAT_AUTH_MOCK_ENABLED (step1)"
             WECHAT_AUTH_MOCK_ENABLED="$(printf '%s' "$WECHAT_AUTH_MOCK_ENABLED" | tr -d '\"' | tr -d "'")"
-            echo "[deploy] normalized WECHAT_AUTH_MOCK_ENABLED (step2)"
             WECHAT_APP_ID="$(printf '%s' "${WECHAT_APP_ID:-}" | tr -d '\r\n')"
-            echo "[deploy] normalized WECHAT_APP_ID"
             WECHAT_APP_SECRET="$(printf '%s' "${WECHAT_APP_SECRET:-}" | tr -d '\r\n')"
-            echo "[deploy] normalized WECHAT_APP_SECRET"
             WECHAT_JSCODE2SESSION_URL="$(printf '%s' "${WECHAT_JSCODE2SESSION_URL:-https://api.weixin.qq.com/sns/jscode2session}" | tr -d '\r\n')"
-            echo "[deploy] normalized WECHAT_JSCODE2SESSION_URL"
             WECHAT_MOCK_OPENID_PREFIX="$(printf '%s' "${WECHAT_MOCK_OPENID_PREFIX:-mock_openid_}" | tr -d '\r\n')"
-            echo "[deploy] normalized WECHAT_MOCK_OPENID_PREFIX"
 
             case "$AUTH_TOKEN_TTL_SECONDS" in
               ''|*[!0-9]*)
@@ -74,7 +65,7 @@ jobs:
                 AUTH_TOKEN_TTL_SECONDS="7200"
                 ;;
             esac
-            echo "[deploy] AUTH_TOKEN_TTL_SECONDS validated"
+            echo "[deploy] env normalized"
 
             if [ -z "$AUTH_TOKEN_SECRET" ]; then
               echo "Missing required secret AUTH_TOKEN_SECRET"
