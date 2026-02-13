@@ -36,7 +36,8 @@ jobs:
           command_timeout: 30m
           script_stop: true
           script: |
-            set -uo pipefail
+            set -u
+            echo "[deploy] script start"
             REPO_URL="https://github.com/vutrungduy33/sunflower.git"
             DEPLOY_PATH="${{ secrets.DEPLOY_PATH }}"
 
@@ -48,6 +49,7 @@ jobs:
                 exit $status
               fi
             }
+            echo "[deploy] helper ready"
 
             AUTH_TOKEN_SECRET="$(printf '%s' "${AUTH_TOKEN_SECRET:-}" | tr -d '\r\n')"
             AUTH_TOKEN_TTL_SECONDS="$(printf '%s' "${AUTH_TOKEN_TTL_SECONDS:-7200}" | tr -d '\r\n')"
