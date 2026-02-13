@@ -25,22 +25,25 @@ public class AuthService {
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
     private final AuthTokenService authTokenService;
+    private final WechatCode2SessionClient wechatCode2SessionClient;
 
     public AuthService(
         UserService userService,
         UserRepository userRepository,
         UserProfileRepository userProfileRepository,
-        AuthTokenService authTokenService
+        AuthTokenService authTokenService,
+        WechatCode2SessionClient wechatCode2SessionClient
     ) {
         this.userService = userService;
         this.userRepository = userRepository;
         this.userProfileRepository = userProfileRepository;
         this.authTokenService = authTokenService;
+        this.wechatCode2SessionClient = wechatCode2SessionClient;
     }
 
     @Transactional
     public WechatLoginResponse wechatLogin(String code) {
-        String openId = "mock_openid_" + code;
+        String openId = wechatCode2SessionClient.resolveOpenId(code);
         UserEntity user = userRepository.findByOpenid(openId).orElseGet(() -> registerWechatUser(openId));
         ensureProfileExists(user.getId());
 

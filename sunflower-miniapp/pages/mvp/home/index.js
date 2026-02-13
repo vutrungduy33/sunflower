@@ -17,7 +17,7 @@ Page({
   async bootstrap() {
     try {
       this.setData({ loading: true });
-      await wechatLogin('mvp_code');
+      await wechatLogin();
       const homeData = await fetchHomeData();
       this.setData({
         banners: homeData.banners,

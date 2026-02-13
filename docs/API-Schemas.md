@@ -33,19 +33,20 @@
 ## 1) 认证与用户
 
 登录态说明：登录后返回签名 token（默认有效期 2 小时），客户端通过 `Authorization: Bearer <token>` 调用当前用户接口；未携带、token 无效或过期返回 `40100`。
+登录链路说明：小程序先调用 `wx.login()` 获取一次性 `code`，后端用 `code` 调微信 `jscode2session` 换取 `openid`；`dev/test` 环境可通过配置开启 mock 交换。
 
 ### `POST /api/auth/wechat/login`
 **请求**
 ```json
 {
-  "code": "mvp_code"
+  "code": "wx_login_code_from_client"
 }
 ```
 **响应**
 ```json
 {
   "token": "dXNlcl9kZW1vXzEwMDE6MTc2MDAwMDAwMA.lq4XxCjv1P4lY8s5vFv1mEtN2vH8jYk4g7aD8X3T5uY",
-  "openId": "mock_openid_mvp_code",
+  "openId": "oLw8s5exampleOpenId",
   "profile": {
     "nickName": "微信用户",
     "phone": "",

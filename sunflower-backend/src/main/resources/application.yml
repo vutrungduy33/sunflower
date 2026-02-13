@@ -19,6 +19,12 @@ management:
 
 app:
   auth:
+    wechat:
+      mock-enabled: ${WECHAT_AUTH_MOCK_ENABLED:true}
+      app-id: ${WECHAT_APP_ID:}
+      app-secret: ${WECHAT_APP_SECRET:}
+      jscode2session-url: ${WECHAT_JSCODE2SESSION_URL:https://api.weixin.qq.com/sns/jscode2session}
+      mock-openid-prefix: ${WECHAT_MOCK_OPENID_PREFIX:mock_openid_}
     token:
       secret: ${AUTH_TOKEN_SECRET:dev-only-change-me-please}
       ttl-seconds: ${AUTH_TOKEN_TTL_SECONDS:7200}

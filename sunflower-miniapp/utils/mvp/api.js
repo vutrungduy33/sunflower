@@ -54,6 +54,24 @@ function clearAuthToken() {
   }
 }
 
+function getWechatLoginCode() {
+  return new Promise((resolve, reject) => {
+    wx.login({
+      success(result) {
+        const code = `${(result && result.code) || ''}`.trim();
+        if (!code) {
+          reject(new Error('微信登录失败，请重试'));
+          return;
+        }
+        resolve(code);
+      },
+      fail(error) {
+        reject(new Error((error && error.errMsg) || '微信登录失败，请重试'));
+      },
+    });
+  });
+}
+
 function buildUrl(path) {
   if (!path.startsWith('/')) {
     throw new Error(`非法 API 路径: ${path}`);
@@ -128,10 +146,11 @@ function withQuery(params = {}) {
 }
 
 async function wechatLogin(code) {
+  const resolvedCode = `${code || ''}`.trim() || (await getWechatLoginCode());
   const loginData = await request('/api/auth/wechat/login', {
     method: 'POST',
     data: {
-      code: `${code || 'anonymous'}`,
+      code: resolvedCode,
     },
   });
   if (loginData && loginData.token) {
