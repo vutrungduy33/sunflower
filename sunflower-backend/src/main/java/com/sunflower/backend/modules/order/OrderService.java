@@ -3,76 +3,62 @@ package com.sunflower.backend.modules.order;
 import com.sunflower.backend.common.exception.BusinessException;
 import com.sunflower.backend.modules.order.dto.CreateOrderRequest;
 import com.sunflower.backend.modules.order.dto.OrderDto;
+import com.sunflower.backend.modules.order.persistence.OrderEntity;
+import com.sunflower.backend.modules.order.persistence.OrderRepository;
 import com.sunflower.backend.modules.room.RoomService;
 import com.sunflower.backend.modules.room.dto.RoomCalendarItemDto;
+import com.sunflower.backend.modules.room.persistence.RoomInventoryEntity;
+import com.sunflower.backend.modules.room.persistence.RoomInventoryRepository;
 import com.sunflower.backend.modules.user.UserService;
 import java.security.SecureRandom;
 import java.time.LocalDate;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.Comparator;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class OrderService {
 
     private static final ZoneId SHANGHAI_ZONE = ZoneId.of("Asia/Shanghai");
-    private static final DateTimeFormatter ORDER_NO_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
+    private static final DateTimeFormatter ORDER_NO_DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+    private static final String DEFAULT_SOURCE = "direct";
+    private static final String OUT_OF_STOCK_MESSAGE = "所选日期库存不足";
+    private static final String INVENTORY_DATA_ERROR_MESSAGE = "库存数据异常，请联系管理员";
+    private static final int ORDER_NO_MAX_RETRY = 8;
 
-    private final Map<String, OrderRecord> orderStore = new ConcurrentHashMap<>();
     private final Random random = new SecureRandom();
 
+    private final OrderRepository orderRepository;
+    private final RoomInventoryRepository roomInventoryRepository;
     private final RoomService roomService;
     private final UserService userService;
 
-    public OrderService(RoomService roomService, UserService userService) {
+    public OrderService(
+        OrderRepository orderRepository,
+        RoomInventoryRepository roomInventoryRepository,
+        RoomService roomService,
+        UserService userService
+    ) {
+        this.orderRepository = orderRepository;
+        this.roomInventoryRepository = roomInventoryRepository;
         this.roomService = roomService;
         this.userService = userService;
     }
 
-    @PostConstruct
-    public void init() {
-        LocalDate checkInDate = LocalDate.now(SHANGHAI_ZONE).plusDays(1);
-        LocalDate checkOutDate = checkInDate.plusDays(1);
-        OffsetDateTime createdAt = OffsetDateTime.now(SHANGHAI_ZONE).minusDays(1);
-
-        OrderRecord seedOrder = new OrderRecord();
-        seedOrder.id = "order_seed_" + System.currentTimeMillis();
-        seedOrder.orderNo = buildOrderNo(createdAt.toLocalDate());
-        seedOrder.userId = userService.firstActiveUserId();
-        seedOrder.source = "direct";
-        seedOrder.roomId = "room-mountain-203";
-        seedOrder.roomName = roomService.requireRoomSeed("room-mountain-203").getName();
-        seedOrder.checkInDate = checkInDate;
-        seedOrder.checkOutDate = checkOutDate;
-        seedOrder.nights = 1;
-        seedOrder.guestName = "演示住客";
-        seedOrder.guestPhone = "13800000000";
-        seedOrder.arrivalTime = "18:00";
-        seedOrder.remark = "系统初始化订单";
-        seedOrder.totalAmount = calculateOrderAmount(seedOrder.roomId, checkInDate, seedOrder.nights);
-        seedOrder.status = OrderStatus.COMPLETED;
-        seedOrder.createdAt = createdAt;
-        seedOrder.paidAt = createdAt;
-
-        orderStore.put(seedOrder.id, seedOrder);
-    }
-
     public List<OrderDto> getCurrentUserOrders() {
         String userId = userService.currentUserId();
-        return orderStore
-            .values()
+        return orderRepository
+            .findByUserIdOrderByCreatedAtDesc(userId)
             .stream()
-            .filter(order -> order.userId.equals(userId))
-            .sorted(Comparator.comparing((OrderRecord item) -> item.createdAt).reversed())
             .map(this::toOrderDto)
             .collect(Collectors.toList());
     }
@@ -81,6 +67,7 @@ public class OrderService {
         return toOrderDto(requireCurrentUserOrderRecord(orderId));
     }
 
+    @Transactional
     public OrderDto createOrder(CreateOrderRequest request) {
         LocalDate checkInDate = roomService.parseDate(request.getCheckInDate(), "checkInDate");
         LocalDate checkOutDate = roomService.parseDate(request.getCheckOutDate(), "checkOutDate");
@@ -91,57 +78,62 @@ public class OrderService {
         }
 
         RoomService.RoomSeed room = roomService.requireRoomSeed(request.getRoomId());
+        String userId = userService.currentUserId();
+        List<LocalDate> stayDates = buildStayDates(checkInDate, (int) nights);
+        lockInventoryForCreate(room.getId(), stayDates);
 
-        OrderRecord order = new OrderRecord();
-        order.id = buildOrderId();
-        order.orderNo = buildOrderNo(LocalDate.now(SHANGHAI_ZONE));
-        order.userId = userService.currentUserId();
-        order.source = normalizeSource(request.getSource());
-        order.roomId = room.getId();
-        order.roomName = room.getName();
-        order.checkInDate = checkInDate;
-        order.checkOutDate = checkOutDate;
-        order.nights = (int) nights;
-        order.guestName = request.getGuestName().trim();
-        order.guestPhone = request.getGuestPhone().trim();
-        order.arrivalTime = request.getArrivalTime().trim();
-        order.remark = request.getRemark() == null ? "" : request.getRemark().trim();
-        order.totalAmount = calculateOrderAmount(order.roomId, checkInDate, order.nights);
-        order.status = OrderStatus.PENDING_PAYMENT;
-        order.createdAt = OffsetDateTime.now(SHANGHAI_ZONE);
+        LocalDateTime now = LocalDateTime.now(SHANGHAI_ZONE);
+        int totalAmount = calculateOrderAmount(room.getId(), checkInDate, (int) nights);
 
-        orderStore.put(order.id, order);
-        return toOrderDto(order);
+        OrderEntity order = new OrderEntity();
+        order.setId(buildOrderId(now));
+        order.setOrderNo(buildUniqueOrderNo(now));
+        order.setUserId(userId);
+        order.setSource(normalizeSource(request.getSource()));
+        order.setRoomId(room.getId());
+        order.setRoomName(room.getName());
+        order.setCheckInDate(checkInDate);
+        order.setCheckOutDate(checkOutDate);
+        order.setNights((int) nights);
+        order.setGuestName(normalizeRequiredText(request.getGuestName()));
+        order.setGuestPhone(normalizeRequiredText(request.getGuestPhone()));
+        order.setArrivalTime(normalizeRequiredText(request.getArrivalTime()));
+        order.setRemark(normalizeOptionalText(request.getRemark()));
+        order.setTotalAmount(totalAmount);
+        order.setStatus(OrderStatus.PENDING_PAYMENT);
+        order.setCreatedAt(now);
+
+        return toOrderDto(orderRepository.save(order));
     }
 
+    @Transactional
     public OrderDto payCurrentUserOrder(String orderId) {
-        OrderRecord order = requireCurrentUserOrderRecord(orderId);
-        if (order.status != OrderStatus.PENDING_PAYMENT) {
+        OrderEntity order = requireCurrentUserOrderRecord(orderId);
+        if (order.getStatus() != OrderStatus.PENDING_PAYMENT) {
             throw BusinessException.conflict("当前订单状态不可支付");
         }
-        order.status = OrderStatus.CONFIRMED;
-        order.paidAt = OffsetDateTime.now(SHANGHAI_ZONE);
-        return toOrderDto(order);
+        order.setStatus(OrderStatus.CONFIRMED);
+        order.setPaidAt(LocalDateTime.now(SHANGHAI_ZONE));
+        return toOrderDto(orderRepository.save(order));
     }
 
+    @Transactional
     public OrderDto cancelCurrentUserOrder(String orderId) {
-        OrderRecord order = requireCurrentUserOrderRecord(orderId);
-        if (order.status != OrderStatus.PENDING_PAYMENT && order.status != OrderStatus.CONFIRMED) {
+        OrderEntity order = requireCurrentUserOrderRecord(orderId);
+        if (order.getStatus() != OrderStatus.PENDING_PAYMENT && order.getStatus() != OrderStatus.CONFIRMED) {
             throw BusinessException.conflict("当前订单状态不可取消");
         }
-        order.status = OrderStatus.CANCELLED;
-        return toOrderDto(order);
+        List<LocalDate> stayDates = buildStayDates(order.getCheckInDate(), order.getNights());
+        releaseInventoryForCancel(order.getRoomId(), stayDates);
+        order.setStatus(OrderStatus.CANCELLED);
+        order.setCancelledAt(LocalDateTime.now(SHANGHAI_ZONE));
+        return toOrderDto(orderRepository.save(order));
     }
 
-    private OrderRecord requireCurrentUserOrderRecord(String orderId) {
-        OrderRecord order = orderStore.get(orderId);
-        if (order == null) {
-            throw BusinessException.notFound("订单不存在");
-        }
-        if (!order.userId.equals(userService.currentUserId())) {
-            throw BusinessException.notFound("订单不存在");
-        }
-        return order;
+    private OrderEntity requireCurrentUserOrderRecord(String orderId) {
+        return orderRepository
+            .findByIdAndUserId(orderId, userService.currentUserId())
+            .orElseThrow(() -> BusinessException.notFound("订单不存在"));
     }
 
     private int calculateOrderAmount(String roomId, LocalDate checkInDate, int nights) {
@@ -149,63 +141,122 @@ public class OrderService {
         return calendar.stream().mapToInt(RoomCalendarItemDto::getPrice).sum();
     }
 
-    private String buildOrderId() {
-        return "order_" + System.currentTimeMillis() + "_" + random.nextInt(1000);
+    private void lockInventoryForCreate(String roomId, List<LocalDate> stayDates) {
+        Map<LocalDate, RoomInventoryEntity> inventoryMap = lockStayInventory(roomId, stayDates);
+        for (LocalDate stayDate : stayDates) {
+            RoomInventoryEntity inventory = inventoryMap.get(stayDate);
+            if (inventory == null || inventory.getAvailableStock() <= 0) {
+                throw BusinessException.conflict(OUT_OF_STOCK_MESSAGE);
+            }
+        }
+        for (LocalDate stayDate : stayDates) {
+            RoomInventoryEntity inventory = inventoryMap.get(stayDate);
+            inventory.setAvailableStock(inventory.getAvailableStock() - 1);
+            inventory.setLockedStock(inventory.getLockedStock() + 1);
+        }
+        roomInventoryRepository.saveAll(inventoryMap.values());
     }
 
-    private String buildOrderNo(LocalDate localDate) {
-        String datePart = localDate.format(ORDER_NO_DATE_FORMATTER);
+    private void releaseInventoryForCancel(String roomId, List<LocalDate> stayDates) {
+        Map<LocalDate, RoomInventoryEntity> inventoryMap = lockStayInventory(roomId, stayDates);
+        for (LocalDate stayDate : stayDates) {
+            RoomInventoryEntity inventory = inventoryMap.get(stayDate);
+            if (inventory == null || inventory.getLockedStock() <= 0) {
+                throw BusinessException.conflict(INVENTORY_DATA_ERROR_MESSAGE);
+            }
+        }
+        for (LocalDate stayDate : stayDates) {
+            RoomInventoryEntity inventory = inventoryMap.get(stayDate);
+            inventory.setAvailableStock(inventory.getAvailableStock() + 1);
+            inventory.setLockedStock(inventory.getLockedStock() - 1);
+        }
+        roomInventoryRepository.saveAll(inventoryMap.values());
+    }
+
+    private Map<LocalDate, RoomInventoryEntity> lockStayInventory(String roomId, List<LocalDate> stayDates) {
+        LocalDate startDate = stayDates.get(0);
+        LocalDate endDate = stayDates.get(stayDates.size() - 1);
+        List<RoomInventoryEntity> inventoryEntities = roomInventoryRepository.findForUpdateByRoomIdAndBizDateBetweenOrderByBizDateAsc(
+            roomId,
+            startDate,
+            endDate
+        );
+        Map<LocalDate, RoomInventoryEntity> inventoryMap = new LinkedHashMap<>();
+        for (RoomInventoryEntity inventoryEntity : inventoryEntities) {
+            inventoryMap.put(inventoryEntity.getBizDate(), inventoryEntity);
+        }
+        return inventoryMap;
+    }
+
+    private List<LocalDate> buildStayDates(LocalDate checkInDate, int nights) {
+        List<LocalDate> stayDates = new ArrayList<>(nights);
+        for (int i = 0; i < nights; i++) {
+            stayDates.add(checkInDate.plusDays(i));
+        }
+        return stayDates;
+    }
+
+    private String buildOrderId(LocalDateTime now) {
+        return "order_" + now.atZone(SHANGHAI_ZONE).toInstant().toEpochMilli() + "_" + (random.nextInt(9000) + 1000);
+    }
+
+    private String buildUniqueOrderNo(LocalDateTime now) {
+        for (int i = 0; i < ORDER_NO_MAX_RETRY; i++) {
+            String orderNo = buildOrderNo(now);
+            if (!orderRepository.existsByOrderNo(orderNo)) {
+                return orderNo;
+            }
+        }
+        throw new IllegalStateException("生成订单号失败");
+    }
+
+    private String buildOrderNo(LocalDateTime now) {
+        String dateTimePart = now.format(ORDER_NO_DATE_TIME_FORMATTER);
         int randomPart = random.nextInt(9000) + 1000;
-        return "SF" + datePart + randomPart;
+        return "SF" + dateTimePart + randomPart;
     }
 
     private String normalizeSource(String source) {
         if (source == null || source.trim().isEmpty()) {
-            return "direct";
+            return DEFAULT_SOURCE;
         }
         return source.trim();
     }
 
-    private OrderDto toOrderDto(OrderRecord order) {
+    private String normalizeRequiredText(String value) {
+        return value == null ? "" : value.trim();
+    }
+
+    private String normalizeOptionalText(String value) {
+        return value == null ? "" : value.trim();
+    }
+
+    private OrderDto toOrderDto(OrderEntity order) {
         OrderDto dto = new OrderDto();
-        dto.setId(order.id);
-        dto.setOrderNo(order.orderNo);
-        dto.setSource(order.source);
-        dto.setRoomId(order.roomId);
-        dto.setRoomName(order.roomName);
-        dto.setCheckInDate(order.checkInDate.toString());
-        dto.setCheckOutDate(order.checkOutDate.toString());
-        dto.setNights(order.nights);
-        dto.setGuestName(order.guestName);
-        dto.setGuestPhone(order.guestPhone);
-        dto.setArrivalTime(order.arrivalTime);
-        dto.setRemark(order.remark);
-        dto.setTotalAmount(order.totalAmount);
-        dto.setStatus(order.status.name());
-        dto.setStatusLabel(order.status.getLabel());
-        dto.setCreatedAt(order.createdAt.toString());
-        dto.setPaidAt(order.paidAt == null ? "" : order.paidAt.toString());
+        dto.setId(order.getId());
+        dto.setOrderNo(order.getOrderNo());
+        dto.setSource(order.getSource());
+        dto.setRoomId(order.getRoomId());
+        dto.setRoomName(order.getRoomName());
+        dto.setCheckInDate(order.getCheckInDate().toString());
+        dto.setCheckOutDate(order.getCheckOutDate().toString());
+        dto.setNights(order.getNights());
+        dto.setGuestName(order.getGuestName());
+        dto.setGuestPhone(order.getGuestPhone());
+        dto.setArrivalTime(order.getArrivalTime());
+        dto.setRemark(order.getRemark());
+        dto.setTotalAmount(order.getTotalAmount());
+        dto.setStatus(order.getStatus().name());
+        dto.setStatusLabel(order.getStatus().getLabel());
+        dto.setCreatedAt(toDateTimeString(order.getCreatedAt()));
+        dto.setPaidAt(toDateTimeString(order.getPaidAt()));
         return dto;
     }
 
-    private static class OrderRecord {
-
-        private String id;
-        private String orderNo;
-        private String userId;
-        private String source;
-        private String roomId;
-        private String roomName;
-        private LocalDate checkInDate;
-        private LocalDate checkOutDate;
-        private int nights;
-        private String guestName;
-        private String guestPhone;
-        private String arrivalTime;
-        private String remark;
-        private int totalAmount;
-        private OrderStatus status;
-        private OffsetDateTime createdAt;
-        private OffsetDateTime paidAt;
+    private String toDateTimeString(LocalDateTime value) {
+        if (value == null) {
+            return "";
+        }
+        return value.atZone(SHANGHAI_ZONE).toOffsetDateTime().toString();
     }
 }
