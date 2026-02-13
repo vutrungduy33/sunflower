@@ -33,7 +33,8 @@ wait_mysql_ready() {
 }
 
 seed_demo_data() {
-  docker exec -i "$MYSQL_CONTAINER_NAME" mysql -uroot -proot sunflower < "$SEED_SQL_FILE"
+  docker exec -i "$MYSQL_CONTAINER_NAME" \
+    mysql --default-character-set=utf8mb4 -uroot -proot sunflower < "$SEED_SQL_FILE"
 }
 
 main() {
