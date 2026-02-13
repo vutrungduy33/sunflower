@@ -19,17 +19,55 @@ jobs:
     steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.2.0
+        env:
+          AUTH_TOKEN_SECRET: ${{ secrets.AUTH_TOKEN_SECRET }}
+          AUTH_TOKEN_TTL_SECONDS: ${{ secrets.AUTH_TOKEN_TTL_SECONDS }}
+          WECHAT_AUTH_MOCK_ENABLED: ${{ secrets.WECHAT_AUTH_MOCK_ENABLED }}
+          WECHAT_APP_ID: ${{ secrets.WECHAT_APP_ID }}
+          WECHAT_APP_SECRET: ${{ secrets.WECHAT_APP_SECRET }}
+          WECHAT_JSCODE2SESSION_URL: ${{ secrets.WECHAT_JSCODE2SESSION_URL }}
+          WECHAT_MOCK_OPENID_PREFIX: ${{ secrets.WECHAT_MOCK_OPENID_PREFIX }}
         with:
           host: ${{ secrets.ECS_HOST }}
           username: ${{ secrets.ECS_USER }}
           port: ${{ secrets.ECS_PORT }}
           key: ${{ secrets.ECS_SSH_KEY }}
+          envs: AUTH_TOKEN_SECRET,AUTH_TOKEN_TTL_SECONDS,WECHAT_AUTH_MOCK_ENABLED,WECHAT_APP_ID,WECHAT_APP_SECRET,WECHAT_JSCODE2SESSION_URL,WECHAT_MOCK_OPENID_PREFIX
           command_timeout: 30m
           script_stop: true
           script: |
             set -euo pipefail
             REPO_URL="https://github.com/vutrungduy33/sunflower.git"
             DEPLOY_PATH="${{ secrets.DEPLOY_PATH }}"
+
+            AUTH_TOKEN_SECRET="${AUTH_TOKEN_SECRET:-}"
+            AUTH_TOKEN_TTL_SECONDS="${AUTH_TOKEN_TTL_SECONDS:-7200}"
+            WECHAT_AUTH_MOCK_ENABLED="${WECHAT_AUTH_MOCK_ENABLED:-false}"
+            WECHAT_APP_ID="${WECHAT_APP_ID:-}"
+            WECHAT_APP_SECRET="${WECHAT_APP_SECRET:-}"
+            WECHAT_JSCODE2SESSION_URL="${WECHAT_JSCODE2SESSION_URL:-https://api.weixin.qq.com/sns/jscode2session}"
+            WECHAT_MOCK_OPENID_PREFIX="${WECHAT_MOCK_OPENID_PREFIX:-mock_openid_}"
+
+            if [ -z "$AUTH_TOKEN_SECRET" ]; then
+              echo "Missing required secret AUTH_TOKEN_SECRET"
+              exit 1
+            fi
+            if [ "$WECHAT_AUTH_MOCK_ENABLED" != "true" ] && [ "$WECHAT_AUTH_MOCK_ENABLED" != "false" ]; then
+              echo "Invalid WECHAT_AUTH_MOCK_ENABLED, must be true or false"
+              exit 1
+            fi
+            if [ "$WECHAT_AUTH_MOCK_ENABLED" = "false" ] && { [ -z "$WECHAT_APP_ID" ] || [ -z "$WECHAT_APP_SECRET" ]; }; then
+              echo "WECHAT_APP_ID and WECHAT_APP_SECRET are required when WECHAT_AUTH_MOCK_ENABLED=false"
+              exit 1
+            fi
+
+            export AUTH_TOKEN_SECRET
+            export AUTH_TOKEN_TTL_SECONDS
+            export WECHAT_AUTH_MOCK_ENABLED
+            export WECHAT_APP_ID
+            export WECHAT_APP_SECRET
+            export WECHAT_JSCODE2SESSION_URL
+            export WECHAT_MOCK_OPENID_PREFIX
 
             mkdir -p "$DEPLOY_PATH"
             cd "$DEPLOY_PATH"
