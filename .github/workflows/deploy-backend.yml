@@ -53,21 +53,20 @@ jobs:
               echo "Missing required secret AUTH_TOKEN_SECRET"
               exit 1
             fi
-            case "$WECHAT_AUTH_MOCK_ENABLED" in
-              true|1|yes|y|on)
-                WECHAT_AUTH_MOCK_ENABLED="true"
-                ;;
-              false|0|no|n|off|"")
-                WECHAT_AUTH_MOCK_ENABLED="false"
-                ;;
-              *)
-                echo "WARN: invalid WECHAT_AUTH_MOCK_ENABLED='$WECHAT_AUTH_MOCK_ENABLED', fallback to false"
-                WECHAT_AUTH_MOCK_ENABLED="false"
-                ;;
-            esac
-            if [ "$WECHAT_AUTH_MOCK_ENABLED" = "false" ] && { [ -z "$WECHAT_APP_ID" ] || [ -z "$WECHAT_APP_SECRET" ]; }; then
-              echo "WARN: WECHAT_APP_ID/WECHAT_APP_SECRET missing, fallback WECHAT_AUTH_MOCK_ENABLED=true for this deploy"
+            if [ "$WECHAT_AUTH_MOCK_ENABLED" = "true" ] || [ "$WECHAT_AUTH_MOCK_ENABLED" = "1" ] || [ "$WECHAT_AUTH_MOCK_ENABLED" = "yes" ] || [ "$WECHAT_AUTH_MOCK_ENABLED" = "y" ] || [ "$WECHAT_AUTH_MOCK_ENABLED" = "on" ]; then
               WECHAT_AUTH_MOCK_ENABLED="true"
+            elif [ -z "$WECHAT_AUTH_MOCK_ENABLED" ] || [ "$WECHAT_AUTH_MOCK_ENABLED" = "false" ] || [ "$WECHAT_AUTH_MOCK_ENABLED" = "0" ] || [ "$WECHAT_AUTH_MOCK_ENABLED" = "no" ] || [ "$WECHAT_AUTH_MOCK_ENABLED" = "n" ] || [ "$WECHAT_AUTH_MOCK_ENABLED" = "off" ]; then
+              WECHAT_AUTH_MOCK_ENABLED="false"
+            else
+              echo "WARN: invalid WECHAT_AUTH_MOCK_ENABLED='$WECHAT_AUTH_MOCK_ENABLED', fallback to false"
+              WECHAT_AUTH_MOCK_ENABLED="false"
+            fi
+
+            if [ "$WECHAT_AUTH_MOCK_ENABLED" = "false" ]; then
+              if [ -z "$WECHAT_APP_ID" ] || [ -z "$WECHAT_APP_SECRET" ]; then
+                echo "WARN: WECHAT_APP_ID/WECHAT_APP_SECRET missing, fallback WECHAT_AUTH_MOCK_ENABLED=true for this deploy"
+                WECHAT_AUTH_MOCK_ENABLED="true"
+              fi
             fi
 
             export AUTH_TOKEN_SECRET
