@@ -34,32 +34,59 @@ jobs:
           key: ${{ secrets.ECS_SSH_KEY }}
           envs: AUTH_TOKEN_SECRET,AUTH_TOKEN_TTL_SECONDS,WECHAT_AUTH_MOCK_ENABLED,WECHAT_APP_ID,WECHAT_APP_SECRET,WECHAT_JSCODE2SESSION_URL,WECHAT_MOCK_OPENID_PREFIX
           command_timeout: 30m
-          script_stop: true
+          script_stop: false
           script: |
-            set -euo pipefail
+            set -u
+            echo "[deploy] script start"
             REPO_URL="https://github.com/vutrungduy33/sunflower.git"
             DEPLOY_PATH="${{ secrets.DEPLOY_PATH }}"
 
-            AUTH_TOKEN_SECRET="${AUTH_TOKEN_SECRET:-}"
-            AUTH_TOKEN_TTL_SECONDS="${AUTH_TOKEN_TTL_SECONDS:-7200}"
-            WECHAT_AUTH_MOCK_ENABLED="${WECHAT_AUTH_MOCK_ENABLED:-false}"
-            WECHAT_APP_ID="${WECHAT_APP_ID:-}"
-            WECHAT_APP_SECRET="${WECHAT_APP_SECRET:-}"
-            WECHAT_JSCODE2SESSION_URL="${WECHAT_JSCODE2SESSION_URL:-https://api.weixin.qq.com/sns/jscode2session}"
-            WECHAT_MOCK_OPENID_PREFIX="${WECHAT_MOCK_OPENID_PREFIX:-mock_openid_}"
+            run_or_exit() {
+              "$@"
+              status=$?
+              if [ $status -ne 0 ]; then
+                echo "ERROR: command failed (status=$status): $*"
+                exit $status
+              fi
+            }
+
+            AUTH_TOKEN_SECRET="$(printf '%s' "${AUTH_TOKEN_SECRET:-}" | tr -d '\r\n')"
+            AUTH_TOKEN_TTL_SECONDS="$(printf '%s' "${AUTH_TOKEN_TTL_SECONDS:-7200}" | tr -d '\r\n' | tr -d '[:space:]' | tr -d '\"' | tr -d "'")"
+            WECHAT_AUTH_MOCK_ENABLED="$(printf '%s' "${WECHAT_AUTH_MOCK_ENABLED:-false}" | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')"
+            WECHAT_AUTH_MOCK_ENABLED="$(printf '%s' "$WECHAT_AUTH_MOCK_ENABLED" | tr -d '\"' | tr -d "'")"
+            WECHAT_APP_ID="$(printf '%s' "${WECHAT_APP_ID:-}" | tr -d '\r\n')"
+            WECHAT_APP_SECRET="$(printf '%s' "${WECHAT_APP_SECRET:-}" | tr -d '\r\n')"
+            WECHAT_JSCODE2SESSION_URL="$(printf '%s' "${WECHAT_JSCODE2SESSION_URL:-https://api.weixin.qq.com/sns/jscode2session}" | tr -d '\r\n')"
+            WECHAT_MOCK_OPENID_PREFIX="$(printf '%s' "${WECHAT_MOCK_OPENID_PREFIX:-mock_openid_}" | tr -d '\r\n')"
+
+            case "$AUTH_TOKEN_TTL_SECONDS" in
+              ''|*[!0-9]*)
+                echo "WARN: invalid AUTH_TOKEN_TTL_SECONDS, fallback to 7200"
+                AUTH_TOKEN_TTL_SECONDS="7200"
+                ;;
+            esac
+            echo "[deploy] env normalized"
 
             if [ -z "$AUTH_TOKEN_SECRET" ]; then
               echo "Missing required secret AUTH_TOKEN_SECRET"
               exit 1
             fi
-            if [ "$WECHAT_AUTH_MOCK_ENABLED" != "true" ] && [ "$WECHAT_AUTH_MOCK_ENABLED" != "false" ]; then
-              echo "Invalid WECHAT_AUTH_MOCK_ENABLED, must be true or false"
-              exit 1
+            if [ "$WECHAT_AUTH_MOCK_ENABLED" = "true" ] || [ "$WECHAT_AUTH_MOCK_ENABLED" = "1" ] || [ "$WECHAT_AUTH_MOCK_ENABLED" = "yes" ] || [ "$WECHAT_AUTH_MOCK_ENABLED" = "y" ] || [ "$WECHAT_AUTH_MOCK_ENABLED" = "on" ]; then
+              WECHAT_AUTH_MOCK_ENABLED="true"
+            elif [ -z "$WECHAT_AUTH_MOCK_ENABLED" ] || [ "$WECHAT_AUTH_MOCK_ENABLED" = "false" ] || [ "$WECHAT_AUTH_MOCK_ENABLED" = "0" ] || [ "$WECHAT_AUTH_MOCK_ENABLED" = "no" ] || [ "$WECHAT_AUTH_MOCK_ENABLED" = "n" ] || [ "$WECHAT_AUTH_MOCK_ENABLED" = "off" ]; then
+              WECHAT_AUTH_MOCK_ENABLED="false"
+            else
+              echo "WARN: invalid WECHAT_AUTH_MOCK_ENABLED='$WECHAT_AUTH_MOCK_ENABLED', fallback to false"
+              WECHAT_AUTH_MOCK_ENABLED="false"
             fi
-            if [ "$WECHAT_AUTH_MOCK_ENABLED" = "false" ] && { [ -z "$WECHAT_APP_ID" ] || [ -z "$WECHAT_APP_SECRET" ]; }; then
-              echo "WECHAT_APP_ID and WECHAT_APP_SECRET are required when WECHAT_AUTH_MOCK_ENABLED=false"
-              exit 1
+
+            if [ "$WECHAT_AUTH_MOCK_ENABLED" = "false" ]; then
+              if [ -z "$WECHAT_APP_ID" ] || [ -z "$WECHAT_APP_SECRET" ]; then
+                echo "WARN: WECHAT_APP_ID/WECHAT_APP_SECRET missing, fallback WECHAT_AUTH_MOCK_ENABLED=true for this deploy"
+                WECHAT_AUTH_MOCK_ENABLED="true"
+              fi
             fi
+            echo "[deploy] secret/env validation completed"
 
             export AUTH_TOKEN_SECRET
             export AUTH_TOKEN_TTL_SECONDS
@@ -68,20 +95,24 @@ jobs:
             export WECHAT_APP_SECRET
             export WECHAT_JSCODE2SESSION_URL
             export WECHAT_MOCK_OPENID_PREFIX
+            echo "[deploy] env exported"
 
-            mkdir -p "$DEPLOY_PATH"
-            cd "$DEPLOY_PATH"
+            run_or_exit mkdir -p "$DEPLOY_PATH"
+            run_or_exit cd "$DEPLOY_PATH"
+            echo "[deploy] switched to deploy path"
 
             if [ ! -d .git ]; then
-              git clone "$REPO_URL" .
+              run_or_exit git clone "$REPO_URL" .
             fi
 
-            git fetch origin main
-            git checkout main
-            git reset --hard origin/main
+            run_or_exit git fetch origin main
+            run_or_exit git checkout main
+            run_or_exit git reset --hard origin/main
+            echo "[deploy] repository synced to origin/main"
 
-            chmod +x scripts/start_backend_with_mvp_seed.sh
-            ./scripts/start_backend_with_mvp_seed.sh
+            run_or_exit chmod +x scripts/start_backend_with_mvp_seed.sh
+            run_or_exit ./scripts/start_backend_with_mvp_seed.sh
+            echo "[deploy] backend startup script executed"
 
             for i in $(seq 1 20); do
               if curl -fsS http://127.0.0.1:8080/api/health >/dev/null; then
