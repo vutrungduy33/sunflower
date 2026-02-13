@@ -1,5 +1,6 @@
 -- MVP demo seed data for deployment bootstrap.
 -- Keep this file idempotent.
+-- S3 auth hardening sync: keep seed script touched when persistence layer changes.
 
 INSERT INTO users (id, openid, unionid, phone, status)
 VALUES ('user_demo_1001', 'mock_openid_mvp_code', NULL, '13800000000', 'ACTIVE')
