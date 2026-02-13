@@ -1,6 +1,6 @@
 # 接口清单（REST）
 
-> 更新时间：2026-02-11  
+> 更新时间：2026-02-13  
 > 说明：以下区分“已实现（MVP 一期）”与“规划中（后续）”。
 
 ## 1. 已实现（MVP 一期）
@@ -9,10 +9,12 @@
 - `GET /api/health`：服务健康状态
 
 ### 1.2 认证与用户
-- `POST /api/auth/wechat/login`：微信登录（mock token）
+- `POST /api/auth/wechat/login`：微信登录（mock token，token 内携带 userId）
 - `POST /api/auth/bind-phone`：绑定手机号
 - `GET /api/users/me`：获取当前用户信息
 - `PATCH /api/users/me`：更新用户资料
+
+说明：当前用户相关接口（`/api/auth/bind-phone`、`/api/users/me`、`/api/orders*`）要求携带 `Authorization: Bearer <token>`；未携带或 token 无效时返回 `40100`。
 
 ### 1.3 首页与内容
 - `GET /api/content/home`：首页聚合数据（banner/服务/推荐房型/会员权益）

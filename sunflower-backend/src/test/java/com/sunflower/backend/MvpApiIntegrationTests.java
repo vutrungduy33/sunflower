@@ -33,7 +33,7 @@ class MvpApiIntegrationTests {
 
     @Test
     void shouldLoginBindPhoneAndPatchProfile() throws Exception {
-        mockMvc
+        MvcResult loginResult = mockMvc
             .perform(
                 post("/api/auth/wechat/login")
                     .contentType(MediaType.APPLICATION_JSON)
@@ -43,11 +43,16 @@ class MvpApiIntegrationTests {
             .andExpect(jsonPath("$.code").value(0))
             .andExpect(jsonPath("$.data.token").exists())
             .andExpect(jsonPath("$.data.openId").value("mock_openid_mvp_code"))
-            .andExpect(jsonPath("$.data.profile.nickName").value("微信用户"));
+            .andExpect(jsonPath("$.data.profile.nickName").value("微信用户"))
+            .andReturn();
+
+        JsonNode loginBody = objectMapper.readTree(loginResult.getResponse().getContentAsString());
+        String token = loginBody.path("data").path("token").asText();
 
         mockMvc
             .perform(
                 post("/api/auth/bind-phone")
+                    .header("Authorization", bearerToken(token))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("{\"phone\":\"13800000000\"}")
             )
@@ -59,12 +64,20 @@ class MvpApiIntegrationTests {
         mockMvc
             .perform(
                 patch("/api/users/me")
+                    .header("Authorization", bearerToken(token))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("{\"nickName\":\"葵花住客\"}")
             )
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(0))
             .andExpect(jsonPath("$.data.nickName").value("葵花住客"));
+
+        mockMvc
+            .perform(get("/api/users/me").header("Authorization", bearerToken(token)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.nickName").value("葵花住客"))
+            .andExpect(jsonPath("$.data.isPhoneBound").value(true));
     }
 
     @Test
@@ -117,9 +130,12 @@ class MvpApiIntegrationTests {
 
     @Test
     void shouldCreatePayCancelAndQueryOrder() throws Exception {
+        String token = loginAndGetToken("order_flow_code");
+
         MvcResult createResult = mockMvc
             .perform(
                 post("/api/orders")
+                    .header("Authorization", bearerToken(token))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(
                         "{"
@@ -143,22 +159,138 @@ class MvpApiIntegrationTests {
         String orderId = createBody.path("data").path("id").asText();
 
         mockMvc
-            .perform(post("/api/orders/{id}/pay", orderId))
+            .perform(post("/api/orders/{id}/pay", orderId).header("Authorization", bearerToken(token)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(0))
             .andExpect(jsonPath("$.data.status").value("CONFIRMED"));
 
         mockMvc
-            .perform(post("/api/orders/{id}/cancel", orderId).contentType(MediaType.APPLICATION_JSON).content("{}"))
+            .perform(
+                post("/api/orders/{id}/cancel", orderId)
+                    .header("Authorization", bearerToken(token))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{}")
+            )
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(0))
             .andExpect(jsonPath("$.data.status").value("CANCELLED"));
 
         mockMvc
-            .perform(get("/api/orders/{id}", orderId))
+            .perform(get("/api/orders/{id}", orderId).header("Authorization", bearerToken(token)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(0))
             .andExpect(jsonPath("$.data.id").value(orderId))
             .andExpect(jsonPath("$.data.statusLabel").value("已取消"));
+    }
+
+    @Test
+    void shouldRejectInvalidAuthAndProfileParams() throws Exception {
+        String token = loginAndGetToken("invalid_param_case");
+
+        mockMvc
+            .perform(
+                post("/api/auth/wechat/login")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"code\":\"   \"}")
+            )
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value(40001))
+            .andExpect(jsonPath("$.message").value("微信登录 code 不能为空"));
+
+        mockMvc
+            .perform(
+                post("/api/auth/bind-phone")
+                    .header("Authorization", bearerToken(token))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"phone\":\"12345\"}")
+            )
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value(40001))
+            .andExpect(jsonPath("$.message").value("请输入正确的 11 位手机号"));
+
+        mockMvc
+            .perform(
+                patch("/api/users/me")
+                    .header("Authorization", bearerToken(token))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"nickName\":\"   \"}")
+            )
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value(40000))
+            .andExpect(jsonPath("$.message").value("昵称不能为空"));
+    }
+
+    @Test
+    void shouldHandleNonExistingUserByToken() throws Exception {
+        mockMvc
+            .perform(get("/api/users/me").header("Authorization", "Bearer mock_token_user_not_exists"))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.code").value(40400))
+            .andExpect(jsonPath("$.message").value("用户不存在"));
+
+        mockMvc
+            .perform(
+                post("/api/auth/bind-phone")
+                    .header("Authorization", "Bearer mock_token_user_not_exists")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"phone\":\"13800000000\"}")
+            )
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.code").value(40400))
+            .andExpect(jsonPath("$.message").value("用户不存在"));
+    }
+
+    @Test
+    void shouldRejectMissingTokenForCurrentUserApis() throws Exception {
+        mockMvc
+            .perform(get("/api/users/me"))
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.code").value(40100))
+            .andExpect(jsonPath("$.message").value("请先登录"));
+
+        mockMvc
+            .perform(
+                post("/api/auth/bind-phone")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"phone\":\"13800000000\"}")
+            )
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.code").value(40100))
+            .andExpect(jsonPath("$.message").value("请先登录"));
+
+        mockMvc
+            .perform(get("/api/orders"))
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.code").value(40100))
+            .andExpect(jsonPath("$.message").value("请先登录"));
+    }
+
+    @Test
+    void shouldRejectInvalidTokenFormat() throws Exception {
+        mockMvc
+            .perform(get("/api/users/me").header("Authorization", "Bearer invalid_token_format"))
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.code").value(40100))
+            .andExpect(jsonPath("$.message").value("登录态无效"));
+    }
+
+    private String loginAndGetToken(String code) throws Exception {
+        MvcResult loginResult = mockMvc
+            .perform(
+                post("/api/auth/wechat/login")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"code\":\"" + code + "\"}")
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.token").exists())
+            .andReturn();
+
+        JsonNode loginBody = objectMapper.readTree(loginResult.getResponse().getContentAsString());
+        return loginBody.path("data").path("token").asText();
+    }
+
+    private String bearerToken(String token) {
+        return "Bearer " + token;
     }
 }

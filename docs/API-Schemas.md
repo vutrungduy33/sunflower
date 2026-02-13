@@ -1,6 +1,6 @@
 # 接口字段级别定义（请求/响应示例）
 
-> 更新时间：2026-02-11  
+> 更新时间：2026-02-13  
 > 说明：以下示例对齐当前 `sunflower-backend` 的 MVP 一期实现。
 
 统一响应壳：
@@ -21,7 +21,18 @@
 }
 ```
 
+鉴权错误示例：
+```json
+{
+  "code": 40100,
+  "message": "请先登录",
+  "data": null
+}
+```
+
 ## 1) 认证与用户
+
+登录态说明：登录后返回 token，客户端通过 `Authorization: Bearer <token>` 调用当前用户接口；未携带或 token 无效返回 `40100`。
 
 ### `POST /api/auth/wechat/login`
 **请求**
@@ -33,7 +44,7 @@
 **响应**
 ```json
 {
-  "token": "mock_token_1739260800000",
+  "token": "mock_token_user_demo_1001",
   "openId": "mock_openid_mvp_code",
   "profile": {
     "nickName": "微信用户",
