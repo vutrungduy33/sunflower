@@ -61,3 +61,4 @@ When relevant, explicitly invoke these skills:
 - `$stage-executor`: Use for complete single-stage delivery (`Sx`) with guard commands and reporting.
 - `$api-contract-guard`: Use when controller/DTO/API behavior may change.
 - `$spring-persistence-stage`: Use for Spring Boot in-memory to MySQL persistence migration stages.
+- `$submit-code-pr`: Use when the user asks to “提交代码/推送代码/创建PR”, and execute commit/push/PR creation with labels and milestone.
