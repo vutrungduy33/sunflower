@@ -36,9 +36,18 @@ jobs:
           command_timeout: 30m
           script_stop: true
           script: |
-            set -euo pipefail
+            set -uo pipefail
             REPO_URL="https://github.com/vutrungduy33/sunflower.git"
             DEPLOY_PATH="${{ secrets.DEPLOY_PATH }}"
+
+            run_or_exit() {
+              "$@"
+              status=$?
+              if [ $status -ne 0 ]; then
+                echo "ERROR: command failed (status=$status): $*"
+                exit $status
+              fi
+            }
 
             AUTH_TOKEN_SECRET="$(printf '%s' "${AUTH_TOKEN_SECRET:-}" | tr -d '\r\n')"
             AUTH_TOKEN_TTL_SECONDS="$(printf '%s' "${AUTH_TOKEN_TTL_SECONDS:-7200}" | tr -d '\r\n')"
@@ -68,6 +77,7 @@ jobs:
                 WECHAT_AUTH_MOCK_ENABLED="true"
               fi
             fi
+            echo "[deploy] secret/env validation completed"
 
             export AUTH_TOKEN_SECRET
             export AUTH_TOKEN_TTL_SECONDS
@@ -76,20 +86,24 @@ jobs:
             export WECHAT_APP_SECRET
             export WECHAT_JSCODE2SESSION_URL
             export WECHAT_MOCK_OPENID_PREFIX
+            echo "[deploy] env exported"
 
-            mkdir -p "$DEPLOY_PATH"
-            cd "$DEPLOY_PATH"
+            run_or_exit mkdir -p "$DEPLOY_PATH"
+            run_or_exit cd "$DEPLOY_PATH"
+            echo "[deploy] switched to deploy path"
 
             if [ ! -d .git ]; then
-              git clone "$REPO_URL" .
+              run_or_exit git clone "$REPO_URL" .
             fi
 
-            git fetch origin main
-            git checkout main
-            git reset --hard origin/main
+            run_or_exit git fetch origin main
+            run_or_exit git checkout main
+            run_or_exit git reset --hard origin/main
+            echo "[deploy] repository synced to origin/main"
 
-            chmod +x scripts/start_backend_with_mvp_seed.sh
-            ./scripts/start_backend_with_mvp_seed.sh
+            run_or_exit chmod +x scripts/start_backend_with_mvp_seed.sh
+            run_or_exit ./scripts/start_backend_with_mvp_seed.sh
+            echo "[deploy] backend startup script executed"
 
             for i in $(seq 1 20); do
               if curl -fsS http://127.0.0.1:8080/api/health >/dev/null; then
