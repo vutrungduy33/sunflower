@@ -40,13 +40,13 @@ jobs:
             REPO_URL="https://github.com/vutrungduy33/sunflower.git"
             DEPLOY_PATH="${{ secrets.DEPLOY_PATH }}"
 
-            AUTH_TOKEN_SECRET="${AUTH_TOKEN_SECRET:-}"
-            AUTH_TOKEN_TTL_SECONDS="${AUTH_TOKEN_TTL_SECONDS:-7200}"
-            WECHAT_AUTH_MOCK_ENABLED="${WECHAT_AUTH_MOCK_ENABLED:-false}"
-            WECHAT_APP_ID="${WECHAT_APP_ID:-}"
-            WECHAT_APP_SECRET="${WECHAT_APP_SECRET:-}"
-            WECHAT_JSCODE2SESSION_URL="${WECHAT_JSCODE2SESSION_URL:-https://api.weixin.qq.com/sns/jscode2session}"
-            WECHAT_MOCK_OPENID_PREFIX="${WECHAT_MOCK_OPENID_PREFIX:-mock_openid_}"
+            AUTH_TOKEN_SECRET="$(printf '%s' "${AUTH_TOKEN_SECRET:-}" | tr -d '\r\n')"
+            AUTH_TOKEN_TTL_SECONDS="$(printf '%s' "${AUTH_TOKEN_TTL_SECONDS:-7200}" | tr -d '\r\n')"
+            WECHAT_AUTH_MOCK_ENABLED="$(printf '%s' "${WECHAT_AUTH_MOCK_ENABLED:-false}" | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')"
+            WECHAT_APP_ID="$(printf '%s' "${WECHAT_APP_ID:-}" | tr -d '\r\n')"
+            WECHAT_APP_SECRET="$(printf '%s' "${WECHAT_APP_SECRET:-}" | tr -d '\r\n')"
+            WECHAT_JSCODE2SESSION_URL="$(printf '%s' "${WECHAT_JSCODE2SESSION_URL:-https://api.weixin.qq.com/sns/jscode2session}" | tr -d '\r\n')"
+            WECHAT_MOCK_OPENID_PREFIX="$(printf '%s' "${WECHAT_MOCK_OPENID_PREFIX:-mock_openid_}" | tr -d '\r\n')"
 
             if [ -z "$AUTH_TOKEN_SECRET" ]; then
               echo "Missing required secret AUTH_TOKEN_SECRET"
