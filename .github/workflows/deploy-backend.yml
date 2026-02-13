@@ -34,7 +34,7 @@ jobs:
           key: ${{ secrets.ECS_SSH_KEY }}
           envs: AUTH_TOKEN_SECRET,AUTH_TOKEN_TTL_SECONDS,WECHAT_AUTH_MOCK_ENABLED,WECHAT_APP_ID,WECHAT_APP_SECRET,WECHAT_JSCODE2SESSION_URL,WECHAT_MOCK_OPENID_PREFIX
           command_timeout: 30m
-          script_stop: true
+          script_stop: false
           script: |
             set -u
             echo "[deploy] script start"
