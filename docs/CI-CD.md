@@ -71,6 +71,16 @@
 - `ECS_PORT`：SSH 端口（默认 `22`）
 - `ECS_SSH_KEY`：登录 ECS 的私钥内容
 - `DEPLOY_PATH`：服务器部署目录（例如 `/opt/sunflower`）
+- `AUTH_TOKEN_SECRET`：后端签名 token 密钥（必填）
+
+可选（若不配置则使用默认值）：
+
+- `AUTH_TOKEN_TTL_SECONDS`：token 过期秒数（默认 `7200`）
+- `WECHAT_AUTH_MOCK_ENABLED`：是否启用微信登录 mock（`true/false`，默认 `false`）
+- `WECHAT_APP_ID`：微信小程序 `appId`（当 `WECHAT_AUTH_MOCK_ENABLED=false` 时必填）
+- `WECHAT_APP_SECRET`：微信小程序 `appSecret`（当 `WECHAT_AUTH_MOCK_ENABLED=false` 时必填）
+- `WECHAT_JSCODE2SESSION_URL`：微信 `jscode2session` 地址（默认官方地址）
+- `WECHAT_MOCK_OPENID_PREFIX`：mock openid 前缀（默认 `mock_openid_`）
 
 ---
 

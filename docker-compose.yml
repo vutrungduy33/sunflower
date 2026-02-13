@@ -35,6 +35,13 @@ services:
       DB_URL: jdbc:mysql://mysql:3306/sunflower?useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
       DB_USERNAME: sunflower
       DB_PASSWORD: sunflower
+      AUTH_TOKEN_SECRET: ${AUTH_TOKEN_SECRET:?AUTH_TOKEN_SECRET is required}
+      AUTH_TOKEN_TTL_SECONDS: ${AUTH_TOKEN_TTL_SECONDS:-7200}
+      WECHAT_AUTH_MOCK_ENABLED: ${WECHAT_AUTH_MOCK_ENABLED:-false}
+      WECHAT_APP_ID: ${WECHAT_APP_ID:-}
+      WECHAT_APP_SECRET: ${WECHAT_APP_SECRET:-}
+      WECHAT_JSCODE2SESSION_URL: ${WECHAT_JSCODE2SESSION_URL:-https://api.weixin.qq.com/sns/jscode2session}
+      WECHAT_MOCK_OPENID_PREFIX: ${WECHAT_MOCK_OPENID_PREFIX:-mock_openid_}
     ports:
       - "8080:8080"
 
