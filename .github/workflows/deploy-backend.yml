@@ -53,7 +53,7 @@ jobs:
 
             AUTH_TOKEN_SECRET="$(printf '%s' "${AUTH_TOKEN_SECRET:-}" | tr -d '\r\n')"
             echo "[deploy] normalized AUTH_TOKEN_SECRET"
-            AUTH_TOKEN_TTL_SECONDS="$(printf '%s' "${AUTH_TOKEN_TTL_SECONDS:-7200}" | tr -d '\r\n')"
+            AUTH_TOKEN_TTL_SECONDS="$(printf '%s' "${AUTH_TOKEN_TTL_SECONDS:-7200}" | tr -d '\r\n' | tr -d '[:space:]' | tr -d '\"' | tr -d "'")"
             echo "[deploy] normalized AUTH_TOKEN_TTL_SECONDS"
             WECHAT_AUTH_MOCK_ENABLED="$(printf '%s' "${WECHAT_AUTH_MOCK_ENABLED:-false}" | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')"
             echo "[deploy] normalized WECHAT_AUTH_MOCK_ENABLED (step1)"
@@ -67,6 +67,14 @@ jobs:
             echo "[deploy] normalized WECHAT_JSCODE2SESSION_URL"
             WECHAT_MOCK_OPENID_PREFIX="$(printf '%s' "${WECHAT_MOCK_OPENID_PREFIX:-mock_openid_}" | tr -d '\r\n')"
             echo "[deploy] normalized WECHAT_MOCK_OPENID_PREFIX"
+
+            case "$AUTH_TOKEN_TTL_SECONDS" in
+              ''|*[!0-9]*)
+                echo "WARN: invalid AUTH_TOKEN_TTL_SECONDS, fallback to 7200"
+                AUTH_TOKEN_TTL_SECONDS="7200"
+                ;;
+            esac
+            echo "[deploy] AUTH_TOKEN_TTL_SECONDS validated"
 
             if [ -z "$AUTH_TOKEN_SECRET" ]; then
               echo "Missing required secret AUTH_TOKEN_SECRET"
