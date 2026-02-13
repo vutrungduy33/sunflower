@@ -47,7 +47,7 @@ public class OrderService {
         OrderRecord seedOrder = new OrderRecord();
         seedOrder.id = "order_seed_" + System.currentTimeMillis();
         seedOrder.orderNo = buildOrderNo(createdAt.toLocalDate());
-        seedOrder.userId = userService.currentUserId();
+        seedOrder.userId = userService.firstActiveUserId();
         seedOrder.source = "direct";
         seedOrder.roomId = "room-mountain-203";
         seedOrder.roomName = roomService.requireRoomSeed("room-mountain-203").getName();

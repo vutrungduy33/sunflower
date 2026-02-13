@@ -25,6 +25,10 @@ public class BusinessException extends RuntimeException {
         return new BusinessException(40900, message, HttpStatus.CONFLICT);
     }
 
+    public static BusinessException unauthorized(String message) {
+        return new BusinessException(40100, message, HttpStatus.UNAUTHORIZED);
+    }
+
     public int getCode() {
         return code;
     }
