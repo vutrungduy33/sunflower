@@ -57,7 +57,7 @@
 
 1. GitHub Actions 通过 SSH 连接 ECS
 2. 在 ECS 的部署目录拉取最新代码
-3. 执行 `docker compose up -d --build backend`
+3. 执行 `scripts/start_backend_with_mvp_seed.sh`（先启动 MySQL，再导入 `scripts/sql/mvp_demo_seed.sql`，最后启动 backend）
 4. 对 `http://127.0.0.1:8080/api/health` 做健康检查
 
 ---

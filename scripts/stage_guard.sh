@@ -6,6 +6,8 @@ PLAN_FILE="$ROOT_DIR/docs/Agent-Stage-Plan.md"
 BACKLOG_FILE="$ROOT_DIR/docs/Backlog.md"
 REPORT_DIR="$ROOT_DIR/docs/stage-reports"
 API_GUARD_SCRIPT="$ROOT_DIR/scripts/api_contract_guard.sh"
+SEED_SQL_FILE_REL="scripts/sql/mvp_demo_seed.sql"
+SEED_STARTUP_SCRIPT_REL="scripts/start_backend_with_mvp_seed.sh"
 
 usage() {
   cat <<'EOF'
@@ -36,6 +38,39 @@ has_match() {
   else
     grep -Eq -- "$pattern" "$file"
   fi
+}
+
+stdin_has_match() {
+  local pattern="$1"
+  if command -v rg >/dev/null 2>&1; then
+    rg -q -- "$pattern"
+  else
+    grep -Eq -- "$pattern"
+  fi
+}
+
+collect_changed_files() {
+  local base_sha=""
+  local branch_changes=""
+  local working_tree_changes=""
+  local untracked_changes=""
+
+  if git -C "$ROOT_DIR" rev-parse --verify origin/main >/dev/null 2>&1; then
+    base_sha="$(git -C "$ROOT_DIR" merge-base HEAD origin/main || true)"
+  fi
+
+  if [[ -n "$base_sha" ]]; then
+    branch_changes="$(git -C "$ROOT_DIR" diff --name-only "$base_sha...HEAD" || true)"
+  else
+    branch_changes="$(git -C "$ROOT_DIR" diff --name-only HEAD || true)"
+  fi
+
+  working_tree_changes="$(git -C "$ROOT_DIR" diff --name-only HEAD -- || true)"
+  untracked_changes="$(git -C "$ROOT_DIR" ls-files --others --exclude-standard || true)"
+
+  printf "%s\n%s\n%s\n" "$branch_changes" "$working_tree_changes" "$untracked_changes" \
+    | sed '/^[[:space:]]*$/d' \
+    | sort -u
 }
 
 mode="${1:-}"
@@ -113,6 +148,17 @@ if [[ -x "$API_GUARD_SCRIPT" ]]; then
   "$API_GUARD_SCRIPT" || true
 else
   warn "api contract guard script not executable: $API_GUARD_SCRIPT"
+fi
+
+changed_files="$(collect_changed_files)"
+data_migration_pattern='^(sunflower-backend/src/main/resources/db/migration/|sunflower-backend/src/main/java/.*/persistence/)'
+if [[ -n "$changed_files" ]] && echo "$changed_files" | stdin_has_match "$data_migration_pattern"; then
+  if ! echo "$changed_files" | stdin_has_match "^${SEED_SQL_FILE_REL}$"; then
+    fail "data migration/persistence changes detected, must sync ${SEED_SQL_FILE_REL}"
+  fi
+  if ! echo "$changed_files" | stdin_has_match "^${SEED_STARTUP_SCRIPT_REL}$|^\\.github/workflows/deploy-backend\\.yml$"; then
+    warn "consider checking ${SEED_STARTUP_SCRIPT_REL} / deploy workflow for startup behavior"
+  fi
 fi
 
 echo "[stage-guard] POST-CHECK PASS for ${stage}"

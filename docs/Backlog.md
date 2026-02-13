@@ -6,11 +6,12 @@
 > 守卫命令：`make stage-pre STAGE=Sx` / `make stage-post STAGE=Sx`
 > DoD：`docs/Definition-of-Done.md`
 > Git 规范：`codex/s<stage>-<slug>` + commit 前缀 `[Sx]`
+> 数据迁移同步：若变更命中 `db/migration` 或 `persistence`，需同步更新 `scripts/sql/mvp_demo_seed.sql`（由 `stage_guard post` 强校验）。
 
 ## 状态看板
 
 - [x] S0 目标重确认与文档分期
-- [x] S1 数据库与迁移底座（含 2026-02-12 Flyway MySQL hotfix）
+- [x] S1 数据库与迁移底座（含 2026-02-12 Flyway MySQL hotfix、2026-02-13 部署演示数据自动入库脚本）
 - [x] S2 房型模块落库（替换 RoomService 硬编码）
 - [x] S3 用户与认证落库（替换 User/Auth 硬编码）
 - [ ] S4 订单落库与事务化
