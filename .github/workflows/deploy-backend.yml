@@ -8,6 +8,8 @@ on:
     paths:
       - "sunflower-backend/**"
       - "docker-compose.yml"
+      - "scripts/start_backend_with_mvp_seed.sh"
+      - "scripts/sql/**"
       - ".github/workflows/deploy-backend.yml"
 
 jobs:
@@ -40,16 +42,8 @@ jobs:
             git checkout main
             git reset --hard origin/main
 
-            if docker compose version >/dev/null 2>&1; then
-              COMPOSE_CMD="docker compose"
-            elif command -v docker-compose >/dev/null 2>&1; then
-              COMPOSE_CMD="docker-compose"
-            else
-              echo "docker compose is not installed on ECS"
-              exit 1
-            fi
-
-            $COMPOSE_CMD up -d --build backend
+            chmod +x scripts/start_backend_with_mvp_seed.sh
+            ./scripts/start_backend_with_mvp_seed.sh
 
             for i in $(seq 1 20); do
               if curl -fsS http://127.0.0.1:8080/api/health >/dev/null; then

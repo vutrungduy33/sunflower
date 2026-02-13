@@ -32,6 +32,7 @@ V1 完成标准（上线就绪）：
 3. 保持 API 契约兼容或同步更新调用端。
 4. 必须有“可执行测试”与“可人工复核步骤”。
 5. Stage 完成后必须更新对应文档（至少 `docs/Backlog.md` 勾选状态）。
+6. 若 Stage 涉及“数据迁移/持久化入库”变更（迁移脚本、`persistence` 层、核心事实源入库逻辑），必须同步更新 `scripts/sql/mvp_demo_seed.sql`，并确认 `scripts/start_backend_with_mvp_seed.sh` 仍可自动导入演示数据。
 
 ## 4. 对话执行模板（每个 Stage 通用）
 
@@ -61,6 +62,7 @@ Agent 回传结果至少包含：
 5. 提交前缀：`[Sx] ...`（例：`[S1] add flyway migration`）
 6. 执行 DoD 清单：`docs/Definition-of-Done.md`
 7. PR 门禁必须通过：Stage Guard + 自动化测试
+8. 涉及“数据迁移/持久化入库”时，`stage_guard post` 必须通过 seed 同步校验（`scripts/sql/mvp_demo_seed.sql`）
 
 ## 5. Stage 明细（S0-S14）
 
