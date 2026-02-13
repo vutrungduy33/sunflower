@@ -2,6 +2,7 @@ package com.sunflower.backend;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sunflower.backend.modules.auth.AuthTokenService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -30,6 +31,9 @@ class MvpApiIntegrationTests {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private AuthTokenService authTokenService;
 
     @Test
     void shouldLoginBindPhoneAndPatchProfile() throws Exception {
@@ -222,22 +226,24 @@ class MvpApiIntegrationTests {
 
     @Test
     void shouldHandleNonExistingUserByToken() throws Exception {
+        String nonExistingUserToken = authTokenService.buildToken("user_not_exists");
+
         mockMvc
-            .perform(get("/api/users/me").header("Authorization", "Bearer mock_token_user_not_exists"))
-            .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.code").value(40400))
-            .andExpect(jsonPath("$.message").value("用户不存在"));
+            .perform(get("/api/users/me").header("Authorization", bearerToken(nonExistingUserToken)))
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.code").value(40100))
+            .andExpect(jsonPath("$.message").value("登录态无效"));
 
         mockMvc
             .perform(
                 post("/api/auth/bind-phone")
-                    .header("Authorization", "Bearer mock_token_user_not_exists")
+                    .header("Authorization", bearerToken(nonExistingUserToken))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("{\"phone\":\"13800000000\"}")
             )
-            .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.code").value(40400))
-            .andExpect(jsonPath("$.message").value("用户不存在"));
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.code").value(40100))
+            .andExpect(jsonPath("$.message").value("登录态无效"));
     }
 
     @Test
@@ -269,6 +275,24 @@ class MvpApiIntegrationTests {
     void shouldRejectInvalidTokenFormat() throws Exception {
         mockMvc
             .perform(get("/api/users/me").header("Authorization", "Bearer invalid_token_format"))
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.code").value(40100))
+            .andExpect(jsonPath("$.message").value("登录态无效"));
+
+        mockMvc
+            .perform(get("/api/users/me").header("Authorization", "Bearer mock_token_user_demo_1001"))
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.code").value(40100))
+            .andExpect(jsonPath("$.message").value("登录态无效"));
+    }
+
+    @Test
+    void shouldRejectTamperedTokenSignature() throws Exception {
+        String token = loginAndGetToken("tamper_case");
+        String tampered = token + "x";
+
+        mockMvc
+            .perform(get("/api/users/me").header("Authorization", bearerToken(tampered)))
             .andExpect(status().isUnauthorized())
             .andExpect(jsonPath("$.code").value(40100))
             .andExpect(jsonPath("$.message").value("登录态无效"));

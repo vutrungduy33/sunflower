@@ -9,6 +9,8 @@ public interface UserRepository extends JpaRepository<UserEntity, String> {
 
     Optional<UserEntity> findByIdAndStatus(String id, String status);
 
+    boolean existsByIdAndStatus(String id, String status);
+
     Optional<UserEntity> findByPhone(String phone);
 
     Optional<UserEntity> findFirstByStatusOrderByIdAsc(String status);

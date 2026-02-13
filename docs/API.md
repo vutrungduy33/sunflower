@@ -9,7 +9,7 @@
 - `GET /api/health`：服务健康状态
 
 ### 1.2 认证与用户
-- `POST /api/auth/wechat/login`：微信登录（mock token，token 内携带 userId）
+- `POST /api/auth/wechat/login`：微信登录（签名 token，内含 userId 与过期时间）
 - `POST /api/auth/bind-phone`：绑定手机号
 - `GET /api/users/me`：获取当前用户信息
 - `PATCH /api/users/me`：更新用户资料

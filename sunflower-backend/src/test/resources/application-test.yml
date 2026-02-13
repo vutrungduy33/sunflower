@@ -10,3 +10,9 @@ spring:
     hibernate:
       ddl-auto: none
     open-in-view: false
+
+app:
+  auth:
+    token:
+      secret: test-signing-secret-change-me
+      ttl-seconds: 3600

@@ -8,6 +8,7 @@ import com.sunflower.backend.modules.user.persistence.UserProfileEntity;
 import com.sunflower.backend.modules.user.persistence.UserProfileRepository;
 import com.sunflower.backend.modules.user.persistence.UserRepository;
 import java.util.UUID;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,9 +58,15 @@ public class AuthService {
         user.setId(buildUserId());
         user.setOpenid(openId);
         user.setStatus(USER_STATUS_ACTIVE);
-        UserEntity savedUser = userRepository.save(user);
-        userProfileRepository.save(buildDefaultProfile(savedUser.getId()));
-        return savedUser;
+        try {
+            UserEntity savedUser = userRepository.save(user);
+            userProfileRepository.save(buildDefaultProfile(savedUser.getId()));
+            return savedUser;
+        } catch (DataIntegrityViolationException ex) {
+            return userRepository
+                .findByOpenid(openId)
+                .orElseThrow(() -> ex);
+        }
     }
 
     private void ensureProfileExists(String userId) {

@@ -15,3 +15,9 @@ management:
   endpoint:
     health:
       show-details: never
+
+app:
+  auth:
+    token:
+      secret: ${AUTH_TOKEN_SECRET}
+      ttl-seconds: ${AUTH_TOKEN_TTL_SECONDS:7200}
