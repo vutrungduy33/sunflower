@@ -2,7 +2,7 @@ const { getDefaultBookingDate } = require('./date');
 
 const STORAGE_KEY_API_BASE_URL = 'SUNFLOWER_API_BASE_URL';
 const STORAGE_KEY_AUTH_TOKEN = 'SUNFLOWER_AUTH_TOKEN';
-const DEFAULT_API_BASE_URL = 'http://8.155.148.126';
+const DEFAULT_API_BASE_URL = 'https://8.155.148.126';
 const AUTH_EXPIRED_MESSAGE = '登录态已失效，请重新进入首页';
 
 function safeGetApp() {
@@ -54,6 +54,24 @@ function clearAuthToken() {
   }
 }
 
+function getWechatLoginCode() {
+  return new Promise((resolve, reject) => {
+    wx.login({
+      success(result) {
+        const code = `${(result && result.code) || ''}`.trim();
+        if (!code) {
+          reject(new Error('微信登录失败，请重试'));
+          return;
+        }
+        resolve(code);
+      },
+      fail(error) {
+        reject(new Error((error && error.errMsg) || '微信登录失败，请重试'));
+      },
+    });
+  });
+}
+
 function buildUrl(path) {
   if (!path.startsWith('/')) {
     throw new Error(`非法 API 路径: ${path}`);
@@ -94,7 +112,7 @@ function request(path, options = {}) {
 
         if (data && typeof data.code === 'number') {
           if (data.code !== 0) {
-            if (data.code === 401) {
+            if (data.code === 401 || (data.code >= 40100 && data.code < 40200)) {
               clearAuthToken();
               reject(new Error(AUTH_EXPIRED_MESSAGE));
               return;
@@ -128,10 +146,11 @@ function withQuery(params = {}) {
 }
 
 async function wechatLogin(code) {
+  const resolvedCode = `${code || ''}`.trim() || (await getWechatLoginCode());
   const loginData = await request('/api/auth/wechat/login', {
     method: 'POST',
     data: {
-      code: `${code || 'anonymous'}`,
+      code: resolvedCode,
     },
   });
   if (loginData && loginData.token) {

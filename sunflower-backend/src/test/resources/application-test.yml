@@ -10,3 +10,12 @@ spring:
     hibernate:
       ddl-auto: none
     open-in-view: false
+
+app:
+  auth:
+    wechat:
+      mock-enabled: true
+      mock-openid-prefix: mock_openid_
+    token:
+      secret: test-signing-secret-change-me
+      ttl-seconds: 3600

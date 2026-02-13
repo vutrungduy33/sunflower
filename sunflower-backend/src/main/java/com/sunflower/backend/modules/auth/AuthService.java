@@ -8,6 +8,7 @@ import com.sunflower.backend.modules.user.persistence.UserProfileEntity;
 import com.sunflower.backend.modules.user.persistence.UserProfileRepository;
 import com.sunflower.backend.modules.user.persistence.UserRepository;
 import java.util.UUID;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,22 +25,25 @@ public class AuthService {
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
     private final AuthTokenService authTokenService;
+    private final WechatCode2SessionClient wechatCode2SessionClient;
 
     public AuthService(
         UserService userService,
         UserRepository userRepository,
         UserProfileRepository userProfileRepository,
-        AuthTokenService authTokenService
+        AuthTokenService authTokenService,
+        WechatCode2SessionClient wechatCode2SessionClient
     ) {
         this.userService = userService;
         this.userRepository = userRepository;
         this.userProfileRepository = userProfileRepository;
         this.authTokenService = authTokenService;
+        this.wechatCode2SessionClient = wechatCode2SessionClient;
     }
 
     @Transactional
     public WechatLoginResponse wechatLogin(String code) {
-        String openId = "mock_openid_" + code;
+        String openId = wechatCode2SessionClient.resolveOpenId(code);
         UserEntity user = userRepository.findByOpenid(openId).orElseGet(() -> registerWechatUser(openId));
         ensureProfileExists(user.getId());
 
@@ -57,9 +61,15 @@ public class AuthService {
         user.setId(buildUserId());
         user.setOpenid(openId);
         user.setStatus(USER_STATUS_ACTIVE);
-        UserEntity savedUser = userRepository.save(user);
-        userProfileRepository.save(buildDefaultProfile(savedUser.getId()));
-        return savedUser;
+        try {
+            UserEntity savedUser = userRepository.save(user);
+            userProfileRepository.save(buildDefaultProfile(savedUser.getId()));
+            return savedUser;
+        } catch (DataIntegrityViolationException ex) {
+            return userRepository
+                .findByOpenid(openId)
+                .orElseThrow(() -> ex);
+        }
     }
 
     private void ensureProfileExists(String userId) {

@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,9 +48,13 @@ public class UserService {
         if (token.isEmpty()) {
             throw BusinessException.unauthorized("请先登录");
         }
-        return authTokenService
+        String userId = authTokenService
             .parseUserId(token.get())
             .orElseThrow(() -> BusinessException.unauthorized("登录态无效"));
+        if (!userRepository.existsByIdAndStatus(userId, USER_STATUS_ACTIVE)) {
+            throw BusinessException.unauthorized("登录态无效");
+        }
+        return userId;
     }
 
     public ProfileDto getCurrentProfile() {
@@ -101,7 +106,11 @@ public class UserService {
                 }
             });
         user.setPhone(normalized);
-        userRepository.save(user);
+        try {
+            userRepository.save(user);
+        } catch (DataIntegrityViolationException ex) {
+            throw BusinessException.conflict("手机号已被绑定");
+        }
 
         UserProfileEntity profile = requireProfile(user.getId());
         return toProfileDto(user, profile);
