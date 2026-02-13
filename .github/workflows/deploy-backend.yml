@@ -43,7 +43,7 @@ jobs:
             AUTH_TOKEN_SECRET="$(printf '%s' "${AUTH_TOKEN_SECRET:-}" | tr -d '\r\n')"
             AUTH_TOKEN_TTL_SECONDS="$(printf '%s' "${AUTH_TOKEN_TTL_SECONDS:-7200}" | tr -d '\r\n')"
             WECHAT_AUTH_MOCK_ENABLED="$(printf '%s' "${WECHAT_AUTH_MOCK_ENABLED:-false}" | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')"
-            WECHAT_AUTH_MOCK_ENABLED="$(printf '%s' "$WECHAT_AUTH_MOCK_ENABLED" | sed -E "s/^['\\\"]+//; s/['\\\"]+$//")"
+            WECHAT_AUTH_MOCK_ENABLED="$(printf '%s' "$WECHAT_AUTH_MOCK_ENABLED" | tr -d '\"' | tr -d "'")"
             WECHAT_APP_ID="$(printf '%s' "${WECHAT_APP_ID:-}" | tr -d '\r\n')"
             WECHAT_APP_SECRET="$(printf '%s' "${WECHAT_APP_SECRET:-}" | tr -d '\r\n')"
             WECHAT_JSCODE2SESSION_URL="$(printf '%s' "${WECHAT_JSCODE2SESSION_URL:-https://api.weixin.qq.com/sns/jscode2session}" | tr -d '\r\n')"
