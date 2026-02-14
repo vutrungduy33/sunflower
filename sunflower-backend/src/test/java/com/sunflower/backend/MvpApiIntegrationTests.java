@@ -204,6 +204,44 @@ class MvpApiIntegrationTests {
     }
 
     @Test
+    void shouldReuseMockUserAcrossDifferentLoginCodes() throws Exception {
+        String firstToken = loginAndGetToken("first_login_code");
+
+        MvcResult createResult = mockMvc
+            .perform(
+                post("/api/orders")
+                    .header("Authorization", bearerToken(firstToken))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        "{"
+                            + "\"roomId\":\"room-lake-101\","
+                            + "\"checkInDate\":\"2026-02-12\","
+                            + "\"checkOutDate\":\"2026-02-13\","
+                            + "\"source\":\"direct\","
+                            + "\"guestName\":\"张三\","
+                            + "\"guestPhone\":\"13800000000\","
+                            + "\"arrivalTime\":\"18:00\","
+                            + "\"remark\":\"mock稳定账号验证\""
+                            + "}"
+                    )
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andReturn();
+
+        JsonNode createBody = objectMapper.readTree(createResult.getResponse().getContentAsString());
+        String orderId = createBody.path("data").path("id").asText();
+
+        String secondToken = loginAndGetToken("second_login_code");
+
+        mockMvc
+            .perform(get("/api/orders/{id}", orderId).header("Authorization", bearerToken(secondToken)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.id").value(orderId));
+    }
+
+    @Test
     void shouldRejectCreateOrderWhenInventoryInsufficient() throws Exception {
         LocalDate stayDate = LocalDate.parse("2026-02-13");
         setInventory("room-lake-101", stayDate, 3, 0, 3);

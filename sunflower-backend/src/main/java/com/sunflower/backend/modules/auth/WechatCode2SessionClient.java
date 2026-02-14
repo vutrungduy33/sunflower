@@ -24,6 +24,7 @@ public class WechatCode2SessionClient {
     private final String appId;
     private final String appSecret;
     private final String jscode2sessionUrl;
+    private final String mockFixedOpenId;
     private final String mockOpenIdPrefix;
 
     public WechatCode2SessionClient(
@@ -32,6 +33,7 @@ public class WechatCode2SessionClient {
         @Value("${app.auth.wechat.app-id:}") String appId,
         @Value("${app.auth.wechat.app-secret:}") String appSecret,
         @Value("${app.auth.wechat.jscode2session-url:https://api.weixin.qq.com/sns/jscode2session}") String jscode2sessionUrl,
+        @Value("${app.auth.wechat.mock-fixed-openid:}") String mockFixedOpenId,
         @Value("${app.auth.wechat.mock-openid-prefix:mock_openid_}") String mockOpenIdPrefix
     ) {
         this.restTemplate = restTemplateBuilder.build();
@@ -39,6 +41,7 @@ public class WechatCode2SessionClient {
         this.appId = trim(appId);
         this.appSecret = trim(appSecret);
         this.jscode2sessionUrl = trim(jscode2sessionUrl);
+        this.mockFixedOpenId = trim(mockFixedOpenId);
         this.mockOpenIdPrefix = trim(mockOpenIdPrefix);
 
         if (!this.mockEnabled) {
@@ -52,6 +55,9 @@ public class WechatCode2SessionClient {
     public String resolveOpenId(String code) {
         String normalizedCode = normalizeCode(code);
         if (mockEnabled) {
+            if (!mockFixedOpenId.isEmpty()) {
+                return mockFixedOpenId;
+            }
             return mockOpenIdPrefix + normalizedCode;
         }
 
