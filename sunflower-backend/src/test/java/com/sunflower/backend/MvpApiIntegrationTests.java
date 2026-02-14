@@ -3,6 +3,17 @@ package com.sunflower.backend;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sunflower.backend.modules.auth.AuthTokenService;
+import com.sunflower.backend.modules.room.persistence.RoomInventoryEntity;
+import com.sunflower.backend.modules.room.persistence.RoomInventoryRepository;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -14,6 +25,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -34,6 +47,9 @@ class MvpApiIntegrationTests {
 
     @Autowired
     private AuthTokenService authTokenService;
+
+    @Autowired
+    private RoomInventoryRepository roomInventoryRepository;
 
     @Test
     void shouldLoginBindPhoneAndPatchProfile() throws Exception {
@@ -226,6 +242,81 @@ class MvpApiIntegrationTests {
     }
 
     @Test
+    void shouldRejectCreateOrderWhenInventoryInsufficient() throws Exception {
+        LocalDate stayDate = LocalDate.parse("2026-02-13");
+        setInventory("room-lake-101", stayDate, 3, 0, 3);
+
+        String token = loginAndGetToken("order_stock_empty");
+        mockMvc
+            .perform(
+                post("/api/orders")
+                    .header("Authorization", bearerToken(token))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        buildCreateOrderPayload(
+                            "room-lake-101",
+                            stayDate.toString(),
+                            stayDate.plusDays(1).toString()
+                        )
+                    )
+            )
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.code").value(40900))
+            .andExpect(jsonPath("$.message").value("所选日期库存不足"));
+    }
+
+    @Test
+    void shouldAllowOnlyOneOrderWhenConcurrentCreateOnSingleStock() throws Exception {
+        LocalDate stayDate = LocalDate.parse("2026-02-15");
+        setInventory("room-loft-301", stayDate, 1, 1, 0);
+
+        String tokenA = loginAndGetToken("concurrent_order_a");
+        String tokenB = loginAndGetToken("concurrent_order_b");
+        String payload = buildCreateOrderPayload(
+            "room-loft-301",
+            stayDate.toString(),
+            stayDate.plusDays(1).toString()
+        );
+
+        ExecutorService executorService = Executors.newFixedThreadPool(2);
+        CountDownLatch ready = new CountDownLatch(2);
+        CountDownLatch start = new CountDownLatch(1);
+
+        try {
+            Future<MvcResult> futureA = submitCreateOrderTask(executorService, ready, start, tokenA, payload);
+            Future<MvcResult> futureB = submitCreateOrderTask(executorService, ready, start, tokenB, payload);
+
+            assertTrue(ready.await(5, TimeUnit.SECONDS));
+            start.countDown();
+
+            List<MvcResult> results = Arrays.asList(futureA.get(10, TimeUnit.SECONDS), futureB.get(10, TimeUnit.SECONDS));
+            int successCount = 0;
+            int conflictCount = 0;
+            List<String> responseSnapshots = new ArrayList<>();
+            for (MvcResult result : results) {
+                JsonNode body = objectMapper.readTree(result.getResponse().getContentAsString());
+                int statusCode = result.getResponse().getStatus();
+                int code = body.path("code").asInt();
+                responseSnapshots.add(statusCode + ":" + body.toString());
+                if (statusCode == 200 && code == 0) {
+                    successCount++;
+                } else if (statusCode == 409 && code == 40900) {
+                    conflictCount++;
+                }
+            }
+
+            assertEquals(1, successCount, "并发下单响应: " + responseSnapshots);
+            assertEquals(1, conflictCount, "并发下单响应: " + responseSnapshots);
+        } finally {
+            executorService.shutdownNow();
+        }
+
+        RoomInventoryEntity inventory = getInventory("room-loft-301", stayDate);
+        assertEquals(0, inventory.getAvailableStock());
+        assertEquals(1, inventory.getLockedStock());
+    }
+
+    @Test
     void shouldRejectInvalidAuthAndProfileParams() throws Exception {
         String token = loginAndGetToken("invalid_param_case");
 
@@ -350,6 +441,58 @@ class MvpApiIntegrationTests {
 
         JsonNode loginBody = objectMapper.readTree(loginResult.getResponse().getContentAsString());
         return loginBody.path("data").path("token").asText();
+    }
+
+    private Future<MvcResult> submitCreateOrderTask(
+        ExecutorService executorService,
+        CountDownLatch ready,
+        CountDownLatch start,
+        String token,
+        String payload
+    ) {
+        return executorService.submit(() -> {
+            ready.countDown();
+            if (!start.await(5, TimeUnit.SECONDS)) {
+                throw new IllegalStateException("并发测试启动超时");
+            }
+            return mockMvc
+                .perform(
+                    post("/api/orders")
+                        .header("Authorization", bearerToken(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload)
+                )
+                .andReturn();
+        });
+    }
+
+    private void setInventory(String roomId, LocalDate date, int totalStock, int availableStock, int lockedStock) {
+        RoomInventoryEntity inventory = getInventory(roomId, date);
+        inventory.setTotalStock(totalStock);
+        inventory.setAvailableStock(availableStock);
+        inventory.setLockedStock(lockedStock);
+        roomInventoryRepository.save(inventory);
+    }
+
+    private RoomInventoryEntity getInventory(String roomId, LocalDate date) {
+        return roomInventoryRepository
+            .findByRoomIdAndBizDateBetweenOrderByBizDateAsc(roomId, date, date)
+            .stream()
+            .findFirst()
+            .orElseThrow(() -> new IllegalStateException("未找到库存种子数据: " + roomId + "@" + date));
+    }
+
+    private String buildCreateOrderPayload(String roomId, String checkInDate, String checkOutDate) {
+        return "{"
+            + "\"roomId\":\"" + roomId + "\","
+            + "\"checkInDate\":\"" + checkInDate + "\","
+            + "\"checkOutDate\":\"" + checkOutDate + "\","
+            + "\"source\":\"direct\","
+            + "\"guestName\":\"并发住客\","
+            + "\"guestPhone\":\"13800000000\","
+            + "\"arrivalTime\":\"18:00\","
+            + "\"remark\":\"库存测试\""
+            + "}";
     }
 
     private String bearerToken(String token) {
