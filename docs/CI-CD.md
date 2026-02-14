@@ -81,6 +81,7 @@
 - `WECHAT_APP_SECRET`：微信小程序 `appSecret`（当 `WECHAT_AUTH_MOCK_ENABLED=false` 时必填）
 - `WECHAT_JSCODE2SESSION_URL`：微信 `jscode2session` 地址（默认官方地址）
 - `WECHAT_MOCK_OPENID_PREFIX`：mock openid 前缀（默认 `mock_openid_`）
+- `WECHAT_MOCK_FIXED_OPENID`：mock 固定 openid（默认空，只有显式配置时才启用固定账号）
 
 ---
 
