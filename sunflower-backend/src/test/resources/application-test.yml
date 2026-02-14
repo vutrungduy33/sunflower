@@ -15,6 +15,7 @@ app:
   auth:
     wechat:
       mock-enabled: true
+      mock-fixed-openid: mock_openid_mvp_code
       mock-openid-prefix: mock_openid_
     token:
       secret: test-signing-secret-change-me
