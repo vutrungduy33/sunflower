@@ -62,6 +62,15 @@ public class OrderEntity {
     @Column(name = "cancelled_at")
     private LocalDateTime cancelledAt;
 
+    @Column(name = "rescheduled_at")
+    private LocalDateTime rescheduledAt;
+
+    @Column(name = "refunded_at")
+    private LocalDateTime refundedAt;
+
+    @Column(name = "after_sale_reason")
+    private String afterSaleReason;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -202,6 +211,30 @@ public class OrderEntity {
 
     public void setCancelledAt(LocalDateTime cancelledAt) {
         this.cancelledAt = cancelledAt;
+    }
+
+    public LocalDateTime getRescheduledAt() {
+        return rescheduledAt;
+    }
+
+    public void setRescheduledAt(LocalDateTime rescheduledAt) {
+        this.rescheduledAt = rescheduledAt;
+    }
+
+    public LocalDateTime getRefundedAt() {
+        return refundedAt;
+    }
+
+    public void setRefundedAt(LocalDateTime refundedAt) {
+        this.refundedAt = refundedAt;
+    }
+
+    public String getAfterSaleReason() {
+        return afterSaleReason;
+    }
+
+    public void setAfterSaleReason(String afterSaleReason) {
+        this.afterSaleReason = afterSaleReason;
     }
 
     public LocalDateTime getCreatedAt() {

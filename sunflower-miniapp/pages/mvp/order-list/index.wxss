@@ -72,6 +72,16 @@
   background: #e8f5e9;
 }
 
+.order-status--RESCHEDULED {
+  color: #155e75;
+  background: #cffafe;
+}
+
+.order-status--REFUNDED {
+  color: #7c2d12;
+  background: #ffedd5;
+}
+
 .order-status--COMPLETED {
   color: #4b5563;
   background: #f3f4f6;
@@ -111,6 +121,8 @@
 .order-actions {
   display: flex;
   gap: 12rpx;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .empty {

@@ -250,6 +250,22 @@ async function postCancelOrder(orderId, reason = '') {
   });
 }
 
+async function postRescheduleOrder(orderId, payload) {
+  return request(`/api/orders/${orderId}/reschedule`, {
+    method: 'POST',
+    requireAuth: true,
+    data: payload,
+  });
+}
+
+async function postRefundOrder(orderId, reason = '') {
+  return request(`/api/orders/${orderId}/refund`, {
+    method: 'POST',
+    requireAuth: true,
+    data: reason ? { reason } : {},
+  });
+}
+
 module.exports = {
   fetchHomeData,
   fetchOrderDetail,
@@ -264,6 +280,8 @@ module.exports = {
   postCancelOrder,
   postCreateOrder,
   postPayOrder,
+  postRefundOrder,
+  postRescheduleOrder,
   setApiBaseUrl,
   wechatLogin,
 };

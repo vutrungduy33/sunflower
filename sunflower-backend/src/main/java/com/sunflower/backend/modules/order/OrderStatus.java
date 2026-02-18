@@ -3,6 +3,8 @@ package com.sunflower.backend.modules.order;
 public enum OrderStatus {
     PENDING_PAYMENT("待支付"),
     CONFIRMED("待入住"),
+    RESCHEDULED("已改期"),
+    REFUNDED("已退款"),
     COMPLETED("已完成"),
     CANCELLED("已取消");
 

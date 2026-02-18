@@ -3,6 +3,8 @@ package com.sunflower.backend.modules.order;
 import com.sunflower.backend.common.exception.BusinessException;
 import com.sunflower.backend.modules.order.dto.CreateOrderRequest;
 import com.sunflower.backend.modules.order.dto.OrderDto;
+import com.sunflower.backend.modules.order.dto.RefundOrderRequest;
+import com.sunflower.backend.modules.order.dto.RescheduleOrderRequest;
 import com.sunflower.backend.modules.order.persistence.OrderEntity;
 import com.sunflower.backend.modules.order.persistence.OrderRepository;
 import com.sunflower.backend.modules.room.RoomService;
@@ -33,6 +35,7 @@ public class OrderService {
     private static final String DEFAULT_SOURCE = "direct";
     private static final String OUT_OF_STOCK_MESSAGE = "所选日期库存不足";
     private static final String INVENTORY_DATA_ERROR_MESSAGE = "库存数据异常，请联系管理员";
+    private static final String RESCHEDULE_NIGHTS_NOT_MATCH_MESSAGE = "改期暂仅支持保持原入住晚数";
     private static final int ORDER_NO_MAX_RETRY = 8;
 
     private final Random random = new SecureRandom();
@@ -101,6 +104,7 @@ public class OrderService {
         order.setRemark(normalizeOptionalText(request.getRemark()));
         order.setTotalAmount(totalAmount);
         order.setStatus(OrderStatus.PENDING_PAYMENT);
+        order.setAfterSaleReason("");
         order.setCreatedAt(now);
 
         return toOrderDto(orderRepository.save(order));
@@ -119,6 +123,11 @@ public class OrderService {
 
     @Transactional
     public OrderDto cancelCurrentUserOrder(String orderId) {
+        return cancelCurrentUserOrder(orderId, "");
+    }
+
+    @Transactional
+    public OrderDto cancelCurrentUserOrder(String orderId, String reason) {
         OrderEntity order = requireCurrentUserOrderRecord(orderId);
         if (order.getStatus() != OrderStatus.PENDING_PAYMENT && order.getStatus() != OrderStatus.CONFIRMED) {
             throw BusinessException.conflict("当前订单状态不可取消");
@@ -127,6 +136,57 @@ public class OrderService {
         releaseInventoryForCancel(order.getRoomId(), stayDates);
         order.setStatus(OrderStatus.CANCELLED);
         order.setCancelledAt(LocalDateTime.now(SHANGHAI_ZONE));
+        order.setAfterSaleReason(normalizeOptionalText(reason));
+        return toOrderDto(orderRepository.save(order));
+    }
+
+    @Transactional
+    public OrderDto rescheduleCurrentUserOrder(String orderId, RescheduleOrderRequest request) {
+        OrderEntity order = requireCurrentUserOrderRecord(orderId);
+        if (order.getStatus() != OrderStatus.CONFIRMED && order.getStatus() != OrderStatus.RESCHEDULED) {
+            throw BusinessException.conflict("当前订单状态不可改期");
+        }
+
+        LocalDate checkInDate = roomService.parseDate(request.getCheckInDate(), "checkInDate");
+        LocalDate checkOutDate = roomService.parseDate(request.getCheckOutDate(), "checkOutDate");
+        long nights = ChronoUnit.DAYS.between(checkInDate, checkOutDate);
+        if (nights <= 0) {
+            throw BusinessException.badRequest("退房日期需晚于入住日期");
+        }
+        if (nights != order.getNights()) {
+            throw BusinessException.badRequest(RESCHEDULE_NIGHTS_NOT_MATCH_MESSAGE);
+        }
+        if (checkInDate.equals(order.getCheckInDate()) && checkOutDate.equals(order.getCheckOutDate())) {
+            throw BusinessException.badRequest("改期日期不能与原订单一致");
+        }
+
+        List<LocalDate> oldStayDates = buildStayDates(order.getCheckInDate(), order.getNights());
+        List<LocalDate> newStayDates = buildStayDates(checkInDate, (int) nights);
+
+        releaseInventoryForCancel(order.getRoomId(), oldStayDates);
+        lockInventoryForCreate(order.getRoomId(), newStayDates);
+
+        order.setCheckInDate(checkInDate);
+        order.setCheckOutDate(checkOutDate);
+        order.setNights((int) nights);
+        order.setStatus(OrderStatus.RESCHEDULED);
+        order.setRescheduledAt(LocalDateTime.now(SHANGHAI_ZONE));
+        order.setAfterSaleReason(normalizeOptionalText(request.getReason()));
+        return toOrderDto(orderRepository.save(order));
+    }
+
+    @Transactional
+    public OrderDto refundCurrentUserOrder(String orderId, RefundOrderRequest request) {
+        OrderEntity order = requireCurrentUserOrderRecord(orderId);
+        if (order.getStatus() != OrderStatus.CONFIRMED && order.getStatus() != OrderStatus.RESCHEDULED) {
+            throw BusinessException.conflict("当前订单状态不可退款");
+        }
+
+        List<LocalDate> stayDates = buildStayDates(order.getCheckInDate(), order.getNights());
+        releaseInventoryForCancel(order.getRoomId(), stayDates);
+        order.setStatus(OrderStatus.REFUNDED);
+        order.setRefundedAt(LocalDateTime.now(SHANGHAI_ZONE));
+        order.setAfterSaleReason(normalizeOptionalText(request == null ? null : request.getReason()));
         return toOrderDto(orderRepository.save(order));
     }
 
@@ -250,6 +310,10 @@ public class OrderService {
         dto.setStatusLabel(order.getStatus().getLabel());
         dto.setCreatedAt(toDateTimeString(order.getCreatedAt()));
         dto.setPaidAt(toDateTimeString(order.getPaidAt()));
+        dto.setCancelledAt(toDateTimeString(order.getCancelledAt()));
+        dto.setRescheduledAt(toDateTimeString(order.getRescheduledAt()));
+        dto.setRefundedAt(toDateTimeString(order.getRefundedAt()));
+        dto.setAfterSaleReason(order.getAfterSaleReason() == null ? "" : order.getAfterSaleReason());
         return dto;
     }
 
