@@ -10,6 +10,7 @@ const { track } = require('../../../utils/mvp/tracker');
 Page({
   data: {
     loading: true,
+    errorMessage: '',
     submitting: false,
     room: null,
     checkInDate: '',
@@ -36,12 +37,15 @@ Page({
 
   async loadPageData() {
     if (!this.roomId) {
-      wx.showToast({ title: '缺少房型信息', icon: 'none' });
+      this.setData({
+        loading: false,
+        errorMessage: '缺少房型信息，请返回上一页重新选择',
+      });
       return;
     }
 
     try {
-      this.setData({ loading: true });
+      this.setData({ loading: true, errorMessage: '' });
       const [profile, roomDetail] = await Promise.all([
         fetchProfile(),
         fetchRoomDetail(this.roomId, this.data.checkInDate),
@@ -59,10 +63,17 @@ Page({
         },
       });
     } catch (error) {
-      wx.showToast({ title: error.message || '订单页加载失败', icon: 'none' });
+      this.setData({
+        room: null,
+        errorMessage: error.message || '订单页加载失败，请稍后重试',
+      });
     } finally {
       this.setData({ loading: false });
     }
+  },
+
+  retryLoadPageData() {
+    this.loadPageData();
   },
 
   onInput(event) {

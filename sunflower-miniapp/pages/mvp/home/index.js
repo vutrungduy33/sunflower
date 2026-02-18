@@ -4,6 +4,7 @@ const { track } = require('../../../utils/mvp/tracker');
 Page({
   data: {
     loading: true,
+    errorMessage: '',
     banners: [],
     services: [],
     featuredRooms: [],
@@ -16,7 +17,7 @@ Page({
 
   async bootstrap() {
     try {
-      this.setData({ loading: true });
+      this.setData({ loading: true, errorMessage: '' });
       await wechatLogin();
       const homeData = await fetchHomeData();
       this.setData({
@@ -27,10 +28,16 @@ Page({
       });
       track('wx_login_success', { source: 'mvp_home' });
     } catch (error) {
-      wx.showToast({ title: '首页加载失败', icon: 'none' });
+      this.setData({
+        errorMessage: error.message || '首页加载失败，请稍后重试',
+      });
     } finally {
       this.setData({ loading: false });
     }
+  },
+
+  retryBootstrap() {
+    this.bootstrap();
   },
 
   goBooking() {

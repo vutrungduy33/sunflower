@@ -1,59 +1,71 @@
 <view class="mvp-page">
-  <view class="hero-card">
-    <view class="hero-card__title">泸沽湖向日葵湖景美宿</view>
-    <view class="hero-card__desc">一线湖景 · 接驳服务 · 亲子友好</view>
-    <view class="hero-card__actions">
-      <t-button size="small" theme="primary" bindtap="goBooking">立即预订</t-button>
-      <t-button size="small" theme="default" variant="outline" bindtap="goOrderCenter">我的订单</t-button>
+  <view class="mvp-state mvp-state--loading" wx:if="{{loading}}">正在加载首页内容...</view>
+
+  <view class="mvp-state" wx:elif="{{errorMessage}}">
+    <view class="mvp-state__title">首页加载失败</view>
+    <view class="mvp-state__desc">{{errorMessage}}</view>
+    <view class="mvp-state__action">
+      <t-button size="small" theme="primary" bindtap="retryBootstrap">重新加载</t-button>
     </view>
   </view>
 
-  <view class="mvp-section">
-    <view class="mvp-section__title">今日活动</view>
-    <swiper class="banner-swiper" indicator-dots="true" autoplay="true" interval="4000" duration="400">
-      <swiper-item wx:for="{{banners}}" wx:key="id">
-        <view class="banner-item">
-          <view class="banner-item__title">{{item.title}}</view>
-          <view class="banner-item__subtitle">{{item.subtitle}}</view>
-          <view class="banner-item__cta">{{item.cta}}</view>
-        </view>
-      </swiper-item>
-    </swiper>
-  </view>
-
-  <view class="mvp-section">
-    <view class="mvp-section__title">特色服务</view>
-    <view class="mvp-grid">
-      <view class="service-card" wx:for="{{services}}" wx:key="id" data-name="{{item.name}}" bindtap="onServiceTap">
-        <t-icon name="{{item.icon}}" size="22px" color="#2e7d32" />
-        <view class="service-card__name">{{item.name}}</view>
-        <view class="service-card__desc">{{item.desc}}</view>
+  <block wx:else>
+    <view class="hero-card">
+      <view class="hero-card__title">泸沽湖向日葵湖景美宿</view>
+      <view class="hero-card__desc">一线湖景 · 接驳服务 · 亲子友好</view>
+      <view class="hero-card__actions">
+        <t-button size="small" theme="primary" bindtap="goBooking">立即预订</t-button>
+        <t-button size="small" theme="default" variant="outline" bindtap="goOrderCenter">我的订单</t-button>
       </view>
     </view>
-  </view>
 
-  <view class="mvp-section">
-    <view class="mvp-section__title">推荐房型</view>
-    <view class="room-card" wx:for="{{featuredRooms}}" wx:key="id" data-roomid="{{item.id}}" bindtap="goRoomDetail">
-      <image class="room-card__image" mode="aspectFill" src="{{item.cover}}" />
-      <view class="room-card__content">
-        <view class="room-card__name">{{item.name}}</view>
-        <view class="room-card__subtitle">{{item.subtitle}}</view>
-        <view class="room-card__footer">
-          <text class="mvp-price">¥{{item.todayPrice}} 起</text>
-          <text class="mvp-muted">库存 {{item.stock}}</text>
+    <view class="mvp-section">
+      <view class="mvp-section__title">今日活动</view>
+      <swiper class="banner-swiper" indicator-dots="true" autoplay="true" interval="4000" duration="400">
+        <swiper-item wx:for="{{banners}}" wx:key="id">
+          <view class="banner-item">
+            <view class="banner-item__title">{{item.title}}</view>
+            <view class="banner-item__subtitle">{{item.subtitle}}</view>
+            <view class="banner-item__cta">{{item.cta}}</view>
+          </view>
+        </swiper-item>
+      </swiper>
+    </view>
+
+    <view class="mvp-section">
+      <view class="mvp-section__title">特色服务</view>
+      <view class="mvp-grid">
+        <view class="service-card" wx:for="{{services}}" wx:key="id" data-name="{{item.name}}" bindtap="onServiceTap">
+          <t-icon name="{{item.icon}}" size="22px" color="#2e7d32" />
+          <view class="service-card__name">{{item.name}}</view>
+          <view class="service-card__desc">{{item.desc}}</view>
         </view>
       </view>
     </view>
-  </view>
 
-  <view class="mvp-section">
-    <view class="mvp-section__title">私域权益</view>
-    <view class="benefit-item" wx:for="{{memberBenefits}}" wx:key="*this">
-      <text class="benefit-item__dot"></text>
-      <text>{{item}}</text>
+    <view class="mvp-section">
+      <view class="mvp-section__title">推荐房型</view>
+      <view class="room-card" wx:for="{{featuredRooms}}" wx:key="id" data-roomid="{{item.id}}" bindtap="goRoomDetail">
+        <image class="room-card__image" mode="aspectFill" src="{{item.cover}}" />
+        <view class="room-card__content">
+          <view class="room-card__name">{{item.name}}</view>
+          <view class="room-card__subtitle">{{item.subtitle}}</view>
+          <view class="room-card__footer">
+            <text class="mvp-price">¥{{item.todayPrice}} 起</text>
+            <text class="mvp-muted">库存 {{item.stock}}</text>
+          </view>
+        </view>
+      </view>
     </view>
-  </view>
+
+    <view class="mvp-section">
+      <view class="mvp-section__title">私域权益</view>
+      <view class="benefit-item" wx:for="{{memberBenefits}}" wx:key="*this">
+        <text class="benefit-item__dot"></text>
+        <text>{{item}}</text>
+      </view>
+    </view>
+  </block>
 </view>
 
 <mvp-tabbar current="home" />

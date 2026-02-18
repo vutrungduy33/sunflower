@@ -1,7 +1,17 @@
 <view class="create-page">
   <mvp-nav-actions />
 
-  <block wx:if="{{room}}">
+  <view class="mvp-state mvp-state--loading state-card" wx:if="{{loading}}">订单信息加载中...</view>
+
+  <view class="mvp-state state-card" wx:elif="{{errorMessage}}">
+    <view class="mvp-state__title">订单页加载失败</view>
+    <view class="mvp-state__desc">{{errorMessage}}</view>
+    <view class="mvp-state__action">
+      <t-button size="small" theme="primary" bindtap="retryLoadPageData">重新加载</t-button>
+    </view>
+  </view>
+
+  <block wx:elif="{{room}}">
     <view class="create-section">
       <view class="section-title">房型信息</view>
       <view class="room-name">{{room.name}}</view>

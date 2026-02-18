@@ -1,3 +1,5 @@
+@import '../common.wxss';
+
 .detail-page {
   min-height: 100vh;
   background: #f5f7fa;
@@ -6,6 +8,10 @@
 
 .detail-nav {
   padding: 20rpx 20rpx 0;
+}
+
+.state-card {
+  margin: 16rpx 20rpx 0;
 }
 
 .room-cover {

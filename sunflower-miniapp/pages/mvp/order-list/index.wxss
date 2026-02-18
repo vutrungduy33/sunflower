@@ -1,8 +1,14 @@
+@import '../common.wxss';
+
 .order-page {
   min-height: 100vh;
   background: #f5f7fa;
   padding: 20rpx;
   box-sizing: border-box;
+}
+
+.state-card {
+  margin-top: 16rpx;
 }
 
 .status-scroll {

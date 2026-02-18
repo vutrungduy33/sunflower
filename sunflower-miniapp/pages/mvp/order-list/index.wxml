@@ -1,55 +1,67 @@
 <view class="order-page">
   <mvp-nav-actions />
 
-  <scroll-view class="status-scroll" scroll-x="true">
-    <view class="status-list">
-      <view
-        class="status-item {{activeStatus === item.key ? 'status-item--active' : ''}}"
-        wx:for="{{statusOptions}}"
-        wx:key="key"
-        data-status="{{item.key}}"
-        bindtap="onStatusChange"
-        >{{item.label}}</view
-      >
-    </view>
-  </scroll-view>
+  <view class="mvp-state mvp-state--loading state-card" wx:if="{{loading}}">订单加载中...</view>
 
-  <block wx:if="{{filteredOrders.length}}">
-    <view class="order-card" wx:for="{{filteredOrders}}" wx:key="id">
-      <view class="order-card__head">
-        <view class="order-card__no">订单号：{{item.orderNo}}</view>
-        <view class="order-status order-status--{{item.status}}">{{item.statusLabel}}</view>
+  <view class="mvp-state state-card" wx:elif="{{errorMessage}}">
+    <view class="mvp-state__title">订单加载失败</view>
+    <view class="mvp-state__desc">{{errorMessage}}</view>
+    <view class="mvp-state__action">
+      <t-button size="small" theme="primary" bindtap="retryLoadOrders">重新加载</t-button>
+    </view>
+  </view>
+
+  <block wx:else>
+    <scroll-view class="status-scroll" scroll-x="true">
+      <view class="status-list">
+        <view
+          class="status-item {{activeStatus === item.key ? 'status-item--active' : ''}}"
+          wx:for="{{statusOptions}}"
+          wx:key="key"
+          data-status="{{item.key}}"
+          bindtap="onStatusChange"
+          >{{item.label}}</view
+        >
       </view>
-      <view class="order-card__room">{{item.roomName}}</view>
-      <view class="order-card__meta">{{item.checkInDate}} 至 {{item.checkOutDate}} · {{item.nights}} 晚</view>
-      <view class="order-card__meta">入住人：{{item.guestName}} {{item.guestPhone}}</view>
-      <view class="order-card__footer">
-        <view class="order-price">¥{{item.totalAmount}}</view>
-        <view class="order-actions">
-          <t-button
-            wx:if="{{item.status === 'PENDING_PAYMENT'}}"
-            size="small"
-            theme="primary"
-            data-id="{{item.id}}"
-            bindtap="onPay"
-            >去支付</t-button
-          >
-          <t-button
-            wx:if="{{item.status === 'PENDING_PAYMENT' || item.status === 'CONFIRMED'}}"
-            size="small"
-            theme="default"
-            variant="outline"
-            data-id="{{item.id}}"
-            bindtap="onCancel"
-            >取消订单</t-button
-          >
+    </scroll-view>
+
+    <block wx:if="{{filteredOrders.length}}">
+      <view class="order-card" wx:for="{{filteredOrders}}" wx:key="id">
+        <view class="order-card__head">
+          <view class="order-card__no">订单号：{{item.orderNo}}</view>
+          <view class="order-status order-status--{{item.status}}">{{item.statusLabel}}</view>
+        </view>
+        <view class="order-card__room">{{item.roomName}}</view>
+        <view class="order-card__meta">{{item.checkInDate}} 至 {{item.checkOutDate}} · {{item.nights}} 晚</view>
+        <view class="order-card__meta">入住人：{{item.guestName}} {{item.guestPhone}}</view>
+        <view class="order-card__footer">
+          <view class="order-price">¥{{item.totalAmount}}</view>
+          <view class="order-actions">
+            <t-button
+              wx:if="{{item.status === 'PENDING_PAYMENT'}}"
+              size="small"
+              theme="primary"
+              data-id="{{item.id}}"
+              bindtap="onPay"
+              >去支付</t-button
+            >
+            <t-button
+              wx:if="{{item.status === 'PENDING_PAYMENT' || item.status === 'CONFIRMED'}}"
+              size="small"
+              theme="default"
+              variant="outline"
+              data-id="{{item.id}}"
+              bindtap="onCancel"
+              >取消订单</t-button
+            >
+          </view>
         </view>
       </view>
+    </block>
+
+    <view class="empty" wx:else>
+      <view>暂无订单</view>
+      <t-button size="small" theme="primary" bindtap="goBooking">去预订</t-button>
     </view>
   </block>
-
-  <view class="empty" wx:else>
-    <view>暂无订单</view>
-    <t-button size="small" theme="primary" bindtap="goBooking">去预订</t-button>
-  </view>
 </view>

@@ -4,6 +4,7 @@ const { addDays, diffDays, formatDate, getDefaultBookingDate } = require('../../
 Page({
   data: {
     loading: true,
+    errorMessage: '',
     room: null,
     calendar: [],
     checkInDate: '',
@@ -25,12 +26,15 @@ Page({
 
   async loadDetail() {
     if (!this.roomId) {
-      wx.showToast({ title: '缺少房型参数', icon: 'none' });
+      this.setData({
+        loading: false,
+        errorMessage: '缺少房型参数，请返回上一页重新选择',
+      });
       return;
     }
 
     try {
-      this.setData({ loading: true });
+      this.setData({ loading: true, errorMessage: '' });
       const detail = await fetchRoomDetail(this.roomId, this.data.checkInDate);
       const nights = Math.max(diffDays(this.data.checkInDate, this.data.checkOutDate), 1);
       const totalAmount = detail.calendar.slice(0, nights).reduce((sum, item) => sum + item.price, 0);
@@ -41,10 +45,19 @@ Page({
         totalAmount,
       });
     } catch (error) {
-      wx.showToast({ title: error.message || '加载失败', icon: 'none' });
+      this.setData({
+        room: null,
+        calendar: [],
+        totalAmount: 0,
+        errorMessage: error.message || '房型加载失败，请稍后重试',
+      });
     } finally {
       this.setData({ loading: false });
     }
+  },
+
+  retryLoadDetail() {
+    this.loadDetail();
   },
 
   onCheckInChange(event) {
