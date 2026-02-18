@@ -379,6 +379,135 @@ class MvpApiIntegrationTests {
     }
 
     @Test
+    void shouldRescheduleWhenOriginalLockAlreadyReleased() throws Exception {
+        LocalDate firstCheckIn = LocalDate.parse("2026-02-12");
+        LocalDate firstCheckOut = firstCheckIn.plusDays(2);
+        LocalDate secondCheckIn = firstCheckIn.plusDays(2);
+        LocalDate secondCheckOut = secondCheckIn.plusDays(2);
+
+        setInventory("room-lake-101", firstCheckIn, 3, 3, 0);
+        setInventory("room-lake-101", firstCheckIn.plusDays(1), 3, 3, 0);
+        setInventory("room-lake-101", secondCheckIn, 3, 3, 0);
+        setInventory("room-lake-101", secondCheckIn.plusDays(1), 3, 3, 0);
+
+        String token = loginAndGetToken("order_reschedule_released_lock");
+        MvcResult createResult = mockMvc
+            .perform(
+                post("/api/orders")
+                    .header("Authorization", bearerToken(token))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        buildCreateOrderPayload(
+                            "room-lake-101",
+                            firstCheckIn.toString(),
+                            firstCheckOut.toString()
+                        )
+                    )
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andReturn();
+
+        JsonNode createBody = objectMapper.readTree(createResult.getResponse().getContentAsString());
+        String orderId = createBody.path("data").path("id").asText();
+
+        mockMvc
+            .perform(post("/api/orders/{id}/pay", orderId).header("Authorization", bearerToken(token)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.status").value("CONFIRMED"));
+
+        // Simulate historical bad seed overwrite: order is confirmed but old dates are no longer locked.
+        setInventory("room-lake-101", firstCheckIn, 3, 3, 0);
+        setInventory("room-lake-101", firstCheckIn.plusDays(1), 3, 3, 0);
+
+        mockMvc
+            .perform(
+                post("/api/orders/{id}/reschedule", orderId)
+                    .header("Authorization", bearerToken(token))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        "{"
+                            + "\"checkInDate\":\""
+                            + secondCheckIn
+                            + "\","
+                            + "\"checkOutDate\":\""
+                            + secondCheckOut
+                            + "\","
+                            + "\"reason\":\"库存已释放兼容\""
+                            + "}"
+                    )
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.status").value("RESCHEDULED"));
+
+        RoomInventoryEntity oldDay1 = getInventory("room-lake-101", firstCheckIn);
+        RoomInventoryEntity oldDay2 = getInventory("room-lake-101", firstCheckIn.plusDays(1));
+        RoomInventoryEntity newDay1 = getInventory("room-lake-101", secondCheckIn);
+        RoomInventoryEntity newDay2 = getInventory("room-lake-101", secondCheckIn.plusDays(1));
+        assertEquals(3, oldDay1.getAvailableStock());
+        assertEquals(0, oldDay1.getLockedStock());
+        assertEquals(3, oldDay2.getAvailableStock());
+        assertEquals(0, oldDay2.getLockedStock());
+        assertEquals(2, newDay1.getAvailableStock());
+        assertEquals(1, newDay1.getLockedStock());
+        assertEquals(2, newDay2.getAvailableStock());
+        assertEquals(1, newDay2.getLockedStock());
+    }
+
+    @Test
+    void shouldRefundWhenOriginalLockAlreadyReleased() throws Exception {
+        LocalDate checkIn = LocalDate.parse("2026-02-12");
+        LocalDate checkOut = checkIn.plusDays(1);
+
+        setInventory("room-lake-101", checkIn, 3, 3, 0);
+
+        String token = loginAndGetToken("order_refund_released_lock");
+        MvcResult createResult = mockMvc
+            .perform(
+                post("/api/orders")
+                    .header("Authorization", bearerToken(token))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        buildCreateOrderPayload(
+                            "room-lake-101",
+                            checkIn.toString(),
+                            checkOut.toString()
+                        )
+                    )
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andReturn();
+
+        JsonNode createBody = objectMapper.readTree(createResult.getResponse().getContentAsString());
+        String orderId = createBody.path("data").path("id").asText();
+
+        mockMvc
+            .perform(post("/api/orders/{id}/pay", orderId).header("Authorization", bearerToken(token)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.status").value("CONFIRMED"));
+
+        // Simulate historical bad seed overwrite: order is confirmed but date lock is gone.
+        setInventory("room-lake-101", checkIn, 3, 3, 0);
+
+        mockMvc
+            .perform(
+                post("/api/orders/{id}/refund", orderId)
+                    .header("Authorization", bearerToken(token))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"reason\":\"库存已释放兼容\"}")
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.status").value("REFUNDED"));
+
+        RoomInventoryEntity refundedDay = getInventory("room-lake-101", checkIn);
+        assertEquals(3, refundedDay.getAvailableStock());
+        assertEquals(0, refundedDay.getLockedStock());
+    }
+
+    @Test
     void shouldRejectRefundWhenOrderNotPaid() throws Exception {
         String token = loginAndGetToken("order_refund_pending");
 

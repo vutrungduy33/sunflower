@@ -220,18 +220,22 @@ public class OrderService {
 
     private void releaseInventoryForCancel(String roomId, List<LocalDate> stayDates) {
         Map<LocalDate, RoomInventoryEntity> inventoryMap = lockStayInventory(roomId, stayDates);
+        List<RoomInventoryEntity> changedInventory = new ArrayList<>();
         for (LocalDate stayDate : stayDates) {
             RoomInventoryEntity inventory = inventoryMap.get(stayDate);
-            if (inventory == null || inventory.getLockedStock() <= 0) {
+            if (inventory == null) {
                 throw BusinessException.conflict(INVENTORY_DATA_ERROR_MESSAGE);
             }
+            if (inventory.getLockedStock() > 0) {
+                inventory.setAvailableStock(inventory.getAvailableStock() + 1);
+                inventory.setLockedStock(inventory.getLockedStock() - 1);
+                changedInventory.add(inventory);
+            }
         }
-        for (LocalDate stayDate : stayDates) {
-            RoomInventoryEntity inventory = inventoryMap.get(stayDate);
-            inventory.setAvailableStock(inventory.getAvailableStock() + 1);
-            inventory.setLockedStock(inventory.getLockedStock() - 1);
+        if (changedInventory.isEmpty()) {
+            return;
         }
-        roomInventoryRepository.saveAll(inventoryMap.values());
+        roomInventoryRepository.saveAll(changedInventory);
     }
 
     private void rescheduleInventory(String roomId, List<LocalDate> oldStayDates, List<LocalDate> newStayDates) {
@@ -245,15 +249,14 @@ public class OrderService {
 
         for (LocalDate stayDate : oldStayDates) {
             RoomInventoryEntity inventory = inventoryMap.get(stayDate);
-            if (inventory == null || inventory.getLockedStock() <= 0) {
+            if (inventory == null) {
                 throw BusinessException.conflict(INVENTORY_DATA_ERROR_MESSAGE);
             }
-        }
-        for (LocalDate stayDate : oldStayDates) {
-            RoomInventoryEntity inventory = inventoryMap.get(stayDate);
-            inventory.setAvailableStock(inventory.getAvailableStock() + 1);
-            inventory.setLockedStock(inventory.getLockedStock() - 1);
-            changedInventory.add(inventory);
+            if (inventory.getLockedStock() > 0) {
+                inventory.setAvailableStock(inventory.getAvailableStock() + 1);
+                inventory.setLockedStock(inventory.getLockedStock() - 1);
+                changedInventory.add(inventory);
+            }
         }
 
         for (LocalDate stayDate : newStayDates) {

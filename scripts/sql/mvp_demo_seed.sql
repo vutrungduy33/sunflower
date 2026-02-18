@@ -176,8 +176,6 @@ CROSS JOIN (
 WHERE 1 = 1
 ON DUPLICATE KEY UPDATE
     total_stock = VALUES(total_stock),
-    available_stock = VALUES(available_stock),
-    locked_stock = VALUES(locked_stock),
     updated_at = CURRENT_TIMESTAMP;
 
 INSERT INTO orders (
