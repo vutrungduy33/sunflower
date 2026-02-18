@@ -55,10 +55,12 @@
 
 执行流程：
 
-1. GitHub Actions 通过 SSH 连接 ECS
-2. 在 ECS 的部署目录拉取最新代码
-3. 执行 `scripts/start_backend_with_mvp_seed.sh`（先启动 MySQL，再导入 `scripts/sql/mvp_demo_seed.sql`，最后启动 backend）
-4. 对 `http://127.0.0.1:8080/api/health` 做健康检查
+1. GitHub Actions 在 Runner 构建 `sunflower-backend` Docker 镜像并推送到 GHCR（标签：`sha`，主分支额外推 `latest`）
+2. GitHub Actions 通过 SSH 连接 ECS
+3. 在 ECS 的部署目录拉取最新代码
+4. 在 ECS 登录 GHCR，注入 `BACKEND_IMAGE=ghcr.io/<owner>/sunflower-backend:<sha>`
+5. 执行 `scripts/start_backend_with_mvp_seed.sh`（先启动 MySQL，再拉取并启动 backend，最后导入 `scripts/sql/mvp_demo_seed.sql`）
+6. 对 `http://127.0.0.1:8080/api/health` 做健康检查
 
 ---
 
@@ -72,6 +74,8 @@
 - `ECS_SSH_KEY`：登录 ECS 的私钥内容
 - `DEPLOY_PATH`：服务器部署目录（例如 `/opt/sunflower`）
 - `AUTH_TOKEN_SECRET`：后端签名 token 密钥（必填）
+- `GHCR_USERNAME`：用于 ECS 拉取 GHCR 镜像的 GitHub 用户名（建议机器账号）
+- `GHCR_TOKEN`：用于 ECS 拉取 GHCR 镜像的 Token（至少 `read:packages` 权限）
 
 可选（若不配置则使用默认值）：
 
@@ -82,6 +86,10 @@
 - `WECHAT_JSCODE2SESSION_URL`：微信 `jscode2session` 地址（默认官方地址）
 - `WECHAT_MOCK_OPENID_PREFIX`：mock openid 前缀（默认 `mock_openid_`）
 - `WECHAT_MOCK_FIXED_OPENID`：mock 固定 openid（默认空，只有显式配置时才启用固定账号）
+
+说明：
+
+- workflow 在构建镜像时使用 Actions 自带 `GITHUB_TOKEN` 推送 GHCR，不需要额外配置推送凭据。
 
 ---
 

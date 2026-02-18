@@ -22,6 +22,7 @@ services:
       retries: 10
 
   backend:
+    image: ${BACKEND_IMAGE:-sunflower-backend:local}
     build:
       context: ./sunflower-backend
       dockerfile: Dockerfile
