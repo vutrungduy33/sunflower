@@ -204,6 +204,139 @@ class MvpApiIntegrationTests {
     }
 
     @Test
+    void shouldRescheduleAndRefundConfirmedOrder() throws Exception {
+        LocalDate firstCheckIn = LocalDate.parse("2026-02-12");
+        LocalDate firstCheckOut = firstCheckIn.plusDays(2);
+        LocalDate secondCheckIn = firstCheckIn.plusDays(2);
+        LocalDate secondCheckOut = secondCheckIn.plusDays(2);
+
+        setInventory("room-lake-101", firstCheckIn, 3, 3, 0);
+        setInventory("room-lake-101", firstCheckIn.plusDays(1), 3, 3, 0);
+        setInventory("room-lake-101", secondCheckIn, 3, 3, 0);
+        setInventory("room-lake-101", secondCheckIn.plusDays(1), 3, 3, 0);
+
+        String token = loginAndGetToken("order_reschedule_refund");
+        MvcResult createResult = mockMvc
+            .perform(
+                post("/api/orders")
+                    .header("Authorization", bearerToken(token))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        buildCreateOrderPayload(
+                            "room-lake-101",
+                            firstCheckIn.toString(),
+                            firstCheckOut.toString()
+                        )
+                    )
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andReturn();
+
+        JsonNode createBody = objectMapper.readTree(createResult.getResponse().getContentAsString());
+        String orderId = createBody.path("data").path("id").asText();
+
+        mockMvc
+            .perform(post("/api/orders/{id}/pay", orderId).header("Authorization", bearerToken(token)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.status").value("CONFIRMED"));
+
+        mockMvc
+            .perform(
+                post("/api/orders/{id}/reschedule", orderId)
+                    .header("Authorization", bearerToken(token))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        "{"
+                            + "\"checkInDate\":\""
+                            + secondCheckIn
+                            + "\","
+                            + "\"checkOutDate\":\""
+                            + secondCheckOut
+                            + "\","
+                            + "\"reason\":\"行程调整\""
+                            + "}"
+                    )
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.status").value("RESCHEDULED"))
+            .andExpect(jsonPath("$.data.statusLabel").value("已改期"))
+            .andExpect(jsonPath("$.data.checkInDate").value(secondCheckIn.toString()))
+            .andExpect(jsonPath("$.data.checkOutDate").value(secondCheckOut.toString()));
+
+        RoomInventoryEntity oldDay1 = getInventory("room-lake-101", firstCheckIn);
+        RoomInventoryEntity oldDay2 = getInventory("room-lake-101", firstCheckIn.plusDays(1));
+        RoomInventoryEntity newDay1 = getInventory("room-lake-101", secondCheckIn);
+        RoomInventoryEntity newDay2 = getInventory("room-lake-101", secondCheckIn.plusDays(1));
+        assertEquals(3, oldDay1.getAvailableStock());
+        assertEquals(0, oldDay1.getLockedStock());
+        assertEquals(3, oldDay2.getAvailableStock());
+        assertEquals(0, oldDay2.getLockedStock());
+        assertEquals(2, newDay1.getAvailableStock());
+        assertEquals(1, newDay1.getLockedStock());
+        assertEquals(2, newDay2.getAvailableStock());
+        assertEquals(1, newDay2.getLockedStock());
+
+        mockMvc
+            .perform(
+                post("/api/orders/{id}/refund", orderId)
+                    .header("Authorization", bearerToken(token))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"reason\":\"临时取消行程\"}")
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.status").value("REFUNDED"))
+            .andExpect(jsonPath("$.data.statusLabel").value("已退款"));
+
+        RoomInventoryEntity refundedDay1 = getInventory("room-lake-101", secondCheckIn);
+        RoomInventoryEntity refundedDay2 = getInventory("room-lake-101", secondCheckIn.plusDays(1));
+        assertEquals(3, refundedDay1.getAvailableStock());
+        assertEquals(0, refundedDay1.getLockedStock());
+        assertEquals(3, refundedDay2.getAvailableStock());
+        assertEquals(0, refundedDay2.getLockedStock());
+
+        mockMvc
+            .perform(get("/api/orders/{id}", orderId).header("Authorization", bearerToken(token)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.status").value("REFUNDED"))
+            .andExpect(jsonPath("$.data.refundedAt").isNotEmpty());
+    }
+
+    @Test
+    void shouldRejectRefundWhenOrderNotPaid() throws Exception {
+        String token = loginAndGetToken("order_refund_pending");
+
+        MvcResult createResult = mockMvc
+            .perform(
+                post("/api/orders")
+                    .header("Authorization", bearerToken(token))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(buildCreateOrderPayload("room-lake-101", "2026-02-12", "2026-02-13"))
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andReturn();
+
+        JsonNode createBody = objectMapper.readTree(createResult.getResponse().getContentAsString());
+        String orderId = createBody.path("data").path("id").asText();
+
+        mockMvc
+            .perform(
+                post("/api/orders/{id}/refund", orderId)
+                    .header("Authorization", bearerToken(token))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"reason\":\"未入住\"}")
+            )
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.code").value(40900))
+            .andExpect(jsonPath("$.message").value("当前订单状态不可退款"));
+    }
+
+    @Test
     void shouldReuseMockUserAcrossDifferentLoginCodes() throws Exception {
         String firstToken = loginAndGetToken("first_login_code");
 

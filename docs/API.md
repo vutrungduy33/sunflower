@@ -1,6 +1,6 @@
 # 接口清单（REST）
 
-> 更新时间：2026-02-13  
+> 更新时间：2026-02-18  
 > 说明：以下区分“已实现（MVP 一期）”与“规划中（后续）”。
 
 ## 1. 已实现（MVP 一期）
@@ -32,6 +32,8 @@
 - `GET /api/orders/{id}`：订单详情
 - `POST /api/orders/{id}/pay`：模拟支付
 - `POST /api/orders/{id}/cancel`：取消订单
+- `POST /api/orders/{id}/reschedule`：改期申请
+- `POST /api/orders/{id}/refund`：退款申请
 
 ## 2. 规划中（后续迭代）
 
@@ -41,42 +43,38 @@
 - `POST /api/admin/room-inventory`：批量设置库存
 - `POST /api/admin/room-prices`：批量设置价格
 
-### 2.2 住宿订单扩展
-- `POST /api/orders/{id}/reschedule`：改期申请
-- `POST /api/orders/{id}/refund`：退款申请
-
-### 2.3 餐饮/商品
+### 2.2 餐饮/商品
 - `GET /api/products`：商品列表
 - `GET /api/products/{id}`：商品详情
 - `POST /api/food-orders`：创建餐饮订单
 - `GET /api/food-orders`：用户餐饮订单列表
 - `PATCH /api/admin/products/{id}`：商品管理（后台）
 
-### 2.4 服务预订（接驳/猪槽船）
+### 2.3 服务预订（接驳/猪槽船）
 - `GET /api/services`：服务列表
 - `POST /api/service-orders`：服务下单
 - `GET /api/service-orders`：用户服务订单
 - `PATCH /api/admin/service-orders/{id}`：确认/取消（后台）
 
-### 2.5 内容与社区（扩展）
+### 2.4 内容与社区（扩展）
 - `GET /api/poi/{id}`：POI 详情
 - `POST /api/posts`：发布游记
 - `GET /api/reviews`：评论列表
 - `POST /api/reviews`：发布评论
 - `POST /api/admin/posts/{id}/review`：内容审核（后台）
 
-### 2.6 营销与优惠券
+### 2.5 营销与优惠券
 - `GET /api/coupons`：可领取优惠券
 - `POST /api/coupons/{id}/claim`：领取优惠券
 - `POST /api/orders/{id}/apply-coupon`：订单使用优惠券
 - `POST /api/admin/coupons`：创建优惠券（后台）
 
-### 2.7 报表与对账（后台）
+### 2.6 报表与对账（后台）
 - `GET /api/admin/reports/summary`：经营概览
 - `GET /api/admin/reports/orders`：订单报表
 - `GET /api/admin/reports/payments`：支付对账
 
-### 2.8 管理与权限
+### 2.7 管理与权限
 - `GET /api/admin/users`：后台用户
 - `POST /api/admin/roles`：角色与权限
 - `PATCH /api/admin/settings`：系统配置

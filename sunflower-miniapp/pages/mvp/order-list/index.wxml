@@ -46,13 +46,31 @@
               >去支付</t-button
             >
             <t-button
-              wx:if="{{item.status === 'PENDING_PAYMENT' || item.status === 'CONFIRMED'}}"
+              wx:if="{{item.status === 'PENDING_PAYMENT'}}"
               size="small"
               theme="default"
               variant="outline"
               data-id="{{item.id}}"
               bindtap="onCancel"
               >取消订单</t-button
+            >
+            <t-button
+              wx:if="{{item.status === 'CONFIRMED' || item.status === 'RESCHEDULED'}}"
+              size="small"
+              theme="default"
+              variant="outline"
+              data-id="{{item.id}}"
+              bindtap="onReschedule"
+              >改期</t-button
+            >
+            <t-button
+              wx:if="{{item.status === 'CONFIRMED' || item.status === 'RESCHEDULED'}}"
+              size="small"
+              theme="danger"
+              variant="outline"
+              data-id="{{item.id}}"
+              bindtap="onRefund"
+              >申请退款</t-button
             >
           </view>
         </view>

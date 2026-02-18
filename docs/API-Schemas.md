@@ -1,6 +1,6 @@
 # 接口字段级别定义（请求/响应示例）
 
-> 更新时间：2026-02-13  
+> 更新时间：2026-02-18  
 > 说明：以下示例对齐当前 `sunflower-backend` 的 MVP 一期实现。
 
 统一响应壳：
@@ -232,6 +232,14 @@
 
 ## 4) 住宿订单
 
+订单状态枚举：
+- `PENDING_PAYMENT`（待支付）
+- `CONFIRMED`（待入住）
+- `RESCHEDULED`（已改期）
+- `REFUNDED`（已退款）
+- `COMPLETED`（已完成）
+- `CANCELLED`（已取消）
+
 ### `POST /api/orders`
 **请求**
 ```json
@@ -266,7 +274,11 @@
   "status": "PENDING_PAYMENT",
   "statusLabel": "待支付",
   "createdAt": "2026-02-12T10:00:00+08:00",
-  "paidAt": ""
+  "paidAt": "",
+  "cancelledAt": "",
+  "rescheduledAt": "",
+  "refundedAt": "",
+  "afterSaleReason": ""
 }
 ```
 
@@ -293,7 +305,51 @@
 {
   "id": "order_1739260800000_123",
   "status": "CANCELLED",
-  "statusLabel": "已取消"
+  "statusLabel": "已取消",
+  "cancelledAt": "2026-02-12T11:00:00+08:00",
+  "afterSaleReason": "行程有变"
+}
+```
+
+### `POST /api/orders/{id}/reschedule`
+**请求**
+```json
+{
+  "checkInDate": "2026-02-15",
+  "checkOutDate": "2026-02-17",
+  "reason": "机票改签"
+}
+```
+
+**响应**
+```json
+{
+  "id": "order_1739260800000_123",
+  "checkInDate": "2026-02-15",
+  "checkOutDate": "2026-02-17",
+  "status": "RESCHEDULED",
+  "statusLabel": "已改期",
+  "rescheduledAt": "2026-02-12T11:20:00+08:00",
+  "afterSaleReason": "机票改签"
+}
+```
+
+### `POST /api/orders/{id}/refund`
+**请求（可选）**
+```json
+{
+  "reason": "临时取消行程"
+}
+```
+
+**响应**
+```json
+{
+  "id": "order_1739260800000_123",
+  "status": "REFUNDED",
+  "statusLabel": "已退款",
+  "refundedAt": "2026-02-12T12:00:00+08:00",
+  "afterSaleReason": "临时取消行程"
 }
 ```
 
@@ -304,8 +360,11 @@
   {
     "id": "order_1739260800000_123",
     "orderNo": "SF202602121234",
-    "status": "CANCELLED",
-    "statusLabel": "已取消"
+    "status": "RESCHEDULED",
+    "statusLabel": "已改期",
+    "checkInDate": "2026-02-15",
+    "checkOutDate": "2026-02-17",
+    "rescheduledAt": "2026-02-12T11:20:00+08:00"
   }
 ]
 ```
@@ -316,7 +375,9 @@
 {
   "id": "order_1739260800000_123",
   "orderNo": "SF202602121234",
-  "status": "CANCELLED",
-  "statusLabel": "已取消"
+  "status": "REFUNDED",
+  "statusLabel": "已退款",
+  "refundedAt": "2026-02-12T12:00:00+08:00",
+  "afterSaleReason": "临时取消行程"
 }
 ```

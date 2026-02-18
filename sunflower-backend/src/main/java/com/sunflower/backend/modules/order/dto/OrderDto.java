@@ -19,6 +19,10 @@ public class OrderDto {
     private String statusLabel;
     private String createdAt;
     private String paidAt;
+    private String cancelledAt;
+    private String rescheduledAt;
+    private String refundedAt;
+    private String afterSaleReason;
 
     public String getId() {
         return id;
@@ -154,5 +158,37 @@ public class OrderDto {
 
     public void setPaidAt(String paidAt) {
         this.paidAt = paidAt;
+    }
+
+    public String getCancelledAt() {
+        return cancelledAt;
+    }
+
+    public void setCancelledAt(String cancelledAt) {
+        this.cancelledAt = cancelledAt;
+    }
+
+    public String getRescheduledAt() {
+        return rescheduledAt;
+    }
+
+    public void setRescheduledAt(String rescheduledAt) {
+        this.rescheduledAt = rescheduledAt;
+    }
+
+    public String getRefundedAt() {
+        return refundedAt;
+    }
+
+    public void setRefundedAt(String refundedAt) {
+        this.refundedAt = refundedAt;
+    }
+
+    public String getAfterSaleReason() {
+        return afterSaleReason;
+    }
+
+    public void setAfterSaleReason(String afterSaleReason) {
+        this.afterSaleReason = afterSaleReason;
     }
 }

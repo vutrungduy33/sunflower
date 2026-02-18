@@ -2,6 +2,7 @@
 -- Keep this file idempotent.
 -- S3 auth hardening sync: keep seed script touched when persistence layer changes.
 -- S4 order persistence sync: orders and inventory seeds must stay compatible with DB-backed order workflow.
+-- S6 after-sale sync: keep order reschedule/refund columns compatible with stage APIs.
 
 INSERT INTO users (id, openid, unionid, phone, status)
 VALUES ('user_demo_1001', 'mock_openid_mvp_code', NULL, '13800000000', 'ACTIVE')
@@ -193,9 +194,12 @@ INSERT INTO orders (
     guest_phone,
     arrival_time,
     remark,
+    after_sale_reason,
     total_amount,
     status,
-    paid_at
+    paid_at,
+    rescheduled_at,
+    refunded_at
 )
 VALUES (
     'order_seed_demo_0001',
@@ -211,9 +215,12 @@ VALUES (
     '13800000000',
     '18:00',
     '系统初始化订单',
+    '',
     388,
     'COMPLETED',
-    CURRENT_TIMESTAMP
+    CURRENT_TIMESTAMP,
+    NULL,
+    NULL
 )
 ON DUPLICATE KEY UPDATE
     user_id = VALUES(user_id),
@@ -227,7 +234,10 @@ ON DUPLICATE KEY UPDATE
     guest_phone = VALUES(guest_phone),
     arrival_time = VALUES(arrival_time),
     remark = VALUES(remark),
+    after_sale_reason = VALUES(after_sale_reason),
     total_amount = VALUES(total_amount),
     status = VALUES(status),
     paid_at = VALUES(paid_at),
+    rescheduled_at = VALUES(rescheduled_at),
+    refunded_at = VALUES(refunded_at),
     updated_at = CURRENT_TIMESTAMP;

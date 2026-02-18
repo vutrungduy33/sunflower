@@ -4,6 +4,8 @@ import com.sunflower.backend.common.api.ApiResponse;
 import com.sunflower.backend.modules.order.dto.CancelOrderRequest;
 import com.sunflower.backend.modules.order.dto.CreateOrderRequest;
 import com.sunflower.backend.modules.order.dto.OrderDto;
+import com.sunflower.backend.modules.order.dto.RefundOrderRequest;
+import com.sunflower.backend.modules.order.dto.RescheduleOrderRequest;
 import java.util.List;
 import javax.validation.Valid;
 import org.springframework.validation.annotation.Validated;
@@ -50,6 +52,22 @@ public class OrderController {
         @PathVariable String orderId,
         @RequestBody(required = false) CancelOrderRequest request
     ) {
-        return ApiResponse.ok(orderService.cancelCurrentUserOrder(orderId));
+        return ApiResponse.ok(orderService.cancelCurrentUserOrder(orderId, request == null ? "" : request.getReason()));
+    }
+
+    @PostMapping("/{orderId}/reschedule")
+    public ApiResponse<OrderDto> rescheduleOrder(
+        @PathVariable String orderId,
+        @Valid @RequestBody RescheduleOrderRequest request
+    ) {
+        return ApiResponse.ok(orderService.rescheduleCurrentUserOrder(orderId, request));
+    }
+
+    @PostMapping("/{orderId}/refund")
+    public ApiResponse<OrderDto> refundOrder(
+        @PathVariable String orderId,
+        @RequestBody(required = false) RefundOrderRequest request
+    ) {
+        return ApiResponse.ok(orderService.refundCurrentUserOrder(orderId, request));
     }
 }
