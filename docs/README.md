@@ -50,6 +50,8 @@
 - `docs/DB-Design.md`：数据库索引与约束设计
 - `docs/DataDictionary.md`：核心表数据字典
 - `docs/Analytics.md`：埋点与报表 SQL 模板
+- `docs/M1-Integration-Test-Plan.md`：M1（S1-S6）集成测试计划、用例与执行记录
+- `docs/M1-TC-M1-12-Manual-Checklist.md`：TC-M1-12 手工现场验收打勾单（含截图位）
 - `docs/Backlog.md`：Stage Backlog（执行状态）
 - `docs/Definition-of-Done.md`：Stage 完成清单（DoD）
 - `docs/stage-reports/README.md`：Stage 执行报告规范与模板
@@ -92,17 +94,17 @@
 └─ docker-compose.yml             # 本地联调（MySQL + backend）
 ```
 
-## 6. 当前进展（截至 2026-02-12）
+## 6. 当前进展（截至 2026-02-18）
 - 小程序一期 MVP 前端已落地：`pages/mvp/*`
-- 已完成链路：首页 → 预订 → 房型详情 → 填单 → 支付（模拟）→ 订单中心
-- 已完成能力：手机号绑定、订单状态流转（待支付/待入住/已完成/已取消）、地图与发现页浏览
-- 后端一期 API 已落地于 `sunflower-backend`（auth/user/room/order/content），可按 `docs/API.md` 直接联调
-- 当前后端为联调模式（内存种子数据），重启后数据会重置；下一步切换 MySQL 持久化
+- 已完成链路：首页 → 预订 → 房型详情 → 填单 → 支付（模拟）→ 订单中心（含改期/退款）
+- 已完成能力：手机号绑定、订单状态流转（待支付/待入住/已改期/已退款/已取消）、地图与发现页浏览
+- 后端一期 API 已落地于 `sunflower-backend`（auth/user/room/order/content），并完成 M1 持久化改造
+- M1（S1-S6）已完成：Flyway + MySQL 持久化、订单事务化库存控制、小程序联调收口、售后接口闭环
 - 管理后台（Web）尚未启动开发
-- 已新增分阶段执行文档：`docs/Agent-Stage-Plan.md`（S0 已完成）
+- 已形成 M1 集成测试计划与执行记录：`docs/M1-Integration-Test-Plan.md`
 
 ## 7. 建议补齐（下一步）
-- 按 `docs/Agent-Stage-Plan.md` 从 S1 开始执行（数据库与迁移底座）
+- 按 `docs/Agent-Stage-Plan.md` 继续执行 S7（管理端后端 API：房型/价格/库存）
 - 每完成一个 Stage，同步更新 `docs/Backlog.md` 状态
 - 执行 Stage 前后分别运行：`make stage-pre STAGE=Sx`、`make stage-post STAGE=Sx`
 - 分支与提交遵循：`codex/s<stage>-<slug>`、`[Sx] ...`

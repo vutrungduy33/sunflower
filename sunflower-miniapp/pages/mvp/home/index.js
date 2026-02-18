@@ -1,4 +1,4 @@
-const { fetchHomeData, wechatLogin } = require('../../../utils/mvp/api');
+const { ensureWechatLogin, fetchHomeData } = require('../../../utils/mvp/api');
 const { track } = require('../../../utils/mvp/tracker');
 
 Page({
@@ -18,7 +18,7 @@ Page({
   async bootstrap() {
     try {
       this.setData({ loading: true, errorMessage: '' });
-      await wechatLogin();
+      const loginResult = await ensureWechatLogin();
       const homeData = await fetchHomeData();
       this.setData({
         banners: homeData.banners,
@@ -26,7 +26,9 @@ Page({
         featuredRooms: homeData.featuredRooms,
         memberBenefits: homeData.memberBenefits,
       });
-      track('wx_login_success', { source: 'mvp_home' });
+      if (loginResult && !loginResult.reusedToken) {
+        track('wx_login_success', { source: 'mvp_home' });
+      }
     } catch (error) {
       this.setData({
         errorMessage: error.message || '首页加载失败，请稍后重试',

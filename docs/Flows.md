@@ -5,12 +5,13 @@
 1. 首页/房型列表 → 选择房型  
 2. 选择入住日期 → 展示价格日历与可售库存  
 3. 填写入住人/联系方式 → 确认订单  
-4. 微信支付 → 支付成功  
-5. 订单状态：`已支付/待入住` → `已入住` → `已完成`
+4. 模拟支付 → 支付成功  
+5. M1 订单状态主路径：`PENDING_PAYMENT`（待支付）→ `CONFIRMED`（待入住）
 
 ### 异常流程
-- 取消订单：`已支付/待入住` → `已取消/退款中` → `已退款`
-- 改期：`待入住` → `改期申请` → `已改期/待入住`
+- 取消订单：`PENDING_PAYMENT/CONFIRMED` → `CANCELLED`
+- 改期：`CONFIRMED/RESCHEDULED` → `RESCHEDULED`
+- 退款：`CONFIRMED/RESCHEDULED` → `REFUNDED`
 
 ## 2. 接驳服务流程
 
@@ -47,13 +48,12 @@
 ## 7. 订单状态枚举
 
 ### 7.1 住宿订单
-- `pending_payment`（待支付）
-- `paid`（已支付）
-- `checked_in`（已入住）
-- `completed`（已完成）
-- `refund_pending`（退款中）
-- `refunded`（已退款）
-- `cancelled`（已取消）
+- `PENDING_PAYMENT`（待支付）
+- `CONFIRMED`（待入住）
+- `RESCHEDULED`（已改期）
+- `REFUNDED`（已退款）
+- `COMPLETED`（已完成）
+- `CANCELLED`（已取消）
 
 ### 7.2 餐饮订单
 - `pending_payment` → `paid` → `preparing` → `delivering` → `completed`
