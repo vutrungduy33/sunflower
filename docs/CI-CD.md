@@ -55,10 +55,10 @@
 
 执行流程：
 
-1. GitHub Actions 在 Runner 构建 `sunflower-backend` Docker 镜像并推送到 GHCR（标签：`sha`，主分支额外推 `latest`）
+1. GitHub Actions 在 Runner 固定检出 `main`，构建 `sunflower-backend` Docker 镜像并推送到 GHCR（标签：`source sha`，主分支额外推 `latest`）
 2. GitHub Actions 通过 SSH 连接 ECS
-3. 在 ECS 的部署目录拉取最新代码
-4. 在 ECS 登录 GHCR，注入 `BACKEND_IMAGE=ghcr.io/<owner>/sunflower-backend:<sha>`
+3. 在 ECS 的部署目录拉取代码并切换到本次镜像对应的 `source sha`（与镜像构建源码严格一致）
+4. 在 ECS 登录 GHCR，注入 `BACKEND_IMAGE=ghcr.io/<owner>/sunflower-backend:<source-sha>`
 5. 执行 `scripts/start_backend_with_mvp_seed.sh`（先启动 MySQL，再拉取并启动 backend，最后导入 `scripts/sql/mvp_demo_seed.sql`）
 6. 对 `http://127.0.0.1:8080/api/health` 做健康检查
 

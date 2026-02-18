@@ -24,19 +24,24 @@ jobs:
       packages: write
     outputs:
       backend_image: ${{ steps.image_meta.outputs.image_ref }}
+      source_sha: ${{ steps.image_meta.outputs.source_sha }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: refs/heads/main
 
       - name: Resolve GHCR image tags
         id: image_meta
         run: |
+          source_sha="$(git rev-parse --verify HEAD)"
           owner="$(printf '%s' "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')"
-          image_ref="ghcr.io/${owner}/sunflower-backend:${GITHUB_SHA}"
+          image_ref="ghcr.io/${owner}/sunflower-backend:${source_sha}"
           latest_ref="ghcr.io/${owner}/sunflower-backend:latest"
 
           {
+            echo "source_sha=${source_sha}"
             echo "image_ref=${image_ref}"
             echo "all_tags<<EOF"
             echo "${image_ref}"
@@ -74,6 +79,7 @@ jobs:
         uses: appleboy/ssh-action@v1.2.0
         env:
           BACKEND_IMAGE: ${{ needs.build-and-push.outputs.backend_image }}
+          SOURCE_SHA: ${{ needs.build-and-push.outputs.source_sha }}
           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
           GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
           AUTH_TOKEN_SECRET: ${{ secrets.AUTH_TOKEN_SECRET }}
@@ -88,7 +94,7 @@ jobs:
           username: ${{ secrets.ECS_USER }}
           port: ${{ secrets.ECS_PORT }}
           key: ${{ secrets.ECS_SSH_KEY }}
-          envs: BACKEND_IMAGE,GHCR_USERNAME,GHCR_TOKEN,AUTH_TOKEN_SECRET,AUTH_TOKEN_TTL_SECONDS,WECHAT_AUTH_MOCK_ENABLED,WECHAT_APP_ID,WECHAT_APP_SECRET,WECHAT_JSCODE2SESSION_URL,WECHAT_MOCK_OPENID_PREFIX
+          envs: BACKEND_IMAGE,SOURCE_SHA,GHCR_USERNAME,GHCR_TOKEN,AUTH_TOKEN_SECRET,AUTH_TOKEN_TTL_SECONDS,WECHAT_AUTH_MOCK_ENABLED,WECHAT_APP_ID,WECHAT_APP_SECRET,WECHAT_JSCODE2SESSION_URL,WECHAT_MOCK_OPENID_PREFIX
           command_timeout: 30m
           script_stop: false
           script: |
@@ -107,6 +113,7 @@ jobs:
             }
 
             BACKEND_IMAGE="$(printf '%s' "${BACKEND_IMAGE:-}" | tr -d '\r\n' | tr -d '[:space:]')"
+            SOURCE_SHA="$(printf '%s' "${SOURCE_SHA:-}" | tr -d '\r\n' | tr -d '[:space:]')"
             GHCR_USERNAME="$(printf '%s' "${GHCR_USERNAME:-}" | tr -d '\r\n')"
             GHCR_TOKEN="$(printf '%s' "${GHCR_TOKEN:-}" | tr -d '\r\n')"
             AUTH_TOKEN_SECRET="$(printf '%s' "${AUTH_TOKEN_SECRET:-}" | tr -d '\r\n')"
@@ -132,6 +139,10 @@ jobs:
             fi
             if [ -z "$BACKEND_IMAGE" ]; then
               echo "Missing required env BACKEND_IMAGE"
+              exit 1
+            fi
+            if [ -z "$SOURCE_SHA" ]; then
+              echo "Missing required env SOURCE_SHA"
               exit 1
             fi
             if [ -z "$GHCR_USERNAME" ] || [ -z "$GHCR_TOKEN" ]; then
@@ -174,9 +185,8 @@ jobs:
             fi
 
             run_or_exit git fetch origin main
-            run_or_exit git checkout main
-            run_or_exit git reset --hard origin/main
-            echo "[deploy] repository synced to origin/main"
+            run_or_exit git checkout --detach "$SOURCE_SHA"
+            echo "[deploy] repository synced to source sha: $SOURCE_SHA"
 
             if ! printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin; then
               echo "ERROR: failed to login GHCR"
