@@ -47,6 +47,18 @@ seed_demo_data() {
     mysql --default-character-set=utf8mb4 -uroot -proot sunflower < "$SEED_SQL_FILE"
 }
 
+start_backend_service() {
+  if [[ -n "${BACKEND_IMAGE:-}" ]]; then
+    echo "[deploy-seed] Pulling backend image from registry: ${BACKEND_IMAGE}"
+    "${COMPOSE_CMD[@]}" pull backend
+    "${COMPOSE_CMD[@]}" up -d backend
+    return
+  fi
+
+  echo "[deploy-seed] Starting backend service with local build (runs Flyway migrations)..."
+  "${COMPOSE_CMD[@]}" up -d --build backend
+}
+
 main() {
   [[ -f "$SEED_SQL_FILE" ]] || fail "seed sql file not found: $SEED_SQL_FILE"
 
@@ -60,7 +72,7 @@ main() {
   wait_mysql_ready
 
   echo "[deploy-seed] Starting backend service (runs Flyway migrations)..."
-  "${COMPOSE_CMD[@]}" up -d --build backend
+  start_backend_service
 
   echo "[deploy-seed] Waiting backend healthy..."
   wait_backend_ready
