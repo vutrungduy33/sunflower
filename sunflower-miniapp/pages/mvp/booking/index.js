@@ -5,6 +5,7 @@ const { track } = require('../../../utils/mvp/tracker');
 Page({
   data: {
     loading: true,
+    errorMessage: '',
     rooms: [],
     keyword: '',
     checkInDate: '',
@@ -28,14 +29,17 @@ Page({
   async loadRooms() {
     const { checkInDate, keyword } = this.data;
     try {
-      this.setData({ loading: true });
+      this.setData({ loading: true, errorMessage: '' });
       const rooms = await fetchRooms({
         checkInDate,
         keyword,
       });
       this.setData({ rooms });
     } catch (error) {
-      wx.showToast({ title: '房型加载失败', icon: 'none' });
+      this.setData({
+        rooms: [],
+        errorMessage: error.message || '房型加载失败，请稍后重试',
+      });
     } finally {
       this.setData({ loading: false });
     }
@@ -67,6 +71,10 @@ Page({
   },
 
   onSearch() {
+    this.loadRooms();
+  },
+
+  retryLoadRooms() {
     this.loadRooms();
   },
 

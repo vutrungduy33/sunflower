@@ -4,6 +4,7 @@ const { track } = require('../../../utils/mvp/tracker');
 Page({
   data: {
     loading: true,
+    errorMessage: '',
     orders: [],
     filteredOrders: [],
     activeStatus: 'ALL',
@@ -22,16 +23,24 @@ Page({
 
   async loadOrders() {
     try {
-      this.setData({ loading: true });
+      this.setData({ loading: true, errorMessage: '' });
       const orders = await fetchOrders();
       this.setData({ orders }, () => {
         this.applyFilter();
       });
     } catch (error) {
-      wx.showToast({ title: error.message || '订单加载失败', icon: 'none' });
+      this.setData({
+        orders: [],
+        filteredOrders: [],
+        errorMessage: error.message || '订单加载失败，请稍后重试',
+      });
     } finally {
       this.setData({ loading: false });
     }
+  },
+
+  retryLoadOrders() {
+    this.loadOrders();
   },
 
   onStatusChange(event) {

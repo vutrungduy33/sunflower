@@ -52,6 +52,36 @@
   gap: 16rpx;
 }
 
+.mvp-state {
+  background: #ffffff;
+  border-radius: 24rpx;
+  padding: 36rpx 24rpx;
+  text-align: center;
+  box-shadow: 0 8rpx 24rpx rgba(15, 23, 42, 0.05);
+}
+
+.mvp-state--loading {
+  color: #6b7280;
+  font-size: 24rpx;
+}
+
+.mvp-state__title {
+  color: #111827;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.mvp-state__desc {
+  margin-top: 12rpx;
+  color: #6b7280;
+  font-size: 24rpx;
+  line-height: 1.6;
+}
+
+.mvp-state__action {
+  margin-top: 20rpx;
+}
+
 .mvp-empty {
   text-align: center;
   color: #9ca3af;

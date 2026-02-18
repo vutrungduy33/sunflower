@@ -1,9 +1,15 @@
+@import '../common.wxss';
+
 .create-page {
   min-height: 100vh;
   background: #f5f7fa;
   padding: 24rpx;
   box-sizing: border-box;
   padding-bottom: 64rpx;
+}
+
+.state-card {
+  margin-bottom: 20rpx;
 }
 
 .create-section {

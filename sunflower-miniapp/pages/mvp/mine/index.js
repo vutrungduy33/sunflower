@@ -6,9 +6,19 @@ const {
 } = require('../../../utils/mvp/api');
 const { track } = require('../../../utils/mvp/tracker');
 
+function normalizeProfile(profile) {
+  const nextProfile = profile || {};
+  const tags = Array.isArray(nextProfile.tags) ? nextProfile.tags : [];
+  return {
+    ...nextProfile,
+    tags,
+  };
+}
+
 Page({
   data: {
     loading: true,
+    errorMessage: '',
     profile: null,
     tagsText: '',
     orderStats: {
@@ -25,9 +35,17 @@ Page({
   },
 
   async loadData() {
+    const loadSeq = (this._loadSeq || 0) + 1;
+    this._loadSeq = loadSeq;
+
     try {
-      this.setData({ loading: true });
+      this.setData({ loading: true, errorMessage: '' });
       const [profile, orders] = await Promise.all([fetchProfile(), fetchOrders()]);
+      if (loadSeq !== this._loadSeq) {
+        return;
+      }
+
+      const normalizedProfile = normalizeProfile(profile);
 
       const orderStats = {
         pending: orders.filter((order) => order.status === 'PENDING_PAYMENT').length,
@@ -36,17 +54,29 @@ Page({
       };
 
       this.setData({
-        profile,
+        profile: normalizedProfile,
         orderStats,
-        editingNickName: profile.nickName,
-        bindingPhone: profile.phone,
-        tagsText: profile.tags.join(' / '),
+        editingNickName: normalizedProfile.nickName || '',
+        bindingPhone: normalizedProfile.phone || '',
+        tagsText: normalizedProfile.tags.join(' / '),
       });
     } catch (error) {
-      wx.showToast({ title: error.message || '个人页加载失败', icon: 'none' });
+      if (loadSeq !== this._loadSeq) {
+        return;
+      }
+      this.setData({
+        profile: null,
+        errorMessage: error.message || '个人页加载失败，请稍后重试',
+      });
     } finally {
-      this.setData({ loading: false });
+      if (loadSeq === this._loadSeq) {
+        this.setData({ loading: false });
+      }
     }
+  },
+
+  retryLoadData() {
+    this.loadData();
   },
 
   onInput(event) {
@@ -64,7 +94,7 @@ Page({
     }
 
     try {
-      const profile = await patchProfile({ nickName: nickname });
+      const profile = normalizeProfile(await patchProfile({ nickName: nickname }));
       this.setData({ profile, tagsText: profile.tags.join(' / ') });
       wx.showToast({ title: '昵称已更新', icon: 'success' });
     } catch (error) {
@@ -80,7 +110,7 @@ Page({
     }
 
     try {
-      const profile = await postBindPhone(phone);
+      const profile = normalizeProfile(await postBindPhone(phone));
       this.setData({ profile, tagsText: profile.tags.join(' / ') });
       track('bind_phone_success', { source: 'mine' });
       wx.showToast({ title: '绑定成功', icon: 'success' });

@@ -29,26 +29,36 @@
 
   <view class="mvp-section">
     <view class="mvp-section__title">可订房型</view>
-    <view class="mvp-empty" wx:if="{{!rooms.length && !loading}}">暂无匹配房型</view>
-    <view class="room-card" wx:for="{{rooms}}" wx:key="id">
-      <image class="room-card__image" mode="aspectFill" src="{{item.cover}}" />
-      <view class="room-card__body">
-        <view class="room-card__name">{{item.name}}</view>
-        <view class="room-card__meta">{{item.capacity}}人 | {{item.area}}㎡ | {{item.scenicType}}</view>
-        <view class="room-card__tags">
-          <text class="mvp-tag" wx:for="{{item.tags}}" wx:key="*this">{{item}}</text>
-        </view>
-        <view class="room-card__footer">
-          <view>
-            <text class="mvp-price">¥{{item.todayPrice}}</text>
-            <text class="mvp-muted"> / 晚</text>
-          </view>
-          <t-button size="small" theme="primary" variant="outline" data-roomid="{{item.id}}" bindtap="goRoomDetail"
-            >查看详情</t-button
-          >
-        </view>
+    <view class="mvp-state mvp-state--loading" wx:if="{{loading}}">房型加载中...</view>
+    <view class="mvp-state" wx:elif="{{errorMessage}}">
+      <view class="mvp-state__title">房型加载失败</view>
+      <view class="mvp-state__desc">{{errorMessage}}</view>
+      <view class="mvp-state__action">
+        <t-button size="small" theme="primary" bindtap="retryLoadRooms">重新加载</t-button>
       </view>
     </view>
+    <view class="mvp-empty" wx:elif="{{!rooms.length}}">暂无匹配房型</view>
+    <block wx:if="{{rooms.length}}">
+      <view class="room-card" wx:for="{{rooms}}" wx:key="id">
+        <image class="room-card__image" mode="aspectFill" src="{{item.cover}}" />
+        <view class="room-card__body">
+          <view class="room-card__name">{{item.name}}</view>
+          <view class="room-card__meta">{{item.capacity}}人 | {{item.area}}㎡ | {{item.scenicType}}</view>
+          <view class="room-card__tags">
+            <text class="mvp-tag" wx:for="{{item.tags}}" wx:key="*this">{{item}}</text>
+          </view>
+          <view class="room-card__footer">
+            <view>
+              <text class="mvp-price">¥{{item.todayPrice}}</text>
+              <text class="mvp-muted"> / 晚</text>
+            </view>
+            <t-button size="small" theme="primary" variant="outline" data-roomid="{{item.id}}" bindtap="goRoomDetail"
+              >查看详情</t-button
+            >
+          </view>
+        </view>
+      </view>
+    </block>
   </view>
 </view>
 
