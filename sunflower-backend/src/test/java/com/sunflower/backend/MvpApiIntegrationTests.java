@@ -307,6 +307,78 @@ class MvpApiIntegrationTests {
     }
 
     @Test
+    void shouldRescheduleWithOverlappedDateRange() throws Exception {
+        LocalDate firstCheckIn = LocalDate.parse("2026-02-12");
+        LocalDate firstCheckOut = firstCheckIn.plusDays(2);
+        LocalDate secondCheckIn = firstCheckIn.plusDays(1);
+        LocalDate secondCheckOut = secondCheckIn.plusDays(2);
+
+        setInventory("room-lake-101", firstCheckIn, 3, 3, 0);
+        setInventory("room-lake-101", firstCheckIn.plusDays(1), 3, 3, 0);
+        setInventory("room-lake-101", secondCheckIn.plusDays(1), 3, 3, 0);
+
+        String token = loginAndGetToken("order_reschedule_overlap");
+        MvcResult createResult = mockMvc
+            .perform(
+                post("/api/orders")
+                    .header("Authorization", bearerToken(token))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        buildCreateOrderPayload(
+                            "room-lake-101",
+                            firstCheckIn.toString(),
+                            firstCheckOut.toString()
+                        )
+                    )
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andReturn();
+
+        JsonNode createBody = objectMapper.readTree(createResult.getResponse().getContentAsString());
+        String orderId = createBody.path("data").path("id").asText();
+
+        mockMvc
+            .perform(post("/api/orders/{id}/pay", orderId).header("Authorization", bearerToken(token)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.status").value("CONFIRMED"));
+
+        mockMvc
+            .perform(
+                post("/api/orders/{id}/reschedule", orderId)
+                    .header("Authorization", bearerToken(token))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        "{"
+                            + "\"checkInDate\":\""
+                            + secondCheckIn
+                            + "\","
+                            + "\"checkOutDate\":\""
+                            + secondCheckOut
+                            + "\","
+                            + "\"reason\":\"重叠区间改期\""
+                            + "}"
+                    )
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.status").value("RESCHEDULED"))
+            .andExpect(jsonPath("$.data.checkInDate").value(secondCheckIn.toString()))
+            .andExpect(jsonPath("$.data.checkOutDate").value(secondCheckOut.toString()));
+
+        RoomInventoryEntity oldOnlyDate = getInventory("room-lake-101", firstCheckIn);
+        RoomInventoryEntity overlapDate = getInventory("room-lake-101", secondCheckIn);
+        RoomInventoryEntity newOnlyDate = getInventory("room-lake-101", secondCheckIn.plusDays(1));
+        assertEquals(3, oldOnlyDate.getAvailableStock());
+        assertEquals(0, oldOnlyDate.getLockedStock());
+        assertEquals(2, overlapDate.getAvailableStock());
+        assertEquals(1, overlapDate.getLockedStock());
+        assertEquals(2, newOnlyDate.getAvailableStock());
+        assertEquals(1, newOnlyDate.getLockedStock());
+    }
+
+    @Test
     void shouldRejectRefundWhenOrderNotPaid() throws Exception {
         String token = loginAndGetToken("order_refund_pending");
 

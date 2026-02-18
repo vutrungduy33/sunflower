@@ -19,10 +19,12 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -163,8 +165,7 @@ public class OrderService {
         List<LocalDate> oldStayDates = buildStayDates(order.getCheckInDate(), order.getNights());
         List<LocalDate> newStayDates = buildStayDates(checkInDate, (int) nights);
 
-        releaseInventoryForCancel(order.getRoomId(), oldStayDates);
-        lockInventoryForCreate(order.getRoomId(), newStayDates);
+        rescheduleInventory(order.getRoomId(), oldStayDates, newStayDates);
 
         order.setCheckInDate(checkInDate);
         order.setCheckOutDate(checkOutDate);
@@ -233,9 +234,49 @@ public class OrderService {
         roomInventoryRepository.saveAll(inventoryMap.values());
     }
 
+    private void rescheduleInventory(String roomId, List<LocalDate> oldStayDates, List<LocalDate> newStayDates) {
+        LocalDate lockStartDate = oldStayDates.get(0).isBefore(newStayDates.get(0)) ? oldStayDates.get(0) : newStayDates.get(0);
+        LocalDate oldEndDate = oldStayDates.get(oldStayDates.size() - 1);
+        LocalDate newEndDate = newStayDates.get(newStayDates.size() - 1);
+        LocalDate lockEndDate = oldEndDate.isAfter(newEndDate) ? oldEndDate : newEndDate;
+
+        Map<LocalDate, RoomInventoryEntity> inventoryMap = lockStayInventory(roomId, lockStartDate, lockEndDate);
+        Set<RoomInventoryEntity> changedInventory = new LinkedHashSet<>();
+
+        for (LocalDate stayDate : oldStayDates) {
+            RoomInventoryEntity inventory = inventoryMap.get(stayDate);
+            if (inventory == null || inventory.getLockedStock() <= 0) {
+                throw BusinessException.conflict(INVENTORY_DATA_ERROR_MESSAGE);
+            }
+        }
+        for (LocalDate stayDate : oldStayDates) {
+            RoomInventoryEntity inventory = inventoryMap.get(stayDate);
+            inventory.setAvailableStock(inventory.getAvailableStock() + 1);
+            inventory.setLockedStock(inventory.getLockedStock() - 1);
+            changedInventory.add(inventory);
+        }
+
+        for (LocalDate stayDate : newStayDates) {
+            RoomInventoryEntity inventory = inventoryMap.get(stayDate);
+            if (inventory == null || inventory.getAvailableStock() <= 0) {
+                throw BusinessException.conflict(OUT_OF_STOCK_MESSAGE);
+            }
+        }
+        for (LocalDate stayDate : newStayDates) {
+            RoomInventoryEntity inventory = inventoryMap.get(stayDate);
+            inventory.setAvailableStock(inventory.getAvailableStock() - 1);
+            inventory.setLockedStock(inventory.getLockedStock() + 1);
+            changedInventory.add(inventory);
+        }
+
+        roomInventoryRepository.saveAll(changedInventory);
+    }
+
     private Map<LocalDate, RoomInventoryEntity> lockStayInventory(String roomId, List<LocalDate> stayDates) {
-        LocalDate startDate = stayDates.get(0);
-        LocalDate endDate = stayDates.get(stayDates.size() - 1);
+        return lockStayInventory(roomId, stayDates.get(0), stayDates.get(stayDates.size() - 1));
+    }
+
+    private Map<LocalDate, RoomInventoryEntity> lockStayInventory(String roomId, LocalDate startDate, LocalDate endDate) {
         List<RoomInventoryEntity> inventoryEntities = roomInventoryRepository.findForUpdateByRoomIdAndBizDateBetweenOrderByBizDateAsc(
             roomId,
             startDate,

@@ -38,6 +38,10 @@ function getAuthToken() {
   return `${wx.getStorageSync(STORAGE_KEY_AUTH_TOKEN) || ''}`.trim();
 }
 
+function hasAuthToken() {
+  return !!getAuthToken();
+}
+
 function setAuthToken(token) {
   const normalized = `${token || ''}`.trim();
   if (!normalized) {
@@ -157,6 +161,18 @@ async function wechatLogin(code) {
     setAuthToken(loginData.token);
   }
   return loginData;
+}
+
+async function ensureWechatLogin() {
+  const token = getAuthToken();
+  if (token) {
+    return { token, reusedToken: true };
+  }
+  const loginData = await wechatLogin();
+  return {
+    ...(loginData || {}),
+    reusedToken: false,
+  };
 }
 
 async function fetchHomeData() {
@@ -282,6 +298,8 @@ module.exports = {
   postPayOrder,
   postRefundOrder,
   postRescheduleOrder,
+  ensureWechatLogin,
+  hasAuthToken,
   setApiBaseUrl,
   wechatLogin,
 };
