@@ -3,6 +3,7 @@
   "navigationStyle": "default",
   "usingComponents": {
     "mvp-nav-actions": "/components/mvp-nav-actions/index",
-    "t-button": "tdesign-miniprogram/button/button"
+    "t-button": "tdesign-miniprogram/button/button",
+    "t-calendar": "tdesign-miniprogram/calendar/calendar"
   }
 }

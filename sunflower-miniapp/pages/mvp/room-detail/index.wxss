@@ -82,17 +82,25 @@
   margin-bottom: 14rpx;
 }
 
-.date-row {
-  display: flex;
-  gap: 14rpx;
-  margin-bottom: 12rpx;
-}
-
-.date-item {
-  flex: 1;
+.date-picker-card {
   background: #f8fafc;
   border-radius: 16rpx;
-  padding: 14rpx;
+  padding: 14rpx 16rpx;
+}
+
+.date-picker-main {
+  display: flex;
+  align-items: center;
+}
+
+.date-picker-item {
+  flex: 1;
+}
+
+.date-picker-divider {
+  padding: 0 14rpx;
+  font-size: 22rpx;
+  color: #6b7280;
 }
 
 .date-label {
@@ -105,6 +113,13 @@
   margin-top: 8rpx;
   color: #111827;
   font-size: 25rpx;
+}
+
+.date-picker-tip {
+  margin-top: 10rpx;
+  display: block;
+  color: #2e7d32;
+  font-size: 20rpx;
 }
 
 .calendar-scroll {

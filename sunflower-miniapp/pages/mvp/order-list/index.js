@@ -5,7 +5,7 @@ const {
   postRefundOrder,
   postRescheduleOrder,
 } = require('../../../utils/mvp/api');
-const { addDays, formatDate } = require('../../../utils/mvp/date');
+const { diffDays, formatDate, parseDate } = require('../../../utils/mvp/date');
 const { track } = require('../../../utils/mvp/tracker');
 
 Page({
@@ -24,6 +24,10 @@ Page({
       { key: 'COMPLETED', label: '已完成' },
       { key: 'CANCELLED', label: '已取消' },
     ],
+    rescheduleCalendarVisible: false,
+    rescheduleTargetOrderId: '',
+    rescheduleDateRangeValue: [],
+    rescheduleMinDate: new Date(new Date().setHours(0, 0, 0, 0)).getTime(),
   },
 
   onShow() {
@@ -96,28 +100,14 @@ Page({
       return;
     }
 
-    try {
-      const shiftDays = await this.selectRescheduleDays();
-      if (!shiftDays) {
-        return;
-      }
-
-      const payload = {
-        checkInDate: formatDate(addDays(order.checkInDate, shiftDays)),
-        checkOutDate: formatDate(addDays(order.checkOutDate, shiftDays)),
-        reason: `用户在小程序发起改期，顺延${shiftDays}天`,
-      };
-      const updatedOrder = await postRescheduleOrder(id, payload);
-      track('order_reschedule_success', {
-        orderId: updatedOrder.id,
-        fromCheckInDate: order.checkInDate,
-        toCheckInDate: payload.checkInDate,
-      });
-      wx.showToast({ title: '改期成功', icon: 'success' });
-      this.loadOrders();
-    } catch (error) {
-      wx.showToast({ title: error.message || '改期失败', icon: 'none' });
-    }
+    this.setData({
+      rescheduleCalendarVisible: true,
+      rescheduleTargetOrderId: id,
+      rescheduleDateRangeValue: [
+        parseDate(order.checkInDate).getTime(),
+        parseDate(order.checkOutDate).getTime(),
+      ],
+    });
   },
 
   async onRefund(event) {
@@ -137,21 +127,64 @@ Page({
     }
   },
 
-  selectRescheduleDays() {
-    return new Promise((resolve, reject) => {
-      wx.showActionSheet({
-        itemList: ['顺延 1 天', '顺延 2 天', '顺延 3 天'],
-        success: (result) => resolve(result.tapIndex + 1),
-        fail: (error) => {
-          const message = (error && error.errMsg) || '';
-          if (message.includes('cancel')) {
-            resolve(0);
-            return;
-          }
-          reject(new Error(message || '改期选择失败'));
-        },
-      });
+  onRescheduleCalendarClose() {
+    this.setData({
+      rescheduleCalendarVisible: false,
+      rescheduleTargetOrderId: '',
+      rescheduleDateRangeValue: [],
     });
+  },
+
+  async onRescheduleCalendarConfirm(event) {
+    const value = event.detail && event.detail.value;
+    if (!Array.isArray(value) || value.length < 2) {
+      wx.showToast({ title: '请选择改期日期', icon: 'none' });
+      return;
+    }
+
+    const order = this.data.orders.find((item) => item.id === this.data.rescheduleTargetOrderId);
+    if (!order) {
+      this.onRescheduleCalendarClose();
+      wx.showToast({ title: '订单不存在', icon: 'none' });
+      return;
+    }
+
+    const nextCheckInDate = formatDate(new Date(value[0]));
+    const nextCheckOutDate = formatDate(new Date(value[1]));
+    const nights = diffDays(nextCheckInDate, nextCheckOutDate);
+    if (nights <= 0) {
+      wx.showToast({ title: '退房日期需晚于入住日期', icon: 'none' });
+      return;
+    }
+    if (nights !== order.nights) {
+      wx.showToast({ title: `改期需保持${order.nights}晚`, icon: 'none' });
+      return;
+    }
+    if (nextCheckInDate === order.checkInDate && nextCheckOutDate === order.checkOutDate) {
+      wx.showToast({ title: '改期日期不能与原订单一致', icon: 'none' });
+      return;
+    }
+
+    this.setData({ rescheduleCalendarVisible: false });
+
+    try {
+      const payload = {
+        checkInDate: nextCheckInDate,
+        checkOutDate: nextCheckOutDate,
+        reason: `用户在小程序发起改期：${order.checkInDate}→${nextCheckInDate}`,
+      };
+      const updatedOrder = await postRescheduleOrder(order.id, payload);
+      track('order_reschedule_success', {
+        orderId: updatedOrder.id,
+        fromCheckInDate: order.checkInDate,
+        toCheckInDate: payload.checkInDate,
+      });
+      wx.showToast({ title: '改期成功', icon: 'success' });
+      this.onRescheduleCalendarClose();
+      this.loadOrders();
+    } catch (error) {
+      wx.showToast({ title: error.message || '改期失败', icon: 'none' });
+    }
   },
 
   confirmRefund() {

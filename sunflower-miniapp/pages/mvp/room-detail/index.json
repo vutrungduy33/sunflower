@@ -4,6 +4,7 @@
   "usingComponents": {
     "mvp-nav-actions": "/components/mvp-nav-actions/index",
     "t-button": "tdesign-miniprogram/button/button",
-    "t-icon": "tdesign-miniprogram/icon/icon"
+    "t-icon": "tdesign-miniprogram/icon/icon",
+    "t-calendar": "tdesign-miniprogram/calendar/calendar"
   }
 }

@@ -12,16 +12,38 @@
   padding: 16rpx;
 }
 
+.filter-field--calendar {
+  padding-bottom: 18rpx;
+}
+
 .filter-label {
   display: block;
   font-size: 22rpx;
   color: #6b7280;
 }
 
-.filter-value {
+.filter-value-row {
   margin-top: 8rpx;
+  display: flex;
+  align-items: baseline;
+  gap: 8rpx;
+}
+
+.filter-value {
   font-size: 26rpx;
   color: #111827;
+}
+
+.filter-separator {
+  font-size: 22rpx;
+  color: #6b7280;
+}
+
+.filter-tip {
+  margin-top: 8rpx;
+  display: block;
+  font-size: 20rpx;
+  color: #2e7d32;
 }
 
 .search-row {

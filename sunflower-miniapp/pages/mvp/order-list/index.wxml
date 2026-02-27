@@ -83,3 +83,13 @@
     </view>
   </block>
 </view>
+
+<t-calendar
+  visible="{{rescheduleCalendarVisible}}"
+  value="{{rescheduleDateRangeValue}}"
+  minDate="{{rescheduleMinDate}}"
+  type="range"
+  title="选择改期入住与退房日期"
+  bind:confirm="onRescheduleCalendarConfirm"
+  bind:close="onRescheduleCalendarClose"
+/>
