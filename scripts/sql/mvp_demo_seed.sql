@@ -3,6 +3,7 @@
 -- S3 auth hardening sync: keep seed script touched when persistence layer changes.
 -- S4 order persistence sync: orders and inventory seeds must stay compatible with DB-backed order workflow.
 -- S6 after-sale sync: keep order reschedule/refund columns compatible with stage APIs.
+-- S7 admin room API sync: keep room seeds compatible with后台房型/价格/库存写接口的持久化结构。
 
 INSERT INTO users (id, openid, unionid, phone, status)
 VALUES ('user_demo_1001', 'mock_openid_mvp_code', NULL, '13800000000', 'ACTIVE')

@@ -12,6 +12,9 @@ spring:
     open-in-view: false
 
 app:
+  admin:
+    auth:
+      token: test-admin-token
   auth:
     wechat:
       mock-enabled: true

@@ -1,6 +1,6 @@
 # 接口字段级别定义（请求/响应示例）
 
-> 更新时间：2026-02-18  
+> 更新时间：2026-03-10  
 > 说明：以下示例对齐当前 `sunflower-backend` 的 MVP 一期实现。
 
 统一响应壳：
@@ -379,5 +379,149 @@
   "statusLabel": "已退款",
   "refundedAt": "2026-02-12T12:00:00+08:00",
   "afterSaleReason": "临时取消行程"
+}
+```
+
+## 5) 管理端房型与房态
+
+管理端鉴权说明：当前 MVP 通过静态管理 token 调用管理接口，请在请求头携带 `Authorization: Bearer <admin-token>`。缺失 token 返回 `40100/请先登录管理端`，错误 token 返回 `40100/管理端登录态无效`。默认配置项为 `app.admin.auth.token`，生产环境建议通过 `ADMIN_AUTH_TOKEN` 注入。
+
+### `POST /api/admin/rooms`
+**请求**
+```json
+{
+  "name": "云顶湖景套房",
+  "subtitle": "270 度观景露台 | 可住 4 人",
+  "cover": "/assets/admin-room-cover.png",
+  "capacity": 4,
+  "area": 68,
+  "bedType": "2m 大床 + 1.2m 沙发床",
+  "scenicType": "湖景",
+  "tags": ["新上架", "家庭出游"],
+  "basePrice": 688,
+  "breakfast": "含 4 份早餐",
+  "intro": "顶层景观套房，适合家庭和小团体入住。",
+  "amenities": ["空调", "投影", "露台浴缸"],
+  "rules": ["14:00 后入住", "12:00 前退房"],
+  "canCancelBeforeHours": 24,
+  "status": "ACTIVE"
+}
+```
+**响应**
+```json
+{
+  "id": "room-admin-20260310101530-4821",
+  "name": "云顶湖景套房",
+  "subtitle": "270 度观景露台 | 可住 4 人",
+  "cover": "/assets/admin-room-cover.png",
+  "capacity": 4,
+  "area": 68,
+  "bedType": "2m 大床 + 1.2m 沙发床",
+  "scenicType": "湖景",
+  "tags": ["新上架", "家庭出游"],
+  "basePrice": 688,
+  "breakfast": "含 4 份早餐",
+  "intro": "顶层景观套房，适合家庭和小团体入住。",
+  "amenities": ["空调", "投影", "露台浴缸"],
+  "rules": ["14:00 后入住", "12:00 前退房"],
+  "canCancelBeforeHours": 24,
+  "status": "ACTIVE"
+}
+```
+
+### `PATCH /api/admin/rooms/{id}`
+**请求（部分字段）**
+```json
+{
+  "name": "云顶湖景家庭套房",
+  "basePrice": 699,
+  "status": "ACTIVE"
+}
+```
+**响应**
+```json
+{
+  "id": "room-admin-20260310101530-4821",
+  "name": "云顶湖景家庭套房",
+  "basePrice": 699,
+  "status": "ACTIVE"
+}
+```
+
+### `POST /api/admin/room-prices`
+**请求**
+```json
+{
+  "roomId": "room-admin-20260310101530-4821",
+  "items": [
+    {
+      "date": "2026-02-20",
+      "price": 699,
+      "source": "MANUAL"
+    },
+    {
+      "date": "2026-02-21",
+      "price": 799,
+      "source": "WEEKEND"
+    }
+  ]
+}
+```
+**响应**
+```json
+{
+  "roomId": "room-admin-20260310101530-4821",
+  "updatedCount": 2,
+  "items": [
+    {
+      "date": "2026-02-20",
+      "price": 699,
+      "source": "MANUAL"
+    },
+    {
+      "date": "2026-02-21",
+      "price": 799,
+      "source": "WEEKEND"
+    }
+  ]
+}
+```
+
+### `POST /api/admin/room-inventory`
+**请求**
+```json
+{
+  "roomId": "room-admin-20260310101530-4821",
+  "items": [
+    {
+      "date": "2026-02-20",
+      "totalStock": 2
+    },
+    {
+      "date": "2026-02-21",
+      "totalStock": 1
+    }
+  ]
+}
+```
+**响应**
+```json
+{
+  "roomId": "room-admin-20260310101530-4821",
+  "updatedCount": 2,
+  "items": [
+    {
+      "date": "2026-02-20",
+      "totalStock": 2,
+      "availableStock": 2,
+      "lockedStock": 0
+    },
+    {
+      "date": "2026-02-21",
+      "totalStock": 1,
+      "availableStock": 1,
+      "lockedStock": 0
+    }
+  ]
 }
 ```

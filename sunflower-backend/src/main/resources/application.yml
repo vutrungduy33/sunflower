@@ -18,6 +18,9 @@ management:
       show-details: never
 
 app:
+  admin:
+    auth:
+      token: ${ADMIN_AUTH_TOKEN:dev-admin-token-change-me}
   auth:
     wechat:
       mock-enabled: ${WECHAT_AUTH_MOCK_ENABLED:true}
