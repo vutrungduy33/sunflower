@@ -14,4 +14,6 @@ public interface RoomPriceRepository extends JpaRepository<RoomPriceEntity, Long
     );
 
     List<RoomPriceEntity> findByRoomIdInAndBizDate(Collection<String> roomIds, LocalDate bizDate);
+
+    List<RoomPriceEntity> findByRoomIdAndBizDateIn(String roomId, Collection<LocalDate> bizDates);
 }

@@ -149,6 +149,173 @@ class MvpApiIntegrationTests {
     }
 
     @Test
+    void shouldRequireAdminTokenForAdminRoomApis() throws Exception {
+        mockMvc
+            .perform(
+                post("/api/admin/rooms")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(buildCreateAdminRoomPayload())
+            )
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.code").value(40100))
+            .andExpect(jsonPath("$.message").value("请先登录管理端"));
+
+        mockMvc
+            .perform(
+                post("/api/admin/rooms")
+                    .header("Authorization", bearerToken("wrong-admin-token"))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(buildCreateAdminRoomPayload())
+            )
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.code").value(40100))
+            .andExpect(jsonPath("$.message").value("管理端登录态无效"));
+    }
+
+    @Test
+    void shouldCreateUpdateRoomAndManagePriceInventory() throws Exception {
+        String adminAuthorization = adminAuthorization();
+        MvcResult createResult = mockMvc
+            .perform(
+                post("/api/admin/rooms")
+                    .header("Authorization", adminAuthorization)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(buildCreateAdminRoomPayload())
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.id").exists())
+            .andExpect(jsonPath("$.data.name").value("云顶湖景套房"))
+            .andExpect(jsonPath("$.data.status").value("ACTIVE"))
+            .andReturn();
+
+        JsonNode createBody = objectMapper.readTree(createResult.getResponse().getContentAsString());
+        String roomId = createBody.path("data").path("id").asText();
+
+        mockMvc
+            .perform(
+                patch("/api/admin/rooms/{roomId}", roomId)
+                    .header("Authorization", adminAuthorization)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"name\":\"云顶湖景家庭套房\",\"basePrice\":699}")
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.id").value(roomId))
+            .andExpect(jsonPath("$.data.name").value("云顶湖景家庭套房"))
+            .andExpect(jsonPath("$.data.basePrice").value(699));
+
+        mockMvc
+            .perform(
+                post("/api/admin/room-prices")
+                    .header("Authorization", adminAuthorization)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        "{"
+                            + "\"roomId\":\""
+                            + roomId
+                            + "\","
+                            + "\"items\":["
+                            + "{\"date\":\"2026-02-20\",\"price\":699},"
+                            + "{\"date\":\"2026-02-21\",\"price\":799,\"source\":\"weekend\"}"
+                            + "]"
+                            + "}"
+                    )
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.roomId").value(roomId))
+            .andExpect(jsonPath("$.data.updatedCount").value(2))
+            .andExpect(jsonPath("$.data.items[0].source").value("MANUAL"))
+            .andExpect(jsonPath("$.data.items[1].source").value("WEEKEND"));
+
+        mockMvc
+            .perform(
+                post("/api/admin/room-inventory")
+                    .header("Authorization", adminAuthorization)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        "{"
+                            + "\"roomId\":\""
+                            + roomId
+                            + "\","
+                            + "\"items\":["
+                            + "{\"date\":\"2026-02-20\",\"totalStock\":2},"
+                            + "{\"date\":\"2026-02-21\",\"totalStock\":1}"
+                            + "]"
+                            + "}"
+                    )
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.updatedCount").value(2))
+            .andExpect(jsonPath("$.data.items[0].availableStock").value(2))
+            .andExpect(jsonPath("$.data.items[1].availableStock").value(1));
+
+        mockMvc
+            .perform(get("/api/rooms/{roomId}", roomId).param("checkInDate", "2026-02-20"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.id").value(roomId))
+            .andExpect(jsonPath("$.data.name").value("云顶湖景家庭套房"))
+            .andExpect(jsonPath("$.data.calendar[0].price").value(699))
+            .andExpect(jsonPath("$.data.calendar[0].stock").value(2));
+    }
+
+    @Test
+    void shouldRejectInvalidAdminParamsAndInventoryConflicts() throws Exception {
+        String adminAuthorization = adminAuthorization();
+
+        mockMvc
+            .perform(
+                post("/api/admin/rooms")
+                    .header("Authorization", adminAuthorization)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(buildInvalidAdminRoomPayload())
+            )
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value(40001))
+            .andExpect(jsonPath("$.message").value("房型名称不能为空"));
+
+        mockMvc
+            .perform(
+                post("/api/admin/room-prices")
+                    .header("Authorization", adminAuthorization)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        "{"
+                            + "\"roomId\":\"room-lake-101\","
+                            + "\"items\":["
+                            + "{\"date\":\"2026-02-20\",\"price\":688},"
+                            + "{\"date\":\"2026-02-20\",\"price\":699}"
+                            + "]"
+                            + "}"
+                    )
+            )
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value(40000))
+            .andExpect(jsonPath("$.message").value("date 不能重复"));
+
+        mockMvc
+            .perform(
+                post("/api/admin/room-inventory")
+                    .header("Authorization", adminAuthorization)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        "{"
+                            + "\"roomId\":\"room-lake-101\","
+                            + "\"items\":["
+                            + "{\"date\":\"2026-02-13\",\"totalStock\":0}"
+                            + "]"
+                            + "}"
+                    )
+            )
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.code").value(40900))
+            .andExpect(jsonPath("$.message").value("目标库存不能小于已锁定库存"));
+    }
+
+    @Test
     void shouldCreatePayCancelAndQueryOrder() throws Exception {
         String token = loginAndGetToken("order_flow_code");
 
@@ -827,6 +994,48 @@ class MvpApiIntegrationTests {
             + "\"arrivalTime\":\"18:00\","
             + "\"remark\":\"库存测试\""
             + "}";
+    }
+
+    private String buildCreateAdminRoomPayload() {
+        return "{"
+            + "\"name\":\"云顶湖景套房\","
+            + "\"subtitle\":\"270 度观景露台 | 可住 4 人\","
+            + "\"cover\":\"/assets/admin-room-cover.png\","
+            + "\"capacity\":4,"
+            + "\"area\":68,"
+            + "\"bedType\":\"2m 大床 + 1.2m 沙发床\","
+            + "\"scenicType\":\"湖景\","
+            + "\"tags\":[\"新上架\",\"家庭出游\"],"
+            + "\"basePrice\":688,"
+            + "\"breakfast\":\"含 4 份早餐\","
+            + "\"intro\":\"顶层景观套房，适合家庭和小团体入住。\","
+            + "\"amenities\":[\"空调\",\"投影\",\"露台浴缸\"],"
+            + "\"rules\":[\"14:00 后入住\",\"12:00 前退房\"],"
+            + "\"canCancelBeforeHours\":24"
+            + "}";
+    }
+
+    private String buildInvalidAdminRoomPayload() {
+        return "{"
+            + "\"name\":\"   \","
+            + "\"subtitle\":\"test\","
+            + "\"cover\":\"/assets/admin-room-cover.png\","
+            + "\"capacity\":2,"
+            + "\"area\":36,"
+            + "\"bedType\":\"1.8m 大床\","
+            + "\"scenicType\":\"湖景\","
+            + "\"tags\":[],"
+            + "\"basePrice\":388,"
+            + "\"breakfast\":\"含早餐\","
+            + "\"intro\":\"test\","
+            + "\"amenities\":[],"
+            + "\"rules\":[],"
+            + "\"canCancelBeforeHours\":24"
+            + "}";
+    }
+
+    private String adminAuthorization() {
+        return bearerToken("test-admin-token");
     }
 
     private String bearerToken(String token) {

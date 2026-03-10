@@ -19,6 +19,8 @@ public interface RoomInventoryRepository extends JpaRepository<RoomInventoryEnti
 
     List<RoomInventoryEntity> findByRoomIdInAndBizDate(Collection<String> roomIds, LocalDate bizDate);
 
+    List<RoomInventoryEntity> findByRoomIdAndBizDateIn(String roomId, Collection<LocalDate> bizDates);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query(
         "select inventory from RoomInventoryEntity inventory "
