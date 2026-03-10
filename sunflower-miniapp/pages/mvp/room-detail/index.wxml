@@ -28,21 +28,20 @@
 
       <view class="detail-section">
         <view class="section-title">入住日期</view>
-        <view class="date-row">
-          <view class="date-item">
-            <text class="date-label">入住</text>
-            <picker mode="date" value="{{checkInDate}}" start="{{today}}" bindchange="onCheckInChange">
-              <view class="date-value">{{checkInDate}}</view>
-            </picker>
+        <view class="date-picker-card" bindtap="openDateCalendar">
+          <view class="date-picker-main">
+            <view class="date-picker-item">
+              <text class="date-label">入住</text>
+              <text class="date-value">{{checkInDate}}</text>
+            </view>
+            <view class="date-picker-divider">至</view>
+            <view class="date-picker-item">
+              <text class="date-label">退房</text>
+              <text class="date-value">{{checkOutDate}}</text>
+            </view>
           </view>
-          <view class="date-item">
-            <text class="date-label">退房</text>
-            <picker mode="date" value="{{checkOutDate}}" start="{{today}}" bindchange="onCheckOutChange">
-              <view class="date-value">{{checkOutDate}}</view>
-            </picker>
-          </view>
+          <view class="date-picker-tip">共 {{nights}} 晚，点击修改</view>
         </view>
-        <view class="mvp-muted">共 {{nights}} 晚</view>
       </view>
 
       <view class="detail-section">
@@ -82,3 +81,13 @@
   </block>
   <view class="mvp-empty" wx:else>暂无房型信息，请返回上一页重新选择。</view>
 </view>
+
+<t-calendar
+  visible="{{dateCalendarVisible}}"
+  value="{{dateRangeValue}}"
+  minDate="{{minBookingDate}}"
+  type="range"
+  title="选择入住与退房日期"
+  bind:confirm="onDateRangeConfirm"
+  bind:close="onDateRangeClose"
+/>

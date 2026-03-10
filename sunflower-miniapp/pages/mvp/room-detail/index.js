@@ -1,5 +1,5 @@
 const { fetchRoomDetail } = require('../../../utils/mvp/api');
-const { addDays, diffDays, formatDate, getDefaultBookingDate } = require('../../../utils/mvp/date');
+const { diffDays, formatDate, getDefaultBookingDate, parseDate } = require('../../../utils/mvp/date');
 
 Page({
   data: {
@@ -11,7 +11,9 @@ Page({
     checkOutDate: '',
     nights: 1,
     totalAmount: 0,
-    today: formatDate(new Date()),
+    dateCalendarVisible: false,
+    dateRangeValue: [],
+    minBookingDate: new Date(new Date().setHours(0, 0, 0, 0)).getTime(),
   },
 
   onLoad(options) {
@@ -20,8 +22,10 @@ Page({
     this.setData({
       checkInDate: options.checkInDate || checkIn,
       checkOutDate: options.checkOutDate || checkOut,
+    }, () => {
+      this.syncDateRangeValue();
+      this.loadDetail();
     });
-    this.loadDetail();
   },
 
   async loadDetail() {
@@ -60,33 +64,53 @@ Page({
     this.loadDetail();
   },
 
-  onCheckInChange(event) {
-    const nextCheckIn = event.detail.value;
-    let nextCheckOut = this.data.checkOutDate;
-    if (diffDays(nextCheckIn, nextCheckOut) <= 0) {
-      nextCheckOut = formatDate(addDays(nextCheckIn, 1));
+  openDateCalendar() {
+    this.setData({ dateCalendarVisible: true });
+  },
+
+  onDateRangeConfirm(event) {
+    const value = event.detail && event.detail.value;
+    if (!Array.isArray(value) || value.length < 2) {
+      wx.showToast({ title: '请选择入住和退房日期', icon: 'none' });
+      return;
     }
+
+    const nextCheckIn = formatDate(new Date(value[0]));
+    const nextCheckOut = formatDate(new Date(value[1]));
+    const nights = diffDays(nextCheckIn, nextCheckOut);
+
+    if (nights <= 0) {
+      wx.showToast({ title: '退房日期需晚于入住日期', icon: 'none' });
+      return;
+    }
+
     this.setData({
       checkInDate: nextCheckIn,
       checkOutDate: nextCheckOut,
+      nights,
+      dateCalendarVisible: false,
+      dateRangeValue: [value[0], value[1]],
     });
     this.loadDetail();
   },
 
-  onCheckOutChange(event) {
-    const nextCheckOut = event.detail.value;
-    if (diffDays(this.data.checkInDate, nextCheckOut) <= 0) {
-      wx.showToast({ title: '退房日期需晚于入住日期', icon: 'none' });
-      return;
-    }
-    this.setData({ checkOutDate: nextCheckOut });
-    this.loadDetail();
+  onDateRangeClose() {
+    this.setData({ dateCalendarVisible: false });
   },
 
   goCreateOrder() {
     const { checkInDate, checkOutDate } = this.data;
     wx.navigateTo({
       url: `/pages/mvp/order-create/index?roomId=${this.roomId}&checkInDate=${checkInDate}&checkOutDate=${checkOutDate}`,
+    });
+  },
+
+  syncDateRangeValue() {
+    const { checkInDate, checkOutDate } = this.data;
+    const nights = Math.max(diffDays(checkInDate, checkOutDate), 1);
+    this.setData({
+      nights,
+      dateRangeValue: [parseDate(checkInDate).getTime(), parseDate(checkOutDate).getTime()],
     });
   },
 });
