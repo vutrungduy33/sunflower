@@ -9,12 +9,12 @@
     </view>
   </view>
 
-  <block wx:if="{{!loading && !errorMessage && profile}}">
+  <block wx:if="{{!loading && !errorMessage && hasProfile}}">
     <view class="mvp-section profile-card">
       <view class="avatar">葵</view>
       <view class="profile-main">
         <view class="profile-name">{{profile.nickName}}</view>
-        <view class="profile-phone">{{profile.isPhoneBound ? profile.phone : '未绑定手机号'}} · {{tagsText}}</view>
+        <view class="profile-phone">{{profileMetaText}}</view>
       </view>
       <t-button size="small" theme="primary" variant="outline" bindtap="goOrderList">订单中心</t-button>
     </view>
@@ -68,7 +68,7 @@
     </view>
   </block>
 
-  <view class="mvp-empty" wx:if="{{!loading && !errorMessage && !profile}}">暂无个人信息，请稍后重试。</view>
+  <view class="mvp-empty" wx:if="{{!loading && !errorMessage && !hasProfile}}">暂无个人信息，请稍后重试。</view>
 </view>
 
 <mvp-tabbar current="mine" />

@@ -1,5 +1,6 @@
 const { fetchRooms } = require('../../../utils/mvp/api');
 const { diffDays, formatDate, getDefaultBookingDate, parseDate } = require('../../../utils/mvp/date');
+const { normalizeRoomList } = require('../../../utils/mvp/normalize');
 const { track } = require('../../../utils/mvp/tracker');
 
 Page({
@@ -34,10 +35,10 @@ Page({
     const { checkInDate, keyword } = this.data;
     try {
       this.setData({ loading: true, errorMessage: '' });
-      const rooms = await fetchRooms({
+      const rooms = normalizeRoomList(await fetchRooms({
         checkInDate,
         keyword,
-      });
+      }));
       this.setData({ rooms });
     } catch (error) {
       this.setData({
