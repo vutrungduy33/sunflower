@@ -1,4 +1,12 @@
 const { fetchPoiList } = require('../../../utils/mvp/api');
+const { normalizePoiList, toFiniteNumber } = require('../../../utils/mvp/normalize');
+
+function toMarkerCoordinate(value) {
+  if (value === null || value === undefined || `${value}`.trim() === '') {
+    return NaN;
+  }
+  return toFiniteNumber(value, NaN);
+}
 
 Page({
   data: {
@@ -16,24 +24,30 @@ Page({
   async loadPoiData() {
     try {
       this.setData({ loading: true });
-      const poiList = await fetchPoiList();
-      const markers = poiList.map((poi, index) => ({
-        id: index + 1,
-        latitude: poi.latitude,
-        longitude: poi.longitude,
-        title: poi.name,
-        width: 24,
-        height: 24,
-      }));
+      const poiList = normalizePoiList(await fetchPoiList());
+      const markers = poiList
+        .map((poi, index) => ({
+          id: index + 1,
+          latitude: toMarkerCoordinate(poi.latitude),
+          longitude: toMarkerCoordinate(poi.longitude),
+          title: poi.name,
+          width: 24,
+          height: 24,
+        }))
+        .filter((marker) => Number.isFinite(marker.latitude) && Number.isFinite(marker.longitude));
 
-      const firstPoi = poiList[0];
+      const firstMarker = markers[0];
       this.setData({
         poiList,
         markers,
-        latitude: firstPoi ? firstPoi.latitude : this.data.latitude,
-        longitude: firstPoi ? firstPoi.longitude : this.data.longitude,
+        latitude: firstMarker ? firstMarker.latitude : this.data.latitude,
+        longitude: firstMarker ? firstMarker.longitude : this.data.longitude,
       });
     } catch (error) {
+      this.setData({
+        poiList: [],
+        markers: [],
+      });
       wx.showToast({ title: '地图加载失败', icon: 'none' });
     } finally {
       this.setData({ loading: false });

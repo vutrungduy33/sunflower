@@ -6,6 +6,7 @@ const {
   postRescheduleOrder,
 } = require('../../../utils/mvp/api');
 const { diffDays, formatDate, parseDate } = require('../../../utils/mvp/date');
+const { normalizeOrders } = require('../../../utils/mvp/normalize');
 const { track } = require('../../../utils/mvp/tracker');
 
 Page({
@@ -37,7 +38,7 @@ Page({
   async loadOrders() {
     try {
       this.setData({ loading: true, errorMessage: '' });
-      const orders = await fetchOrders();
+      const orders = normalizeOrders(await fetchOrders());
       this.setData({ orders }, () => {
         this.applyFilter();
       });
@@ -64,8 +65,11 @@ Page({
 
   applyFilter() {
     const { orders, activeStatus } = this.data;
+    const normalizedOrders = normalizeOrders(orders);
     const filteredOrders =
-      activeStatus === 'ALL' ? orders : orders.filter((order) => order.status === activeStatus);
+      activeStatus === 'ALL'
+        ? normalizedOrders
+        : normalizedOrders.filter((order) => order.status === activeStatus);
     this.setData({ filteredOrders });
   },
 

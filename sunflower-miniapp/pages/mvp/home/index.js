@@ -1,4 +1,5 @@
 const { ensureWechatLogin, fetchHomeData } = require('../../../utils/mvp/api');
+const { normalizeHomeData } = require('../../../utils/mvp/normalize');
 const { track } = require('../../../utils/mvp/tracker');
 
 Page({
@@ -19,18 +20,17 @@ Page({
     try {
       this.setData({ loading: true, errorMessage: '' });
       const loginResult = await ensureWechatLogin();
-      const homeData = await fetchHomeData();
-      this.setData({
-        banners: homeData.banners,
-        services: homeData.services,
-        featuredRooms: homeData.featuredRooms,
-        memberBenefits: homeData.memberBenefits,
-      });
+      const homeData = normalizeHomeData(await fetchHomeData());
+      this.setData(homeData);
       if (loginResult && !loginResult.reusedToken) {
         track('wx_login_success', { source: 'mvp_home' });
       }
     } catch (error) {
       this.setData({
+        banners: [],
+        services: [],
+        featuredRooms: [],
+        memberBenefits: [],
         errorMessage: error.message || '首页加载失败，请稍后重试',
       });
     } finally {

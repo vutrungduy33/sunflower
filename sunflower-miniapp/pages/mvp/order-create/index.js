@@ -5,6 +5,7 @@ const {
   postPayOrder,
 } = require('../../../utils/mvp/api');
 const { diffDays, getDefaultBookingDate } = require('../../../utils/mvp/date');
+const { normalizeProfile, normalizeRoomDetail } = require('../../../utils/mvp/normalize');
 const { track } = require('../../../utils/mvp/tracker');
 
 Page({
@@ -46,15 +47,16 @@ Page({
 
     try {
       this.setData({ loading: true, errorMessage: '' });
-      const [profile, roomDetail] = await Promise.all([
-        fetchProfile(),
-        fetchRoomDetail(this.roomId, this.data.checkInDate),
-      ]);
+      // Keep sequential awaits here to avoid the same devtools null-iterable
+      // rendering regression already observed on the mine page.
+      const profile = normalizeProfile(await fetchProfile());
+      const rawRoomDetail = await fetchRoomDetail(this.roomId, this.data.checkInDate);
+      const roomDetail = normalizeRoomDetail(rawRoomDetail);
 
       const nights = Math.max(diffDays(this.data.checkInDate, this.data.checkOutDate), 1);
       const totalAmount = roomDetail.calendar.slice(0, nights).reduce((sum, item) => sum + item.price, 0);
       this.setData({
-        room: roomDetail,
+        room: rawRoomDetail ? roomDetail : null,
         nights,
         totalAmount,
         form: {

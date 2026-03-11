@@ -1,5 +1,6 @@
 const { fetchRoomDetail } = require('../../../utils/mvp/api');
 const { diffDays, formatDate, getDefaultBookingDate, parseDate } = require('../../../utils/mvp/date');
+const { normalizeRoomDetail } = require('../../../utils/mvp/normalize');
 
 Page({
   data: {
@@ -39,11 +40,12 @@ Page({
 
     try {
       this.setData({ loading: true, errorMessage: '' });
-      const detail = await fetchRoomDetail(this.roomId, this.data.checkInDate);
+      const rawDetail = await fetchRoomDetail(this.roomId, this.data.checkInDate);
+      const detail = normalizeRoomDetail(rawDetail);
       const nights = Math.max(diffDays(this.data.checkInDate, this.data.checkOutDate), 1);
       const totalAmount = detail.calendar.slice(0, nights).reduce((sum, item) => sum + item.price, 0);
       this.setData({
-        room: detail,
+        room: rawDetail ? detail : null,
         calendar: detail.calendar,
         nights,
         totalAmount,
