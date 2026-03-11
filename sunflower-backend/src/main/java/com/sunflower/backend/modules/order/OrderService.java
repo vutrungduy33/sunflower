@@ -73,6 +73,16 @@ public class OrderService {
     }
 
     @Transactional
+    public OrderDto rescheduleOrderByAdmin(String orderId, RescheduleOrderRequest request) {
+        return rescheduleOrder(requireOrderRecord(orderId), request);
+    }
+
+    @Transactional
+    public OrderDto refundOrderByAdmin(String orderId, RefundOrderRequest request) {
+        return refundOrder(requireOrderRecord(orderId), request);
+    }
+
+    @Transactional
     public OrderDto createOrder(CreateOrderRequest request) {
         LocalDate checkInDate = roomService.parseDate(request.getCheckInDate(), "checkInDate");
         LocalDate checkOutDate = roomService.parseDate(request.getCheckOutDate(), "checkOutDate");
@@ -144,7 +154,15 @@ public class OrderService {
 
     @Transactional
     public OrderDto rescheduleCurrentUserOrder(String orderId, RescheduleOrderRequest request) {
-        OrderEntity order = requireCurrentUserOrderRecord(orderId);
+        return rescheduleOrder(requireCurrentUserOrderRecord(orderId), request);
+    }
+
+    @Transactional
+    public OrderDto refundCurrentUserOrder(String orderId, RefundOrderRequest request) {
+        return refundOrder(requireCurrentUserOrderRecord(orderId), request);
+    }
+
+    private OrderDto rescheduleOrder(OrderEntity order, RescheduleOrderRequest request) {
         if (order.getStatus() != OrderStatus.CONFIRMED && order.getStatus() != OrderStatus.RESCHEDULED) {
             throw BusinessException.conflict("当前订单状态不可改期");
         }
@@ -176,9 +194,7 @@ public class OrderService {
         return toOrderDto(orderRepository.save(order));
     }
 
-    @Transactional
-    public OrderDto refundCurrentUserOrder(String orderId, RefundOrderRequest request) {
-        OrderEntity order = requireCurrentUserOrderRecord(orderId);
+    private OrderDto refundOrder(OrderEntity order, RefundOrderRequest request) {
         if (order.getStatus() != OrderStatus.CONFIRMED && order.getStatus() != OrderStatus.RESCHEDULED) {
             throw BusinessException.conflict("当前订单状态不可退款");
         }
@@ -189,6 +205,10 @@ public class OrderService {
         order.setRefundedAt(LocalDateTime.now(SHANGHAI_ZONE));
         order.setAfterSaleReason(normalizeOptionalText(request == null ? null : request.getReason()));
         return toOrderDto(orderRepository.save(order));
+    }
+
+    private OrderEntity requireOrderRecord(String orderId) {
+        return orderRepository.findById(orderId).orElseThrow(() -> BusinessException.notFound("订单不存在"));
     }
 
     private OrderEntity requireCurrentUserOrderRecord(String orderId) {
