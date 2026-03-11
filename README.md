@@ -14,7 +14,7 @@
 - 前端：微信小程序（原生框架）
 - 后端：Spring Boot 单体（基于 docker-compose 本地联调）
 - 数据库：MySQL
-- 管理后台：Web（技术栈待落地）
+- 管理后台：Web（`React 18 + TypeScript + Vite + TDesign React`，见 `/Users/chenyao/dev/miniapp/sunflower/docs/Web-Admin-Plan.md`）
 
 ## 4. 文档索引
 - `/Users/chenyao/dev/miniapp/sunflower/docs/README.md`：文档索引与开发概览
@@ -33,14 +33,16 @@
 - `/Users/chenyao/dev/miniapp/sunflower/docs/Definition-of-Done.md`：Stage 完成清单（DoD）
 - `/Users/chenyao/dev/miniapp/sunflower/docs/stage-reports/README.md`：Stage 执行报告规范
 - `/Users/chenyao/dev/miniapp/sunflower/docs/CI-CD.md`：GitHub Actions CI/CD
+- `/Users/chenyao/dev/miniapp/sunflower/docs/Web-Admin-Plan.md`：管理后台 Web 选型、开发约束与环境依赖
 
-## 4.1 当前研发进展（截至 2026-02-12）
+## 4.1 当前研发进展（截至 2026-03-11）
 - 小程序一期 MVP 已落地于：`/Users/chenyao/dev/miniapp/sunflower/sunflower-miniapp/pages/mvp`
-- 已完成前端闭环：首页 → 预订 → 房型详情 → 填单 → 支付（模拟）→ 订单中心
+- 已完成前端闭环：首页 → 预订 → 房型详情 → 填单 → 支付（模拟）→ 订单中心（含改期/退款）
 - 后端一期 API 已落地于：`/Users/chenyao/dev/miniapp/sunflower/sunflower-backend`
-- 当前可联调接口已覆盖：登录、用户资料、房型、价格日历、订单主链路、POI、游记读取
-- 现阶段后端数据源为内存种子数据（重启会重置），下一步切换 MySQL 持久化
-- 后台管理系统（Web）尚未开发，已拆分为 S1-S14 逐 Stage 执行
+- 当前可联调接口已覆盖：登录、用户资料、房型、价格日历、订单主链路、POI、游记读取，以及管理端房型/价格/库存、订单/经营概览 API
+- 后端已完成 M1（S1-S6）持久化与联调收口，管理端后端 API（S7/S8）也已完成
+- 后台管理系统（Web）已完成 `S9` 工程初始化，`/Users/chenyao/dev/miniapp/sunflower/sunflower-admin-web` 已可本地启动、测试与构建
+- Web 技术选型、环境约束与本地调试说明见 `/Users/chenyao/dev/miniapp/sunflower/docs/Web-Admin-Plan.md`
 - 已新增 Stage 守卫脚本：`make stage-pre STAGE=Sx` / `make stage-post STAGE=Sx`
 - 已新增 PR 门禁：Stage Guard + 后端自动化测试 + 分支/提交规范校验
 
@@ -49,6 +51,7 @@
 /Users/chenyao/dev/miniapp/sunflower
 ├─ README.md                      # 项目总览（含历史调研资料）
 ├─ docs/                          # 产品与技术文档
+├─ sunflower-admin-web/           # Web 管理后台工程（S9 已完成）
 ├─ sunflower-miniapp/             # 微信小程序工程
 ├─ sunflower-backend/             # Spring Boot 后端基础工程
 └─ docker-compose.yml             # 本地联调（MySQL + backend）

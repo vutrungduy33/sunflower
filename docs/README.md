@@ -34,7 +34,7 @@
 - 前端：微信小程序（原生框架）
 - 后端：Spring Boot 单体（开发环境基于 docker-compose）
 - 数据库：MySQL（见数据字典与索引设计）
-- 管理后台：Web（技术栈待落地）
+- 管理后台：Web（`React 18 + TypeScript + Vite + TDesign React`，详见 `docs/Web-Admin-Plan.md`）
 
 说明：`sunflower-backend/` 已初始化 Spring Boot 单体基础结构，根目录已提供 `docker-compose.yml`（MySQL + backend）。
 
@@ -56,6 +56,7 @@
 - `docs/Definition-of-Done.md`：Stage 完成清单（DoD）
 - `docs/stage-reports/README.md`：Stage 执行报告规范与模板
 - `docs/CI-CD.md`：GitHub Actions CI/CD
+- `docs/Web-Admin-Plan.md`：管理后台 Web 选型、开发约束与环境依赖
 - `README.md`：项目总览 + 运营调研资料
 
 ## 5. 文件结构（概览）
@@ -75,10 +76,14 @@
 │  ├─ DB-Design.md
 │  ├─ DataDictionary.md
 │  ├─ Analytics.md
+│  ├─ M1-Integration-Test-Plan.md
+│  ├─ M1-TC-M1-12-Manual-Checklist.md
 │  ├─ Backlog.md
 │  ├─ Definition-of-Done.md
 │  ├─ stage-reports/
-│  └─ CI-CD.md
+│  ├─ CI-CD.md
+│  └─ Web-Admin-Plan.md
+├─ sunflower-admin-web/           # Web 管理后台工程（S9 已完成）
 ├─ sunflower-miniapp/             # 微信小程序工程
 │  ├─ app.js / app.json / app.wxss
 │  ├─ assets/
@@ -94,17 +99,19 @@
 └─ docker-compose.yml             # 本地联调（MySQL + backend）
 ```
 
-## 6. 当前进展（截至 2026-02-18）
+## 6. 当前进展（截至 2026-03-11）
 - 小程序一期 MVP 前端已落地：`pages/mvp/*`
 - 已完成链路：首页 → 预订 → 房型详情 → 填单 → 支付（模拟）→ 订单中心（含改期/退款）
 - 已完成能力：手机号绑定、订单状态流转（待支付/待入住/已改期/已退款/已取消）、地图与发现页浏览
 - 后端一期 API 已落地于 `sunflower-backend`（auth/user/room/order/content），并完成 M1 持久化改造
 - M1（S1-S6）已完成：Flyway + MySQL 持久化、订单事务化库存控制、小程序联调收口、售后接口闭环
-- 管理后台（Web）尚未启动开发
+- 管理端后端 API（S7/S8）已完成，已覆盖房型/价格/库存、订单/经营概览
+- 管理后台（Web）已完成 `S9` 工程初始化，`sunflower-admin-web/` 已可本地启动、测试与构建
+- Web 技术选型、环境约束与本地调试说明见：`docs/Web-Admin-Plan.md`
 - 已形成 M1 集成测试计划与执行记录：`docs/M1-Integration-Test-Plan.md`
 
 ## 7. 建议补齐（下一步）
-- 按 `docs/Agent-Stage-Plan.md` 继续执行 S7（管理端后端 API：房型/价格/库存）
+- 按 `docs/Agent-Stage-Plan.md` 继续执行 S10（管理后台登录与权限骨架）
 - 每完成一个 Stage，同步更新 `docs/Backlog.md` 状态
 - 执行 Stage 前后分别运行：`make stage-pre STAGE=Sx`、`make stage-post STAGE=Sx`
 - 分支与提交遵循：`codex/s<stage>-<slug>`、`[Sx] ...`
