@@ -316,6 +316,231 @@ class MvpApiIntegrationTests {
     }
 
     @Test
+    void shouldRequireAdminTokenForAdminOrderApis() throws Exception {
+        mockMvc
+            .perform(get("/api/admin/orders"))
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.code").value(40100))
+            .andExpect(jsonPath("$.message").value("请先登录管理端"));
+
+        mockMvc
+            .perform(get("/api/admin/reports/summary").header("Authorization", bearerToken("wrong-admin-token")))
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.code").value(40100))
+            .andExpect(jsonPath("$.message").value("管理端登录态无效"));
+    }
+
+    @Test
+    void shouldListFilterAndDetailAdminOrders() throws Exception {
+        String adminAuthorization = adminAuthorization();
+        setInventory("room-lake-101", LocalDate.parse("2026-02-12"), 5, 5, 0);
+        setInventory("room-loft-301", LocalDate.parse("2026-03-12"), 5, 5, 0);
+
+        String confirmedToken = loginAndGetToken("admin_order_filter_confirmed");
+        JsonNode confirmedOrder = createOrder(
+            confirmedToken,
+            buildCreateOrderPayload(
+                "room-lake-101",
+                "2026-02-12",
+                "2026-02-13",
+                "后台筛选住客A",
+                "13800000001",
+                "后台筛选-已确认"
+            )
+        );
+        String confirmedOrderId = confirmedOrder.path("id").asText();
+        String confirmedOrderNo = confirmedOrder.path("orderNo").asText();
+        mockMvc
+            .perform(post("/api/orders/{id}/pay", confirmedOrderId).header("Authorization", bearerToken(confirmedToken)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.status").value("CONFIRMED"));
+
+        String pendingToken = loginAndGetToken("admin_order_filter_pending");
+        JsonNode pendingOrder = createOrder(
+            pendingToken,
+            buildCreateOrderPayload(
+                "room-loft-301",
+                "2026-03-12",
+                "2026-03-13",
+                "后台筛选住客B",
+                "13800000002",
+                "后台筛选-待支付"
+            )
+        );
+        String pendingOrderId = pendingOrder.path("id").asText();
+
+        mockMvc
+            .perform(get("/api/admin/orders").header("Authorization", adminAuthorization).param("status", "CONFIRMED"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.length()").value(1))
+            .andExpect(jsonPath("$.data[0].id").value(confirmedOrderId))
+            .andExpect(jsonPath("$.data[0].guestName").value("后台筛选住客A"));
+
+        mockMvc
+            .perform(get("/api/admin/orders").header("Authorization", adminAuthorization).param("keyword", confirmedOrderNo))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.length()").value(1))
+            .andExpect(jsonPath("$.data[0].id").value(confirmedOrderId));
+
+        mockMvc
+            .perform(
+                get("/api/admin/orders")
+                    .header("Authorization", adminAuthorization)
+                    .param("checkInStartDate", "2026-03-12")
+                    .param("checkInEndDate", "2026-03-12")
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.length()").value(1))
+            .andExpect(jsonPath("$.data[0].id").value(pendingOrderId));
+
+        mockMvc
+            .perform(get("/api/admin/orders/{id}", confirmedOrderId).header("Authorization", adminAuthorization))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.id").value(confirmedOrderId))
+            .andExpect(jsonPath("$.data.orderNo").value(confirmedOrderNo))
+            .andExpect(jsonPath("$.data.userId").exists())
+            .andExpect(jsonPath("$.data.status").value("CONFIRMED"))
+            .andExpect(jsonPath("$.data.guestName").value("后台筛选住客A"));
+
+        mockMvc
+            .perform(get("/api/admin/orders").header("Authorization", adminAuthorization).param("status", "UNKNOWN"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value(40000))
+            .andExpect(
+                jsonPath("$.message").value(
+                    "status 仅支持 PENDING_PAYMENT, CONFIRMED, RESCHEDULED, REFUNDED, COMPLETED, CANCELLED"
+                )
+            );
+    }
+
+    @Test
+    void shouldManageAfterSaleAndBuildAdminOrderOverview() throws Exception {
+        String adminAuthorization = adminAuthorization();
+        JsonNode overviewBefore = getAdminOrderOverview(adminAuthorization);
+        setInventory("room-lake-101", LocalDate.parse("2026-02-12"), 5, 5, 0);
+        setInventory("room-lake-101", LocalDate.parse("2026-02-13"), 5, 5, 0);
+        setInventory("room-lake-101", LocalDate.parse("2026-02-14"), 5, 5, 0);
+        setInventory("room-lake-101", LocalDate.parse("2026-02-15"), 5, 5, 0);
+
+        String tokenA = loginAndGetToken("admin_after_sale_a");
+        JsonNode orderA = createOrder(
+            tokenA,
+            buildCreateOrderPayload(
+                "room-lake-101",
+                "2026-02-12",
+                "2026-02-13",
+                "后台售后住客A",
+                "13800000011",
+                "后台改期单"
+            )
+        );
+        String orderAId = orderA.path("id").asText();
+        int orderAAmount = orderA.path("totalAmount").asInt();
+        mockMvc
+            .perform(post("/api/orders/{id}/pay", orderAId).header("Authorization", bearerToken(tokenA)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.status").value("CONFIRMED"));
+
+        String tokenB = loginAndGetToken("admin_after_sale_b");
+        JsonNode orderB = createOrder(
+            tokenB,
+            buildCreateOrderPayload(
+                "room-lake-101",
+                "2026-02-13",
+                "2026-02-14",
+                "后台售后住客B",
+                "13800000012",
+                "后台退款单"
+            )
+        );
+        String orderBId = orderB.path("id").asText();
+        mockMvc
+            .perform(post("/api/orders/{id}/pay", orderBId).header("Authorization", bearerToken(tokenB)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.status").value("CONFIRMED"));
+
+        String tokenC = loginAndGetToken("admin_after_sale_c");
+        JsonNode orderC = createOrder(
+            tokenC,
+            buildCreateOrderPayload(
+                "room-lake-101",
+                "2026-02-14",
+                "2026-02-15",
+                "后台售后住客C",
+                "13800000013",
+                "后台概览确认单"
+            )
+        );
+        String orderCId = orderC.path("id").asText();
+        int orderCAmount = orderC.path("totalAmount").asInt();
+        mockMvc
+            .perform(post("/api/orders/{id}/pay", orderCId).header("Authorization", bearerToken(tokenC)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.status").value("CONFIRMED"));
+
+        mockMvc
+            .perform(
+                post("/api/admin/orders/{id}/reschedule", orderAId)
+                    .header("Authorization", adminAuthorization)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        "{"
+                            + "\"checkInDate\":\"2026-02-15\","
+                            + "\"checkOutDate\":\"2026-02-16\","
+                            + "\"reason\":\"后台人工协调档期\""
+                            + "}"
+                    )
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.id").value(orderAId))
+            .andExpect(jsonPath("$.data.status").value("RESCHEDULED"))
+            .andExpect(jsonPath("$.data.checkInDate").value("2026-02-15"))
+            .andExpect(jsonPath("$.data.afterSaleReason").value("后台人工协调档期"));
+
+        mockMvc
+            .perform(
+                post("/api/admin/orders/{id}/refund", orderBId)
+                    .header("Authorization", adminAuthorization)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"reason\":\"后台审核同意退款\"}")
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.id").value(orderBId))
+            .andExpect(jsonPath("$.data.status").value("REFUNDED"))
+            .andExpect(jsonPath("$.data.afterSaleReason").value("后台审核同意退款"));
+
+        RoomInventoryEntity rescheduledOldDate = getInventory("room-lake-101", LocalDate.parse("2026-02-12"));
+        RoomInventoryEntity rescheduledNewDate = getInventory("room-lake-101", LocalDate.parse("2026-02-15"));
+        RoomInventoryEntity refundedDate = getInventory("room-lake-101", LocalDate.parse("2026-02-13"));
+        assertEquals(5, rescheduledOldDate.getAvailableStock());
+        assertEquals(0, rescheduledOldDate.getLockedStock());
+        assertEquals(4, rescheduledNewDate.getAvailableStock());
+        assertEquals(1, rescheduledNewDate.getLockedStock());
+        assertEquals(5, refundedDate.getAvailableStock());
+        assertEquals(0, refundedDate.getLockedStock());
+
+        mockMvc
+            .perform(get("/api/admin/reports/summary").header("Authorization", adminAuthorization))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.orderCount").value(overviewBefore.path("orderCount").asInt() + 3))
+            .andExpect(
+                jsonPath("$.data.pendingCheckInCount").value(overviewBefore.path("pendingCheckInCount").asInt() + 2)
+            )
+            .andExpect(
+                jsonPath("$.data.refundedOrderCount").value(overviewBefore.path("refundedOrderCount").asInt() + 1)
+            )
+            .andExpect(
+                jsonPath("$.data.revenueAmount").value(overviewBefore.path("revenueAmount").asInt() + orderAAmount + orderCAmount)
+            );
+    }
+
+    @Test
     void shouldCreatePayCancelAndQueryOrder() throws Exception {
         String token = loginAndGetToken("order_flow_code");
 
@@ -984,16 +1209,59 @@ class MvpApiIntegrationTests {
     }
 
     private String buildCreateOrderPayload(String roomId, String checkInDate, String checkOutDate) {
+        return buildCreateOrderPayload(
+            roomId,
+            checkInDate,
+            checkOutDate,
+            "并发住客",
+            "13800000000",
+            "库存测试"
+        );
+    }
+
+    private String buildCreateOrderPayload(
+        String roomId,
+        String checkInDate,
+        String checkOutDate,
+        String guestName,
+        String guestPhone,
+        String remark
+    ) {
         return "{"
             + "\"roomId\":\"" + roomId + "\","
             + "\"checkInDate\":\"" + checkInDate + "\","
             + "\"checkOutDate\":\"" + checkOutDate + "\","
             + "\"source\":\"direct\","
-            + "\"guestName\":\"并发住客\","
-            + "\"guestPhone\":\"13800000000\","
+            + "\"guestName\":\"" + guestName + "\","
+            + "\"guestPhone\":\"" + guestPhone + "\","
             + "\"arrivalTime\":\"18:00\","
-            + "\"remark\":\"库存测试\""
+            + "\"remark\":\"" + remark + "\""
             + "}";
+    }
+
+    private JsonNode createOrder(String token, String payload) throws Exception {
+        MvcResult createResult = mockMvc
+            .perform(
+                post("/api/orders")
+                    .header("Authorization", bearerToken(token))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(payload)
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andReturn();
+
+        return objectMapper.readTree(createResult.getResponse().getContentAsString()).path("data");
+    }
+
+    private JsonNode getAdminOrderOverview(String adminAuthorization) throws Exception {
+        MvcResult summaryResult = mockMvc
+            .perform(get("/api/admin/reports/summary").header("Authorization", adminAuthorization))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andReturn();
+
+        return objectMapper.readTree(summaryResult.getResponse().getContentAsString()).path("data");
     }
 
     private String buildCreateAdminRoomPayload() {

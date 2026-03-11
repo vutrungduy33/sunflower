@@ -504,6 +504,133 @@
   ]
 }
 ```
+
+## 6) 管理端订单与经营概览
+
+### `GET /api/admin/orders`
+**Query 参数**
+
+- `status`：可选，支持 `PENDING_PAYMENT` / `CONFIRMED` / `RESCHEDULED` / `REFUNDED` / `COMPLETED` / `CANCELLED`
+- `keyword`：可选，模糊匹配 `orderNo` / `roomName` / `guestName` / `guestPhone`
+- `checkInStartDate`：可选，格式 `yyyy-MM-dd`
+- `checkInEndDate`：可选，格式 `yyyy-MM-dd`
+
+**响应**
+```json
+[
+  {
+    "id": "order_1741651200000_3456",
+    "orderNo": "SF2026031110301234",
+    "userId": "user_demo_1001",
+    "source": "direct",
+    "roomId": "room-lake-101",
+    "roomName": "270° 湖景大床房",
+    "checkInDate": "2026-02-15",
+    "checkOutDate": "2026-02-16",
+    "nights": 1,
+    "guestName": "后台售后住客A",
+    "guestPhone": "13800000011",
+    "arrivalTime": "18:00",
+    "remark": "后台改期单",
+    "totalAmount": 488,
+    "status": "RESCHEDULED",
+    "statusLabel": "已改期",
+    "createdAt": "2026-03-11T10:30:12+08:00",
+    "paidAt": "2026-03-11T10:31:00+08:00",
+    "cancelledAt": "",
+    "rescheduledAt": "2026-03-11T10:35:00+08:00",
+    "refundedAt": "",
+    "afterSaleReason": "后台人工协调档期"
+  }
+]
+```
+
+### `GET /api/admin/orders/{id}`
+**响应**
+```json
+{
+  "id": "order_1741651200000_3456",
+  "orderNo": "SF2026031110301234",
+  "userId": "user_demo_1001",
+  "source": "direct",
+  "roomId": "room-lake-101",
+  "roomName": "270° 湖景大床房",
+  "checkInDate": "2026-02-15",
+  "checkOutDate": "2026-02-16",
+  "nights": 1,
+  "guestName": "后台售后住客A",
+  "guestPhone": "13800000011",
+  "arrivalTime": "18:00",
+  "remark": "后台改期单",
+  "totalAmount": 488,
+  "status": "RESCHEDULED",
+  "statusLabel": "已改期",
+  "createdAt": "2026-03-11T10:30:12+08:00",
+  "paidAt": "2026-03-11T10:31:00+08:00",
+  "cancelledAt": "",
+  "rescheduledAt": "2026-03-11T10:35:00+08:00",
+  "refundedAt": "",
+  "afterSaleReason": "后台人工协调档期"
+}
+```
+
+### `POST /api/admin/orders/{id}/reschedule`
+**请求**
+```json
+{
+  "checkInDate": "2026-02-15",
+  "checkOutDate": "2026-02-16",
+  "reason": "后台人工协调档期"
+}
+```
+**响应**
+```json
+{
+  "id": "order_1741651200000_3456",
+  "status": "RESCHEDULED",
+  "statusLabel": "已改期",
+  "checkInDate": "2026-02-15",
+  "checkOutDate": "2026-02-16",
+  "rescheduledAt": "2026-03-11T10:35:00+08:00",
+  "afterSaleReason": "后台人工协调档期"
+}
+```
+
+### `POST /api/admin/orders/{id}/refund`
+**请求**
+```json
+{
+  "reason": "后台审核同意退款"
+}
+```
+**响应**
+```json
+{
+  "id": "order_1741651200000_7890",
+  "status": "REFUNDED",
+  "statusLabel": "已退款",
+  "refundedAt": "2026-03-11T10:40:00+08:00",
+  "afterSaleReason": "后台审核同意退款"
+}
+```
+
+### `GET /api/admin/reports/summary`
+说明：当前返回的是管理端订单经营快照。
+
+- `orderCount`：全部订单数
+- `pendingCheckInCount`：当前状态为 `CONFIRMED` / `RESCHEDULED` 的订单数
+- `refundedOrderCount`：当前状态为 `REFUNDED` 的订单数
+- `revenueAmount`：当前状态为 `CONFIRMED` / `RESCHEDULED` / `COMPLETED` 的订单总金额汇总
+
+**响应**
+```json
+{
+  "orderCount": 3,
+  "pendingCheckInCount": 2,
+  "refundedOrderCount": 1,
+  "revenueAmount": 976
+}
+```
 **响应**
 ```json
 {
