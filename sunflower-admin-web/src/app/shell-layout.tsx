@@ -1,58 +1,114 @@
-import { Outlet, NavLink } from 'react-router-dom'
-import { Space, Tag } from 'tdesign-react'
+import type { ReactNode } from 'react'
+import { useLocation, useMatches, useNavigate } from 'react-router-dom'
+import { Avatar, Breadcrumb, Button, Layout, Menu, Space, Tag } from 'tdesign-react'
 import { appEnv } from '@/config/env'
+import { navigationItems, type RouteHandle, resolveNavigation } from '@/app/navigation'
+import { clearAdminToken } from '@/features/auth/auth-store'
 
-const navItems = [
-  { to: '/', label: '工作台' },
-  { to: '/foundations', label: '工程基线' },
-]
+function readRouteHandle(matches: ReturnType<typeof useMatches>, pathname: string) {
+  const matchedRoute = [...matches]
+    .reverse()
+    .find((match) => match.handle && typeof (match.handle as RouteHandle).label !== 'undefined')
 
-export function ShellLayout() {
+  return (matchedRoute?.handle as RouteHandle | undefined) ?? resolveNavigation(pathname)
+}
+
+interface ShellLayoutProps {
+  children: ReactNode
+}
+
+export function ShellLayout({ children }: ShellLayoutProps) {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const matches = useMatches()
+  const currentRoute = readRouteHandle(matches, location.pathname)
+
+  const handleMenuChange = (value: string | number) => {
+    const targetRoute = navigationItems.find((item) => item.value === value)
+
+    if (targetRoute) {
+      void navigate(targetRoute.path)
+    }
+  }
+
+  const handleLogout = () => {
+    clearAdminToken()
+    void navigate('/login', { replace: true })
+  }
+
   return (
-    <div className="app-shell">
-      <header className="app-header">
-        <div className="app-header__brand">
-          <NavLink className="brand-mark" to="/">
-            SF
-          </NavLink>
+    <Layout className="admin-layout">
+      <Layout.Aside className="admin-layout__aside">
+        <div className="admin-brand">
+          <div className="brand-mark">SF</div>
           <div>
             <p className="eyebrow">Sunflower Admin</p>
             <h1>{appEnv.appTitle}</h1>
           </div>
         </div>
-        <div className="app-header__meta">
-          <Tag theme="success" variant="light-outline">
-            S9 基线完成
-          </Tag>
-          <span>API：{appEnv.apiBaseUrl}</span>
-        </div>
-      </header>
 
-      <nav className="app-nav">
-        <Space size={12} breakLine>
-          {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.to === '/'}
-              className={({ isActive }) =>
-                isActive ? 'app-nav__link app-nav__link--active' : 'app-nav__link'
+        <Menu
+          className="admin-menu"
+          theme="light"
+          value={currentRoute.value}
+          width="100%"
+          onChange={handleMenuChange}
+        >
+          {navigationItems.map((item) => (
+            <Menu.MenuItem
+              key={item.value}
+              value={item.value}
+              content={
+                <div className="admin-menu__item">
+                  <span>{item.label}</span>
+                  <small>{item.stage}</small>
+                </div>
               }
-            >
-              {item.label}
-            </NavLink>
+            />
           ))}
-        </Space>
-      </nav>
+        </Menu>
 
-      <main className="app-content">
-        <Outlet />
-      </main>
+        <div className="admin-layout__aside-footer">
+          <Tag theme="success" variant="light-outline">
+            已登录
+          </Tag>
+          <p>当前使用静态 Bearer Token 鉴权，未登录访问业务页将自动跳转到登录页。</p>
+        </div>
+      </Layout.Aside>
 
-      <footer className="app-footer">
-        <span>Sunflower Admin Web</span>
-        <span>React 18 + Vite + TDesign</span>
-      </footer>
-    </div>
+      <Layout className="admin-layout__main">
+        <Layout.Header className="admin-layout__header">
+          <div className="admin-layout__header-copy">
+            <Breadcrumb
+              options={[
+                { content: '管理后台' },
+                { content: currentRoute.label },
+              ]}
+            />
+            <h2>{currentRoute.label}</h2>
+            <p>{currentRoute.description}</p>
+          </div>
+
+          <Space align="center" size={16}>
+            <Tag theme="warning" variant="light-outline">
+              S10 登录与权限骨架
+            </Tag>
+            <Avatar size="40px">A</Avatar>
+            <Button variant="outline" theme="primary" onClick={handleLogout}>
+              退出登录
+            </Button>
+          </Space>
+        </Layout.Header>
+
+        <Layout.Content className="admin-layout__content">
+          {children}
+        </Layout.Content>
+
+        <Layout.Footer className="admin-layout__footer">
+          <span>当前 API：{appEnv.apiBaseUrl}</span>
+          <span>未登录不可访问后台业务页</span>
+        </Layout.Footer>
+      </Layout>
+    </Layout>
   )
 }
