@@ -54,6 +54,7 @@
 - `docs/M1-TC-M1-12-Manual-Checklist.md`：TC-M1-12 手工现场验收打勾单（含截图位）
 - `docs/Backlog.md`：Stage Backlog（执行状态）
 - `docs/Definition-of-Done.md`：Stage 完成清单（DoD）
+- `docs/Code-Conventions.md`：后续新增代码统一规范
 - `docs/stage-reports/README.md`：Stage 执行报告规范与模板
 - `docs/CI-CD.md`：GitHub Actions CI/CD
 - `docs/Web-Admin-Plan.md`：管理后台 Web 选型、开发约束与环境依赖
@@ -80,6 +81,7 @@
 │  ├─ M1-TC-M1-12-Manual-Checklist.md
 │  ├─ Backlog.md
 │  ├─ Definition-of-Done.md
+│  ├─ Code-Conventions.md
 │  ├─ stage-reports/
 │  ├─ CI-CD.md
 │  └─ Web-Admin-Plan.md

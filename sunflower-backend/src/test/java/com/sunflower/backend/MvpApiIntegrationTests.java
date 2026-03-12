@@ -151,6 +151,12 @@ class MvpApiIntegrationTests {
     @Test
     void shouldRequireAdminTokenForAdminRoomApis() throws Exception {
         mockMvc
+            .perform(get("/api/admin/rooms"))
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.code").value(40100))
+            .andExpect(jsonPath("$.message").value("请先登录管理端"));
+
+        mockMvc
             .perform(
                 post("/api/admin/rooms")
                     .contentType(MediaType.APPLICATION_JSON)
@@ -191,6 +197,23 @@ class MvpApiIntegrationTests {
 
         JsonNode createBody = objectMapper.readTree(createResult.getResponse().getContentAsString());
         String roomId = createBody.path("data").path("id").asText();
+
+        MvcResult listResult = mockMvc
+            .perform(get("/api/admin/rooms").header("Authorization", adminAuthorization))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andReturn();
+
+        JsonNode listBody = objectMapper.readTree(listResult.getResponse().getContentAsString()).path("data");
+        assertTrue(listBody.isArray());
+        boolean containsActiveRoom = false;
+        for (JsonNode node : listBody) {
+            if (roomId.equals(node.path("id").asText()) && "ACTIVE".equals(node.path("status").asText())) {
+                containsActiveRoom = true;
+                break;
+            }
+        }
+        assertTrue(containsActiveRoom);
 
         mockMvc
             .perform(
@@ -260,6 +283,47 @@ class MvpApiIntegrationTests {
             .andExpect(jsonPath("$.data.name").value("云顶湖景家庭套房"))
             .andExpect(jsonPath("$.data.calendar[0].price").value(699))
             .andExpect(jsonPath("$.data.calendar[0].stock").value(2));
+
+        mockMvc
+            .perform(
+                patch("/api/admin/rooms/{roomId}", roomId)
+                    .header("Authorization", adminAuthorization)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"status\":\"INACTIVE\"}")
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.status").value("INACTIVE"));
+
+        MvcResult inactiveListResult = mockMvc
+            .perform(get("/api/admin/rooms").header("Authorization", adminAuthorization))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andReturn();
+
+        JsonNode inactiveListBody = objectMapper
+            .readTree(inactiveListResult.getResponse().getContentAsString())
+            .path("data");
+        boolean containsInactiveRoom = false;
+        for (JsonNode node : inactiveListBody) {
+            if (roomId.equals(node.path("id").asText()) && "INACTIVE".equals(node.path("status").asText())) {
+                containsInactiveRoom = true;
+                break;
+            }
+        }
+        assertTrue(containsInactiveRoom);
+
+        mockMvc
+            .perform(get("/api/rooms").param("keyword", roomId))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.length()").value(0));
+
+        mockMvc
+            .perform(get("/api/rooms/{roomId}", roomId).param("checkInDate", "2026-02-20"))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.code").value(40400))
+            .andExpect(jsonPath("$.message").value("房型不存在"));
     }
 
     @Test

@@ -91,7 +91,7 @@ export function ShellLayout({ children }: ShellLayoutProps) {
 
           <Space align="center" size={16}>
             <Tag theme="warning" variant="light-outline">
-              S10 登录与权限骨架
+              {currentRoute.stage}
             </Tag>
             <Avatar size="40px">A</Avatar>
             <Button variant="outline" theme="primary" onClick={handleLogout}>

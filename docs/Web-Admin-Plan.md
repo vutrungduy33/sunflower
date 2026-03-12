@@ -1,6 +1,6 @@
 # Web 管理后台选型与开发约束
 
-> 更新时间：2026-03-11
+> 更新时间：2026-03-13
 > 适用范围：S9-S13
 
 ## 1. 背景与目标
@@ -43,6 +43,7 @@
 - 只使用一个主 UI 框架，不混用 `antd`、`arco`、`mantine` 等其他大型 UI 库。
 - 默认数据层组合为 `TanStack Query + Axios + 局部 React state`；在明确出现跨页面复杂共享状态前，不引入 Redux。
 - 路由、菜单、权限守卫使用统一的模块配置，不允许页面各自散落定义。
+- 后续新增 Web 代码同时遵循 `docs/Code-Conventions.md`，保持 `app/features/pages/services/styles/test` 分层不漂移。
 
 ### 4.2 联调约束
 

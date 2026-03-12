@@ -8,8 +8,10 @@ import com.sunflower.backend.modules.room.admin.dto.BatchUpdateRoomInventoryRequ
 import com.sunflower.backend.modules.room.admin.dto.BatchUpdateRoomPricesRequest;
 import com.sunflower.backend.modules.room.admin.dto.CreateAdminRoomRequest;
 import com.sunflower.backend.modules.room.admin.dto.UpdateAdminRoomRequest;
+import java.util.List;
 import javax.validation.Valid;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,6 +28,11 @@ public class AdminRoomController {
 
     public AdminRoomController(AdminRoomService adminRoomService) {
         this.adminRoomService = adminRoomService;
+    }
+
+    @GetMapping("/rooms")
+    public ApiResponse<List<AdminRoomDto>> listRooms() {
+        return ApiResponse.ok(adminRoomService.listRooms());
     }
 
     @PostMapping("/rooms")

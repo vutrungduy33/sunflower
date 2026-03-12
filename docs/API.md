@@ -37,6 +37,7 @@
 - `POST /api/orders/{id}/refund`：退款申请
 
 ### 1.6 管理端房型与房态
+- `GET /api/admin/rooms`：后台房型列表（返回全部房型，含上架/下架状态）
 - `POST /api/admin/rooms`：新增房型（后台）
 - `PATCH /api/admin/rooms/{id}`：编辑房型（支持部分字段更新）
 - `POST /api/admin/room-inventory`：批量设置总库存，并自动保留已锁定库存

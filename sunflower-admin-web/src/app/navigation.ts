@@ -13,14 +13,14 @@ export const navigationItems: NavigationItem[] = [
     value: 'overview',
     path: '/',
     label: '经营概览',
-    description: '查看当前后台登录状态与联调基线。',
-    stage: 'S10',
+    description: '查看管理端当前交付能力、联调状态和房型管理进展。',
+    stage: 'S11',
   },
   {
     value: 'rooms',
     path: '/rooms',
     label: '房型管理',
-    description: 'S11 将补齐房型列表、创建与编辑流程。',
+    description: '维护房型基础信息、上下架状态和基础价格入口。',
     stage: 'S11',
   },
   {

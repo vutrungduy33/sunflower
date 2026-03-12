@@ -33,6 +33,7 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -69,6 +70,16 @@ public class AdminRoomService {
         this.roomService = roomService;
         this.adminAuthService = adminAuthService;
         this.objectMapper = objectMapper;
+    }
+
+    public List<AdminRoomDto> listRooms() {
+        adminAuthService.requireAdminAccess();
+
+        return roomRepository
+            .findAll(Sort.by(Sort.Order.asc("status"), Sort.Order.asc("id")))
+            .stream()
+            .map(this::toAdminRoomDto)
+            .collect(Collectors.toList());
     }
 
     @Transactional
