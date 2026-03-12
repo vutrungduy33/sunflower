@@ -46,12 +46,13 @@ start_admin_web_service() {
   if [[ -n "${ADMIN_WEB_IMAGE:-}" ]]; then
     echo "[deploy-web] Pulling admin web image from registry: ${ADMIN_WEB_IMAGE}"
     "${COMPOSE_CMD[@]}" pull admin-web
-    "${COMPOSE_CMD[@]}" up -d admin-web
+    # Admin-only deploys should reuse the existing backend and never trigger a local backend build.
+    "${COMPOSE_CMD[@]}" up -d --no-deps admin-web
     return
   fi
 
   echo "[deploy-web] Starting admin web service with local build..."
-  "${COMPOSE_CMD[@]}" up -d --build admin-web
+  "${COMPOSE_CMD[@]}" up -d --build --no-deps admin-web
 }
 
 main() {
