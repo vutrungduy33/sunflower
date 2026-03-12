@@ -71,12 +71,14 @@
 
 1. GitHub Actions 固定检出 `main`，识别本次 push 是否命中 backend、admin-web、宿主机入口配置或它们的组合。
 2. 若命中 backend，则构建 `sunflower-backend` Docker 镜像并推送到 GHCR（标签：`source sha`，主分支额外推 `latest`）。
+   - Docker 构建阶段默认使用 `sunflower-backend/.mvn/settings-docker.xml` 指向阿里云 Maven 公共镜像，减少对 Maven Central 的直接拉取等待。
+   - Dockerfile 先基于 `pom.xml` 执行 `dependency:go-offline`，让依赖下载层可复用，降低后续重复构建耗时。
 3. 若命中 admin-web，则构建 `sunflower-admin-web` Docker 镜像并推送到 GHCR（标签：`source sha`，主分支额外推 `latest`）。
 4. GitHub Actions 在 Runner 打包 deployment bundle（`docker-compose.yml`、宿主机 Nginx 模板、部署脚本、seed SQL），再通过 SCP 上传到 ECS 部署目录。
 5. 在 ECS 解压 deployment bundle，并写入本次发布的 `source sha` 标记文件。
 6. 若本次需要拉取新镜像，则在 ECS 登录 GHCR。
 7. 若本次包含 backend 发布，则先执行 `scripts/start_backend_with_mvp_seed.sh`：启动 MySQL、拉取并启动 backend、等待健康检查、导入 `scripts/sql/mvp_demo_seed.sql`。
-8. 若本次包含 admin-web 发布，则在 backend 健康后执行 `scripts/start_admin_web.sh`：确认 `http://127.0.0.1:${BACKEND_HOST_PORT:-8080}/api/health` 可用，再拉取并启动 admin-web。
+8. 若本次包含 admin-web 发布，则在 backend 健康后执行 `scripts/start_admin_web.sh`：确认 `http://127.0.0.1:${BACKEND_HOST_PORT:-8080}/api/health` 可用，再拉取并执行 `docker compose up -d --no-deps admin-web`，避免 admin-only 发布误触发 backend 的本地构建回退路径。
 9. 最后统一执行 `scripts/reload_host_nginx.sh`：确认 backend 和 admin-web 都已健康，再把宿主机 Nginx 入口切到最新的本机回环端口。
 
 部署顺序约束：
@@ -126,6 +128,8 @@
 - 若 deploy job 在 `Deploy via SSH` 阶段报 `ssh: unable to authenticate, attempted methods [none publickey]`，优先检查 `ECS_SSH_KEY` 是否与 ECS `authorized_keys` 匹配；若私钥带口令，还需配置 `ECS_SSH_PASSPHRASE`。
 - 当前 workflow 不再要求 ECS 主机可访问 GitHub 拉取仓库源码；只要求 SSH 连通和 GHCR 拉镜像权限正常。
 - 当前 workflow 会覆盖 `/etc/nginx/sites-available/${HOST_NGINX_SITE_NAME:-sunflower}` 并刷新 `/etc/nginx/sites-enabled/${HOST_NGINX_SITE_NAME:-sunflower}`。部署用户需要具备 `root` 或 `sudo` 权限。
+- ECS 正常部署路径只拉取 GHCR 镜像，不在服务器上执行 Maven 构建；只有缺失 `BACKEND_IMAGE` 的本地构建回退路径，才会使用同一份 Dockerfile/Maven 镜像配置。
+- admin-only 部署会复用现有 backend 容器；如果 backend 未运行或健康检查失败，`scripts/start_admin_web.sh` 会直接失败，而不会再尝试本地构建 backend。
 
 ---
 

@@ -1,8 +1,10 @@
 FROM maven:3.9.6-eclipse-temurin-11 AS builder
 WORKDIR /workspace
+COPY .mvn/settings-docker.xml /root/.m2/settings.xml
 COPY pom.xml .
+RUN mvn -B -ntp dependency:go-offline
 COPY src ./src
-RUN mvn -B -DskipTests package
+RUN mvn -B -ntp -DskipTests package
 
 FROM eclipse-temurin:11-jre
 WORKDIR /app
