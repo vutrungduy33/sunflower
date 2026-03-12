@@ -12,7 +12,7 @@ on:
       - "docker-compose.yml"
       - "scripts/start_backend_with_mvp_seed.sh"
       - "scripts/start_admin_web.sh"
-      - "scripts/start_edge_gateway.sh"
+      - "scripts/reload_host_nginx.sh"
       - "scripts/sql/**"
       - ".github/workflows/deploy-backend.yml"
 
@@ -30,7 +30,7 @@ jobs:
       source_sha: ${{ steps.image_meta.outputs.source_sha }}
       backend_changed: ${{ steps.targets.outputs.backend_changed }}
       admin_web_changed: ${{ steps.targets.outputs.admin_web_changed }}
-      gateway_changed: ${{ steps.targets.outputs.gateway_changed }}
+      ingress_changed: ${{ steps.targets.outputs.ingress_changed }}
       backend_image: ${{ steps.image_meta.outputs.backend_image_ref }}
       admin_web_image: ${{ steps.image_meta.outputs.admin_web_image_ref }}
 
@@ -46,12 +46,12 @@ jobs:
         run: |
           backend_changed=false
           admin_web_changed=false
-          gateway_changed=false
+          ingress_changed=false
 
           if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
             backend_changed=true
             admin_web_changed=true
-            gateway_changed=true
+            ingress_changed=true
           else
             before="${{ github.event.before }}"
             if [ -z "$before" ] || [ "$before" = "0000000000000000000000000000000000000000" ]; then
@@ -70,15 +70,15 @@ jobs:
               admin_web_changed=true
             fi
 
-            if printf '%s\n' "$changed_files" | grep -Eq '^(deploy/nginx/|docker-compose\.yml$|scripts/start_edge_gateway\.sh$|\.github/workflows/deploy-backend\.yml$)'; then
-              gateway_changed=true
+            if printf '%s\n' "$changed_files" | grep -Eq '^(deploy/nginx/|docker-compose\.yml$|scripts/reload_host_nginx\.sh$|\.github/workflows/deploy-backend\.yml$)'; then
+              ingress_changed=true
             fi
           fi
 
           {
             echo "backend_changed=${backend_changed}"
             echo "admin_web_changed=${admin_web_changed}"
-            echo "gateway_changed=${gateway_changed}"
+            echo "ingress_changed=${ingress_changed}"
           } >> "${GITHUB_OUTPUT}"
 
       - name: Resolve GHCR image tags
@@ -154,7 +154,7 @@ jobs:
           cache-to: type=gha,mode=max
 
   deploy:
-    if: needs.build-and-push.outputs.backend_changed == 'true' || needs.build-and-push.outputs.admin_web_changed == 'true' || needs.build-and-push.outputs.gateway_changed == 'true'
+    if: needs.build-and-push.outputs.backend_changed == 'true' || needs.build-and-push.outputs.admin_web_changed == 'true' || needs.build-and-push.outputs.ingress_changed == 'true'
     needs: build-and-push
     runs-on: ubuntu-latest
 
@@ -169,10 +169,10 @@ jobs:
         run: |
           tar -czf deploy-bundle.tgz \
             docker-compose.yml \
-            deploy/nginx/edge-gateway.conf \
+            deploy/nginx/sunflower-host.conf.template \
             scripts/start_backend_with_mvp_seed.sh \
             scripts/start_admin_web.sh \
-            scripts/start_edge_gateway.sh \
+            scripts/reload_host_nginx.sh \
             scripts/sql/mvp_demo_seed.sql
 
       - name: Ensure deploy directory exists
@@ -221,15 +221,14 @@ jobs:
           BACKEND_HOST_PORT: ${{ vars.BACKEND_HOST_PORT }}
           ADMIN_WEB_BIND_HOST: 127.0.0.1
           ADMIN_WEB_HOST_PORT: ${{ vars.ADMIN_WEB_HOST_PORT }}
-          EDGE_GATEWAY_HTTP_BIND_HOST: 0.0.0.0
-          EDGE_GATEWAY_HTTP_PORT: ${{ vars.EDGE_GATEWAY_HTTP_PORT }}
+          HOST_NGINX_SITE_NAME: ${{ vars.HOST_NGINX_SITE_NAME }}
         with:
           host: ${{ secrets.ECS_HOST }}
           username: ${{ secrets.ECS_USER }}
           port: ${{ secrets.ECS_PORT }}
           key: ${{ secrets.ECS_SSH_KEY }}
           passphrase: ${{ secrets.ECS_SSH_PASSPHRASE }}
-          envs: BACKEND_IMAGE,ADMIN_WEB_IMAGE,SOURCE_SHA,ECS_DEPLOY_PATH,GHCR_USERNAME,GHCR_TOKEN,AUTH_TOKEN_SECRET,AUTH_TOKEN_TTL_SECONDS,WECHAT_AUTH_MOCK_ENABLED,WECHAT_APP_ID,WECHAT_APP_SECRET,WECHAT_JSCODE2SESSION_URL,WECHAT_MOCK_OPENID_PREFIX,MYSQL_BIND_HOST,MYSQL_HOST_PORT,BACKEND_BIND_HOST,BACKEND_HOST_PORT,ADMIN_WEB_BIND_HOST,ADMIN_WEB_HOST_PORT,EDGE_GATEWAY_HTTP_BIND_HOST,EDGE_GATEWAY_HTTP_PORT
+          envs: BACKEND_IMAGE,ADMIN_WEB_IMAGE,SOURCE_SHA,ECS_DEPLOY_PATH,GHCR_USERNAME,GHCR_TOKEN,AUTH_TOKEN_SECRET,AUTH_TOKEN_TTL_SECONDS,WECHAT_AUTH_MOCK_ENABLED,WECHAT_APP_ID,WECHAT_APP_SECRET,WECHAT_JSCODE2SESSION_URL,WECHAT_MOCK_OPENID_PREFIX,MYSQL_BIND_HOST,MYSQL_HOST_PORT,BACKEND_BIND_HOST,BACKEND_HOST_PORT,ADMIN_WEB_BIND_HOST,ADMIN_WEB_HOST_PORT,HOST_NGINX_SITE_NAME
           command_timeout: 30m
           script_stop: false
           script: |
@@ -278,8 +277,6 @@ jobs:
             BACKEND_HOST_PORT="$(sanitize_port "${BACKEND_HOST_PORT:-8080}" "8080")"
             ADMIN_WEB_BIND_HOST="$(printf '%s' "${ADMIN_WEB_BIND_HOST:-127.0.0.1}" | tr -d '\r\n')"
             ADMIN_WEB_HOST_PORT="$(sanitize_port "${ADMIN_WEB_HOST_PORT:-18080}" "18080")"
-            EDGE_GATEWAY_HTTP_BIND_HOST="$(printf '%s' "${EDGE_GATEWAY_HTTP_BIND_HOST:-0.0.0.0}" | tr -d '\r\n')"
-            EDGE_GATEWAY_HTTP_PORT="$(sanitize_port "${EDGE_GATEWAY_HTTP_PORT:-80}" "80")"
 
             if [ -z "$SOURCE_SHA" ]; then
               echo "Missing required env SOURCE_SHA"
@@ -289,7 +286,7 @@ jobs:
               echo "Missing required secret DEPLOY_PATH"
               exit 1
             fi
-            if [ -z "$GHCR_USERNAME" ] || [ -z "$GHCR_TOKEN" ]; then
+            if { [ -n "$BACKEND_IMAGE" ] || [ -n "$ADMIN_WEB_IMAGE" ]; } && { [ -z "$GHCR_USERNAME" ] || [ -z "$GHCR_TOKEN" ]; }; then
               echo "Missing required secrets GHCR_USERNAME/GHCR_TOKEN"
               exit 1
             fi
@@ -330,8 +327,6 @@ jobs:
             export BACKEND_HOST_PORT
             export ADMIN_WEB_BIND_HOST
             export ADMIN_WEB_HOST_PORT
-            export EDGE_GATEWAY_HTTP_BIND_HOST
-            export EDGE_GATEWAY_HTTP_PORT
 
             run_or_exit mkdir -p "$DEPLOY_PATH"
             run_or_exit cd "$DEPLOY_PATH"
@@ -345,12 +340,14 @@ jobs:
             run_or_exit rm -f deploy-bundle.tgz
             printf '%s\n' "$SOURCE_SHA" > .deploy-source-sha
 
-            if ! printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin; then
-              echo "ERROR: failed to login GHCR"
-              exit 1
+            if [ -n "$BACKEND_IMAGE" ] || [ -n "$ADMIN_WEB_IMAGE" ]; then
+              if ! printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin; then
+                echo "ERROR: failed to login GHCR"
+                exit 1
+              fi
             fi
 
-            run_or_exit chmod +x scripts/start_backend_with_mvp_seed.sh scripts/start_admin_web.sh scripts/start_edge_gateway.sh
+            run_or_exit chmod +x scripts/start_backend_with_mvp_seed.sh scripts/start_admin_web.sh scripts/reload_host_nginx.sh
 
             if [ -n "$BACKEND_IMAGE" ]; then
               echo "[deploy] deploying backend first"
@@ -362,5 +359,5 @@ jobs:
               run_or_exit ./scripts/start_admin_web.sh
             fi
 
-            echo "[deploy] reconciling edge gateway last"
-            run_or_exit ./scripts/start_edge_gateway.sh
+            echo "[deploy] reloading host nginx ingress last"
+            run_or_exit ./scripts/reload_host_nginx.sh
