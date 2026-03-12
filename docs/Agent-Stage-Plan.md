@@ -171,14 +171,15 @@ Agent 回传结果至少包含：
 
 - 目标：创建可持续迭代的 Web 工程骨架。
 - 开发范围：
-  - 新建 `sunflower-admin-web`（建议 React + TypeScript + Vite）。
-  - 接入 UI 组件库、路由、HTTP 客户端、环境配置。
+  - 新建 `sunflower-admin-web`（`React 18 + TypeScript + Vite`，骨架参考 `TDesign React Starter`）。
+  - 接入 `TDesign React`、路由、HTTP 客户端、环境配置与 Vite 开发代理。
   - 建立 `lint/test/build` 脚本。
+  - 固定 Web 开发前置依赖：`Node.js >= 20.19.0`、`npm >= 10`。
 - 必做测试：
   - `npm run lint`
   - `npm run test`
   - `npm run build`
-- 完成标准：Web 项目可本地启动、可构建、可测试。
+- 完成标准：Web 项目可本地启动、可构建、可测试；工程与页面约束符合 `docs/Web-Admin-Plan.md`。
 
 ### S10 管理后台登录与权限骨架
 
