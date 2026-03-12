@@ -73,24 +73,5 @@ services:
       timeout: 5s
       retries: 10
 
-  edge-gateway:
-    image: nginx:1.27-alpine
-    container_name: sunflower-edge-gateway
-    restart: unless-stopped
-    depends_on:
-      backend:
-        condition: service_healthy
-      admin-web:
-        condition: service_healthy
-    volumes:
-      - ./deploy/nginx/edge-gateway.conf:/etc/nginx/conf.d/default.conf:ro
-    ports:
-      - "${EDGE_GATEWAY_HTTP_BIND_HOST:-0.0.0.0}:${EDGE_GATEWAY_HTTP_PORT:-80}:80"
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/healthz || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-
 volumes:
   sunflower_mysql_data:

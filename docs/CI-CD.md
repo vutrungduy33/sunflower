@@ -5,7 +5,7 @@
 当前包含两个工作流：
 
 1. `pr-stage-gate.yml`：PR 门禁（质量检查）
-2. `deploy-backend.yml`：主分支部署到 ECS（统一入口发布，按变更目标自动发布 backend、admin-web 与 edge-gateway）
+2. `deploy-backend.yml`：主分支部署到 ECS（统一入口发布，按变更目标自动发布 backend、admin-web，并在宿主机 Nginx 上收敛公网入口）
 
 ---
 
@@ -63,26 +63,27 @@
   - `docker-compose.yml`
   - `scripts/start_backend_with_mvp_seed.sh`
   - `scripts/start_admin_web.sh`
-  - `scripts/start_edge_gateway.sh`
+  - `scripts/reload_host_nginx.sh`
   - `scripts/sql/**`
   - `.github/workflows/deploy-backend.yml`
 
 执行流程：
 
-1. GitHub Actions 固定检出 `main`，识别本次 push 是否命中 backend、admin-web、edge-gateway 或它们的组合。
+1. GitHub Actions 固定检出 `main`，识别本次 push 是否命中 backend、admin-web、宿主机入口配置或它们的组合。
 2. 若命中 backend，则构建 `sunflower-backend` Docker 镜像并推送到 GHCR（标签：`source sha`，主分支额外推 `latest`）。
 3. 若命中 admin-web，则构建 `sunflower-admin-web` Docker 镜像并推送到 GHCR（标签：`source sha`，主分支额外推 `latest`）。
-4. GitHub Actions 在 Runner 打包 deployment bundle（`docker-compose.yml`、网关配置、部署脚本、seed SQL），再通过 SCP 上传到 ECS 部署目录。
+4. GitHub Actions 在 Runner 打包 deployment bundle（`docker-compose.yml`、宿主机 Nginx 模板、部署脚本、seed SQL），再通过 SCP 上传到 ECS 部署目录。
 5. 在 ECS 解压 deployment bundle，并写入本次发布的 `source sha` 标记文件。
-6. 在 ECS 登录 GHCR。
+6. 若本次需要拉取新镜像，则在 ECS 登录 GHCR。
 7. 若本次包含 backend 发布，则先执行 `scripts/start_backend_with_mvp_seed.sh`：启动 MySQL、拉取并启动 backend、等待健康检查、导入 `scripts/sql/mvp_demo_seed.sql`。
 8. 若本次包含 admin-web 发布，则在 backend 健康后执行 `scripts/start_admin_web.sh`：确认 `http://127.0.0.1:${BACKEND_HOST_PORT:-8080}/api/health` 可用，再拉取并启动 admin-web。
-9. 最后统一执行 `scripts/start_edge_gateway.sh`：确认 backend 和 admin-web 都已健康，再启动对公网暴露的 `edge-gateway`。
+9. 最后统一执行 `scripts/reload_host_nginx.sh`：确认 backend 和 admin-web 都已健康，再把宿主机 Nginx 入口切到最新的本机回环端口。
 
 部署顺序约束：
 
-- 同一次 push 若同时命中 backend 和 admin-web，ECS 上固定按“backend -> admin-web -> edge-gateway”顺序部署。
-- 对公网暴露的只有 `edge-gateway`；`mysql`、`backend`、`admin-web` 默认只绑定 ECS 本机回环地址。
+- 同一次 push 若同时命中 backend 和 admin-web，ECS 上固定按“backend -> admin-web -> host nginx”顺序部署。
+- 对公网暴露的只有宿主机 Nginx；`mysql`、`backend`、`admin-web` 默认只绑定 ECS 本机回环地址。
+- 宿主机 Nginx 负责把 `/` 转发到 `127.0.0.1:${ADMIN_WEB_HOST_PORT:-18080}`，把 `/api/` 转发到 `127.0.0.1:${BACKEND_HOST_PORT:-8080}`。
 - Web 管理端和小程序都应访问统一入口的 `/api`，而不是直接访问 `admin-web` 容器或公网 `8080`。
 
 ---
@@ -115,15 +116,16 @@
 - `MYSQL_HOST_PORT`：ECS 本机 MySQL 端口（默认 `3306`，仅回环可达）
 - `BACKEND_HOST_PORT`：ECS 本机 backend 端口（默认 `8080`，仅回环可达）
 - `ADMIN_WEB_HOST_PORT`：ECS 本机 admin-web 端口（默认 `18080`，仅回环可达）
-- `EDGE_GATEWAY_HTTP_PORT`：统一入口对公网暴露的 HTTP 端口（默认 `80`）
+- `HOST_NGINX_SITE_NAME`：宿主机 Nginx 站点名（默认 `sunflower`）
 
 说明：
 
 - workflow 在构建镜像时使用 Actions 自带 `GITHUB_TOKEN` 推送 GHCR，不需要额外配置推送凭据。
-- admin-web 当前无需单独的部署 secret；统一入口 `edge-gateway` 负责把 `/` 转发到 admin-web，把 `/api` 转发到 backend。
+- admin-web 当前无需单独的部署 secret；宿主机 Nginx 是唯一公网入口，负责把 `/` 转发到 admin-web，把 `/api` 转发到 backend。
 - 小程序默认也应指向统一入口，例如 `http://<ecs-host>` 或未来的 `https://<your-domain>`，由 `/api/*` 路由进入 backend。
 - 若 deploy job 在 `Deploy via SSH` 阶段报 `ssh: unable to authenticate, attempted methods [none publickey]`，优先检查 `ECS_SSH_KEY` 是否与 ECS `authorized_keys` 匹配；若私钥带口令，还需配置 `ECS_SSH_PASSPHRASE`。
 - 当前 workflow 不再要求 ECS 主机可访问 GitHub 拉取仓库源码；只要求 SSH 连通和 GHCR 拉镜像权限正常。
+- 当前 workflow 会覆盖 `/etc/nginx/sites-available/${HOST_NGINX_SITE_NAME:-sunflower}` 并刷新 `/etc/nginx/sites-enabled/${HOST_NGINX_SITE_NAME:-sunflower}`。部署用户需要具备 `root` 或 `sudo` 权限。
 
 ---
 
@@ -140,4 +142,4 @@
 - 部署脚本语法检查：
   - `bash -n scripts/start_backend_with_mvp_seed.sh`
   - `bash -n scripts/start_admin_web.sh`
-  - `bash -n scripts/start_edge_gateway.sh`
+  - `bash -n scripts/reload_host_nginx.sh`
