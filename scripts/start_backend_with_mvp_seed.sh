@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SEED_SQL_FILE="$ROOT_DIR/scripts/sql/mvp_demo_seed.sql"
 MYSQL_CONTAINER_NAME="${MYSQL_CONTAINER_NAME:-sunflower-mysql}"
+BACKEND_HOST_PORT="${BACKEND_HOST_PORT:-8080}"
 
 fail() {
   echo "[deploy-seed] ERROR: $*" >&2
@@ -34,12 +35,12 @@ wait_mysql_ready() {
 
 wait_backend_ready() {
   for _ in $(seq 1 40); do
-    if curl -fsS http://127.0.0.1:8080/api/health >/dev/null 2>&1; then
+    if curl -fsS "http://127.0.0.1:${BACKEND_HOST_PORT}/api/health" >/dev/null 2>&1; then
       return
     fi
     sleep 2
   done
-  fail "backend is not ready on http://127.0.0.1:8080/api/health"
+  fail "backend is not ready on http://127.0.0.1:${BACKEND_HOST_PORT}/api/health"
 }
 
 seed_demo_data() {

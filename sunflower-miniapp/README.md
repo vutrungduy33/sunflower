@@ -34,6 +34,6 @@
 小程序业务页继续通过 `utils/mvp/api.js` 访问后端，页面层方法签名保持不变。
 
 当前已切换说明：
-- 默认后端地址：`http://8.155.148.126`（Nginx 80 反向代理到后端 8080）
-- 可通过 `wx.setStorageSync('SUNFLOWER_API_BASE_URL', 'http://你的后端地址:端口')` 覆盖
+- 默认统一 API 入口：`http://8.155.148.126`（统一入口的 `/api/*` 转发到 backend）
+- 可通过 `wx.setStorageSync('SUNFLOWER_API_BASE_URL', 'http://你的统一入口地址')` 覆盖
 - 已对齐后端接口：`/api/auth/*`、`/api/users/me`、`/api/content/home`、`/api/rooms*`、`/api/orders*`、`/api/poi`、`/api/posts`

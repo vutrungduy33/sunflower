@@ -46,8 +46,27 @@ jobs:
           java-version: "11"
           cache: maven
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.20.1"
+          cache: npm
+          cache-dependency-path: sunflower-admin-web/package-lock.json
+
       - name: Backend automated tests
         run: cd sunflower-backend && mvn -B test
+
+      - name: Install web dependencies
+        run: cd sunflower-admin-web && npm ci
+
+      - name: Web lint
+        run: cd sunflower-admin-web && npm run lint
+
+      - name: Web tests
+        run: cd sunflower-admin-web && npm run test
+
+      - name: Web build
+        run: cd sunflower-admin-web && npm run build
 
       - name: Stage post-check
         run: make stage-post STAGE=${{ steps.conventions.outputs.stage }}

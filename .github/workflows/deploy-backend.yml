@@ -1,4 +1,4 @@
-name: Deploy Backend To ECS
+name: Deploy Services To ECS
 
 on:
   workflow_dispatch:
@@ -7,13 +7,17 @@ on:
       - main
     paths:
       - "sunflower-backend/**"
+      - "sunflower-admin-web/**"
+      - "deploy/nginx/**"
       - "docker-compose.yml"
       - "scripts/start_backend_with_mvp_seed.sh"
+      - "scripts/start_admin_web.sh"
+      - "scripts/start_edge_gateway.sh"
       - "scripts/sql/**"
       - ".github/workflows/deploy-backend.yml"
 
 concurrency:
-  group: deploy-backend-${{ github.ref }}
+  group: deploy-ecs-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -23,31 +27,95 @@ jobs:
       contents: read
       packages: write
     outputs:
-      backend_image: ${{ steps.image_meta.outputs.image_ref }}
       source_sha: ${{ steps.image_meta.outputs.source_sha }}
+      backend_changed: ${{ steps.targets.outputs.backend_changed }}
+      admin_web_changed: ${{ steps.targets.outputs.admin_web_changed }}
+      gateway_changed: ${{ steps.targets.outputs.gateway_changed }}
+      backend_image: ${{ steps.image_meta.outputs.backend_image_ref }}
+      admin_web_image: ${{ steps.image_meta.outputs.admin_web_image_ref }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           ref: refs/heads/main
+          fetch-depth: 0
+
+      - name: Detect deployment targets
+        id: targets
+        run: |
+          backend_changed=false
+          admin_web_changed=false
+          gateway_changed=false
+
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            backend_changed=true
+            admin_web_changed=true
+            gateway_changed=true
+          else
+            before="${{ github.event.before }}"
+            if [ -z "$before" ] || [ "$before" = "0000000000000000000000000000000000000000" ]; then
+              changed_files="$(git ls-tree -r --name-only HEAD)"
+            else
+              changed_files="$(git diff --name-only "$before" "$GITHUB_SHA")"
+            fi
+
+            printf '%s\n' "$changed_files"
+
+            if printf '%s\n' "$changed_files" | grep -Eq '^(sunflower-backend/|docker-compose\.yml$|scripts/start_backend_with_mvp_seed\.sh$|scripts/sql/|\.github/workflows/deploy-backend\.yml$)'; then
+              backend_changed=true
+            fi
+
+            if printf '%s\n' "$changed_files" | grep -Eq '^(sunflower-admin-web/|docker-compose\.yml$|scripts/start_admin_web\.sh$|\.github/workflows/deploy-backend\.yml$)'; then
+              admin_web_changed=true
+            fi
+
+            if printf '%s\n' "$changed_files" | grep -Eq '^(deploy/nginx/|docker-compose\.yml$|scripts/start_edge_gateway\.sh$|\.github/workflows/deploy-backend\.yml$)'; then
+              gateway_changed=true
+            fi
+          fi
+
+          {
+            echo "backend_changed=${backend_changed}"
+            echo "admin_web_changed=${admin_web_changed}"
+            echo "gateway_changed=${gateway_changed}"
+          } >> "${GITHUB_OUTPUT}"
 
       - name: Resolve GHCR image tags
         id: image_meta
         run: |
           source_sha="$(git rev-parse --verify HEAD)"
           owner="$(printf '%s' "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')"
-          image_ref="ghcr.io/${owner}/sunflower-backend:${source_sha}"
-          latest_ref="ghcr.io/${owner}/sunflower-backend:latest"
+
+          backend_image_ref=""
+          backend_all_tags=""
+          if [ "${{ steps.targets.outputs.backend_changed }}" = "true" ]; then
+            backend_image_ref="ghcr.io/${owner}/sunflower-backend:${source_sha}"
+            backend_all_tags="${backend_image_ref}"
+            if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+              backend_all_tags="${backend_all_tags}"$'\n'"ghcr.io/${owner}/sunflower-backend:latest"
+            fi
+          fi
+
+          admin_web_image_ref=""
+          admin_web_all_tags=""
+          if [ "${{ steps.targets.outputs.admin_web_changed }}" = "true" ]; then
+            admin_web_image_ref="ghcr.io/${owner}/sunflower-admin-web:${source_sha}"
+            admin_web_all_tags="${admin_web_image_ref}"
+            if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+              admin_web_all_tags="${admin_web_all_tags}"$'\n'"ghcr.io/${owner}/sunflower-admin-web:latest"
+            fi
+          fi
 
           {
             echo "source_sha=${source_sha}"
-            echo "image_ref=${image_ref}"
-            echo "all_tags<<EOF"
-            echo "${image_ref}"
-            if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
-              echo "${latest_ref}"
-            fi
+            echo "backend_image_ref=${backend_image_ref}"
+            echo "admin_web_image_ref=${admin_web_image_ref}"
+            echo "backend_all_tags<<EOF"
+            printf '%s\n' "${backend_all_tags}"
+            echo "EOF"
+            echo "admin_web_all_tags<<EOF"
+            printf '%s\n' "${admin_web_all_tags}"
             echo "EOF"
           } >> "${GITHUB_OUTPUT}"
 
@@ -62,15 +130,31 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push backend image
+        if: steps.targets.outputs.backend_changed == 'true'
         uses: docker/build-push-action@v6
         with:
           context: ./sunflower-backend
           push: true
-          tags: ${{ steps.image_meta.outputs.all_tags }}
+          tags: ${{ steps.image_meta.outputs.backend_all_tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push admin web image
+        if: steps.targets.outputs.admin_web_changed == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: ./sunflower-admin-web
+          push: true
+          tags: ${{ steps.image_meta.outputs.admin_web_all_tags }}
+          build-args: |
+            VITE_APP_TITLE=Sunflower Admin Web
+            VITE_API_BASE_URL=/api
+            VITE_API_PROXY_TARGET=http://backend:8080
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
   deploy:
+    if: needs.build-and-push.outputs.backend_changed == 'true' || needs.build-and-push.outputs.admin_web_changed == 'true' || needs.build-and-push.outputs.gateway_changed == 'true'
     needs: build-and-push
     runs-on: ubuntu-latest
 
@@ -79,7 +163,9 @@ jobs:
         uses: appleboy/ssh-action@v1.2.0
         env:
           BACKEND_IMAGE: ${{ needs.build-and-push.outputs.backend_image }}
+          ADMIN_WEB_IMAGE: ${{ needs.build-and-push.outputs.admin_web_image }}
           SOURCE_SHA: ${{ needs.build-and-push.outputs.source_sha }}
+          ECS_DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
           GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
           AUTH_TOKEN_SECRET: ${{ secrets.AUTH_TOKEN_SECRET }}
@@ -89,19 +175,26 @@ jobs:
           WECHAT_APP_SECRET: ${{ secrets.WECHAT_APP_SECRET }}
           WECHAT_JSCODE2SESSION_URL: ${{ secrets.WECHAT_JSCODE2SESSION_URL }}
           WECHAT_MOCK_OPENID_PREFIX: ${{ secrets.WECHAT_MOCK_OPENID_PREFIX }}
+          MYSQL_BIND_HOST: 127.0.0.1
+          MYSQL_HOST_PORT: ${{ vars.MYSQL_HOST_PORT }}
+          BACKEND_BIND_HOST: 127.0.0.1
+          BACKEND_HOST_PORT: ${{ vars.BACKEND_HOST_PORT }}
+          ADMIN_WEB_BIND_HOST: 127.0.0.1
+          ADMIN_WEB_HOST_PORT: ${{ vars.ADMIN_WEB_HOST_PORT }}
+          EDGE_GATEWAY_HTTP_BIND_HOST: 0.0.0.0
+          EDGE_GATEWAY_HTTP_PORT: ${{ vars.EDGE_GATEWAY_HTTP_PORT }}
         with:
           host: ${{ secrets.ECS_HOST }}
           username: ${{ secrets.ECS_USER }}
           port: ${{ secrets.ECS_PORT }}
           key: ${{ secrets.ECS_SSH_KEY }}
-          envs: BACKEND_IMAGE,SOURCE_SHA,GHCR_USERNAME,GHCR_TOKEN,AUTH_TOKEN_SECRET,AUTH_TOKEN_TTL_SECONDS,WECHAT_AUTH_MOCK_ENABLED,WECHAT_APP_ID,WECHAT_APP_SECRET,WECHAT_JSCODE2SESSION_URL,WECHAT_MOCK_OPENID_PREFIX
+          envs: BACKEND_IMAGE,ADMIN_WEB_IMAGE,SOURCE_SHA,ECS_DEPLOY_PATH,GHCR_USERNAME,GHCR_TOKEN,AUTH_TOKEN_SECRET,AUTH_TOKEN_TTL_SECONDS,WECHAT_AUTH_MOCK_ENABLED,WECHAT_APP_ID,WECHAT_APP_SECRET,WECHAT_JSCODE2SESSION_URL,WECHAT_MOCK_OPENID_PREFIX,MYSQL_BIND_HOST,MYSQL_HOST_PORT,BACKEND_BIND_HOST,BACKEND_HOST_PORT,ADMIN_WEB_BIND_HOST,ADMIN_WEB_HOST_PORT,EDGE_GATEWAY_HTTP_BIND_HOST,EDGE_GATEWAY_HTTP_PORT
           command_timeout: 30m
           script_stop: false
           script: |
             set -u
             echo "[deploy] script start"
             REPO_URL="https://github.com/vutrungduy33/sunflower.git"
-            DEPLOY_PATH="${{ secrets.DEPLOY_PATH }}"
 
             run_or_exit() {
               "$@"
@@ -112,43 +205,60 @@ jobs:
               fi
             }
 
+            sanitize_port() {
+              value="$(printf '%s' "${1:-}" | tr -d '\r\n' | tr -d '[:space:]' | tr -d '"' | tr -d "'")"
+              fallback="$2"
+              case "$value" in
+                ''|*[!0-9]*)
+                  printf '%s' "$fallback"
+                  ;;
+                *)
+                  printf '%s' "$value"
+                  ;;
+              esac
+            }
+
             BACKEND_IMAGE="$(printf '%s' "${BACKEND_IMAGE:-}" | tr -d '\r\n' | tr -d '[:space:]')"
+            ADMIN_WEB_IMAGE="$(printf '%s' "${ADMIN_WEB_IMAGE:-}" | tr -d '\r\n' | tr -d '[:space:]')"
             SOURCE_SHA="$(printf '%s' "${SOURCE_SHA:-}" | tr -d '\r\n' | tr -d '[:space:]')"
+            DEPLOY_PATH="$(printf '%s' "${ECS_DEPLOY_PATH:-}" | tr -d '\r\n')"
             GHCR_USERNAME="$(printf '%s' "${GHCR_USERNAME:-}" | tr -d '\r\n')"
             GHCR_TOKEN="$(printf '%s' "${GHCR_TOKEN:-}" | tr -d '\r\n')"
             AUTH_TOKEN_SECRET="$(printf '%s' "${AUTH_TOKEN_SECRET:-}" | tr -d '\r\n')"
-            AUTH_TOKEN_TTL_SECONDS="$(printf '%s' "${AUTH_TOKEN_TTL_SECONDS:-7200}" | tr -d '\r\n' | tr -d '[:space:]' | tr -d '\"' | tr -d "'")"
+            AUTH_TOKEN_TTL_SECONDS="$(sanitize_port "${AUTH_TOKEN_TTL_SECONDS:-7200}" "7200")"
             WECHAT_AUTH_MOCK_ENABLED="$(printf '%s' "${WECHAT_AUTH_MOCK_ENABLED:-false}" | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')"
-            WECHAT_AUTH_MOCK_ENABLED="$(printf '%s' "$WECHAT_AUTH_MOCK_ENABLED" | tr -d '\"' | tr -d "'")"
+            WECHAT_AUTH_MOCK_ENABLED="$(printf '%s' "$WECHAT_AUTH_MOCK_ENABLED" | tr -d '"' | tr -d "'")"
             WECHAT_APP_ID="$(printf '%s' "${WECHAT_APP_ID:-}" | tr -d '\r\n')"
             WECHAT_APP_SECRET="$(printf '%s' "${WECHAT_APP_SECRET:-}" | tr -d '\r\n')"
             WECHAT_JSCODE2SESSION_URL="$(printf '%s' "${WECHAT_JSCODE2SESSION_URL:-https://api.weixin.qq.com/sns/jscode2session}" | tr -d '\r\n')"
             WECHAT_MOCK_OPENID_PREFIX="$(printf '%s' "${WECHAT_MOCK_OPENID_PREFIX:-mock_openid_}" | tr -d '\r\n')"
+            MYSQL_BIND_HOST="$(printf '%s' "${MYSQL_BIND_HOST:-127.0.0.1}" | tr -d '\r\n')"
+            MYSQL_HOST_PORT="$(sanitize_port "${MYSQL_HOST_PORT:-3306}" "3306")"
+            BACKEND_BIND_HOST="$(printf '%s' "${BACKEND_BIND_HOST:-127.0.0.1}" | tr -d '\r\n')"
+            BACKEND_HOST_PORT="$(sanitize_port "${BACKEND_HOST_PORT:-8080}" "8080")"
+            ADMIN_WEB_BIND_HOST="$(printf '%s' "${ADMIN_WEB_BIND_HOST:-127.0.0.1}" | tr -d '\r\n')"
+            ADMIN_WEB_HOST_PORT="$(sanitize_port "${ADMIN_WEB_HOST_PORT:-18080}" "18080")"
+            EDGE_GATEWAY_HTTP_BIND_HOST="$(printf '%s' "${EDGE_GATEWAY_HTTP_BIND_HOST:-0.0.0.0}" | tr -d '\r\n')"
+            EDGE_GATEWAY_HTTP_PORT="$(sanitize_port "${EDGE_GATEWAY_HTTP_PORT:-80}" "80")"
 
-            case "$AUTH_TOKEN_TTL_SECONDS" in
-              ''|*[!0-9]*)
-                echo "WARN: invalid AUTH_TOKEN_TTL_SECONDS, fallback to 7200"
-                AUTH_TOKEN_TTL_SECONDS="7200"
-                ;;
-            esac
-            echo "[deploy] env normalized"
-
-            if [ -z "$AUTH_TOKEN_SECRET" ]; then
-              echo "Missing required secret AUTH_TOKEN_SECRET"
-              exit 1
-            fi
-            if [ -z "$BACKEND_IMAGE" ]; then
-              echo "Missing required env BACKEND_IMAGE"
-              exit 1
-            fi
             if [ -z "$SOURCE_SHA" ]; then
               echo "Missing required env SOURCE_SHA"
+              exit 1
+            fi
+            if [ -z "$DEPLOY_PATH" ]; then
+              echo "Missing required secret DEPLOY_PATH"
               exit 1
             fi
             if [ -z "$GHCR_USERNAME" ] || [ -z "$GHCR_TOKEN" ]; then
               echo "Missing required secrets GHCR_USERNAME/GHCR_TOKEN"
               exit 1
             fi
+
+            if [ -n "$BACKEND_IMAGE" ] && [ -z "$AUTH_TOKEN_SECRET" ]; then
+              echo "Missing required secret AUTH_TOKEN_SECRET"
+              exit 1
+            fi
+
             if [ "$WECHAT_AUTH_MOCK_ENABLED" = "true" ] || [ "$WECHAT_AUTH_MOCK_ENABLED" = "1" ] || [ "$WECHAT_AUTH_MOCK_ENABLED" = "yes" ] || [ "$WECHAT_AUTH_MOCK_ENABLED" = "y" ] || [ "$WECHAT_AUTH_MOCK_ENABLED" = "on" ]; then
               WECHAT_AUTH_MOCK_ENABLED="true"
             elif [ -z "$WECHAT_AUTH_MOCK_ENABLED" ] || [ "$WECHAT_AUTH_MOCK_ENABLED" = "false" ] || [ "$WECHAT_AUTH_MOCK_ENABLED" = "0" ] || [ "$WECHAT_AUTH_MOCK_ENABLED" = "no" ] || [ "$WECHAT_AUTH_MOCK_ENABLED" = "n" ] || [ "$WECHAT_AUTH_MOCK_ENABLED" = "off" ]; then
@@ -158,13 +268,12 @@ jobs:
               WECHAT_AUTH_MOCK_ENABLED="false"
             fi
 
-            if [ "$WECHAT_AUTH_MOCK_ENABLED" = "false" ]; then
+            if [ -n "$BACKEND_IMAGE" ] && [ "$WECHAT_AUTH_MOCK_ENABLED" = "false" ]; then
               if [ -z "$WECHAT_APP_ID" ] || [ -z "$WECHAT_APP_SECRET" ]; then
                 echo "WARN: WECHAT_APP_ID/WECHAT_APP_SECRET missing, fallback WECHAT_AUTH_MOCK_ENABLED=true for this deploy"
                 WECHAT_AUTH_MOCK_ENABLED="true"
               fi
             fi
-            echo "[deploy] secret/env validation completed"
 
             export AUTH_TOKEN_SECRET
             export AUTH_TOKEN_TTL_SECONDS
@@ -174,11 +283,18 @@ jobs:
             export WECHAT_JSCODE2SESSION_URL
             export WECHAT_MOCK_OPENID_PREFIX
             export BACKEND_IMAGE
-            echo "[deploy] env exported"
+            export ADMIN_WEB_IMAGE
+            export MYSQL_BIND_HOST
+            export MYSQL_HOST_PORT
+            export BACKEND_BIND_HOST
+            export BACKEND_HOST_PORT
+            export ADMIN_WEB_BIND_HOST
+            export ADMIN_WEB_HOST_PORT
+            export EDGE_GATEWAY_HTTP_BIND_HOST
+            export EDGE_GATEWAY_HTTP_PORT
 
             run_or_exit mkdir -p "$DEPLOY_PATH"
             run_or_exit cd "$DEPLOY_PATH"
-            echo "[deploy] switched to deploy path"
 
             if [ ! -d .git ]; then
               run_or_exit git clone "$REPO_URL" .
@@ -186,26 +302,23 @@ jobs:
 
             run_or_exit git fetch origin main
             run_or_exit git checkout --detach "$SOURCE_SHA"
-            echo "[deploy] repository synced to source sha: $SOURCE_SHA"
 
             if ! printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin; then
               echo "ERROR: failed to login GHCR"
               exit 1
             fi
-            echo "[deploy] ghcr login success"
 
-            run_or_exit chmod +x scripts/start_backend_with_mvp_seed.sh
-            run_or_exit ./scripts/start_backend_with_mvp_seed.sh
-            echo "[deploy] backend startup script executed"
+            run_or_exit chmod +x scripts/start_backend_with_mvp_seed.sh scripts/start_admin_web.sh scripts/start_edge_gateway.sh
 
-            for i in $(seq 1 20); do
-              if curl -fsS http://127.0.0.1:8080/api/health >/dev/null; then
-                echo "Backend health check passed."
-                exit 0
-              fi
-              sleep 3
-            done
-            
-            echo "Backend health check failed."
-            docker logs --tail 200 sunflower-backend || true
-            exit 1
+            if [ -n "$BACKEND_IMAGE" ]; then
+              echo "[deploy] deploying backend first"
+              run_or_exit ./scripts/start_backend_with_mvp_seed.sh
+            fi
+
+            if [ -n "$ADMIN_WEB_IMAGE" ]; then
+              echo "[deploy] deploying admin web second"
+              run_or_exit ./scripts/start_admin_web.sh
+            fi
+
+            echo "[deploy] reconciling edge gateway last"
+            run_or_exit ./scripts/start_edge_gateway.sh
