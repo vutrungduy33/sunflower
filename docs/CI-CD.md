@@ -5,7 +5,7 @@
 当前包含两个工作流：
 
 1. `pr-stage-gate.yml`：PR 门禁（质量检查）
-2. `deploy-backend.yml`：主分支后端部署到 ECS
+2. `deploy-backend.yml`：主分支部署到 ECS（统一入口发布，按变更目标自动发布 backend、admin-web 与 edge-gateway）
 
 ---
 
@@ -20,22 +20,26 @@
 
 门禁项：
 
-1. 分支命名规范检查  
-   - 必须匹配：`codex/s<stage>-<slug>`  
-   - 示例：`codex/s1-db-migration`
+1. 分支命名规范检查
+   - 必须匹配：`codex/s<stage>-<slug>`
+   - 示例：`codex/s14-web-admin-ecs-deploy`
 
-2. 提交信息规范检查  
-   - PR 内所有 commit subject 必须以前缀 `[Sx]` 开头  
-   - 示例：`[S1] add flyway baseline migration`
+2. 提交信息规范检查
+   - PR 内所有 commit subject 必须以前缀 `[Sx]` 开头
+   - 示例：`[S14] add web ecs deployment`
 
-3. Stage Guard 检查  
+3. Stage Guard 检查
    - `make stage-pre STAGE=Sx`
    - `make stage-post STAGE=Sx`
 
-4. 自动化测试  
+4. 自动化测试
    - `cd sunflower-backend && mvn -B test`
+   - `cd sunflower-admin-web && npm ci`
+   - `cd sunflower-admin-web && npm run lint`
+   - `cd sunflower-admin-web && npm run test`
+   - `cd sunflower-admin-web && npm run build`
 
-5. API 契约同步提醒（非阻塞）  
+5. API 契约同步提醒（非阻塞）
    - 若后端 `Controller/DTO` 变更但未同步小程序 API 调用或 API 文档，工作流给出 warning
 
 说明：
@@ -50,17 +54,35 @@
 
 触发条件：
 
-- push 到 `main`
-- 且变更命中 `sunflower-backend/**` 或 `docker-compose.yml`
+- `push` 到 `main`
+- 或手动触发 `workflow_dispatch`
+- push 变更命中以下任一范围时自动执行：
+  - `sunflower-backend/**`
+  - `sunflower-admin-web/**`
+  - `deploy/nginx/**`
+  - `docker-compose.yml`
+  - `scripts/start_backend_with_mvp_seed.sh`
+  - `scripts/start_admin_web.sh`
+  - `scripts/start_edge_gateway.sh`
+  - `scripts/sql/**`
+  - `.github/workflows/deploy-backend.yml`
 
 执行流程：
 
-1. GitHub Actions 在 Runner 固定检出 `main`，构建 `sunflower-backend` Docker 镜像并推送到 GHCR（标签：`source sha`，主分支额外推 `latest`）
-2. GitHub Actions 通过 SSH 连接 ECS
-3. 在 ECS 的部署目录拉取代码并切换到本次镜像对应的 `source sha`（与镜像构建源码严格一致）
-4. 在 ECS 登录 GHCR，注入 `BACKEND_IMAGE=ghcr.io/<owner>/sunflower-backend:<source-sha>`
-5. 执行 `scripts/start_backend_with_mvp_seed.sh`（先启动 MySQL，再拉取并启动 backend，最后导入 `scripts/sql/mvp_demo_seed.sql`）
-6. 对 `http://127.0.0.1:8080/api/health` 做健康检查
+1. GitHub Actions 固定检出 `main`，识别本次 push 是否命中 backend、admin-web、edge-gateway 或它们的组合。
+2. 若命中 backend，则构建 `sunflower-backend` Docker 镜像并推送到 GHCR（标签：`source sha`，主分支额外推 `latest`）。
+3. 若命中 admin-web，则构建 `sunflower-admin-web` Docker 镜像并推送到 GHCR（标签：`source sha`，主分支额外推 `latest`）。
+4. GitHub Actions 通过 SSH 连接 ECS，在部署目录拉取代码并切换到本次镜像对应的 `source sha`。
+5. 在 ECS 登录 GHCR。
+6. 若本次包含 backend 发布，则先执行 `scripts/start_backend_with_mvp_seed.sh`：启动 MySQL、拉取并启动 backend、等待健康检查、导入 `scripts/sql/mvp_demo_seed.sql`。
+7. 若本次包含 admin-web 发布，则在 backend 健康后执行 `scripts/start_admin_web.sh`：确认 `http://127.0.0.1:${BACKEND_HOST_PORT:-8080}/api/health` 可用，再拉取并启动 admin-web。
+8. 最后统一执行 `scripts/start_edge_gateway.sh`：确认 backend 和 admin-web 都已健康，再启动对公网暴露的 `edge-gateway`。
+
+部署顺序约束：
+
+- 同一次 push 若同时命中 backend 和 admin-web，ECS 上固定按“backend -> admin-web -> edge-gateway”顺序部署。
+- 对公网暴露的只有 `edge-gateway`；`mysql`、`backend`、`admin-web` 默认只绑定 ECS 本机回环地址。
+- Web 管理端和小程序都应访问统一入口的 `/api`，而不是直接访问 `admin-web` 容器或公网 `8080`。
 
 ---
 
@@ -73,23 +95,31 @@
 - `ECS_PORT`：SSH 端口（默认 `22`）
 - `ECS_SSH_KEY`：登录 ECS 的私钥内容
 - `DEPLOY_PATH`：服务器部署目录（例如 `/opt/sunflower`）
-- `AUTH_TOKEN_SECRET`：后端签名 token 密钥（必填）
 - `GHCR_USERNAME`：用于 ECS 拉取 GHCR 镜像的 GitHub 用户名（建议机器账号）
 - `GHCR_TOKEN`：用于 ECS 拉取 GHCR 镜像的 Token（至少 `read:packages` 权限）
+- `AUTH_TOKEN_SECRET`：后端签名 token 密钥（backend 部署必填）
 
-可选（若不配置则使用默认值）：
+可选 Secrets：
 
 - `AUTH_TOKEN_TTL_SECONDS`：token 过期秒数（默认 `7200`）
 - `WECHAT_AUTH_MOCK_ENABLED`：是否启用微信登录 mock（`true/false`，默认 `false`）
-- `WECHAT_APP_ID`：微信小程序 `appId`（当 `WECHAT_AUTH_MOCK_ENABLED=false` 时必填）
-- `WECHAT_APP_SECRET`：微信小程序 `appSecret`（当 `WECHAT_AUTH_MOCK_ENABLED=false` 时必填）
+- `WECHAT_APP_ID`：微信小程序 `appId`（当 `WECHAT_AUTH_MOCK_ENABLED=false` 时建议配置）
+- `WECHAT_APP_SECRET`：微信小程序 `appSecret`（当 `WECHAT_AUTH_MOCK_ENABLED=false` 时建议配置）
 - `WECHAT_JSCODE2SESSION_URL`：微信 `jscode2session` 地址（默认官方地址）
 - `WECHAT_MOCK_OPENID_PREFIX`：mock openid 前缀（默认 `mock_openid_`）
-- `WECHAT_MOCK_FIXED_OPENID`：mock 固定 openid（默认空，只有显式配置时才启用固定账号）
+
+可选 Variables：
+
+- `MYSQL_HOST_PORT`：ECS 本机 MySQL 端口（默认 `3306`，仅回环可达）
+- `BACKEND_HOST_PORT`：ECS 本机 backend 端口（默认 `8080`，仅回环可达）
+- `ADMIN_WEB_HOST_PORT`：ECS 本机 admin-web 端口（默认 `18080`，仅回环可达）
+- `EDGE_GATEWAY_HTTP_PORT`：统一入口对公网暴露的 HTTP 端口（默认 `80`）
 
 说明：
 
 - workflow 在构建镜像时使用 Actions 自带 `GITHUB_TOKEN` 推送 GHCR，不需要额外配置推送凭据。
+- admin-web 当前无需单独的部署 secret；统一入口 `edge-gateway` 负责把 `/` 转发到 admin-web，把 `/api` 转发到 backend。
+- 小程序默认也应指向统一入口，例如 `http://<ecs-host>` 或未来的 `https://<your-domain>`，由 `/api/*` 路由进入 backend。
 
 ---
 
@@ -99,3 +129,11 @@
 - Stage 后检查：`make stage-post STAGE=Sx`
 - 分支/提交规范检查：`make convention-check BRANCH=codex/s1-xxx BASE_SHA=<base> HEAD_SHA=<head>`
 - API 契约提醒检查：`make api-contract-check RANGE=main..HEAD`
+- Web 本地校验：
+  - `cd sunflower-admin-web && npm run lint`
+  - `cd sunflower-admin-web && npm run test`
+  - `cd sunflower-admin-web && npm run build`
+- 部署脚本语法检查：
+  - `bash -n scripts/start_backend_with_mvp_seed.sh`
+  - `bash -n scripts/start_admin_web.sh`
+  - `bash -n scripts/start_edge_gateway.sh`
