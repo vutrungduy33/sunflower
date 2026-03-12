@@ -94,6 +94,7 @@
 - `ECS_USER`：SSH 用户（例如 `root`）
 - `ECS_PORT`：SSH 端口（默认 `22`）
 - `ECS_SSH_KEY`：登录 ECS 的私钥内容
+- `ECS_SSH_PASSPHRASE`：若 `ECS_SSH_KEY` 是带口令的私钥，则需同步配置该口令；未加密私钥可留空
 - `DEPLOY_PATH`：服务器部署目录（例如 `/opt/sunflower`）
 - `GHCR_USERNAME`：用于 ECS 拉取 GHCR 镜像的 GitHub 用户名（建议机器账号）
 - `GHCR_TOKEN`：用于 ECS 拉取 GHCR 镜像的 Token（至少 `read:packages` 权限）
@@ -120,6 +121,7 @@
 - workflow 在构建镜像时使用 Actions 自带 `GITHUB_TOKEN` 推送 GHCR，不需要额外配置推送凭据。
 - admin-web 当前无需单独的部署 secret；统一入口 `edge-gateway` 负责把 `/` 转发到 admin-web，把 `/api` 转发到 backend。
 - 小程序默认也应指向统一入口，例如 `http://<ecs-host>` 或未来的 `https://<your-domain>`，由 `/api/*` 路由进入 backend。
+- 若 deploy job 在 `Deploy via SSH` 阶段报 `ssh: unable to authenticate, attempted methods [none publickey]`，优先检查 `ECS_SSH_KEY` 是否与 ECS `authorized_keys` 匹配；若私钥带口令，还需配置 `ECS_SSH_PASSPHRASE`。
 
 ---
 
