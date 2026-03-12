@@ -159,6 +159,46 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout deployment bundle source
+        uses: actions/checkout@v4
+        with:
+          ref: refs/heads/main
+          fetch-depth: 1
+
+      - name: Package deployment bundle
+        run: |
+          tar -czf deploy-bundle.tgz \
+            docker-compose.yml \
+            deploy/nginx/edge-gateway.conf \
+            scripts/start_backend_with_mvp_seed.sh \
+            scripts/start_admin_web.sh \
+            scripts/start_edge_gateway.sh \
+            scripts/sql/mvp_demo_seed.sql
+
+      - name: Ensure deploy directory exists
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.ECS_HOST }}
+          username: ${{ secrets.ECS_USER }}
+          port: ${{ secrets.ECS_PORT }}
+          key: ${{ secrets.ECS_SSH_KEY }}
+          passphrase: ${{ secrets.ECS_SSH_PASSPHRASE }}
+          script_stop: true
+          script: |
+            mkdir -p "${{ secrets.DEPLOY_PATH }}"
+
+      - name: Upload deployment bundle
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.ECS_HOST }}
+          username: ${{ secrets.ECS_USER }}
+          port: ${{ secrets.ECS_PORT }}
+          key: ${{ secrets.ECS_SSH_KEY }}
+          passphrase: ${{ secrets.ECS_SSH_PASSPHRASE }}
+          source: deploy-bundle.tgz
+          target: ${{ secrets.DEPLOY_PATH }}
+          overwrite: true
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.2.0
         env:
@@ -195,7 +235,6 @@ jobs:
           script: |
             set -u
             echo "[deploy] script start"
-            REPO_URL="https://github.com/vutrungduy33/sunflower.git"
 
             run_or_exit() {
               "$@"
@@ -296,13 +335,15 @@ jobs:
 
             run_or_exit mkdir -p "$DEPLOY_PATH"
             run_or_exit cd "$DEPLOY_PATH"
-
-            if [ ! -d .git ]; then
-              run_or_exit git clone "$REPO_URL" .
+            if [ ! -f deploy-bundle.tgz ]; then
+              echo "Missing deployment bundle: $DEPLOY_PATH/deploy-bundle.tgz"
+              exit 1
             fi
 
-            run_or_exit git fetch origin main
-            run_or_exit git checkout --detach "$SOURCE_SHA"
+            echo "[deploy] unpacking deployment bundle for source sha: $SOURCE_SHA"
+            run_or_exit tar -xzf deploy-bundle.tgz
+            run_or_exit rm -f deploy-bundle.tgz
+            printf '%s\n' "$SOURCE_SHA" > .deploy-source-sha
 
             if ! printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin; then
               echo "ERROR: failed to login GHCR"

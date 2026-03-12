@@ -72,11 +72,12 @@
 1. GitHub Actions 固定检出 `main`，识别本次 push 是否命中 backend、admin-web、edge-gateway 或它们的组合。
 2. 若命中 backend，则构建 `sunflower-backend` Docker 镜像并推送到 GHCR（标签：`source sha`，主分支额外推 `latest`）。
 3. 若命中 admin-web，则构建 `sunflower-admin-web` Docker 镜像并推送到 GHCR（标签：`source sha`，主分支额外推 `latest`）。
-4. GitHub Actions 通过 SSH 连接 ECS，在部署目录拉取代码并切换到本次镜像对应的 `source sha`。
-5. 在 ECS 登录 GHCR。
-6. 若本次包含 backend 发布，则先执行 `scripts/start_backend_with_mvp_seed.sh`：启动 MySQL、拉取并启动 backend、等待健康检查、导入 `scripts/sql/mvp_demo_seed.sql`。
-7. 若本次包含 admin-web 发布，则在 backend 健康后执行 `scripts/start_admin_web.sh`：确认 `http://127.0.0.1:${BACKEND_HOST_PORT:-8080}/api/health` 可用，再拉取并启动 admin-web。
-8. 最后统一执行 `scripts/start_edge_gateway.sh`：确认 backend 和 admin-web 都已健康，再启动对公网暴露的 `edge-gateway`。
+4. GitHub Actions 在 Runner 打包 deployment bundle（`docker-compose.yml`、网关配置、部署脚本、seed SQL），再通过 SCP 上传到 ECS 部署目录。
+5. 在 ECS 解压 deployment bundle，并写入本次发布的 `source sha` 标记文件。
+6. 在 ECS 登录 GHCR。
+7. 若本次包含 backend 发布，则先执行 `scripts/start_backend_with_mvp_seed.sh`：启动 MySQL、拉取并启动 backend、等待健康检查、导入 `scripts/sql/mvp_demo_seed.sql`。
+8. 若本次包含 admin-web 发布，则在 backend 健康后执行 `scripts/start_admin_web.sh`：确认 `http://127.0.0.1:${BACKEND_HOST_PORT:-8080}/api/health` 可用，再拉取并启动 admin-web。
+9. 最后统一执行 `scripts/start_edge_gateway.sh`：确认 backend 和 admin-web 都已健康，再启动对公网暴露的 `edge-gateway`。
 
 部署顺序约束：
 
@@ -122,6 +123,7 @@
 - admin-web 当前无需单独的部署 secret；统一入口 `edge-gateway` 负责把 `/` 转发到 admin-web，把 `/api` 转发到 backend。
 - 小程序默认也应指向统一入口，例如 `http://<ecs-host>` 或未来的 `https://<your-domain>`，由 `/api/*` 路由进入 backend。
 - 若 deploy job 在 `Deploy via SSH` 阶段报 `ssh: unable to authenticate, attempted methods [none publickey]`，优先检查 `ECS_SSH_KEY` 是否与 ECS `authorized_keys` 匹配；若私钥带口令，还需配置 `ECS_SSH_PASSPHRASE`。
+- 当前 workflow 不再要求 ECS 主机可访问 GitHub 拉取仓库源码；只要求 SSH 连通和 GHCR 拉镜像权限正常。
 
 ---
 
