@@ -20,6 +20,9 @@ const LoginPage = lazy(async () => import('@/pages/login-page').then((module) =>
 const NotFoundPage = lazy(async () => import('@/pages/not-found-page').then((module) => ({
   default: module.NotFoundPage,
 })))
+const PricingManagementPage = lazy(async () => import('@/pages/pricing-management-page').then((module) => ({
+  default: module.PricingManagementPage,
+})))
 const RoomManagementPage = lazy(async () => import('@/pages/room-management-page').then((module) => ({
   default: module.RoomManagementPage,
 })))
@@ -65,18 +68,7 @@ export const appRoutes: RouteObject[] = [
       },
       {
         path: 'pricing',
-        element: renderDeferredPage(
-          <FeaturePlaceholderPage
-            title={pricingItem.label}
-            stage={pricingItem.stage}
-            summary="当前仅保留受保护菜单入口，价格日历与库存批量编辑将在 S12 完成。"
-            bulletPoints={[
-              '按日期区间批量设置价格与库存。',
-              '展示已发布价格、剩余库存和冲突反馈。',
-              '补齐至少一条端到端冒烟场景。',
-            ]}
-          />
-        ),
+        element: renderDeferredPage(<PricingManagementPage />),
         handle: pricingItem satisfies RouteHandle,
       },
       {

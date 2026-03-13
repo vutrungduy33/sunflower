@@ -4,10 +4,15 @@ import { appEnv } from '@/config/env'
 import { useAdminAuth } from '@/features/auth/auth-store'
 import { fetchHealth } from '@/services/health'
 
-const installedCapabilities = ['登录页', '受保护路由', '统一菜单配置', 'Axios 鉴权注入', '401 失效清理']
+const installedCapabilities = [
+  '登录页',
+  '受保护路由',
+  '统一菜单配置',
+  'Axios 鉴权注入',
+  '401 失效清理',
+]
 
 const nextSteps = [
-  { stage: 'S12', title: '价格库存批量编辑' },
   { stage: 'S13', title: '订单与售后页面' },
 ]
 
@@ -45,11 +50,11 @@ export function WorkspacePage() {
       <section className="hero-panel">
         <div className="hero-panel__copy">
           <Tag theme="success" variant="light-outline">
-            S11 房型管理已接入
+            S12 价格库存已接入
           </Tag>
           <h3>管理工作台</h3>
           <p>
-            当前阶段已补齐登录页、统一请求鉴权、基础布局，以及房型列表、创建/编辑和上下架能力。后续 `S12-S13` 将继续接入价格库存与订单售后页面。
+            当前阶段已补齐登录页、统一请求鉴权、基础布局，以及房型列表、价格日历与库存批量编辑能力。后续 `S13` 将继续接入订单与售后页面。
           </p>
         </div>
         <div className="hero-panel__meta">
@@ -120,7 +125,13 @@ export function WorkspacePage() {
 
         <Card className="panel-card" title="当前已接入能力">
           <ul className="bullet-list">
-            {[...installedCapabilities, '房型列表与创建编辑', '房型上下架与状态反馈'].map((item) => (
+            {[
+              ...installedCapabilities,
+              '房型列表与创建编辑',
+              '房型上下架与状态反馈',
+              '价格日历按窗口查询',
+              '按日期区间批量更新价格与库存',
+            ].map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>
