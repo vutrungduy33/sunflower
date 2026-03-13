@@ -3,6 +3,7 @@ import type { AdminRoomPriceSource, RoomCalendarItem } from '@/features/rooms/ad
 const weekendLabelSet = new Set(['周五', '周六', '周日'])
 
 export type PricingQuickPreset = 'NEXT_3_DAYS' | 'NEXT_7_DAYS' | 'WEEKEND' | 'SINGLE_DAY'
+export const weekdayHeaders = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
 
 export function resolveVisibleDateOptions(calendar: RoomCalendarItem[]) {
   return calendar.map((item) => ({
@@ -17,6 +18,55 @@ export function shiftDateText(dateText: string, offsetDays: number) {
   date.setUTCDate(date.getUTCDate() + offsetDays)
 
   return date.toISOString().slice(0, 10)
+}
+
+export function shiftMonthText(monthText: string, offsetMonths: number) {
+  const [year, month] = monthText.split('-').map((item) => Number(item))
+  const date = new Date(Date.UTC(year, month - 1, 1))
+  date.setUTCMonth(date.getUTCMonth() + offsetMonths)
+
+  return date.toISOString().slice(0, 7)
+}
+
+export function resolveMonthRequest(monthText: string) {
+  const [year, month] = monthText.split('-').map((item) => Number(item))
+  const startDate = `${monthText}-01`
+  const days = new Date(Date.UTC(year, month, 0)).getUTCDate()
+
+  return {
+    startDate,
+    days,
+  }
+}
+
+export function formatMonthLabel(monthText: string) {
+  const [year, month] = monthText.split('-')
+  return `${year} 年 ${month} 月`
+}
+
+export function buildMonthGrid(calendar: RoomCalendarItem[], monthText?: string) {
+  const effectiveMonth = monthText ?? calendar[0]?.date.slice(0, 7)
+  if (!effectiveMonth) {
+    return []
+  }
+
+  const [year, month] = effectiveMonth.split('-').map((item) => Number(item))
+  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate()
+  const itemMap = new Map(calendar.map((item) => [item.date, item]))
+  const firstDay = new Date(Date.UTC(year, month - 1, 1))
+  const mondayFirstOffset = firstDay.getUTCDay() === 0 ? 6 : firstDay.getUTCDay() - 1
+  const cells: Array<RoomCalendarItem | null> = Array.from({ length: mondayFirstOffset }, () => null)
+
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    const dateText = `${effectiveMonth}-${String(day).padStart(2, '0')}`
+    cells.push(itemMap.get(dateText) ?? null)
+  }
+
+  while (cells.length % 7 !== 0) {
+    cells.push(null)
+  }
+
+  return cells
 }
 
 export function normalizeDateRange(startDate: string, endDate: string) {
