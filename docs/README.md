@@ -57,6 +57,8 @@
 - `docs/Code-Conventions.md`：后续新增代码统一规范
 - `docs/stage-reports/README.md`：Stage 执行报告规范与模板
 - `docs/CI-CD.md`：GitHub Actions CI/CD
+- `docs/S14-Release-Acceptance-Checklist.md`：S14 联调与发布验收清单
+- `docs/S14-Release-Runbook.md`：S14 发布与回滚 Runbook
 - `docs/Web-Admin-Plan.md`：管理后台 Web 选型、开发约束与环境依赖
 - `README.md`：项目总览 + 运营调研资料
 
@@ -84,6 +86,8 @@
 │  ├─ Code-Conventions.md
 │  ├─ stage-reports/
 │  ├─ CI-CD.md
+│  ├─ S14-Release-Acceptance-Checklist.md
+│  ├─ S14-Release-Runbook.md
 │  └─ Web-Admin-Plan.md
 ├─ sunflower-admin-web/           # Web 管理后台工程（S9 已完成）
 ├─ sunflower-miniapp/             # 微信小程序工程
