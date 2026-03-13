@@ -27,7 +27,7 @@ export const navigationItems: NavigationItem[] = [
     value: 'pricing',
     path: '/pricing',
     label: '价格库存',
-    description: 'S12 将补齐价格日历与库存批量编辑。',
+    description: '按日期区间批量维护价格与库存，并查看最近一次发布反馈。',
     stage: 'S12',
   },
   {
