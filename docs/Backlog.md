@@ -24,7 +24,7 @@
 - [x] S11 管理后台页面（房型管理，2026-03-13：补充新增代码统一规范文档入口）
 - [ ] S12 管理后台页面（价格日历与库存）
 - [ ] S13 管理后台页面（订单与售后）
-- [x] S14 联调收口、CI 门禁与发布验收（2026-02-18：后端部署切换为 GHCR 预构建镜像发布；2026-03-12：补齐 Web 管理端 CI/CD 与 ECS 自动部署；2026-03-12：公网入口收敛为宿主机 Nginx，移除容器 edge-gateway；2026-03-12：发布构建切换阿里云 Maven 镜像并增加依赖预热层；2026-03-12：admin-only 部署改为 `--no-deps`，避免回退构建 backend）
+- [x] S14 联调收口、CI 门禁与发布验收（2026-02-18：后端部署切换为 GHCR 预构建镜像发布；2026-03-12：补齐 Web 管理端 CI/CD 与 ECS 自动部署；2026-03-12：公网入口收敛为宿主机 Nginx，移除容器 edge-gateway；2026-03-12：发布构建切换阿里云 Maven 镜像并增加依赖预热层；2026-03-12：admin-only 部署改为 `--no-deps`，避免回退构建 backend；2026-03-13：deploy workflow 拆分 detect/build jobs、checkout 改为浅拉取与 sparse checkout、backend/admin GHA cache scope 隔离，GitHub-hosted backend 构建默认回到 Maven Central）
 
 ## 里程碑映射
 
