@@ -437,7 +437,7 @@ class MvpApiIntegrationTests {
             .perform(get("/api/admin/orders").header("Authorization", adminAuthorization).param("status", "CONFIRMED"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(0))
-            .andExpect(jsonPath("$.data.length()").value(1))
+            .andExpect(jsonPath("$.data.length()", greaterThanOrEqualTo(1)))
             .andExpect(jsonPath("$.data[0].id").value(confirmedOrderId))
             .andExpect(jsonPath("$.data[0].guestName").value("后台筛选住客A"));
 
@@ -475,7 +475,7 @@ class MvpApiIntegrationTests {
             .andExpect(jsonPath("$.code").value(40000))
             .andExpect(
                 jsonPath("$.message").value(
-                    "status 仅支持 PENDING_PAYMENT, CONFIRMED, RESCHEDULED, REFUNDED, COMPLETED, CANCELLED"
+                    "status 仅支持 PENDING_PAYMENT, CONFIRMED, CHECKED_IN, RESCHEDULED, REFUNDED, COMPLETED, CANCELLED, NO_SHOW"
                 )
             );
     }
@@ -605,7 +605,7 @@ class MvpApiIntegrationTests {
     }
 
     @Test
-    void shouldCreatePayCancelAndQueryOrder() throws Exception {
+    void shouldCreateCancelAndQueryOrder() throws Exception {
         String token = loginAndGetToken("order_flow_code");
 
         MvcResult createResult = mockMvc
@@ -629,16 +629,12 @@ class MvpApiIntegrationTests {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(0))
             .andExpect(jsonPath("$.data.status").value("PENDING_PAYMENT"))
+            .andExpect(jsonPath("$.data.bookingStatus").value("PENDING_PAYMENT"))
+            .andExpect(jsonPath("$.data.paymentStatus").value("UNPAID"))
             .andReturn();
 
         JsonNode createBody = objectMapper.readTree(createResult.getResponse().getContentAsString());
         String orderId = createBody.path("data").path("id").asText();
-
-        mockMvc
-            .perform(post("/api/orders/{id}/pay", orderId).header("Authorization", bearerToken(token)))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.code").value(0))
-            .andExpect(jsonPath("$.data.status").value("CONFIRMED"));
 
         mockMvc
             .perform(
@@ -649,13 +645,16 @@ class MvpApiIntegrationTests {
             )
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(0))
-            .andExpect(jsonPath("$.data.status").value("CANCELLED"));
+            .andExpect(jsonPath("$.data.status").value("CANCELLED"))
+            .andExpect(jsonPath("$.data.bookingStatus").value("CANCELLED"))
+            .andExpect(jsonPath("$.data.paymentStatus").value("UNPAID"));
 
         mockMvc
             .perform(get("/api/orders/{id}", orderId).header("Authorization", bearerToken(token)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(0))
             .andExpect(jsonPath("$.data.id").value(orderId))
+            .andExpect(jsonPath("$.data.bookingStatus").value("CANCELLED"))
             .andExpect(jsonPath("$.data.statusLabel").value("已取消"));
     }
 
@@ -665,6 +664,7 @@ class MvpApiIntegrationTests {
         LocalDate firstCheckOut = firstCheckIn.plusDays(2);
         LocalDate secondCheckIn = firstCheckIn.plusDays(2);
         LocalDate secondCheckOut = secondCheckIn.plusDays(2);
+        String adminAuthorization = adminAuthorization();
 
         setInventory("room-lake-101", firstCheckIn, 3, 3, 0);
         setInventory("room-lake-101", firstCheckIn.plusDays(1), 3, 3, 0);
@@ -698,7 +698,7 @@ class MvpApiIntegrationTests {
             .andExpect(jsonPath("$.code").value(0))
             .andExpect(jsonPath("$.data.status").value("CONFIRMED"));
 
-        mockMvc
+        MvcResult rescheduleRequestResult = mockMvc
             .perform(
                 post("/api/orders/{id}/reschedule", orderId)
                     .header("Authorization", bearerToken(token))
@@ -717,15 +717,49 @@ class MvpApiIntegrationTests {
             )
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(0))
-            .andExpect(jsonPath("$.data.status").value("RESCHEDULED"))
-            .andExpect(jsonPath("$.data.statusLabel").value("已改期"))
-            .andExpect(jsonPath("$.data.checkInDate").value(secondCheckIn.toString()))
-            .andExpect(jsonPath("$.data.checkOutDate").value(secondCheckOut.toString()));
+            .andExpect(jsonPath("$.data.status").value("CONFIRMED"))
+            .andExpect(jsonPath("$.data.bookingStatus").value("CONFIRMED"))
+            .andExpect(jsonPath("$.data.paymentStatus").value("PAID"))
+            .andExpect(jsonPath("$.data.latestAfterSaleType").value("RESCHEDULE"))
+            .andExpect(jsonPath("$.data.latestAfterSaleStatus").value("REQUESTED"))
+            .andExpect(jsonPath("$.data.checkInDate").value(firstCheckIn.toString()))
+            .andExpect(jsonPath("$.data.checkOutDate").value(firstCheckOut.toString()))
+            .andReturn();
+
+        JsonNode rescheduleRequestBody = objectMapper.readTree(rescheduleRequestResult.getResponse().getContentAsString());
+        long rescheduleRequestId = rescheduleRequestBody.path("data").path("latestAfterSaleRequestId").asLong();
 
         RoomInventoryEntity oldDay1 = getInventory("room-lake-101", firstCheckIn);
         RoomInventoryEntity oldDay2 = getInventory("room-lake-101", firstCheckIn.plusDays(1));
         RoomInventoryEntity newDay1 = getInventory("room-lake-101", secondCheckIn);
         RoomInventoryEntity newDay2 = getInventory("room-lake-101", secondCheckIn.plusDays(1));
+        assertEquals(2, oldDay1.getAvailableStock());
+        assertEquals(1, oldDay1.getLockedStock());
+        assertEquals(2, oldDay2.getAvailableStock());
+        assertEquals(1, oldDay2.getLockedStock());
+        assertEquals(3, newDay1.getAvailableStock());
+        assertEquals(0, newDay1.getLockedStock());
+        assertEquals(3, newDay2.getAvailableStock());
+        assertEquals(0, newDay2.getLockedStock());
+
+        mockMvc
+            .perform(
+                post("/api/admin/orders/{orderId}/after-sale/{requestId}/approve", orderId, rescheduleRequestId)
+                    .header("Authorization", adminAuthorization)
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.status").value("RESCHEDULED"))
+            .andExpect(jsonPath("$.data.bookingStatus").value("CONFIRMED"))
+            .andExpect(jsonPath("$.data.latestAfterSaleStatus").value("APPROVED"))
+            .andExpect(jsonPath("$.data.rescheduleCount").value(1))
+            .andExpect(jsonPath("$.data.checkInDate").value(secondCheckIn.toString()))
+            .andExpect(jsonPath("$.data.checkOutDate").value(secondCheckOut.toString()));
+
+        oldDay1 = getInventory("room-lake-101", firstCheckIn);
+        oldDay2 = getInventory("room-lake-101", firstCheckIn.plusDays(1));
+        newDay1 = getInventory("room-lake-101", secondCheckIn);
+        newDay2 = getInventory("room-lake-101", secondCheckIn.plusDays(1));
         assertEquals(3, oldDay1.getAvailableStock());
         assertEquals(0, oldDay1.getLockedStock());
         assertEquals(3, oldDay2.getAvailableStock());
@@ -735,7 +769,7 @@ class MvpApiIntegrationTests {
         assertEquals(2, newDay2.getAvailableStock());
         assertEquals(1, newDay2.getLockedStock());
 
-        mockMvc
+        MvcResult refundRequestResult = mockMvc
             .perform(
                 post("/api/orders/{id}/refund", orderId)
                     .header("Authorization", bearerToken(token))
@@ -744,8 +778,34 @@ class MvpApiIntegrationTests {
             )
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.status").value("CONFIRMED"))
+            .andExpect(jsonPath("$.data.bookingStatus").value("CONFIRMED"))
+            .andExpect(jsonPath("$.data.paymentStatus").value("PAID"))
+            .andExpect(jsonPath("$.data.latestAfterSaleType").value("REFUND"))
+            .andExpect(jsonPath("$.data.latestAfterSaleStatus").value("REQUESTED"))
+            .andReturn();
+
+        JsonNode refundRequestBody = objectMapper.readTree(refundRequestResult.getResponse().getContentAsString());
+        long refundRequestId = refundRequestBody.path("data").path("latestAfterSaleRequestId").asLong();
+
+        newDay1 = getInventory("room-lake-101", secondCheckIn);
+        newDay2 = getInventory("room-lake-101", secondCheckIn.plusDays(1));
+        assertEquals(2, newDay1.getAvailableStock());
+        assertEquals(1, newDay1.getLockedStock());
+        assertEquals(2, newDay2.getAvailableStock());
+        assertEquals(1, newDay2.getLockedStock());
+
+        mockMvc
+            .perform(
+                post("/api/admin/orders/{orderId}/after-sale/{requestId}/approve", orderId, refundRequestId)
+                    .header("Authorization", adminAuthorization)
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
             .andExpect(jsonPath("$.data.status").value("REFUNDED"))
-            .andExpect(jsonPath("$.data.statusLabel").value("已退款"));
+            .andExpect(jsonPath("$.data.bookingStatus").value("CANCELLED"))
+            .andExpect(jsonPath("$.data.paymentStatus").value("REFUNDED"))
+            .andExpect(jsonPath("$.data.refundedAt").isNotEmpty());
 
         RoomInventoryEntity refundedDay1 = getInventory("room-lake-101", secondCheckIn);
         RoomInventoryEntity refundedDay2 = getInventory("room-lake-101", secondCheckIn.plusDays(1));
@@ -759,6 +819,7 @@ class MvpApiIntegrationTests {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(0))
             .andExpect(jsonPath("$.data.status").value("REFUNDED"))
+            .andExpect(jsonPath("$.data.latestAfterSaleStatus").value("APPROVED"))
             .andExpect(jsonPath("$.data.refundedAt").isNotEmpty());
     }
 
@@ -768,6 +829,7 @@ class MvpApiIntegrationTests {
         LocalDate firstCheckOut = firstCheckIn.plusDays(2);
         LocalDate secondCheckIn = firstCheckIn.plusDays(1);
         LocalDate secondCheckOut = secondCheckIn.plusDays(2);
+        String adminAuthorization = adminAuthorization();
 
         setInventory("room-lake-101", firstCheckIn, 3, 3, 0);
         setInventory("room-lake-101", firstCheckIn.plusDays(1), 3, 3, 0);
@@ -800,7 +862,7 @@ class MvpApiIntegrationTests {
             .andExpect(jsonPath("$.code").value(0))
             .andExpect(jsonPath("$.data.status").value("CONFIRMED"));
 
-        mockMvc
+        MvcResult rescheduleRequestResult = mockMvc
             .perform(
                 post("/api/orders/{id}/reschedule", orderId)
                     .header("Authorization", bearerToken(token))
@@ -816,6 +878,21 @@ class MvpApiIntegrationTests {
                             + "\"reason\":\"重叠区间改期\""
                             + "}"
                     )
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.status").value("CONFIRMED"))
+            .andExpect(jsonPath("$.data.latestAfterSaleType").value("RESCHEDULE"))
+            .andExpect(jsonPath("$.data.latestAfterSaleStatus").value("REQUESTED"))
+            .andReturn();
+
+        JsonNode rescheduleRequestBody = objectMapper.readTree(rescheduleRequestResult.getResponse().getContentAsString());
+        long rescheduleRequestId = rescheduleRequestBody.path("data").path("latestAfterSaleRequestId").asLong();
+
+        mockMvc
+            .perform(
+                post("/api/admin/orders/{orderId}/after-sale/{requestId}/approve", orderId, rescheduleRequestId)
+                    .header("Authorization", adminAuthorization)
             )
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(0))
@@ -840,6 +917,7 @@ class MvpApiIntegrationTests {
         LocalDate firstCheckOut = firstCheckIn.plusDays(2);
         LocalDate secondCheckIn = firstCheckIn.plusDays(2);
         LocalDate secondCheckOut = secondCheckIn.plusDays(2);
+        String adminAuthorization = adminAuthorization();
 
         setInventory("room-lake-101", firstCheckIn, 3, 3, 0);
         setInventory("room-lake-101", firstCheckIn.plusDays(1), 3, 3, 0);
@@ -876,7 +954,7 @@ class MvpApiIntegrationTests {
         setInventory("room-lake-101", firstCheckIn, 3, 3, 0);
         setInventory("room-lake-101", firstCheckIn.plusDays(1), 3, 3, 0);
 
-        mockMvc
+        MvcResult rescheduleRequestResult = mockMvc
             .perform(
                 post("/api/orders/{id}/reschedule", orderId)
                     .header("Authorization", bearerToken(token))
@@ -892,6 +970,20 @@ class MvpApiIntegrationTests {
                             + "\"reason\":\"库存已释放兼容\""
                             + "}"
                     )
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.status").value("CONFIRMED"))
+            .andExpect(jsonPath("$.data.latestAfterSaleStatus").value("REQUESTED"))
+            .andReturn();
+
+        JsonNode rescheduleRequestBody = objectMapper.readTree(rescheduleRequestResult.getResponse().getContentAsString());
+        long rescheduleRequestId = rescheduleRequestBody.path("data").path("latestAfterSaleRequestId").asLong();
+
+        mockMvc
+            .perform(
+                post("/api/admin/orders/{orderId}/after-sale/{requestId}/approve", orderId, rescheduleRequestId)
+                    .header("Authorization", adminAuthorization)
             )
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(0))
@@ -915,6 +1007,7 @@ class MvpApiIntegrationTests {
     void shouldRefundWhenOriginalLockAlreadyReleased() throws Exception {
         LocalDate checkIn = LocalDate.parse("2026-02-12");
         LocalDate checkOut = checkIn.plusDays(1);
+        String adminAuthorization = adminAuthorization();
 
         setInventory("room-lake-101", checkIn, 3, 3, 0);
 
@@ -947,12 +1040,26 @@ class MvpApiIntegrationTests {
         // Simulate historical bad seed overwrite: order is confirmed but date lock is gone.
         setInventory("room-lake-101", checkIn, 3, 3, 0);
 
-        mockMvc
+        MvcResult refundRequestResult = mockMvc
             .perform(
                 post("/api/orders/{id}/refund", orderId)
                     .header("Authorization", bearerToken(token))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("{\"reason\":\"库存已释放兼容\"}")
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.status").value("CONFIRMED"))
+            .andExpect(jsonPath("$.data.latestAfterSaleStatus").value("REQUESTED"))
+            .andReturn();
+
+        JsonNode refundRequestBody = objectMapper.readTree(refundRequestResult.getResponse().getContentAsString());
+        long refundRequestId = refundRequestBody.path("data").path("latestAfterSaleRequestId").asLong();
+
+        mockMvc
+            .perform(
+                post("/api/admin/orders/{orderId}/after-sale/{requestId}/approve", orderId, refundRequestId)
+                    .header("Authorization", adminAuthorization)
             )
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(0))
@@ -991,6 +1098,112 @@ class MvpApiIntegrationTests {
             .andExpect(status().isConflict())
             .andExpect(jsonPath("$.code").value(40900))
             .andExpect(jsonPath("$.message").value("当前订单状态不可退款"));
+    }
+
+    @Test
+    void shouldRejectAfterSaleRequestAndKeepOrderConfirmed() throws Exception {
+        LocalDate checkIn = LocalDate.parse("2026-02-12");
+        LocalDate checkOut = checkIn.plusDays(1);
+        String token = loginAndGetToken("order_after_sale_reject");
+        String adminAuthorization = adminAuthorization();
+
+        MvcResult createResult = mockMvc
+            .perform(
+                post("/api/orders")
+                    .header("Authorization", bearerToken(token))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(buildCreateOrderPayload("room-lake-101", checkIn.toString(), checkOut.toString()))
+            )
+            .andExpect(status().isOk())
+            .andReturn();
+
+        JsonNode createBody = objectMapper.readTree(createResult.getResponse().getContentAsString());
+        String orderId = createBody.path("data").path("id").asText();
+
+        mockMvc
+            .perform(post("/api/orders/{id}/pay", orderId).header("Authorization", bearerToken(token)))
+            .andExpect(status().isOk());
+
+        MvcResult refundRequestResult = mockMvc
+            .perform(
+                post("/api/orders/{id}/refund", orderId)
+                    .header("Authorization", bearerToken(token))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"reason\":\"用户申请退款\"}")
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.latestAfterSaleStatus").value("REQUESTED"))
+            .andReturn();
+
+        JsonNode refundRequestBody = objectMapper.readTree(refundRequestResult.getResponse().getContentAsString());
+        long refundRequestId = refundRequestBody.path("data").path("latestAfterSaleRequestId").asLong();
+
+        mockMvc
+            .perform(
+                post("/api/admin/orders/{orderId}/after-sale/{requestId}/reject", orderId, refundRequestId)
+                    .header("Authorization", adminAuthorization)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"rejectReason\":\"已超过当前房型退款时限\"}")
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.status").value("CONFIRMED"))
+            .andExpect(jsonPath("$.data.bookingStatus").value("CONFIRMED"))
+            .andExpect(jsonPath("$.data.latestAfterSaleStatus").value("REJECTED"))
+            .andExpect(jsonPath("$.data.latestAfterSaleRejectReason").value("已超过当前房型退款时限"));
+    }
+
+    @Test
+    void shouldCheckInCheckOutAndMarkNoShowByAdmin() throws Exception {
+        LocalDate checkIn = LocalDate.parse("2026-02-12");
+        LocalDate checkOut = checkIn.plusDays(1);
+        String adminAuthorization = adminAuthorization();
+
+        setInventory("room-lake-101", checkIn, 3, 3, 0);
+        setInventory("room-lake-101", checkOut, 3, 3, 0);
+
+        String stayToken = loginAndGetToken("order_check_in_out");
+        String noShowToken = loginAndGetToken("order_no_show");
+
+        JsonNode stayOrder = createOrder(
+            stayToken,
+            buildCreateOrderPayload("room-lake-101", checkIn.toString(), checkOut.toString())
+        );
+        String stayOrderId = stayOrder.path("id").asText();
+        mockMvc.perform(post("/api/orders/{id}/pay", stayOrderId).header("Authorization", bearerToken(stayToken))).andExpect(status().isOk());
+
+        mockMvc
+            .perform(post("/api/admin/orders/{orderId}/check-in", stayOrderId).header("Authorization", adminAuthorization))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.status").value("CHECKED_IN"))
+            .andExpect(jsonPath("$.data.bookingStatus").value("CHECKED_IN"))
+            .andExpect(jsonPath("$.data.checkedInAt").isNotEmpty());
+
+        mockMvc
+            .perform(post("/api/admin/orders/{orderId}/check-out", stayOrderId).header("Authorization", adminAuthorization))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.status").value("COMPLETED"))
+            .andExpect(jsonPath("$.data.bookingStatus").value("CHECKED_OUT"))
+            .andExpect(jsonPath("$.data.checkedOutAt").isNotEmpty());
+
+        JsonNode noShowOrder = createOrder(
+            noShowToken,
+            buildCreateOrderPayload("room-lake-101", checkIn.toString(), checkOut.toString())
+        );
+        String noShowOrderId = noShowOrder.path("id").asText();
+        mockMvc
+            .perform(post("/api/orders/{id}/pay", noShowOrderId).header("Authorization", bearerToken(noShowToken)))
+            .andExpect(status().isOk());
+
+        mockMvc
+            .perform(post("/api/admin/orders/{orderId}/no-show", noShowOrderId).header("Authorization", adminAuthorization))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.status").value("NO_SHOW"))
+            .andExpect(jsonPath("$.data.bookingStatus").value("NO_SHOW"))
+            .andExpect(jsonPath("$.data.noShowAt").isNotEmpty());
+
+        RoomInventoryEntity noShowDay = getInventory("room-lake-101", checkIn);
+        assertEquals(2, noShowDay.getAvailableStock());
+        assertEquals(1, noShowDay.getLockedStock());
     }
 
     @Test

@@ -34,11 +34,16 @@
         <view class="order-card__room">{{item.roomName}}</view>
         <view class="order-card__meta">{{item.checkInDate}} 至 {{item.checkOutDate}} · {{item.nights}} 晚</view>
         <view class="order-card__meta">入住人：{{item.guestName}} {{item.guestPhone}}</view>
+        <view class="order-card__meta">主状态：{{item.bookingStatusLabel || item.statusLabel}} · 支付：{{item.paymentStatusLabel || '--'}}</view>
+        <view class="order-card__meta" wx:if="{{item.latestAfterSaleStatusLabel}}">
+          售后：{{item.latestAfterSaleType === 'RESCHEDULE' ? '改期' : '退款'}}{{item.latestAfterSaleStatusLabel}}
+          <text wx:if="{{item.latestAfterSaleRejectReason}}"> · {{item.latestAfterSaleRejectReason}}</text>
+        </view>
         <view class="order-card__footer">
           <view class="order-price">¥{{item.totalAmount}}</view>
           <view class="order-actions">
             <t-button
-              wx:if="{{item.status === 'PENDING_PAYMENT'}}"
+              wx:if="{{item.canPay}}"
               size="small"
               theme="primary"
               data-id="{{item.id}}"
@@ -46,7 +51,7 @@
               >去支付</t-button
             >
             <t-button
-              wx:if="{{item.status === 'PENDING_PAYMENT'}}"
+              wx:if="{{item.canCancel}}"
               size="small"
               theme="default"
               variant="outline"
@@ -55,7 +60,7 @@
               >取消订单</t-button
             >
             <t-button
-              wx:if="{{item.status === 'CONFIRMED' || item.status === 'RESCHEDULED'}}"
+              wx:if="{{item.canReschedule}}"
               size="small"
               theme="default"
               variant="outline"
@@ -64,7 +69,7 @@
               >改期</t-button
             >
             <t-button
-              wx:if="{{item.status === 'CONFIRMED' || item.status === 'RESCHEDULED'}}"
+              wx:if="{{item.canRefund}}"
               size="small"
               theme="danger"
               variant="outline"

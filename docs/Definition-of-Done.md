@@ -1,6 +1,6 @@
 # Stage Definition of Done（DoD）
 
-> 适用范围：`docs/Agent-Stage-Plan.md` 的所有 Stage（S0-S14）
+> 适用范围：`docs/Agent-Stage-Plan.md` 的所有 Stage（S0-S15）
 
 ## 1. 必须满足项（每个 Stage）
 

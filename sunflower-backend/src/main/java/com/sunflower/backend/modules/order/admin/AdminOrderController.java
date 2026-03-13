@@ -3,6 +3,7 @@ package com.sunflower.backend.modules.order.admin;
 import com.sunflower.backend.common.api.ApiResponse;
 import com.sunflower.backend.modules.order.admin.dto.AdminOrderDto;
 import com.sunflower.backend.modules.order.admin.dto.AdminOrderOverviewDto;
+import com.sunflower.backend.modules.order.admin.dto.RejectAfterSaleRequest;
 import com.sunflower.backend.modules.order.dto.RefundOrderRequest;
 import com.sunflower.backend.modules.order.dto.RescheduleOrderRequest;
 import java.util.List;
@@ -56,6 +57,40 @@ public class AdminOrderController {
         @RequestBody(required = false) RefundOrderRequest request
     ) {
         return ApiResponse.ok(adminOrderService.refundOrder(orderId, request));
+    }
+
+    @PostMapping("/orders/{orderId}/after-sale/{requestId}/approve")
+    public ApiResponse<AdminOrderDto> approveAfterSaleRequest(
+        @PathVariable String orderId,
+        @PathVariable Long requestId
+    ) {
+        return ApiResponse.ok(adminOrderService.approveAfterSaleRequest(orderId, requestId));
+    }
+
+    @PostMapping("/orders/{orderId}/after-sale/{requestId}/reject")
+    public ApiResponse<AdminOrderDto> rejectAfterSaleRequest(
+        @PathVariable String orderId,
+        @PathVariable Long requestId,
+        @RequestBody(required = false) RejectAfterSaleRequest request
+    ) {
+        return ApiResponse.ok(
+            adminOrderService.rejectAfterSaleRequest(orderId, requestId, request == null ? "" : request.getRejectReason())
+        );
+    }
+
+    @PostMapping("/orders/{orderId}/check-in")
+    public ApiResponse<AdminOrderDto> checkInOrder(@PathVariable String orderId) {
+        return ApiResponse.ok(adminOrderService.checkInOrder(orderId));
+    }
+
+    @PostMapping("/orders/{orderId}/check-out")
+    public ApiResponse<AdminOrderDto> checkOutOrder(@PathVariable String orderId) {
+        return ApiResponse.ok(adminOrderService.checkOutOrder(orderId));
+    }
+
+    @PostMapping("/orders/{orderId}/no-show")
+    public ApiResponse<AdminOrderDto> noShowOrder(@PathVariable String orderId) {
+        return ApiResponse.ok(adminOrderService.markNoShowOrder(orderId));
     }
 
     @GetMapping("/reports/summary")

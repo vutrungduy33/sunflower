@@ -2,8 +2,10 @@ package com.sunflower.backend.modules.order.admin;
 
 import com.sunflower.backend.common.exception.BusinessException;
 import com.sunflower.backend.modules.admin.AdminAuthService;
+import com.sunflower.backend.modules.order.BookingStatus;
 import com.sunflower.backend.modules.order.OrderService;
 import com.sunflower.backend.modules.order.OrderStatus;
+import com.sunflower.backend.modules.order.PaymentStatus;
 import com.sunflower.backend.modules.order.admin.dto.AdminOrderDto;
 import com.sunflower.backend.modules.order.admin.dto.AdminOrderOverviewDto;
 import com.sunflower.backend.modules.order.dto.RefundOrderRequest;
@@ -12,8 +14,6 @@ import com.sunflower.backend.modules.order.persistence.OrderEntity;
 import com.sunflower.backend.modules.order.persistence.OrderRepository;
 import com.sunflower.backend.modules.room.RoomService;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -28,16 +28,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class AdminOrderService {
 
-    private static final ZoneId SHANGHAI_ZONE = ZoneId.of("Asia/Shanghai");
-    private static final Set<OrderStatus> PENDING_CHECK_IN_STATUSES = Set.of(
-        OrderStatus.CONFIRMED,
-        OrderStatus.RESCHEDULED
-    );
-    private static final Set<OrderStatus> REVENUE_STATUSES = Set.of(
-        OrderStatus.CONFIRMED,
-        OrderStatus.RESCHEDULED,
-        OrderStatus.COMPLETED
-    );
+    private static final Set<BookingStatus> PENDING_CHECK_IN_BOOKING_STATUSES = Set.of(BookingStatus.CONFIRMED);
+    private static final Set<PaymentStatus> REVENUE_PAYMENT_STATUSES = Set.of(PaymentStatus.PAID, PaymentStatus.PARTIALLY_REFUNDED);
 
     private final OrderRepository orderRepository;
     private final OrderService orderService;
@@ -106,35 +98,65 @@ public class AdminOrderService {
         return orderRepository
             .findAll(specification, Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id")))
             .stream()
-            .map(this::toAdminOrderDto)
+            .map(orderService::toAdminOrderDto)
             .collect(Collectors.toList());
     }
 
     public AdminOrderDto getOrderDetail(String orderId) {
         adminAuthService.requireAdminAccess();
-        return toAdminOrderDto(requireOrder(orderId));
+        return orderService.toAdminOrderDto(requireOrder(orderId));
     }
 
     public AdminOrderDto rescheduleOrder(String orderId, RescheduleOrderRequest request) {
         adminAuthService.requireAdminAccess();
         orderService.rescheduleOrderByAdmin(orderId, request);
-        return toAdminOrderDto(requireOrder(orderId));
+        return orderService.toAdminOrderDto(requireOrder(orderId));
     }
 
     public AdminOrderDto refundOrder(String orderId, RefundOrderRequest request) {
         adminAuthService.requireAdminAccess();
         orderService.refundOrderByAdmin(orderId, request);
-        return toAdminOrderDto(requireOrder(orderId));
+        return orderService.toAdminOrderDto(requireOrder(orderId));
+    }
+
+    public AdminOrderDto approveAfterSaleRequest(String orderId, Long requestId) {
+        adminAuthService.requireAdminAccess();
+        orderService.approveAfterSaleRequestByAdmin(orderId, requestId);
+        return orderService.toAdminOrderDto(requireOrder(orderId));
+    }
+
+    public AdminOrderDto rejectAfterSaleRequest(String orderId, Long requestId, String rejectReason) {
+        adminAuthService.requireAdminAccess();
+        orderService.rejectAfterSaleRequestByAdmin(orderId, requestId, rejectReason);
+        return orderService.toAdminOrderDto(requireOrder(orderId));
+    }
+
+    public AdminOrderDto checkInOrder(String orderId) {
+        adminAuthService.requireAdminAccess();
+        orderService.checkInOrderByAdmin(orderId);
+        return orderService.toAdminOrderDto(requireOrder(orderId));
+    }
+
+    public AdminOrderDto checkOutOrder(String orderId) {
+        adminAuthService.requireAdminAccess();
+        orderService.checkOutOrderByAdmin(orderId);
+        return orderService.toAdminOrderDto(requireOrder(orderId));
+    }
+
+    public AdminOrderDto markNoShowOrder(String orderId) {
+        adminAuthService.requireAdminAccess();
+        orderService.markNoShowOrderByAdmin(orderId);
+        return orderService.toAdminOrderDto(requireOrder(orderId));
     }
 
     public AdminOrderOverviewDto getOrderOverview() {
         adminAuthService.requireAdminAccess();
 
-        int revenueAmount = Math.toIntExact(orderRepository.sumTotalAmountByStatusIn(REVENUE_STATUSES));
+        int revenueAmount = Math.toIntExact(orderRepository.sumTotalAmountByPaymentStatusIn(REVENUE_PAYMENT_STATUSES));
         return new AdminOrderOverviewDto(
             orderRepository.count(),
-            orderRepository.countByStatusIn(PENDING_CHECK_IN_STATUSES),
-            orderRepository.countByStatus(OrderStatus.REFUNDED),
+            orderRepository.countByBookingStatusIn(PENDING_CHECK_IN_BOOKING_STATUSES),
+            orderRepository.countByPaymentStatus(PaymentStatus.REFUNDED),
             revenueAmount
         );
     }
@@ -167,39 +189,5 @@ public class AdminOrderService {
 
     private String normalizeText(String value) {
         return value == null ? "" : value.trim();
-    }
-
-    private AdminOrderDto toAdminOrderDto(OrderEntity order) {
-        AdminOrderDto dto = new AdminOrderDto();
-        dto.setId(order.getId());
-        dto.setOrderNo(order.getOrderNo());
-        dto.setUserId(order.getUserId());
-        dto.setSource(order.getSource());
-        dto.setRoomId(order.getRoomId());
-        dto.setRoomName(order.getRoomName());
-        dto.setCheckInDate(order.getCheckInDate().toString());
-        dto.setCheckOutDate(order.getCheckOutDate().toString());
-        dto.setNights(order.getNights());
-        dto.setGuestName(order.getGuestName());
-        dto.setGuestPhone(order.getGuestPhone());
-        dto.setArrivalTime(order.getArrivalTime());
-        dto.setRemark(order.getRemark());
-        dto.setTotalAmount(order.getTotalAmount());
-        dto.setStatus(order.getStatus().name());
-        dto.setStatusLabel(order.getStatus().getLabel());
-        dto.setCreatedAt(toDateTimeString(order.getCreatedAt()));
-        dto.setPaidAt(toDateTimeString(order.getPaidAt()));
-        dto.setCancelledAt(toDateTimeString(order.getCancelledAt()));
-        dto.setRescheduledAt(toDateTimeString(order.getRescheduledAt()));
-        dto.setRefundedAt(toDateTimeString(order.getRefundedAt()));
-        dto.setAfterSaleReason(order.getAfterSaleReason() == null ? "" : order.getAfterSaleReason());
-        return dto;
-    }
-
-    private String toDateTimeString(LocalDateTime value) {
-        if (value == null) {
-            return "";
-        }
-        return value.atZone(SHANGHAI_ZONE).toOffsetDateTime().toString();
     }
 }

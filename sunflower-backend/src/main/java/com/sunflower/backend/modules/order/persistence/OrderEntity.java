@@ -1,5 +1,7 @@
 package com.sunflower.backend.modules.order.persistence;
 
+import com.sunflower.backend.modules.order.BookingStatus;
+import com.sunflower.backend.modules.order.PaymentStatus;
 import com.sunflower.backend.modules.order.OrderStatus;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -56,6 +58,14 @@ public class OrderEntity {
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
+    @Column(name = "booking_status")
+    @Enumerated(EnumType.STRING)
+    private BookingStatus bookingStatus;
+
+    @Column(name = "payment_status")
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus paymentStatus;
+
     @Column(name = "paid_at")
     private LocalDateTime paidAt;
 
@@ -67,6 +77,15 @@ public class OrderEntity {
 
     @Column(name = "refunded_at")
     private LocalDateTime refundedAt;
+
+    @Column(name = "checked_in_at")
+    private LocalDateTime checkedInAt;
+
+    @Column(name = "checked_out_at")
+    private LocalDateTime checkedOutAt;
+
+    @Column(name = "no_show_at")
+    private LocalDateTime noShowAt;
 
     @Column(name = "after_sale_reason")
     private String afterSaleReason;
@@ -197,6 +216,22 @@ public class OrderEntity {
         this.status = status;
     }
 
+    public BookingStatus getBookingStatus() {
+        return bookingStatus;
+    }
+
+    public void setBookingStatus(BookingStatus bookingStatus) {
+        this.bookingStatus = bookingStatus;
+    }
+
+    public PaymentStatus getPaymentStatus() {
+        return paymentStatus;
+    }
+
+    public void setPaymentStatus(PaymentStatus paymentStatus) {
+        this.paymentStatus = paymentStatus;
+    }
+
     public LocalDateTime getPaidAt() {
         return paidAt;
     }
@@ -227,6 +262,30 @@ public class OrderEntity {
 
     public void setRefundedAt(LocalDateTime refundedAt) {
         this.refundedAt = refundedAt;
+    }
+
+    public LocalDateTime getCheckedInAt() {
+        return checkedInAt;
+    }
+
+    public void setCheckedInAt(LocalDateTime checkedInAt) {
+        this.checkedInAt = checkedInAt;
+    }
+
+    public LocalDateTime getCheckedOutAt() {
+        return checkedOutAt;
+    }
+
+    public void setCheckedOutAt(LocalDateTime checkedOutAt) {
+        this.checkedOutAt = checkedOutAt;
+    }
+
+    public LocalDateTime getNoShowAt() {
+        return noShowAt;
+    }
+
+    public void setNoShowAt(LocalDateTime noShowAt) {
+        this.noShowAt = noShowAt;
     }
 
     public String getAfterSaleReason() {

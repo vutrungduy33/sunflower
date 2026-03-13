@@ -64,7 +64,7 @@ Agent 回传结果至少包含：
 7. PR 门禁必须通过：Stage Guard + 自动化测试
 8. 涉及“数据迁移/持久化入库”时，`stage_guard post` 必须通过 seed 同步校验（`scripts/sql/mvp_demo_seed.sql`）
 
-## 5. Stage 明细（S0-S14）
+## 5. Stage 明细（S0-S15）
 
 ### S0（已完成）目标重确认与文档分期
 
@@ -236,6 +236,29 @@ Agent 回传结果至少包含：
   - 全量自动化测试通过。
   - 按验收清单完成 1 轮端到端人工验收。
 - 完成标准：满足 V1 上线标准并可灰度发布。
+
+### S15 订单状态机重构（即时确认 + 售后子状态）
+
+- 目标：将住宿订单从“单一 status”升级为“主订单状态 + 支付状态 + 售后申请状态”模型，并保持现有小程序/管理端兼容可用。
+- 开发范围：
+  - 为订单新增 `bookingStatus`、`paymentStatus` 事实字段，并保留 `status/statusLabel` 作为兼容展示字段。
+  - 新增 `order_after_sale_requests` 持久化表，支持退款/改期申请的提交、审批、拒绝与历史保留。
+  - 用户端 `/api/orders/{id}/reschedule`、`/api/orders/{id}/refund` 调整为“提交申请”语义。
+  - 管理端新增入住、离店、失约，以及售后申请审批/拒绝接口；原有后台直接改期/退款接口保留兼容。
+  - 同步小程序订单中心、管理后台订单页、API 文档与 Schema 文档。
+- 本 Stage 边界（不做）：
+  - 不接入真实微信支付/退款回调。
+  - 不升级后台账号体系或 RBAC。
+  - 不扩展餐饮/服务订单等新业务。
+- 必做测试：
+  - `cd sunflower-backend && mvn test`
+  - `cd sunflower-admin-web && npm run test`
+  - `cd sunflower-admin-web && npm run build`
+  - 小程序订单页手工验证：提交改期/退款申请、查看申请状态。
+- 完成标准：
+  - 订单支持 `PENDING_PAYMENT / CONFIRMED / CHECKED_IN / CHECKED_OUT / CANCELLED / NO_SHOW` 主状态。
+  - 售后申请支持 `REQUESTED / APPROVED / REJECTED / WITHDRAWN`。
+  - 旧 `status/statusLabel` 字段继续可用，现有前端页面不会因状态机升级而失效。
 
 ## 6. 里程碑映射（便于管理）
 

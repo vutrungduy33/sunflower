@@ -15,28 +15,35 @@ import {
   type TableProps,
 } from 'tdesign-react'
 import {
+  approveAdminAfterSaleRequest,
+  checkInAdminOrder,
+  checkOutAdminOrder,
   fetchAdminOrderDetail,
   fetchAdminOrderOverview,
   fetchAdminOrders,
   getAdminOrderErrorMessage,
+  noShowAdminOrder,
+  rejectAdminAfterSaleRequest,
   refundAdminOrder,
   rescheduleAdminOrder,
   type AdminOrder,
   type AdminOrderOverview,
+  type AdminOrderAfterSaleStatus,
   type AdminOrderStatus,
   type AdminOrderStatusFilter,
 } from '@/features/orders/admin-order-service'
 
 const ORDER_LIST_QUERY_KEY = ['admin-orders']
 const ORDER_OVERVIEW_QUERY_KEY = ['admin-order-overview']
-const ORDER_ACTIONABLE_STATUSES = new Set<AdminOrderStatus>(['CONFIRMED', 'RESCHEDULED'])
 
 type DrawerMode = 'detail' | 'reschedule' | 'refund'
 type RescheduleEditorField = 'checkInDate' | 'checkOutDate' | 'reason'
 type RefundEditorField = 'reason'
+type RejectEditorField = 'rejectReason'
 
 type RescheduleEditorErrors = Partial<Record<RescheduleEditorField, string>>
 type RefundEditorErrors = Partial<Record<RefundEditorField, string>>
+type RejectEditorErrors = Partial<Record<RejectEditorField, string>>
 
 interface RescheduleEditorValue {
   checkInDate: string
@@ -48,23 +55,31 @@ interface RefundEditorValue {
   reason: string
 }
 
+interface RejectEditorValue {
+  rejectReason: string
+}
+
 const orderStatusOptions: Array<{ label: string; value: AdminOrderStatusFilter }> = [
   { label: '全部状态', value: 'ALL' },
   { label: '待支付', value: 'PENDING_PAYMENT' },
   { label: '待入住', value: 'CONFIRMED' },
+  { label: '已入住', value: 'CHECKED_IN' },
   { label: '已改期', value: 'RESCHEDULED' },
   { label: '已退款', value: 'REFUNDED' },
   { label: '已完成', value: 'COMPLETED' },
   { label: '已取消', value: 'CANCELLED' },
+  { label: '已失约', value: 'NO_SHOW' },
 ]
 
 const orderStatusThemeMap: Record<AdminOrderStatus, 'default' | 'primary' | 'success' | 'warning' | 'danger'> = {
   PENDING_PAYMENT: 'warning',
   CONFIRMED: 'primary',
+  CHECKED_IN: 'success',
   RESCHEDULED: 'success',
   REFUNDED: 'danger',
   COMPLETED: 'success',
   CANCELLED: 'default',
+  NO_SHOW: 'danger',
 }
 
 const orderSourceLabelMap: Record<string, string> = {
@@ -83,7 +98,7 @@ function createOrderStatCards(overview?: AdminOrderOverview) {
     {
       title: '待入住',
       value: overview?.pendingCheckInCount ?? '--',
-      hint: '待入住 / 已改期状态',
+      hint: 'bookingStatus = CONFIRMED',
     },
     {
       title: '已退款',
@@ -93,7 +108,7 @@ function createOrderStatCards(overview?: AdminOrderOverview) {
     {
       title: '成交额',
       value: overview ? formatCurrency(overview.revenueAmount) : '--',
-      hint: '已确认、已改期、已完成订单汇总',
+      hint: 'paymentStatus = PAID / PARTIALLY_REFUNDED',
     },
   ]
 }
@@ -115,8 +130,44 @@ function resolveSourceLabel(source: string) {
   return (orderSourceLabelMap[normalized] ?? source) || '未知来源'
 }
 
-function canHandleAfterSale(order: AdminOrder) {
-  return ORDER_ACTIONABLE_STATUSES.has(order.status)
+function hasPendingAfterSale(order: AdminOrder) {
+  return order.latestAfterSaleStatus === 'REQUESTED' && order.latestAfterSaleRequestId != null
+}
+
+function hasRejectedAfterSale(order: AdminOrder) {
+  return order.latestAfterSaleStatus === 'REJECTED'
+}
+
+function canDirectReschedule(order: AdminOrder) {
+  return order.bookingStatus === 'CONFIRMED' && order.paymentStatus === 'PAID' && !hasPendingAfterSale(order)
+}
+
+function canDirectRefund(order: AdminOrder) {
+  return order.bookingStatus === 'CONFIRMED' && order.paymentStatus === 'PAID' && !hasPendingAfterSale(order)
+}
+
+function canCheckIn(order: AdminOrder) {
+  return order.bookingStatus === 'CONFIRMED' && order.paymentStatus === 'PAID' && !hasPendingAfterSale(order)
+}
+
+function canCheckOut(order: AdminOrder) {
+  return order.bookingStatus === 'CHECKED_IN'
+}
+
+function canMarkNoShow(order: AdminOrder) {
+  return order.bookingStatus === 'CONFIRMED' && !hasPendingAfterSale(order)
+}
+
+function resolveAfterSaleSummary(order: AdminOrder) {
+  if (!order.latestAfterSaleType || !order.latestAfterSaleStatus) {
+    return order.afterSaleReason || '当前还没有售后记录'
+  }
+
+  const base = `${order.latestAfterSaleType === 'RESCHEDULE' ? '改期' : '退款'}${order.latestAfterSaleStatusLabel}`
+  if (order.latestAfterSaleStatus === 'REJECTED' && order.latestAfterSaleRejectReason) {
+    return `${base}：${order.latestAfterSaleRejectReason}`
+  }
+  return order.afterSaleReason ? `${base}：${order.afterSaleReason}` : base
 }
 
 function createRescheduleEditorValue(order?: AdminOrder): RescheduleEditorValue {
@@ -130,6 +181,12 @@ function createRescheduleEditorValue(order?: AdminOrder): RescheduleEditorValue 
 function createRefundEditorValue(): RefundEditorValue {
   return {
     reason: '',
+  }
+}
+
+function createRejectEditorValue(): RejectEditorValue {
+  return {
+    rejectReason: '',
   }
 }
 
@@ -194,12 +251,25 @@ function validateRefundEditorValue(value: RefundEditorValue) {
   return errors
 }
 
+function validateRejectEditorValue(value: RejectEditorValue) {
+  const errors: RejectEditorErrors = {}
+
+  if (!value.rejectReason.trim()) {
+    errors.rejectReason = '请填写拒绝原因'
+  }
+
+  return errors
+}
+
 function buildOrderTimeline(order: AdminOrder) {
   return [
     { label: '创建时间', value: formatDateTime(order.createdAt) },
     { label: '支付时间', value: formatDateTime(order.paidAt) },
+    { label: '入住时间', value: formatDateTime(order.checkedInAt) },
+    { label: '离店时间', value: formatDateTime(order.checkedOutAt) },
     { label: '改期时间', value: formatDateTime(order.rescheduledAt) },
     { label: '退款时间', value: formatDateTime(order.refundedAt) },
+    { label: '失约时间', value: formatDateTime(order.noShowAt) },
     { label: '取消时间', value: formatDateTime(order.cancelledAt) },
   ]
 }
@@ -214,8 +284,10 @@ export function OrderManagementPage() {
   const [drawerMode, setDrawerMode] = useState<DrawerMode>('detail')
   const [rescheduleEditor, setRescheduleEditor] = useState<RescheduleEditorValue>(() => createRescheduleEditorValue())
   const [refundEditor, setRefundEditor] = useState<RefundEditorValue>(() => createRefundEditorValue())
+  const [rejectEditor, setRejectEditor] = useState<RejectEditorValue>(() => createRejectEditorValue())
   const [rescheduleErrors, setRescheduleErrors] = useState<RescheduleEditorErrors>({})
   const [refundErrors, setRefundErrors] = useState<RefundEditorErrors>({})
+  const [rejectErrors, setRejectErrors] = useState<RejectEditorErrors>({})
   const [actionFeedback, setActionFeedback] = useState<string | null>(null)
   const deferredKeyword = useDeferredValue(keyword.trim())
   const dateRangeError =
@@ -261,6 +333,23 @@ export function OrderManagementPage() {
   const isDrawerVisible = Boolean(selectedOrderId)
   const overviewCards = createOrderStatCards(orderOverviewQuery.data)
 
+  async function handleOrderMutationSuccess(order: AdminOrder, successMessage: string) {
+    setActionFeedback(null)
+    setRescheduleErrors({})
+    setRefundErrors({})
+    setRejectErrors({})
+    setDrawerMode('detail')
+    setRescheduleEditor(createRescheduleEditorValue(order))
+    setRefundEditor(createRefundEditorValue())
+    setRejectEditor(createRejectEditorValue())
+    queryClient.setQueryData(['admin-order-detail', order.id], order)
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ORDER_LIST_QUERY_KEY }),
+      queryClient.invalidateQueries({ queryKey: ORDER_OVERVIEW_QUERY_KEY }),
+    ])
+    MessagePlugin.success(successMessage)
+  }
+
   const rescheduleMutation = useMutation({
     mutationFn: async ({
       orderId,
@@ -274,20 +363,7 @@ export function OrderManagementPage() {
         checkOutDate: payload.checkOutDate,
         reason: payload.reason,
       }),
-    onSuccess: async (order) => {
-      setActionFeedback(null)
-      setRescheduleErrors({})
-      setRefundErrors({})
-      setDrawerMode('detail')
-      setRescheduleEditor(createRescheduleEditorValue(order))
-      setRefundEditor(createRefundEditorValue())
-      queryClient.setQueryData(['admin-order-detail', order.id], order)
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ORDER_LIST_QUERY_KEY }),
-        queryClient.invalidateQueries({ queryKey: ORDER_OVERVIEW_QUERY_KEY }),
-      ])
-      MessagePlugin.success('订单已改期')
-    },
+    onSuccess: async (order) => handleOrderMutationSuccess(order, '订单已改期'),
     onError: (error) => {
       const message = getAdminOrderErrorMessage(error, '订单改期失败，请稍后重试')
       setActionFeedback(message)
@@ -306,22 +382,71 @@ export function OrderManagementPage() {
       refundAdminOrder(orderId, {
         reason: payload.reason,
       }),
-    onSuccess: async (order) => {
-      setActionFeedback(null)
-      setRescheduleErrors({})
-      setRefundErrors({})
-      setDrawerMode('detail')
-      setRescheduleEditor(createRescheduleEditorValue(order))
-      setRefundEditor(createRefundEditorValue())
-      queryClient.setQueryData(['admin-order-detail', order.id], order)
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ORDER_LIST_QUERY_KEY }),
-        queryClient.invalidateQueries({ queryKey: ORDER_OVERVIEW_QUERY_KEY }),
-      ])
-      MessagePlugin.success('订单已退款')
-    },
+    onSuccess: async (order) => handleOrderMutationSuccess(order, '订单已退款'),
     onError: (error) => {
       const message = getAdminOrderErrorMessage(error, '订单退款失败，请稍后重试')
+      setActionFeedback(message)
+      MessagePlugin.error(message)
+    },
+  })
+
+  const approveAfterSaleMutation = useMutation({
+    mutationFn: async ({ orderId, requestId }: { orderId: string; requestId: number }) =>
+      approveAdminAfterSaleRequest(orderId, requestId),
+    onSuccess: async (order) => handleOrderMutationSuccess(order, '售后申请已同意'),
+    onError: (error) => {
+      const message = getAdminOrderErrorMessage(error, '售后审批失败，请稍后重试')
+      setActionFeedback(message)
+      MessagePlugin.error(message)
+    },
+  })
+
+  const rejectAfterSaleMutation = useMutation({
+    mutationFn: async ({
+      orderId,
+      requestId,
+      payload,
+    }: {
+      orderId: string
+      requestId: number
+      payload: RejectEditorValue
+    }) =>
+      rejectAdminAfterSaleRequest(orderId, requestId, {
+        rejectReason: payload.rejectReason,
+      }),
+    onSuccess: async (order) => handleOrderMutationSuccess(order, '售后申请已拒绝'),
+    onError: (error) => {
+      const message = getAdminOrderErrorMessage(error, '拒绝售后失败，请稍后重试')
+      setActionFeedback(message)
+      MessagePlugin.error(message)
+    },
+  })
+
+  const checkInMutation = useMutation({
+    mutationFn: async (orderId: string) => checkInAdminOrder(orderId),
+    onSuccess: async (order) => handleOrderMutationSuccess(order, '已办理入住'),
+    onError: (error) => {
+      const message = getAdminOrderErrorMessage(error, '办理入住失败，请稍后重试')
+      setActionFeedback(message)
+      MessagePlugin.error(message)
+    },
+  })
+
+  const checkOutMutation = useMutation({
+    mutationFn: async (orderId: string) => checkOutAdminOrder(orderId),
+    onSuccess: async (order) => handleOrderMutationSuccess(order, '已办理离店'),
+    onError: (error) => {
+      const message = getAdminOrderErrorMessage(error, '办理离店失败，请稍后重试')
+      setActionFeedback(message)
+      MessagePlugin.error(message)
+    },
+  })
+
+  const noShowMutation = useMutation({
+    mutationFn: async (orderId: string) => noShowAdminOrder(orderId),
+    onSuccess: async (order) => handleOrderMutationSuccess(order, '订单已标记失约'),
+    onError: (error) => {
+      const message = getAdminOrderErrorMessage(error, '标记失约失败，请稍后重试')
       setActionFeedback(message)
       MessagePlugin.error(message)
     },
@@ -330,6 +455,7 @@ export function OrderManagementPage() {
   function resetActionState() {
     setRescheduleErrors({})
     setRefundErrors({})
+    setRejectErrors({})
     setActionFeedback(null)
   }
 
@@ -338,11 +464,20 @@ export function OrderManagementPage() {
     setDrawerMode(mode)
     setRescheduleEditor(createRescheduleEditorValue(order))
     setRefundEditor(createRefundEditorValue())
+    setRejectEditor(createRejectEditorValue())
     resetActionState()
   }
 
   function handleCloseDrawer() {
-    if (rescheduleMutation.isPending || refundMutation.isPending) {
+    if (
+      rescheduleMutation.isPending ||
+      refundMutation.isPending ||
+      approveAfterSaleMutation.isPending ||
+      rejectAfterSaleMutation.isPending ||
+      checkInMutation.isPending ||
+      checkOutMutation.isPending ||
+      noShowMutation.isPending
+    ) {
       return
     }
 
@@ -350,6 +485,7 @@ export function OrderManagementPage() {
     setDrawerMode('detail')
     setRescheduleEditor(createRescheduleEditorValue())
     setRefundEditor(createRefundEditorValue())
+    setRejectEditor(createRejectEditorValue())
     resetActionState()
   }
 
@@ -379,6 +515,23 @@ export function OrderManagementPage() {
       [field]: value,
     }))
     setRefundErrors((current) => {
+      if (!current[field]) {
+        return current
+      }
+
+      return {
+        ...current,
+        [field]: undefined,
+      }
+    })
+  }
+
+  function updateRejectField<K extends RejectEditorField>(field: K, value: RejectEditorValue[K]) {
+    setRejectEditor((current) => ({
+      ...current,
+      [field]: value,
+    }))
+    setRejectErrors((current) => {
       if (!current[field]) {
         return current
       }
@@ -447,6 +600,66 @@ export function OrderManagementPage() {
     })
   }
 
+  function handleApproveAfterSale() {
+    if (!selectedOrderId || !selectedOrder?.latestAfterSaleRequestId) {
+      return
+    }
+
+    setActionFeedback(null)
+    approveAfterSaleMutation.mutate({
+      orderId: selectedOrderId,
+      requestId: selectedOrder.latestAfterSaleRequestId,
+    })
+  }
+
+  function handleRejectAfterSale() {
+    if (!selectedOrderId || !selectedOrder?.latestAfterSaleRequestId) {
+      return
+    }
+
+    const nextErrors = validateRejectEditorValue(rejectEditor)
+    if (Object.keys(nextErrors).length > 0) {
+      setRejectErrors(nextErrors)
+      setActionFeedback('请先填写拒绝原因')
+      MessagePlugin.error('请先填写拒绝原因')
+      return
+    }
+
+    setActionFeedback(null)
+    rejectAfterSaleMutation.mutate({
+      orderId: selectedOrderId,
+      requestId: selectedOrder.latestAfterSaleRequestId,
+      payload: rejectEditor,
+    })
+  }
+
+  function handleCheckIn() {
+    if (!selectedOrderId) {
+      return
+    }
+
+    setActionFeedback(null)
+    checkInMutation.mutate(selectedOrderId)
+  }
+
+  function handleCheckOut() {
+    if (!selectedOrderId) {
+      return
+    }
+
+    setActionFeedback(null)
+    checkOutMutation.mutate(selectedOrderId)
+  }
+
+  function handleMarkNoShow() {
+    if (!selectedOrderId) {
+      return
+    }
+
+    setActionFeedback(null)
+    noShowMutation.mutate(selectedOrderId)
+  }
+
   const orderColumns: TableProps<AdminOrder>['columns'] = [
     {
       colKey: 'order',
@@ -500,7 +713,10 @@ export function OrderManagementPage() {
           <Tag theme={orderStatusThemeMap[row.status]} variant="light-outline">
             {row.statusLabel}
           </Tag>
-          <span>{row.afterSaleReason || '未记录售后原因'}</span>
+          <span>
+            主状态 {row.bookingStatusLabel} / 支付 {row.paymentStatusLabel}
+          </span>
+          <span>{resolveAfterSaleSummary(row)}</span>
         </div>
       ),
     },
@@ -519,33 +735,75 @@ export function OrderManagementPage() {
         const isRescheduling =
           rescheduleMutation.isPending && rescheduleMutation.variables?.orderId === row.id
         const isRefunding = refundMutation.isPending && refundMutation.variables?.orderId === row.id
-        const canOperate = canHandleAfterSale(row)
+        const isCheckingIn = checkInMutation.isPending && checkInMutation.variables === row.id
+        const isCheckingOut = checkOutMutation.isPending && checkOutMutation.variables === row.id
+        const isNoShowing = noShowMutation.isPending && noShowMutation.variables === row.id
 
         return (
           <Space align="center" size={12}>
             <Button size="small" theme="primary" variant="outline" onClick={() => handleOpenDrawer(row)}>
               查看详情
             </Button>
-            <Button
-              size="small"
-              theme="primary"
-              variant="outline"
-              disabled={!canOperate}
-              loading={isRescheduling}
-              onClick={() => handleOpenDrawer(row, 'reschedule')}
-            >
-              改期
-            </Button>
-            <Button
-              size="small"
-              theme="danger"
-              variant="outline"
-              disabled={!canOperate}
-              loading={isRefunding}
-              onClick={() => handleOpenDrawer(row, 'refund')}
-            >
-              退款
-            </Button>
+            {hasPendingAfterSale(row) ? (
+              <Button size="small" theme="primary" variant="outline" onClick={() => handleOpenDrawer(row)}>
+                审核申请
+              </Button>
+            ) : null}
+            {canDirectReschedule(row) ? (
+              <Button
+                size="small"
+                theme="primary"
+                variant="outline"
+                loading={isRescheduling}
+                onClick={() => handleOpenDrawer(row, 'reschedule')}
+              >
+                后台改期
+              </Button>
+            ) : null}
+            {canDirectRefund(row) ? (
+              <Button
+                size="small"
+                theme="danger"
+                variant="outline"
+                loading={isRefunding}
+                onClick={() => handleOpenDrawer(row, 'refund')}
+              >
+                后台退款
+              </Button>
+            ) : null}
+            {canCheckIn(row) ? (
+              <Button
+                size="small"
+                theme="success"
+                variant="outline"
+                loading={isCheckingIn}
+                onClick={() => handleOpenDrawer(row)}
+              >
+                办理入住
+              </Button>
+            ) : null}
+            {canCheckOut(row) ? (
+              <Button
+                size="small"
+                theme="success"
+                variant="outline"
+                loading={isCheckingOut}
+                onClick={() => handleOpenDrawer(row)}
+              >
+                办理离店
+              </Button>
+            ) : null}
+            {canMarkNoShow(row) ? (
+              <Button
+                size="small"
+                theme="warning"
+                variant="outline"
+                loading={isNoShowing}
+                onClick={() => handleOpenDrawer(row)}
+              >
+                标记失约
+              </Button>
+            ) : null}
           </Space>
         )
       },
@@ -577,8 +835,14 @@ export function OrderManagementPage() {
       )
     }
 
-    const canOperate = canHandleAfterSale(selectedOrder)
     const timeline = buildOrderTimeline(selectedOrder)
+    const reviewStatus = selectedOrder.latestAfterSaleStatus as AdminOrderAfterSaleStatus
+    const canReview = hasPendingAfterSale(selectedOrder)
+    const allowDirectReschedule = canDirectReschedule(selectedOrder)
+    const allowDirectRefund = canDirectRefund(selectedOrder)
+    const allowCheckIn = canCheckIn(selectedOrder)
+    const allowCheckOut = canCheckOut(selectedOrder)
+    const allowNoShow = canMarkNoShow(selectedOrder)
 
     return (
       <div className="order-drawer">
@@ -587,6 +851,12 @@ export function OrderManagementPage() {
             <Space align="center" size={12}>
               <Tag theme={orderStatusThemeMap[selectedOrder.status]} variant="light-outline">
                 {selectedOrder.statusLabel}
+              </Tag>
+              <Tag theme="default" variant="light-outline">
+                {selectedOrder.bookingStatusLabel}
+              </Tag>
+              <Tag theme="default" variant="light-outline">
+                {selectedOrder.paymentStatusLabel}
               </Tag>
               <Tag theme="default" variant="light-outline">
                 {resolveSourceLabel(selectedOrder.source)}
@@ -647,16 +917,38 @@ export function OrderManagementPage() {
 
           <article className="order-detail-card">
             <h4>售后记录</h4>
-            <p>{selectedOrder.afterSaleReason || '当前还没有售后处理记录'}</p>
+            <p>{resolveAfterSaleSummary(selectedOrder)}</p>
+            {selectedOrder.latestAfterSaleType ? (
+              <dl className="order-detail-list">
+                <div>
+                  <dt>最近售后类型</dt>
+                  <dd>{selectedOrder.latestAfterSaleType === 'RESCHEDULE' ? '改期' : '退款'}</dd>
+                </div>
+                <div>
+                  <dt>最近售后状态</dt>
+                  <dd>{selectedOrder.latestAfterSaleStatusLabel || '未发起'}</dd>
+                </div>
+                <div>
+                  <dt>累计改期次数</dt>
+                  <dd>{selectedOrder.rescheduleCount}</dd>
+                </div>
+                {hasRejectedAfterSale(selectedOrder) && selectedOrder.latestAfterSaleRejectReason ? (
+                  <div>
+                    <dt>拒绝原因</dt>
+                    <dd>{selectedOrder.latestAfterSaleRejectReason}</dd>
+                  </div>
+                ) : null}
+              </dl>
+            ) : null}
           </article>
         </div>
 
         <section className="order-detail-card order-action-card">
           <div className="order-action-card__header">
             <div>
-              <h4>售后处理</h4>
+              <h4>订单处理</h4>
               <p>
-                当前只允许对 `待入住 / 已改期` 订单执行改期或退款，失败原因直接透传后端返回文案。
+                当前页面按 `主订单状态 + 支付状态 + 售后申请状态` 展示，并区分“用户提交申请”和“后台直接处理”。
               </p>
             </div>
             <Space align="center" size={12}>
@@ -675,37 +967,28 @@ export function OrderManagementPage() {
                 size="small"
                 theme="primary"
                 variant={drawerMode === 'reschedule' ? 'base' : 'outline'}
-                disabled={!canOperate}
+                disabled={!allowDirectReschedule}
                 onClick={() => {
                   setDrawerMode('reschedule')
                   resetActionState()
                 }}
               >
-                改期处理
+                后台改期
               </Button>
               <Button
                 size="small"
                 theme="danger"
                 variant={drawerMode === 'refund' ? 'base' : 'outline'}
-                disabled={!canOperate}
+                disabled={!allowDirectRefund}
                 onClick={() => {
                   setDrawerMode('refund')
                   resetActionState()
                 }}
               >
-                退款处理
+                后台退款
               </Button>
             </Space>
           </div>
-
-          {!canOperate ? (
-            <div className="order-action-card__notice">
-              <Tag theme="warning" variant="light-outline">
-                当前状态不可售后
-              </Tag>
-              <p>只有待入住和已改期订单允许在后台继续改期或退款。</p>
-            </div>
-          ) : null}
 
           {actionFeedback ? (
             <div className="order-action-feedback">
@@ -716,8 +999,119 @@ export function OrderManagementPage() {
             </div>
           ) : null}
 
+          {drawerMode === 'detail' && canReview ? (
+            <div className="order-action-form">
+              <div className="order-action-card__notice">
+                <Tag theme="warning" variant="light-outline">
+                  待审核申请
+                </Tag>
+                <p>
+                  用户已提交
+                  {selectedOrder.latestAfterSaleType === 'RESCHEDULE' ? '改期' : '退款'}
+                  申请，当前状态为 {selectedOrder.latestAfterSaleStatusLabel}。
+                </p>
+              </div>
+              <label className="room-field">
+                <span className="room-field__label">拒绝原因</span>
+                <Textarea
+                  autosize={{ minRows: 3, maxRows: 5 }}
+                  placeholder="请输入拒绝原因，例如：房态已锁满、已过可退款时限"
+                  value={rejectEditor.rejectReason}
+                  onChange={(value) => updateRejectField('rejectReason', String(value))}
+                />
+                {rejectErrors.rejectReason ? (
+                  <span className="form-error">{rejectErrors.rejectReason}</span>
+                ) : null}
+              </label>
+              <div className="order-action-form__footer">
+                <p>
+                  申请状态：{reviewStatus ? selectedOrder.latestAfterSaleStatusLabel : '未发起'}，
+                  申请编号：{selectedOrder.latestAfterSaleRequestId ?? '--'}
+                </p>
+                <Space align="center" size={12}>
+                  <Button
+                    theme="primary"
+                    loading={approveAfterSaleMutation.isPending}
+                    onClick={handleApproveAfterSale}
+                  >
+                    同意申请
+                  </Button>
+                  <Button
+                    theme="danger"
+                    variant="outline"
+                    loading={rejectAfterSaleMutation.isPending}
+                    onClick={handleRejectAfterSale}
+                  >
+                    拒绝申请
+                  </Button>
+                </Space>
+              </div>
+            </div>
+          ) : null}
+
+          {drawerMode === 'detail' && !canReview ? (
+            <div className="order-action-form">
+              <div className="order-action-card__notice">
+                <Tag theme="default" variant="light-outline">
+                  当前处理能力
+                </Tag>
+                <p>
+                  {allowDirectReschedule || allowDirectRefund || allowCheckIn || allowCheckOut || allowNoShow
+                    ? '可执行后台改期/退款、办理入住/离店或标记失约。'
+                    : '当前订单暂无可执行动作，可查看状态与时间线。'}
+                </p>
+              </div>
+              <div className="order-action-form__footer">
+                <p>
+                  最近售后：{selectedOrder.latestAfterSaleStatusLabel || '无'}，
+                  当前支付：{selectedOrder.paymentStatusLabel}
+                </p>
+                <Space align="center" size={12}>
+                  {allowCheckIn ? (
+                    <Button
+                      theme="success"
+                      variant="outline"
+                      loading={checkInMutation.isPending}
+                      onClick={handleCheckIn}
+                    >
+                      办理入住
+                    </Button>
+                  ) : null}
+                  {allowCheckOut ? (
+                    <Button
+                      theme="success"
+                      variant="outline"
+                      loading={checkOutMutation.isPending}
+                      onClick={handleCheckOut}
+                    >
+                      办理离店
+                    </Button>
+                  ) : null}
+                  {allowNoShow ? (
+                    <Button
+                      theme="warning"
+                      variant="outline"
+                      loading={noShowMutation.isPending}
+                      onClick={handleMarkNoShow}
+                    >
+                      标记失约
+                    </Button>
+                  ) : null}
+                </Space>
+              </div>
+            </div>
+          ) : null}
+
           {drawerMode === 'reschedule' ? (
             <div className="order-action-form">
+              {!allowDirectReschedule ? (
+                <div className="order-action-card__notice">
+                  <Tag theme="warning" variant="light-outline">
+                    当前状态不可后台改期
+                  </Tag>
+                  <p>仅 `bookingStatus = CONFIRMED` 且 `paymentStatus = PAID`、无进行中售后时允许后台直接改期。</p>
+                </div>
+              ) : null}
               <div className="order-action-form__grid">
                 <label className="room-field">
                   <span className="room-field__label">新的入住日期</span>
@@ -765,6 +1159,7 @@ export function OrderManagementPage() {
                 <p>原订单共 {selectedOrder.nights} 晚，改期时需保持相同住晚数。</p>
                 <Button
                   theme="primary"
+                  disabled={!allowDirectReschedule}
                   loading={rescheduleMutation.isPending}
                   onClick={handleSubmitReschedule}
                 >
@@ -776,6 +1171,14 @@ export function OrderManagementPage() {
 
           {drawerMode === 'refund' ? (
             <div className="order-action-form">
+              {!allowDirectRefund ? (
+                <div className="order-action-card__notice">
+                  <Tag theme="warning" variant="light-outline">
+                    当前状态不可后台退款
+                  </Tag>
+                  <p>仅 `bookingStatus = CONFIRMED` 且 `paymentStatus = PAID`、无进行中售后时允许后台直接退款。</p>
+                </div>
+              ) : null}
               <label className="room-field">
                 <span className="room-field__label">退款原因</span>
                 <Textarea
@@ -791,6 +1194,7 @@ export function OrderManagementPage() {
                 <p>退款成功后会回补原入住日期的锁定库存，并更新售后原因。</p>
                 <Button
                   theme="danger"
+                  disabled={!allowDirectRefund}
                   loading={refundMutation.isPending}
                   onClick={handleSubmitRefund}
                 >
@@ -809,11 +1213,11 @@ export function OrderManagementPage() {
       <section className="hero-panel order-hero">
         <div className="hero-panel__copy">
           <Tag theme="success" variant="light-outline">
-            S13 订单与售后页面
+            S15 订单状态机
           </Tag>
-          <h3>订单筛选、详情抽屉与售后闭环</h3>
+          <h3>订单分层状态、售后审批与入住履约</h3>
           <p>
-            当前页面已接入 S8 管理端订单列表、详情、经营概览和改期/退款接口，支持按状态、关键词、入住日期筛选并在抽屉内完成售后处理。
+            当前页面已接入订单主状态、支付状态、售后申请状态和入住/离店/失约流程，支持在抽屉内完成审批与履约处理。
           </p>
         </div>
         <div className="order-stat-grid">
@@ -914,11 +1318,11 @@ export function OrderManagementPage() {
             <div>
               <h3>订单列表</h3>
               <p>
-                当前筛选结果 {orderListQuery.data?.length ?? 0} 条，支持查看详情、改期和退款处理。
+                当前筛选结果 {orderListQuery.data?.length ?? 0} 条，支持查看详情、售后审批和入住履约处理。
               </p>
             </div>
             <Tag theme="warning" variant="light-outline">
-              S8 API 已接入
+              S15 API 已接入
             </Tag>
           </div>
           <Table
