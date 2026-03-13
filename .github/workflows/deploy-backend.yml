@@ -20,12 +20,14 @@ concurrency:
   group: deploy-ecs-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  BACKEND_MAVEN_MIRROR: central
+
 jobs:
-  build-and-push:
+  detect-targets:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write
     outputs:
       source_sha: ${{ steps.image_meta.outputs.source_sha }}
       backend_changed: ${{ steps.targets.outputs.backend_changed }}
@@ -38,8 +40,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: refs/heads/main
-          fetch-depth: 0
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+
+      - name: Fetch previous revision for diff
+        if: github.event_name != 'workflow_dispatch'
+        run: |
+          before="${{ github.event.before }}"
+          if [ -n "$before" ] && [ "$before" != "0000000000000000000000000000000000000000" ] && ! git cat-file -e "${before}^{commit}" 2>/dev/null; then
+            git fetch --no-tags --depth=1 origin "$before"
+          fi
 
       - name: Detect deployment targets
         id: targets
@@ -81,41 +91,58 @@ jobs:
             echo "ingress_changed=${ingress_changed}"
           } >> "${GITHUB_OUTPUT}"
 
-      - name: Resolve GHCR image tags
+      - name: Resolve GHCR image refs
         id: image_meta
         run: |
           source_sha="$(git rev-parse --verify HEAD)"
           owner="$(printf '%s' "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')"
 
           backend_image_ref=""
-          backend_all_tags=""
           if [ "${{ steps.targets.outputs.backend_changed }}" = "true" ]; then
             backend_image_ref="ghcr.io/${owner}/sunflower-backend:${source_sha}"
-            backend_all_tags="${backend_image_ref}"
-            if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
-              backend_all_tags="${backend_all_tags}"$'\n'"ghcr.io/${owner}/sunflower-backend:latest"
-            fi
           fi
 
           admin_web_image_ref=""
-          admin_web_all_tags=""
           if [ "${{ steps.targets.outputs.admin_web_changed }}" = "true" ]; then
             admin_web_image_ref="ghcr.io/${owner}/sunflower-admin-web:${source_sha}"
-            admin_web_all_tags="${admin_web_image_ref}"
-            if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
-              admin_web_all_tags="${admin_web_all_tags}"$'\n'"ghcr.io/${owner}/sunflower-admin-web:latest"
-            fi
           fi
 
           {
             echo "source_sha=${source_sha}"
             echo "backend_image_ref=${backend_image_ref}"
             echo "admin_web_image_ref=${admin_web_image_ref}"
-            echo "backend_all_tags<<EOF"
-            printf '%s\n' "${backend_all_tags}"
-            echo "EOF"
-            echo "admin_web_all_tags<<EOF"
-            printf '%s\n' "${admin_web_all_tags}"
+          } >> "${GITHUB_OUTPUT}"
+
+  build-backend:
+    needs: detect-targets
+    if: needs.detect-targets.outputs.backend_changed == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout backend source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          sparse-checkout: |
+            .github
+            sunflower-backend
+
+      - name: Resolve backend image tags
+        id: image_meta
+        run: |
+          image_ref="${{ needs.detect-targets.outputs.backend_image }}"
+          all_tags="${image_ref}"
+          if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+            all_tags="${all_tags}"$'\n'"${image_ref%:*}:latest"
+          fi
+
+          {
+            echo "all_tags<<EOF"
+            printf '%s\n' "${all_tags}"
             echo "EOF"
           } >> "${GITHUB_OUTPUT}"
 
@@ -130,40 +157,102 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push backend image
-        if: steps.targets.outputs.backend_changed == 'true'
         uses: docker/build-push-action@v6
         with:
           context: ./sunflower-backend
           push: true
-          tags: ${{ steps.image_meta.outputs.backend_all_tags }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          tags: ${{ steps.image_meta.outputs.all_tags }}
+          build-args: |
+            MAVEN_MIRROR=${{ env.BACKEND_MAVEN_MIRROR }}
+          cache-from: type=gha,scope=sunflower-backend
+          cache-to: type=gha,mode=max,scope=sunflower-backend
+
+  build-admin-web:
+    needs: detect-targets
+    if: needs.detect-targets.outputs.admin_web_changed == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout admin web source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          sparse-checkout: |
+            .github
+            sunflower-admin-web
+
+      - name: Resolve admin web image tags
+        id: image_meta
+        run: |
+          image_ref="${{ needs.detect-targets.outputs.admin_web_image }}"
+          all_tags="${image_ref}"
+          if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+            all_tags="${all_tags}"$'\n'"${image_ref%:*}:latest"
+          fi
+
+          {
+            echo "all_tags<<EOF"
+            printf '%s\n' "${all_tags}"
+            echo "EOF"
+          } >> "${GITHUB_OUTPUT}"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push admin web image
-        if: steps.targets.outputs.admin_web_changed == 'true'
         uses: docker/build-push-action@v6
         with:
           context: ./sunflower-admin-web
           push: true
-          tags: ${{ steps.image_meta.outputs.admin_web_all_tags }}
+          tags: ${{ steps.image_meta.outputs.all_tags }}
           build-args: |
             VITE_APP_TITLE=Sunflower Admin Web
             VITE_API_BASE_URL=/api
             VITE_API_PROXY_TARGET=http://backend:8080
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=sunflower-admin-web
+          cache-to: type=gha,mode=max,scope=sunflower-admin-web
 
   deploy:
-    if: needs.build-and-push.outputs.backend_changed == 'true' || needs.build-and-push.outputs.admin_web_changed == 'true' || needs.build-and-push.outputs.ingress_changed == 'true'
-    needs: build-and-push
+    if: >-
+      ${{
+        always() &&
+        !cancelled() &&
+        (
+          needs.detect-targets.outputs.backend_changed == 'true' ||
+          needs.detect-targets.outputs.admin_web_changed == 'true' ||
+          needs.detect-targets.outputs.ingress_changed == 'true'
+        ) &&
+        (needs.build-backend.result == 'success' || needs.build-backend.result == 'skipped') &&
+        (needs.build-admin-web.result == 'success' || needs.build-admin-web.result == 'skipped')
+      }}
+    needs:
+      - detect-targets
+      - build-backend
+      - build-admin-web
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout deployment bundle source
         uses: actions/checkout@v4
         with:
-          ref: refs/heads/main
+          ref: ${{ github.sha }}
           fetch-depth: 1
+          sparse-checkout: |
+            docker-compose.yml
+            deploy/nginx
+            scripts
+          sparse-checkout-cone-mode: false
 
       - name: Package deployment bundle
         run: |
@@ -202,9 +291,9 @@ jobs:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.2.0
         env:
-          BACKEND_IMAGE: ${{ needs.build-and-push.outputs.backend_image }}
-          ADMIN_WEB_IMAGE: ${{ needs.build-and-push.outputs.admin_web_image }}
-          SOURCE_SHA: ${{ needs.build-and-push.outputs.source_sha }}
+          BACKEND_IMAGE: ${{ needs.detect-targets.outputs.backend_image }}
+          ADMIN_WEB_IMAGE: ${{ needs.detect-targets.outputs.admin_web_image }}
+          SOURCE_SHA: ${{ needs.detect-targets.outputs.source_sha }}
           ECS_DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
           GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
