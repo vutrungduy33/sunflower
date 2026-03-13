@@ -34,7 +34,7 @@ export const navigationItems: NavigationItem[] = [
     value: 'orders',
     path: '/orders',
     label: '订单售后',
-    description: 'S13 将补齐订单筛选、详情与售后处理。',
+    description: '查看订单筛选结果、详情抽屉，并完成改期和退款处理。',
     stage: 'S13',
   },
   {

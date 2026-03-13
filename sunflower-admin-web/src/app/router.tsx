@@ -8,9 +8,6 @@ import { navigationItems, type RouteHandle } from '@/app/navigation'
 import { ProtectedShell } from '@/app/protected-shell'
 
 const [overviewItem, roomsItem, pricingItem, ordersItem, foundationsItem] = navigationItems
-const FeaturePlaceholderPage = lazy(async () => import('@/pages/feature-placeholder-page').then((module) => ({
-  default: module.FeaturePlaceholderPage,
-})))
 const FoundationsPage = lazy(async () => import('@/pages/foundations-page').then((module) => ({
   default: module.FoundationsPage,
 })))
@@ -22,6 +19,9 @@ const NotFoundPage = lazy(async () => import('@/pages/not-found-page').then((mod
 })))
 const PricingManagementPage = lazy(async () => import('@/pages/pricing-management-page').then((module) => ({
   default: module.PricingManagementPage,
+})))
+const OrderManagementPage = lazy(async () => import('@/pages/order-management-page').then((module) => ({
+  default: module.OrderManagementPage,
 })))
 const RoomManagementPage = lazy(async () => import('@/pages/room-management-page').then((module) => ({
   default: module.RoomManagementPage,
@@ -73,18 +73,7 @@ export const appRoutes: RouteObject[] = [
       },
       {
         path: 'orders',
-        element: renderDeferredPage(
-          <FeaturePlaceholderPage
-            title={ordersItem.label}
-            stage={ordersItem.stage}
-            summary="当前仅开放登录后的页面骨架，订单筛选、详情和售后操作将在 S13 开发。"
-            bulletPoints={[
-              '接入 S8 订单列表与详情接口。',
-              '补齐改期、退款和失败反馈处理。',
-              '统一状态标签、筛选区和详情视图。',
-            ]}
-          />
-        ),
+        element: renderDeferredPage(<OrderManagementPage />),
         handle: ordersItem satisfies RouteHandle,
       },
       {
