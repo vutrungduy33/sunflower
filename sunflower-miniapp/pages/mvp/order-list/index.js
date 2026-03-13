@@ -20,10 +20,12 @@ Page({
       { key: 'ALL', label: '全部' },
       { key: 'PENDING_PAYMENT', label: '待支付' },
       { key: 'CONFIRMED', label: '待入住' },
+      { key: 'CHECKED_IN', label: '已入住' },
       { key: 'RESCHEDULED', label: '已改期' },
       { key: 'REFUNDED', label: '已退款' },
       { key: 'COMPLETED', label: '已完成' },
       { key: 'CANCELLED', label: '已取消' },
+      { key: 'NO_SHOW', label: '已失约' },
     ],
     rescheduleCalendarVisible: false,
     rescheduleTargetOrderId: '',
@@ -123,8 +125,8 @@ Page({
       }
 
       const order = await postRefundOrder(id, '用户在小程序发起退款');
-      track('order_refund_success', { orderId: order.id, amount: order.totalAmount });
-      wx.showToast({ title: '退款成功', icon: 'success' });
+      track('order_refund_request_submit', { orderId: order.id, amount: order.totalAmount });
+      wx.showToast({ title: '退款申请已提交', icon: 'success' });
       this.loadOrders();
     } catch (error) {
       wx.showToast({ title: error.message || '退款失败', icon: 'none' });
@@ -178,12 +180,12 @@ Page({
         reason: `用户在小程序发起改期：${order.checkInDate}→${nextCheckInDate}`,
       };
       const updatedOrder = await postRescheduleOrder(order.id, payload);
-      track('order_reschedule_success', {
+      track('order_reschedule_request_submit', {
         orderId: updatedOrder.id,
         fromCheckInDate: order.checkInDate,
         toCheckInDate: payload.checkInDate,
       });
-      wx.showToast({ title: '改期成功', icon: 'success' });
+      wx.showToast({ title: '改期申请已提交', icon: 'success' });
       this.onRescheduleCalendarClose();
       this.loadOrders();
     } catch (error) {

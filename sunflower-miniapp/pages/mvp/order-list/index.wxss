@@ -72,6 +72,11 @@
   background: #e8f5e9;
 }
 
+.order-status--CHECKED_IN {
+  color: #0f766e;
+  background: #ccfbf1;
+}
+
 .order-status--RESCHEDULED {
   color: #155e75;
   background: #cffafe;
@@ -90,6 +95,11 @@
 .order-status--CANCELLED {
   color: #7f1d1d;
   background: #fee2e2;
+}
+
+.order-status--NO_SHOW {
+  color: #991b1b;
+  background: #fecaca;
 }
 
 .order-card__room {

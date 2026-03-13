@@ -30,14 +30,26 @@ function normalizeProfile(profile) {
 }
 
 function normalizeOrders(orders) {
-  return Array.isArray(orders) ? orders : [];
+  return Array.isArray(orders)
+    ? orders.map((order) => ({
+        ...(order && typeof order === 'object' ? order : {}),
+        status: `${(order && order.status) || ''}`.trim(),
+        bookingStatus: `${(order && order.bookingStatus) || ''}`.trim(),
+      }))
+    : [];
 }
 
 function buildOrderStats(orders) {
   return {
-    pending: orders.filter((order) => order && order.status === 'PENDING_PAYMENT').length,
-    confirmed: orders.filter((order) => order && order.status === 'CONFIRMED').length,
-    completed: orders.filter((order) => order && order.status === 'COMPLETED').length,
+    pending: orders.filter(
+      (order) => order && (order.bookingStatus === 'PENDING_PAYMENT' || order.status === 'PENDING_PAYMENT')
+    ).length,
+    confirmed: orders.filter(
+      (order) => order && (order.bookingStatus === 'CONFIRMED' || order.status === 'CONFIRMED' || order.status === 'RESCHEDULED')
+    ).length,
+    completed: orders.filter(
+      (order) => order && (order.bookingStatus === 'CHECKED_OUT' || order.status === 'COMPLETED')
+    ).length,
   };
 }
 

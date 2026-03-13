@@ -17,9 +17,22 @@ public class OrderDto {
     private int totalAmount;
     private String status;
     private String statusLabel;
+    private String bookingStatus;
+    private String bookingStatusLabel;
+    private String paymentStatus;
+    private String paymentStatusLabel;
+    private Long latestAfterSaleRequestId;
+    private String latestAfterSaleType;
+    private String latestAfterSaleStatus;
+    private String latestAfterSaleStatusLabel;
+    private String latestAfterSaleRejectReason;
+    private int rescheduleCount;
     private String createdAt;
     private String paidAt;
     private String cancelledAt;
+    private String checkedInAt;
+    private String checkedOutAt;
+    private String noShowAt;
     private String rescheduledAt;
     private String refundedAt;
     private String afterSaleReason;
@@ -144,6 +157,86 @@ public class OrderDto {
         this.statusLabel = statusLabel;
     }
 
+    public String getBookingStatus() {
+        return bookingStatus;
+    }
+
+    public void setBookingStatus(String bookingStatus) {
+        this.bookingStatus = bookingStatus;
+    }
+
+    public String getBookingStatusLabel() {
+        return bookingStatusLabel;
+    }
+
+    public void setBookingStatusLabel(String bookingStatusLabel) {
+        this.bookingStatusLabel = bookingStatusLabel;
+    }
+
+    public String getPaymentStatus() {
+        return paymentStatus;
+    }
+
+    public void setPaymentStatus(String paymentStatus) {
+        this.paymentStatus = paymentStatus;
+    }
+
+    public String getPaymentStatusLabel() {
+        return paymentStatusLabel;
+    }
+
+    public void setPaymentStatusLabel(String paymentStatusLabel) {
+        this.paymentStatusLabel = paymentStatusLabel;
+    }
+
+    public Long getLatestAfterSaleRequestId() {
+        return latestAfterSaleRequestId;
+    }
+
+    public void setLatestAfterSaleRequestId(Long latestAfterSaleRequestId) {
+        this.latestAfterSaleRequestId = latestAfterSaleRequestId;
+    }
+
+    public String getLatestAfterSaleType() {
+        return latestAfterSaleType;
+    }
+
+    public void setLatestAfterSaleType(String latestAfterSaleType) {
+        this.latestAfterSaleType = latestAfterSaleType;
+    }
+
+    public String getLatestAfterSaleStatus() {
+        return latestAfterSaleStatus;
+    }
+
+    public void setLatestAfterSaleStatus(String latestAfterSaleStatus) {
+        this.latestAfterSaleStatus = latestAfterSaleStatus;
+    }
+
+    public String getLatestAfterSaleStatusLabel() {
+        return latestAfterSaleStatusLabel;
+    }
+
+    public void setLatestAfterSaleStatusLabel(String latestAfterSaleStatusLabel) {
+        this.latestAfterSaleStatusLabel = latestAfterSaleStatusLabel;
+    }
+
+    public String getLatestAfterSaleRejectReason() {
+        return latestAfterSaleRejectReason;
+    }
+
+    public void setLatestAfterSaleRejectReason(String latestAfterSaleRejectReason) {
+        this.latestAfterSaleRejectReason = latestAfterSaleRejectReason;
+    }
+
+    public int getRescheduleCount() {
+        return rescheduleCount;
+    }
+
+    public void setRescheduleCount(int rescheduleCount) {
+        this.rescheduleCount = rescheduleCount;
+    }
+
     public String getCreatedAt() {
         return createdAt;
     }
@@ -166,6 +259,30 @@ public class OrderDto {
 
     public void setCancelledAt(String cancelledAt) {
         this.cancelledAt = cancelledAt;
+    }
+
+    public String getCheckedInAt() {
+        return checkedInAt;
+    }
+
+    public void setCheckedInAt(String checkedInAt) {
+        this.checkedInAt = checkedInAt;
+    }
+
+    public String getCheckedOutAt() {
+        return checkedOutAt;
+    }
+
+    public void setCheckedOutAt(String checkedOutAt) {
+        this.checkedOutAt = checkedOutAt;
+    }
+
+    public String getNoShowAt() {
+        return noShowAt;
+    }
+
+    public void setNoShowAt(String noShowAt) {
+        this.noShowAt = noShowAt;
     }
 
     public String getRescheduledAt() {

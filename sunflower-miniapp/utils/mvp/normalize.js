@@ -95,13 +95,40 @@ function normalizePoiList(poiList) {
   return normalizeObjectArray(poiList);
 }
 
+function normalizeOrder(order) {
+  const next = normalizeObject(order);
+  const status = `${next.status || ''}`.trim();
+  const bookingStatus = `${next.bookingStatus || ''}`.trim();
+  const paymentStatus = `${next.paymentStatus || ''}`.trim();
+  const latestAfterSaleStatus = `${next.latestAfterSaleStatus || ''}`.trim();
+
+  return {
+    ...next,
+    status,
+    bookingStatus,
+    paymentStatus,
+    latestAfterSaleType: `${next.latestAfterSaleType || ''}`.trim(),
+    latestAfterSaleStatus,
+    latestAfterSaleStatusLabel: `${next.latestAfterSaleStatusLabel || ''}`.trim(),
+    latestAfterSaleRejectReason: `${next.latestAfterSaleRejectReason || ''}`.trim(),
+    statusLabel: `${next.statusLabel || status}`.trim() || status,
+    canPay: status === 'PENDING_PAYMENT',
+    canCancel: bookingStatus ? bookingStatus === 'PENDING_PAYMENT' : status === 'PENDING_PAYMENT',
+    canReschedule:
+      bookingStatus === 'CONFIRMED' && paymentStatus === 'PAID' && latestAfterSaleStatus !== 'REQUESTED',
+    canRefund:
+      bookingStatus === 'CONFIRMED' && paymentStatus === 'PAID' && latestAfterSaleStatus !== 'REQUESTED',
+  };
+}
+
 function normalizeOrders(orders) {
-  return normalizeObjectArray(orders);
+  return normalizeObjectArray(orders).map((order) => normalizeOrder(order));
 }
 
 module.exports = {
   normalizeCalendar,
   normalizeHomeData,
+  normalizeOrder,
   normalizeOrders,
   normalizePoiList,
   normalizeProfile,

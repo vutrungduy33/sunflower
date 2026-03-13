@@ -4,10 +4,15 @@ import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+  approveAdminAfterSaleRequest,
+  checkInAdminOrder,
+  checkOutAdminOrder,
   fetchAdminOrderDetail,
   fetchAdminOrderOverview,
   fetchAdminOrders,
   getAdminOrderErrorMessage,
+  noShowAdminOrder,
+  rejectAdminAfterSaleRequest,
   refundAdminOrder,
   rescheduleAdminOrder,
   type AdminOrder,
@@ -242,12 +247,17 @@ vi.mock('tdesign-react', () => {
 })
 
 vi.mock('@/features/orders/admin-order-service', () => ({
+  approveAdminAfterSaleRequest: vi.fn(),
+  checkInAdminOrder: vi.fn(),
+  checkOutAdminOrder: vi.fn(),
   fetchAdminOrderDetail: vi.fn(),
   fetchAdminOrderOverview: vi.fn(),
   fetchAdminOrders: vi.fn(),
   getAdminOrderErrorMessage: vi.fn((error: unknown, fallback?: string) =>
     error instanceof Error ? error.message : fallback || '订单操作失败，请稍后重试',
   ),
+  noShowAdminOrder: vi.fn(),
+  rejectAdminAfterSaleRequest: vi.fn(),
   refundAdminOrder: vi.fn(),
   rescheduleAdminOrder: vi.fn(),
 }))
@@ -280,9 +290,22 @@ function buildOrder(overrides: Partial<AdminOrder> = {}): AdminOrder {
     totalAmount: 488,
     status: 'CONFIRMED',
     statusLabel: '待入住',
+    bookingStatus: 'CONFIRMED',
+    bookingStatusLabel: '待入住',
+    paymentStatus: 'PAID',
+    paymentStatusLabel: '已支付',
+    latestAfterSaleRequestId: null,
+    latestAfterSaleType: '',
+    latestAfterSaleStatus: '',
+    latestAfterSaleStatusLabel: '',
+    latestAfterSaleRejectReason: '',
+    rescheduleCount: 0,
     createdAt: '2026-03-11T10:30:12+08:00',
     paidAt: '2026-03-11T10:31:00+08:00',
     cancelledAt: '',
+    checkedInAt: '',
+    checkedOutAt: '',
+    noShowAt: '',
     rescheduledAt: '',
     refundedAt: '',
     afterSaleReason: '',
@@ -317,6 +340,11 @@ describe('OrderManagementPage', () => {
     vi.mocked(fetchAdminOrderOverview).mockReset()
     vi.mocked(fetchAdminOrders).mockReset()
     vi.mocked(fetchAdminOrderDetail).mockReset()
+    vi.mocked(approveAdminAfterSaleRequest).mockReset()
+    vi.mocked(checkInAdminOrder).mockReset()
+    vi.mocked(checkOutAdminOrder).mockReset()
+    vi.mocked(noShowAdminOrder).mockReset()
+    vi.mocked(rejectAdminAfterSaleRequest).mockReset()
     vi.mocked(rescheduleAdminOrder).mockReset()
     vi.mocked(refundAdminOrder).mockReset()
     vi.mocked(getAdminOrderErrorMessage).mockClear()
@@ -326,6 +354,65 @@ describe('OrderManagementPage', () => {
     vi.mocked(fetchAdminOrderDetail).mockImplementation(async (orderId: string) =>
       buildOrder({ id: orderId }),
     )
+    vi.mocked(approveAdminAfterSaleRequest).mockImplementation(async (orderId: string) =>
+      buildOrder({
+        id: orderId,
+        status: 'REFUNDED',
+        statusLabel: '已退款',
+        bookingStatus: 'CANCELLED',
+        bookingStatusLabel: '已取消',
+        paymentStatus: 'REFUNDED',
+        paymentStatusLabel: '已退款',
+        latestAfterSaleRequestId: 11,
+        latestAfterSaleType: 'REFUND',
+        latestAfterSaleStatus: 'APPROVED',
+        latestAfterSaleStatusLabel: '已同意',
+        refundedAt: '2026-03-13T11:35:00+08:00',
+        afterSaleReason: '用户申请退款',
+      }),
+    )
+    vi.mocked(checkInAdminOrder).mockImplementation(async (orderId: string) =>
+      buildOrder({
+        id: orderId,
+        status: 'CHECKED_IN',
+        statusLabel: '已入住',
+        bookingStatus: 'CHECKED_IN',
+        bookingStatusLabel: '已入住',
+        checkedInAt: '2026-03-13T15:00:00+08:00',
+      }),
+    )
+    vi.mocked(checkOutAdminOrder).mockImplementation(async (orderId: string) =>
+      buildOrder({
+        id: orderId,
+        status: 'COMPLETED',
+        statusLabel: '已完成',
+        bookingStatus: 'CHECKED_OUT',
+        bookingStatusLabel: '已离店',
+        checkedInAt: '2026-03-13T15:00:00+08:00',
+        checkedOutAt: '2026-03-14T12:00:00+08:00',
+      }),
+    )
+    vi.mocked(noShowAdminOrder).mockImplementation(async (orderId: string) =>
+      buildOrder({
+        id: orderId,
+        status: 'NO_SHOW',
+        statusLabel: '已失约',
+        bookingStatus: 'NO_SHOW',
+        bookingStatusLabel: '已失约',
+        noShowAt: '2026-03-13T20:00:00+08:00',
+      }),
+    )
+    vi.mocked(rejectAdminAfterSaleRequest).mockImplementation(async (orderId: string, _requestId: number, payload: { rejectReason?: string }) =>
+      buildOrder({
+        id: orderId,
+        latestAfterSaleRequestId: 11,
+        latestAfterSaleType: 'REFUND',
+        latestAfterSaleStatus: 'REJECTED',
+        latestAfterSaleStatusLabel: '已拒绝',
+        latestAfterSaleRejectReason: payload.rejectReason ?? '',
+        afterSaleReason: '用户申请退款',
+      }),
+    )
     vi.mocked(rescheduleAdminOrder).mockImplementation(
       async (orderId: string, payload: { checkInDate: string; checkOutDate: string; reason?: string }) =>
         buildOrder({
@@ -334,6 +421,15 @@ describe('OrderManagementPage', () => {
           checkOutDate: payload.checkOutDate,
           status: 'RESCHEDULED',
           statusLabel: '已改期',
+          bookingStatus: 'CONFIRMED',
+          bookingStatusLabel: '待入住',
+          paymentStatus: 'PAID',
+          paymentStatusLabel: '已支付',
+          latestAfterSaleRequestId: 8,
+          latestAfterSaleType: 'RESCHEDULE',
+          latestAfterSaleStatus: 'APPROVED',
+          latestAfterSaleStatusLabel: '已同意',
+          rescheduleCount: 1,
           rescheduledAt: '2026-03-13T11:20:00+08:00',
           afterSaleReason: payload.reason ?? '',
         }),
@@ -344,6 +440,14 @@ describe('OrderManagementPage', () => {
           id: orderId,
           status: 'REFUNDED',
           statusLabel: '已退款',
+          bookingStatus: 'CANCELLED',
+          bookingStatusLabel: '已取消',
+          paymentStatus: 'REFUNDED',
+          paymentStatusLabel: '已退款',
+          latestAfterSaleRequestId: 9,
+          latestAfterSaleType: 'REFUND',
+          latestAfterSaleStatus: 'APPROVED',
+          latestAfterSaleStatusLabel: '已同意',
           refundedAt: '2026-03-13T11:40:00+08:00',
           afterSaleReason: payload.reason ?? '',
         }),
@@ -372,14 +476,14 @@ describe('OrderManagementPage', () => {
     })
   })
 
-  it('submits a reschedule action successfully from the drawer', async () => {
+  it('submits a direct reschedule action successfully from the drawer', async () => {
     const user = userEvent.setup()
 
     renderOrderManagementPage()
 
     expect(await screen.findByText('后台售后住客A')).toBeInTheDocument()
 
-    await user.click(screen.getAllByRole('button', { name: '改期' })[0])
+    await user.click(screen.getAllByRole('button', { name: '后台改期' })[0])
     expect(await screen.findByRole('dialog')).toBeInTheDocument()
 
     await user.clear(screen.getByLabelText('新的入住日期'))
@@ -401,7 +505,45 @@ describe('OrderManagementPage', () => {
     })
   })
 
-  it('shows backend feedback when refund fails', async () => {
+  it('approves a pending after-sale request from the drawer', async () => {
+    const user = userEvent.setup()
+
+    vi.mocked(fetchAdminOrders).mockResolvedValue([
+      buildOrder({
+        latestAfterSaleRequestId: 11,
+        latestAfterSaleType: 'REFUND',
+        latestAfterSaleStatus: 'REQUESTED',
+        latestAfterSaleStatusLabel: '处理中',
+        afterSaleReason: '用户申请退款',
+      }),
+    ])
+    vi.mocked(fetchAdminOrderDetail).mockResolvedValue(
+      buildOrder({
+        latestAfterSaleRequestId: 11,
+        latestAfterSaleType: 'REFUND',
+        latestAfterSaleStatus: 'REQUESTED',
+        latestAfterSaleStatusLabel: '处理中',
+        afterSaleReason: '用户申请退款',
+      }),
+    )
+
+    renderOrderManagementPage()
+
+    expect(await screen.findByText('后台售后住客A')).toBeInTheDocument()
+
+    await user.click(screen.getAllByRole('button', { name: '审核申请' })[0])
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '同意申请' }))
+
+    await waitFor(() => {
+      expect(approveAdminAfterSaleRequest).toHaveBeenCalledWith('order-1', 11)
+    })
+    await waitFor(() => {
+      expect(messageSuccess).toHaveBeenCalledWith('售后申请已同意')
+    })
+  })
+
+  it('shows backend feedback when direct refund fails', async () => {
     const user = userEvent.setup()
 
     vi.mocked(refundAdminOrder).mockRejectedValueOnce(new Error('当前订单状态不可退款'))
@@ -410,7 +552,7 @@ describe('OrderManagementPage', () => {
 
     expect(await screen.findByText('后台售后住客A')).toBeInTheDocument()
 
-    await user.click(screen.getAllByRole('button', { name: '退款' })[0])
+    await user.click(screen.getAllByRole('button', { name: '后台退款' })[0])
     expect(await screen.findByRole('dialog')).toBeInTheDocument()
 
     await user.type(screen.getByPlaceholderText('请输入退款原因，例如：客户临时取消、异常天气关闭房态'), '客户临时取消')

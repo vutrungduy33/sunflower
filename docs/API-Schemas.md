@@ -1,6 +1,6 @@
 # 接口字段级别定义（请求/响应示例）
 
-> 更新时间：2026-03-10  
+> 更新时间：2026-03-13  
 > 说明：以下示例对齐当前 `sunflower-backend` 的 MVP 一期实现。
 
 统一响应壳：
@@ -232,13 +232,25 @@
 
 ## 4) 住宿订单
 
-订单状态枚举：
+兼容状态字段 `status/statusLabel`：
 - `PENDING_PAYMENT`（待支付）
-- `CONFIRMED`（待入住）
-- `RESCHEDULED`（已改期）
-- `REFUNDED`（已退款）
+- `CONFIRMED`（待入住，兼容包含“退款/改期处理中、被拒绝后继续待入住”的展示）
+- `CHECKED_IN`（已入住）
+- `RESCHEDULED`（已改期，兼容展示态）
+- `REFUNDED`（已退款，兼容展示态）
 - `COMPLETED`（已完成）
 - `CANCELLED`（已取消）
+- `NO_SHOW`（已失约）
+
+主订单状态 `bookingStatus`：
+- `PENDING_PAYMENT` / `CONFIRMED` / `CHECKED_IN` / `CHECKED_OUT` / `CANCELLED` / `NO_SHOW`
+
+支付状态 `paymentStatus`：
+- `UNPAID` / `PAID` / `REFUND_PENDING` / `REFUNDED` / `PARTIALLY_REFUNDED`
+
+售后申请字段：
+- `latestAfterSaleType`：`RESCHEDULE` / `REFUND`
+- `latestAfterSaleStatus`：`REQUESTED` / `APPROVED` / `REJECTED` / `WITHDRAWN`
 
 ### `POST /api/orders`
 **请求**
@@ -273,9 +285,22 @@
   "totalAmount": 1016,
   "status": "PENDING_PAYMENT",
   "statusLabel": "待支付",
+  "bookingStatus": "PENDING_PAYMENT",
+  "bookingStatusLabel": "待支付",
+  "paymentStatus": "UNPAID",
+  "paymentStatusLabel": "未支付",
+  "latestAfterSaleRequestId": null,
+  "latestAfterSaleType": "",
+  "latestAfterSaleStatus": "",
+  "latestAfterSaleStatusLabel": "",
+  "latestAfterSaleRejectReason": "",
+  "rescheduleCount": 0,
   "createdAt": "2026-02-12T10:00:00+08:00",
   "paidAt": "",
   "cancelledAt": "",
+  "checkedInAt": "",
+  "checkedOutAt": "",
+  "noShowAt": "",
   "rescheduledAt": "",
   "refundedAt": "",
   "afterSaleReason": ""
@@ -288,11 +313,16 @@
 {
   "id": "order_1739260800000_123",
   "status": "CONFIRMED",
-  "statusLabel": "待入住"
+  "statusLabel": "待入住",
+  "bookingStatus": "CONFIRMED",
+  "paymentStatus": "PAID",
+  "paidAt": "2026-02-12T10:30:00+08:00"
 }
 ```
 
 ### `POST /api/orders/{id}/cancel`
+说明：仅允许取消 `bookingStatus = PENDING_PAYMENT` 的未支付订单。
+
 **请求（可选）**
 ```json
 {
@@ -306,12 +336,16 @@
   "id": "order_1739260800000_123",
   "status": "CANCELLED",
   "statusLabel": "已取消",
+  "bookingStatus": "CANCELLED",
+  "paymentStatus": "UNPAID",
   "cancelledAt": "2026-02-12T11:00:00+08:00",
   "afterSaleReason": "行程有变"
 }
 ```
 
 ### `POST /api/orders/{id}/reschedule`
+说明：用户端提交的是“改期申请”，不会立即改动入住日期；审批通过后才会真正更新日期和库存。
+
 **请求**
 ```json
 {
@@ -325,16 +359,23 @@
 ```json
 {
   "id": "order_1739260800000_123",
-  "checkInDate": "2026-02-15",
-  "checkOutDate": "2026-02-17",
-  "status": "RESCHEDULED",
-  "statusLabel": "已改期",
-  "rescheduledAt": "2026-02-12T11:20:00+08:00",
+  "status": "CONFIRMED",
+  "statusLabel": "待入住（改期处理中）",
+  "bookingStatus": "CONFIRMED",
+  "paymentStatus": "PAID",
+  "latestAfterSaleRequestId": 11,
+  "latestAfterSaleType": "RESCHEDULE",
+  "latestAfterSaleStatus": "REQUESTED",
+  "latestAfterSaleStatusLabel": "处理中",
+  "checkInDate": "2026-02-12",
+  "checkOutDate": "2026-02-14",
   "afterSaleReason": "机票改签"
 }
 ```
 
 ### `POST /api/orders/{id}/refund`
+说明：用户端提交的是“退款申请”，审批通过后订单会转为 `bookingStatus = CANCELLED` 并更新支付状态。
+
 **请求（可选）**
 ```json
 {
@@ -346,9 +387,14 @@
 ```json
 {
   "id": "order_1739260800000_123",
-  "status": "REFUNDED",
-  "statusLabel": "已退款",
-  "refundedAt": "2026-02-12T12:00:00+08:00",
+  "status": "CONFIRMED",
+  "statusLabel": "待入住（退款处理中）",
+  "bookingStatus": "CONFIRMED",
+  "paymentStatus": "PAID",
+  "latestAfterSaleRequestId": 12,
+  "latestAfterSaleType": "REFUND",
+  "latestAfterSaleStatus": "REQUESTED",
+  "latestAfterSaleStatusLabel": "处理中",
   "afterSaleReason": "临时取消行程"
 }
 ```
@@ -360,8 +406,12 @@
   {
     "id": "order_1739260800000_123",
     "orderNo": "SF202602121234",
-    "status": "RESCHEDULED",
-    "statusLabel": "已改期",
+    "status": "CONFIRMED",
+    "statusLabel": "待入住（退款处理中）",
+    "bookingStatus": "CONFIRMED",
+    "paymentStatus": "PAID",
+    "latestAfterSaleType": "REFUND",
+    "latestAfterSaleStatus": "REQUESTED",
     "checkInDate": "2026-02-15",
     "checkOutDate": "2026-02-17",
     "rescheduledAt": "2026-02-12T11:20:00+08:00"
@@ -377,6 +427,13 @@
   "orderNo": "SF202602121234",
   "status": "REFUNDED",
   "statusLabel": "已退款",
+  "bookingStatus": "CANCELLED",
+  "bookingStatusLabel": "已取消",
+  "paymentStatus": "REFUNDED",
+  "paymentStatusLabel": "已退款",
+  "latestAfterSaleType": "REFUND",
+  "latestAfterSaleStatus": "APPROVED",
+  "latestAfterSaleStatusLabel": "已同意",
   "refundedAt": "2026-02-12T12:00:00+08:00",
   "afterSaleReason": "临时取消行程"
 }
@@ -547,13 +604,34 @@
   ]
 }
 ```
+**响应**
+```json
+{
+  "roomId": "room-admin-20260310101530-4821",
+  "updatedCount": 2,
+  "items": [
+    {
+      "date": "2026-02-20",
+      "totalStock": 2,
+      "availableStock": 2,
+      "lockedStock": 0
+    },
+    {
+      "date": "2026-02-21",
+      "totalStock": 1,
+      "availableStock": 1,
+      "lockedStock": 0
+    }
+  ]
+}
+```
 
 ## 6) 管理端订单与经营概览
 
 ### `GET /api/admin/orders`
 **Query 参数**
 
-- `status`：可选，支持 `PENDING_PAYMENT` / `CONFIRMED` / `RESCHEDULED` / `REFUNDED` / `COMPLETED` / `CANCELLED`
+- `status`：可选，支持 `PENDING_PAYMENT` / `CONFIRMED` / `CHECKED_IN` / `RESCHEDULED` / `REFUNDED` / `COMPLETED` / `CANCELLED` / `NO_SHOW`
 - `keyword`：可选，模糊匹配 `orderNo` / `roomName` / `guestName` / `guestPhone`
 - `checkInStartDate`：可选，格式 `yyyy-MM-dd`
 - `checkInEndDate`：可选，格式 `yyyy-MM-dd`
@@ -576,14 +654,27 @@
     "arrivalTime": "18:00",
     "remark": "后台改期单",
     "totalAmount": 488,
-    "status": "RESCHEDULED",
-    "statusLabel": "已改期",
+    "status": "CONFIRMED",
+    "statusLabel": "待入住（退款处理中）",
+    "bookingStatus": "CONFIRMED",
+    "bookingStatusLabel": "待入住",
+    "paymentStatus": "PAID",
+    "paymentStatusLabel": "已支付",
+    "latestAfterSaleRequestId": 18,
+    "latestAfterSaleType": "REFUND",
+    "latestAfterSaleStatus": "REQUESTED",
+    "latestAfterSaleStatusLabel": "处理中",
+    "latestAfterSaleRejectReason": "",
+    "rescheduleCount": 1,
     "createdAt": "2026-03-11T10:30:12+08:00",
     "paidAt": "2026-03-11T10:31:00+08:00",
     "cancelledAt": "",
+    "checkedInAt": "",
+    "checkedOutAt": "",
+    "noShowAt": "",
     "rescheduledAt": "2026-03-11T10:35:00+08:00",
     "refundedAt": "",
-    "afterSaleReason": "后台人工协调档期"
+    "afterSaleReason": "用户申请退款"
   }
 ]
 ```
@@ -608,9 +699,22 @@
   "totalAmount": 488,
   "status": "RESCHEDULED",
   "statusLabel": "已改期",
+  "bookingStatus": "CONFIRMED",
+  "bookingStatusLabel": "待入住",
+  "paymentStatus": "PAID",
+  "paymentStatusLabel": "已支付",
+  "latestAfterSaleRequestId": 17,
+  "latestAfterSaleType": "RESCHEDULE",
+  "latestAfterSaleStatus": "APPROVED",
+  "latestAfterSaleStatusLabel": "已同意",
+  "latestAfterSaleRejectReason": "",
+  "rescheduleCount": 1,
   "createdAt": "2026-03-11T10:30:12+08:00",
   "paidAt": "2026-03-11T10:31:00+08:00",
   "cancelledAt": "",
+  "checkedInAt": "",
+  "checkedOutAt": "",
+  "noShowAt": "",
   "rescheduledAt": "2026-03-11T10:35:00+08:00",
   "refundedAt": "",
   "afterSaleReason": "后台人工协调档期"
@@ -618,6 +722,8 @@
 ```
 
 ### `POST /api/admin/orders/{id}/reschedule`
+说明：兼容保留的后台直接改期接口，会立即完成审批并更新日期、库存和兼容状态。
+
 **请求**
 ```json
 {
@@ -632,6 +738,10 @@
   "id": "order_1741651200000_3456",
   "status": "RESCHEDULED",
   "statusLabel": "已改期",
+  "bookingStatus": "CONFIRMED",
+  "paymentStatus": "PAID",
+  "latestAfterSaleType": "RESCHEDULE",
+  "latestAfterSaleStatus": "APPROVED",
   "checkInDate": "2026-02-15",
   "checkOutDate": "2026-02-16",
   "rescheduledAt": "2026-03-11T10:35:00+08:00",
@@ -640,6 +750,8 @@
 ```
 
 ### `POST /api/admin/orders/{id}/refund`
+说明：兼容保留的后台直接退款接口，会立即完成退款状态落库。
+
 **请求**
 ```json
 {
@@ -652,8 +764,85 @@
   "id": "order_1741651200000_7890",
   "status": "REFUNDED",
   "statusLabel": "已退款",
+  "bookingStatus": "CANCELLED",
+  "paymentStatus": "REFUNDED",
+  "latestAfterSaleType": "REFUND",
+  "latestAfterSaleStatus": "APPROVED",
   "refundedAt": "2026-03-11T10:40:00+08:00",
   "afterSaleReason": "后台审核同意退款"
+}
+```
+
+### `POST /api/admin/orders/{id}/after-sale/{requestId}/approve`
+**响应**
+```json
+{
+  "id": "order_1741651200000_3456",
+  "latestAfterSaleRequestId": 18,
+  "latestAfterSaleType": "REFUND",
+  "latestAfterSaleStatus": "APPROVED",
+  "latestAfterSaleStatusLabel": "已同意",
+  "status": "REFUNDED",
+  "bookingStatus": "CANCELLED",
+  "paymentStatus": "REFUNDED"
+}
+```
+
+### `POST /api/admin/orders/{id}/after-sale/{requestId}/reject`
+**请求**
+```json
+{
+  "rejectReason": "已超过当前房型退款时限"
+}
+```
+**响应**
+```json
+{
+  "id": "order_1741651200000_3456",
+  "latestAfterSaleRequestId": 18,
+  "latestAfterSaleType": "REFUND",
+  "latestAfterSaleStatus": "REJECTED",
+  "latestAfterSaleStatusLabel": "已拒绝",
+  "latestAfterSaleRejectReason": "已超过当前房型退款时限",
+  "status": "CONFIRMED",
+  "bookingStatus": "CONFIRMED",
+  "paymentStatus": "PAID"
+}
+```
+
+### `POST /api/admin/orders/{id}/check-in`
+**响应**
+```json
+{
+  "id": "order_1741651200000_3456",
+  "status": "CHECKED_IN",
+  "statusLabel": "已入住",
+  "bookingStatus": "CHECKED_IN",
+  "checkedInAt": "2026-03-11T15:00:00+08:00"
+}
+```
+
+### `POST /api/admin/orders/{id}/check-out`
+**响应**
+```json
+{
+  "id": "order_1741651200000_3456",
+  "status": "COMPLETED",
+  "statusLabel": "已完成",
+  "bookingStatus": "CHECKED_OUT",
+  "checkedOutAt": "2026-03-12T12:00:00+08:00"
+}
+```
+
+### `POST /api/admin/orders/{id}/no-show`
+**响应**
+```json
+{
+  "id": "order_1741651200000_3456",
+  "status": "NO_SHOW",
+  "statusLabel": "已失约",
+  "bookingStatus": "NO_SHOW",
+  "noShowAt": "2026-03-11T22:00:00+08:00"
 }
 ```
 
@@ -661,9 +850,9 @@
 说明：当前返回的是管理端订单经营快照。
 
 - `orderCount`：全部订单数
-- `pendingCheckInCount`：当前状态为 `CONFIRMED` / `RESCHEDULED` 的订单数
-- `refundedOrderCount`：当前状态为 `REFUNDED` 的订单数
-- `revenueAmount`：当前状态为 `CONFIRMED` / `RESCHEDULED` / `COMPLETED` 的订单总金额汇总
+- `pendingCheckInCount`：当前 `bookingStatus = CONFIRMED` 的订单数
+- `refundedOrderCount`：当前 `paymentStatus = REFUNDED` 的订单数
+- `revenueAmount`：当前 `paymentStatus = PAID / PARTIALLY_REFUNDED` 的订单总金额汇总
 
 **响应**
 ```json
@@ -672,26 +861,5 @@
   "pendingCheckInCount": 2,
   "refundedOrderCount": 1,
   "revenueAmount": 976
-}
-```
-**响应**
-```json
-{
-  "roomId": "room-admin-20260310101530-4821",
-  "updatedCount": 2,
-  "items": [
-    {
-      "date": "2026-02-20",
-      "totalStock": 2,
-      "availableStock": 2,
-      "lockedStock": 0
-    },
-    {
-      "date": "2026-02-21",
-      "totalStock": 1,
-      "availableStock": 1,
-      "lockedStock": 0
-    }
-  ]
 }
 ```

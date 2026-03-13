@@ -1,6 +1,6 @@
 # 接口清单（REST）
 
-> 更新时间：2026-03-10  
+> 更新时间：2026-03-13  
 > 说明：以下区分“已实现（MVP 一期）”与“规划中（后续）”。
 
 ## 1. 已实现（MVP 一期）
@@ -32,9 +32,15 @@
 - `GET /api/orders`：当前用户订单列表
 - `GET /api/orders/{id}`：订单详情
 - `POST /api/orders/{id}/pay`：模拟支付
-- `POST /api/orders/{id}/cancel`：取消订单
-- `POST /api/orders/{id}/reschedule`：改期申请
-- `POST /api/orders/{id}/refund`：退款申请
+- `POST /api/orders/{id}/cancel`：取消未支付订单
+- `POST /api/orders/{id}/reschedule`：提交改期申请
+- `POST /api/orders/{id}/refund`：提交退款申请
+
+补充说明：
+- 订单返回兼容字段 `status/statusLabel`，同时新增 `bookingStatus/paymentStatus/latestAfterSale*`
+- 当前订单主状态采用：`PENDING_PAYMENT` / `CONFIRMED` / `CHECKED_IN` / `CHECKED_OUT` / `CANCELLED` / `NO_SHOW`
+- 支付状态采用：`UNPAID` / `PAID` / `REFUND_PENDING` / `REFUNDED` / `PARTIALLY_REFUNDED`
+- 售后申请状态采用：`REQUESTED` / `APPROVED` / `REJECTED` / `WITHDRAWN`
 
 ### 1.6 管理端房型与房态
 - `GET /api/admin/rooms`：后台房型列表（返回全部房型，含上架/下架状态）
@@ -46,8 +52,13 @@
 ### 1.7 管理端订单与经营概览
 - `GET /api/admin/orders`：后台订单列表（支持 `status`、`keyword`、`checkInStartDate`、`checkInEndDate` 筛选）
 - `GET /api/admin/orders/{id}`：后台订单详情
-- `POST /api/admin/orders/{id}/reschedule`：后台改期处理
-- `POST /api/admin/orders/{id}/refund`：后台退款处理
+- `POST /api/admin/orders/{id}/reschedule`：后台直接改期处理（兼容保留）
+- `POST /api/admin/orders/{id}/refund`：后台直接退款处理（兼容保留）
+- `POST /api/admin/orders/{id}/after-sale/{requestId}/approve`：同意售后申请
+- `POST /api/admin/orders/{id}/after-sale/{requestId}/reject`：拒绝售后申请
+- `POST /api/admin/orders/{id}/check-in`：办理入住
+- `POST /api/admin/orders/{id}/check-out`：办理离店
+- `POST /api/admin/orders/{id}/no-show`：标记失约
 - `GET /api/admin/reports/summary`：经营概览（订单数、待入住、退款单、成交额）
 
 ## 2. 规划中（后续迭代）

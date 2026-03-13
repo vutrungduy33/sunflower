@@ -5,6 +5,7 @@
 -- S6 after-sale sync: keep order reschedule/refund columns compatible with stage APIs.
 -- S7 admin room API sync: keep room seeds compatible with后台房型/价格/库存写接口的持久化结构。
 -- S8 admin order API sync: keep demo order seed compatible with后台订单筛选、售后处理与经营概览统计口径。
+-- S15 order state machine sync: keep booking_status/payment_status and after-sale compatibility fields aligned.
 
 INSERT INTO users (id, openid, unionid, phone, status)
 VALUES ('user_demo_1001', 'mock_openid_mvp_code', NULL, '13800000000', 'ACTIVE')
@@ -197,7 +198,13 @@ INSERT INTO orders (
     after_sale_reason,
     total_amount,
     status,
+    booking_status,
+    payment_status,
     paid_at,
+    cancelled_at,
+    checked_in_at,
+    checked_out_at,
+    no_show_at,
     rescheduled_at,
     refunded_at
 )
@@ -218,7 +225,13 @@ VALUES (
     '',
     388,
     'COMPLETED',
+    'CHECKED_OUT',
+    'PAID',
     CURRENT_TIMESTAMP,
+    NULL,
+    NULL,
+    CURRENT_TIMESTAMP,
+    NULL,
     NULL,
     NULL
 )
@@ -237,7 +250,13 @@ ON DUPLICATE KEY UPDATE
     after_sale_reason = VALUES(after_sale_reason),
     total_amount = VALUES(total_amount),
     status = VALUES(status),
+    booking_status = VALUES(booking_status),
+    payment_status = VALUES(payment_status),
     paid_at = VALUES(paid_at),
+    cancelled_at = VALUES(cancelled_at),
+    checked_in_at = VALUES(checked_in_at),
+    checked_out_at = VALUES(checked_out_at),
+    no_show_at = VALUES(no_show_at),
     rescheduled_at = VALUES(rescheduled_at),
     refunded_at = VALUES(refunded_at),
     updated_at = CURRENT_TIMESTAMP;

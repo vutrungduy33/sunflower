@@ -1,6 +1,8 @@
 package com.sunflower.backend.modules.order.persistence;
 
+import com.sunflower.backend.modules.order.BookingStatus;
 import com.sunflower.backend.modules.order.OrderStatus;
+import com.sunflower.backend.modules.order.PaymentStatus;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -21,6 +23,15 @@ public interface OrderRepository extends JpaRepository<OrderEntity, String>, Jpa
 
     long countByStatusIn(Set<OrderStatus> statuses);
 
+    long countByBookingStatus(BookingStatus bookingStatus);
+
+    long countByBookingStatusIn(Set<BookingStatus> bookingStatuses);
+
+    long countByPaymentStatus(PaymentStatus paymentStatus);
+
     @Query("select coalesce(sum(o.totalAmount), 0) from OrderEntity o where o.status in :statuses")
     Long sumTotalAmountByStatusIn(@Param("statuses") Set<OrderStatus> statuses);
+
+    @Query("select coalesce(sum(o.totalAmount), 0) from OrderEntity o where o.paymentStatus in :paymentStatuses")
+    Long sumTotalAmountByPaymentStatusIn(@Param("paymentStatuses") Set<PaymentStatus> paymentStatuses);
 }
