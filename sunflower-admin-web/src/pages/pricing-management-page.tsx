@@ -26,13 +26,17 @@ import {
   type RoomCalendarItem,
 } from '@/features/rooms/admin-room-pricing-service'
 import {
+  buildMonthGrid,
   buildInventoryBatchItems,
   buildPriceBatchItems,
   describeBatchDateRange,
+  formatMonthLabel,
   normalizeDateRange,
   resolveBatchDateRange,
+  resolveMonthRequest,
   resolveQuickPresetDates,
-  shiftDateText,
+  shiftMonthText,
+  weekdayHeaders,
   type PricingQuickPreset,
 } from '@/features/rooms/pricing-batch-utils'
 
@@ -43,12 +47,6 @@ const roomStatusLabelMap = {
   ACTIVE: '上架中',
   INACTIVE: '已下架',
 } as const
-
-const calendarWindowOptions = [
-  { label: '7 天视图', value: '7' },
-  { label: '14 天视图', value: '14' },
-  { label: '30 天视图', value: '30' },
-]
 
 const quickPresetOptions: Array<{ label: string; value: PricingQuickPreset }> = [
   { label: '单日调价', value: 'SINGLE_DAY' },
@@ -71,6 +69,10 @@ function createTodayDateText() {
   const day = String(now.getDate()).padStart(2, '0')
 
   return `${year}-${month}-${day}`
+}
+
+function createCurrentMonthText() {
+  return createTodayDateText().slice(0, 7)
 }
 
 function toPositiveNumber(value: number | string) {
@@ -98,12 +100,12 @@ function renderRoomStatus(room?: AdminRoom) {
   )
 }
 
-function describeWindow(calendar: RoomCalendarItem[]) {
+function describeSelectedMonth(calendar: RoomCalendarItem[], selectedMonth: string) {
   if (!calendar.length) {
-    return '当前窗口暂无日期'
+    return `${formatMonthLabel(selectedMonth)} 暂无价格库存数据`
   }
 
-  return `${calendar[0].date} 至 ${calendar[calendar.length - 1].date}`
+  return `${formatMonthLabel(selectedMonth)} · ${calendar.length} 天价格库存`
 }
 
 function describePriceDelta(basePrice: number, price: number) {
@@ -115,11 +117,21 @@ function describePriceDelta(basePrice: number, price: number) {
   return delta > 0 ? `较基础价 +¥${delta}` : `较基础价 -¥${Math.abs(delta)}`
 }
 
+function buildMonthSelectOptions(anchorMonth: string) {
+  return Array.from({ length: 18 }, (_, index) => {
+    const value = shiftMonthText(anchorMonth, index - 6)
+
+    return {
+      label: formatMonthLabel(value),
+      value,
+    }
+  })
+}
+
 export function PricingManagementPage() {
   const queryClient = useQueryClient()
   const [selectedRoomId, setSelectedRoomId] = useState('')
-  const [calendarStartDate, setCalendarStartDate] = useState(createTodayDateText)
-  const [calendarDays, setCalendarDays] = useState(14)
+  const [selectedMonth, setSelectedMonth] = useState(createCurrentMonthText)
   const [batchStartDate, setBatchStartDate] = useState('')
   const [batchEndDate, setBatchEndDate] = useState('')
   const [rangeAnchorDate, setRangeAnchorDate] = useState('')
@@ -141,13 +153,16 @@ export function PricingManagementPage() {
       ? selectedRoomId
       : (rooms[0]?.id ?? '')
   const selectedRoom = rooms.find((room) => room.id === effectiveSelectedRoomId)
+  const todayDateText = createTodayDateText()
+  const monthRequest = resolveMonthRequest(selectedMonth)
+  const monthOptions = buildMonthSelectOptions(selectedMonth)
 
   const roomCalendarQuery = useQuery({
-    queryKey: ['room-calendar', effectiveSelectedRoomId, calendarStartDate, calendarDays],
+    queryKey: ['room-calendar', effectiveSelectedRoomId, selectedMonth],
     queryFn: () =>
       fetchRoomCalendar(effectiveSelectedRoomId, {
-        startDate: calendarStartDate,
-        days: calendarDays,
+        startDate: monthRequest.startDate,
+        days: monthRequest.days,
       }),
     enabled: Boolean(effectiveSelectedRoomId),
   })
@@ -183,6 +198,7 @@ export function PricingManagementPage() {
   })
 
   const calendar = roomCalendarQuery.data ?? []
+  const monthGrid = buildMonthGrid(calendar, selectedMonth)
   const batchDates = resolveBatchDateRange(calendar, batchStartDate, batchEndDate)
   const batchSummary = describeBatchDateRange(batchDates)
   const latestUpdatedCount = lastInventoryResult?.updatedCount ?? lastPriceResult?.updatedCount ?? 0
@@ -197,7 +213,7 @@ export function PricingManagementPage() {
     : 0
   const selectionHint = rangeAnchorDate
     ? `已选起点 ${rangeAnchorDate}，请再点一个结束日期`
-    : '先点开始日期，再点结束日期；也可以直接使用快捷区间'
+    : '先点开始日期，再点结束日期；切换月份后会自动清空选择'
 
   function clearFeedback() {
     setLastPriceResult(null)
@@ -221,18 +237,18 @@ export function PricingManagementPage() {
     resetInteractiveState()
   }
 
-  function handleCalendarWindowChange(days: number) {
-    setCalendarDays(days)
+  function handleMonthChange(monthText: string) {
+    setSelectedMonth(monthText)
     resetInteractiveState()
   }
 
-  function handleShiftWindow(direction: -1 | 1) {
-    setCalendarStartDate((current) => shiftDateText(current, direction * calendarDays))
+  function handleShiftMonth(direction: -1 | 1) {
+    setSelectedMonth((current) => shiftMonthText(current, direction))
     resetInteractiveState()
   }
 
-  function handleJumpToToday() {
-    setCalendarStartDate(createTodayDateText())
+  function handleJumpToCurrentMonth() {
+    setSelectedMonth(createCurrentMonthText())
     resetInteractiveState()
   }
 
@@ -354,9 +370,9 @@ export function PricingManagementPage() {
             </Tag>
             {renderRoomStatus(selectedRoom)}
           </Space>
-          <h3>像主流预订网站一样，直接在日历上选范围</h3>
+          <h3>按月切换、按周排布，直接在月历上选范围</h3>
           <p>
-            价格库存页已升级为可点击日历卡片、快捷区间和窗口切换交互，运营不再需要先通过下拉框拼出开始/结束日期。
+            参考主流日历产品的月视图结构，当前页面改为可切换月份、周一到周日固定 7 列排布，并保留两次点击成区间的批量操作方式。
           </p>
         </div>
         <div className="room-stat-grid">
@@ -365,8 +381,8 @@ export function PricingManagementPage() {
             <strong>{selectedRoom?.name ?? (roomListQuery.isPending ? '加载中' : '未选择')}</strong>
           </article>
           <article className="room-stat-card">
-            <small>可见窗口</small>
-            <strong>{calendar.length}</strong>
+            <small>当前月份</small>
+            <strong>{formatMonthLabel(selectedMonth)}</strong>
           </article>
           <article className="room-stat-card">
             <small>最近一次发布</small>
@@ -390,29 +406,29 @@ export function PricingManagementPage() {
           </label>
 
           <label className="room-field">
-            <span className="room-field__label">窗口范围</span>
+            <span className="room-field__label">选择月份</span>
             <Select
-              value={String(calendarDays)}
-              options={calendarWindowOptions}
-              onChange={(value) => handleCalendarWindowChange(Number(value))}
+              value={selectedMonth}
+              options={monthOptions}
+              onChange={(value) => handleMonthChange(String(value))}
             />
           </label>
 
           <article className="pricing-window-panel">
-            <small>当前可见窗口</small>
-            <strong>{describeWindow(calendar)}</strong>
-            <span>{selectionHint}</span>
+            <small>当前月视图</small>
+            <strong>{describeSelectedMonth(calendar, selectedMonth)}</strong>
+            <span>固定 7 列：周一到周日</span>
           </article>
 
           <div className="pricing-toolbar__actions">
-            <Button variant="outline" onClick={() => handleShiftWindow(-1)}>
-              上一段
+            <Button variant="outline" onClick={() => handleShiftMonth(-1)}>
+              上个月
             </Button>
-            <Button variant="outline" onClick={handleJumpToToday}>
-              回到今天
+            <Button variant="outline" onClick={handleJumpToCurrentMonth}>
+              回到本月
             </Button>
-            <Button variant="outline" onClick={() => handleShiftWindow(1)}>
-              下一段
+            <Button variant="outline" onClick={() => handleShiftMonth(1)}>
+              下个月
             </Button>
             <Button
               variant="outline"
@@ -449,7 +465,7 @@ export function PricingManagementPage() {
           <div className="room-table-card__header">
             <div>
               <h3>价格库存日历</h3>
-              <p>参考热门预订站的区间选择体验，支持点击日期卡片选范围、快速套用常见运营区间。</p>
+              <p>参考主流网页日历的月视图排布：显式切月、固定周标题、整月补齐空白占位，并保留批量价格库存发布。</p>
             </div>
             <Tag theme="warning" variant="light-outline">
               公共日历读取 + S7 批量写入
@@ -485,61 +501,85 @@ export function PricingManagementPage() {
           {roomCalendarQuery.isPending ? (
             <div className="room-table__empty">价格库存日历加载中。</div>
           ) : calendar.length ? (
-            <div className="pricing-calendar-grid">
-              {calendar.map((item) => {
-                const isSelected = batchDates.includes(item.date)
-                const isBoundary = item.date === batchStartDate || item.date === batchEndDate
-                const isAnchor = item.date === rangeAnchorDate
-                const isWeekend = weekendLabelSet.has(item.weekdayLabel)
-                const isLowStock = item.stock <= 1
-                const cardClassName = [
-                  'pricing-day-card',
-                  isSelected ? 'pricing-day-card--selected' : '',
-                  isBoundary ? 'pricing-day-card--boundary' : '',
-                  isAnchor ? 'pricing-day-card--anchor' : '',
-                  isWeekend ? 'pricing-day-card--weekend' : '',
-                  isLowStock ? 'pricing-day-card--low-stock' : '',
-                ]
-                  .filter(Boolean)
-                  .join(' ')
+            <div className="pricing-calendar-shell">
+              <div className="pricing-calendar__weekdays">
+                {weekdayHeaders.map((weekday) => (
+                  <span key={weekday} className="pricing-calendar__weekday">
+                    {weekday}
+                  </span>
+                ))}
+              </div>
 
-                return (
-                  <button
-                    key={item.date}
-                    type="button"
-                    className={cardClassName}
-                    aria-label={`选择 ${item.date} ${item.weekdayLabel}`}
-                    onClick={() => handleCalendarDayClick(item.date)}
-                  >
-                    <div className="pricing-day-card__head">
-                      <div>
-                        <strong>{item.date.slice(5)}</strong>
-                        <span>{item.weekdayLabel}</span>
+              <div className="pricing-calendar__month-grid">
+                {monthGrid.map((item, index) => {
+                  if (!item) {
+                    return (
+                      <div
+                        key={`empty-${index}`}
+                        className="pricing-day-card pricing-day-card--empty"
+                        aria-hidden="true"
+                      />
+                    )
+                  }
+
+                  const isSelected = batchDates.includes(item.date)
+                  const isBoundary = item.date === batchStartDate || item.date === batchEndDate
+                  const isAnchor = item.date === rangeAnchorDate
+                  const isWeekend = weekendLabelSet.has(item.weekdayLabel)
+                  const isLowStock = item.stock <= 1
+                  const isToday = item.date === todayDateText
+                  const cardClassName = [
+                    'pricing-day-card',
+                    isSelected ? 'pricing-day-card--selected' : '',
+                    isBoundary ? 'pricing-day-card--boundary' : '',
+                    isAnchor ? 'pricing-day-card--anchor' : '',
+                    isToday ? 'pricing-day-card--today' : '',
+                    isWeekend ? 'pricing-day-card--weekend' : '',
+                    isLowStock ? 'pricing-day-card--low-stock' : '',
+                  ]
+                    .filter(Boolean)
+                    .join(' ')
+
+                  return (
+                    <button
+                      key={item.date}
+                      type="button"
+                      className={cardClassName}
+                      aria-label={`选择 ${item.date} ${item.weekdayLabel}`}
+                      onClick={() => handleCalendarDayClick(item.date)}
+                    >
+                      <div className="pricing-day-card__head">
+                        <div>
+                          <strong>{Number(item.date.slice(8))}</strong>
+                          <span>{item.date}</span>
+                        </div>
+                        {isBoundary ? (
+                          <span className="pricing-day-card__badge">
+                            {item.date === batchStartDate ? '开始' : '结束'}
+                          </span>
+                        ) : isAnchor ? (
+                          <span className="pricing-day-card__badge">起点</span>
+                        ) : isToday ? (
+                          <span className="pricing-day-card__badge">今天</span>
+                        ) : null}
                       </div>
-                      {isBoundary ? (
-                        <span className="pricing-day-card__badge">
-                          {item.date === batchStartDate ? '开始' : '结束'}
-                        </span>
-                      ) : isAnchor ? (
-                        <span className="pricing-day-card__badge">起点</span>
-                      ) : null}
-                    </div>
 
-                    <div className="pricing-day-card__price">
-                      <strong>¥{item.price}</strong>
-                      <span>{describePriceDelta(selectedRoom?.basePrice ?? item.price, item.price)}</span>
-                    </div>
+                      <div className="pricing-day-card__price">
+                        <strong>¥{item.price}</strong>
+                        <span>{describePriceDelta(selectedRoom?.basePrice ?? item.price, item.price)}</span>
+                      </div>
 
-                    <div className="pricing-day-card__stock">
-                      <span>{item.stock} 间可售</span>
-                      <small>{isLowStock ? '库存紧张' : isWeekend ? '周末需求高' : '可正常售卖'}</small>
-                    </div>
-                  </button>
-                )
-              })}
+                      <div className="pricing-day-card__stock">
+                        <span>{item.stock} 间可售</span>
+                        <small>{isLowStock ? '库存紧张' : isWeekend ? '周末需求高' : '可正常售卖'}</small>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
             </div>
           ) : (
-            <div className="room-table__empty">当前窗口内暂无可展示的价格库存数据。</div>
+            <div className="room-table__empty">当前月份暂无可展示的价格库存数据。</div>
           )}
         </Card>
       )}

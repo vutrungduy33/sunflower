@@ -15,6 +15,7 @@ import {
 } from '@/features/rooms/admin-room-pricing-service'
 import { PricingManagementPage } from '@/pages/pricing-management-page'
 
+const RealDate = Date
 const { messageSuccess, messageError } = vi.hoisted(() => ({
   messageSuccess: vi.fn(),
   messageError: vi.fn(),
@@ -253,6 +254,14 @@ function buildCalendar(): RoomCalendarItem[] {
   ]
 }
 
+function buildNextMonthCalendar(): RoomCalendarItem[] {
+  return [
+    { date: '2026-04-03', weekdayLabel: '周五', price: 518, stock: 4 },
+    { date: '2026-04-04', weekdayLabel: '周六', price: 618, stock: 2 },
+    { date: '2026-04-05', weekdayLabel: '周日', price: 638, stock: 1 },
+  ]
+}
+
 function renderPricingManagementPage() {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -271,13 +280,39 @@ function renderPricingManagementPage() {
 
 describe('pricing management page', () => {
   afterEach(() => {
+    vi.unstubAllGlobals()
     cleanup()
   })
 
   beforeEach(() => {
+    class MockDate extends RealDate {
+      constructor(value?: string | number | Date) {
+        if (value === undefined) {
+          super('2026-03-13T08:00:00Z')
+          return
+        }
+
+        super(value)
+      }
+
+      static now() {
+        return new RealDate('2026-03-13T08:00:00Z').getTime()
+      }
+
+      static parse = RealDate.parse
+      static UTC = RealDate.UTC
+    }
+
+    vi.stubGlobal('Date', MockDate)
     vi.clearAllMocks()
     vi.mocked(fetchAdminRooms).mockResolvedValue([buildRoom()])
-    vi.mocked(fetchRoomCalendar).mockResolvedValue(buildCalendar())
+    vi.mocked(fetchRoomCalendar).mockImplementation(async (_roomId, request) => {
+      if (request.startDate === '2026-04-01') {
+        return buildNextMonthCalendar()
+      }
+
+      return buildCalendar()
+    })
     vi.mocked(updateAdminRoomPrices).mockResolvedValue({
       roomId: 'room-lake-101',
       updatedCount: 2,
@@ -301,7 +336,14 @@ describe('pricing management page', () => {
     renderPricingManagementPage()
 
     expect(await screen.findByText('价格库存日历')).toBeInTheDocument()
-    await waitFor(() => expect(fetchRoomCalendar).toHaveBeenCalled())
+    await waitFor(() =>
+      expect(fetchRoomCalendar).toHaveBeenCalledWith('room-lake-101', {
+        startDate: '2026-03-01',
+        days: 31,
+      }),
+    )
+    expect(await screen.findByText('周一')).toBeInTheDocument()
+    expect(screen.getByText('周日')).toBeInTheDocument()
 
     await user.click(await screen.findByRole('button', { name: '选择 2026-03-14 周六' }))
     await user.click(screen.getByRole('button', { name: '选择 2026-03-15 周日' }))
@@ -341,5 +383,14 @@ describe('pricing management page', () => {
     )
     expect(await screen.findByText('库存更新 1 天')).toBeInTheDocument()
     expect(screen.getByText('总 5 / 可售 4')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: '下个月' }))
+    await waitFor(() =>
+      expect(fetchRoomCalendar).toHaveBeenLastCalledWith('room-lake-101', {
+        startDate: '2026-04-01',
+        days: 30,
+      }),
+    )
+    expect(await screen.findByRole('button', { name: '选择 2026-04-03 周五' })).toBeInTheDocument()
   })
 })

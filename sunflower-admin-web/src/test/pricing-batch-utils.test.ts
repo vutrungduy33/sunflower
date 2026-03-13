@@ -1,12 +1,17 @@
 import { describe, expect, it } from 'vitest'
 import {
+  buildMonthGrid,
   buildInventoryBatchItems,
   buildPriceBatchItems,
   describeBatchDateRange,
+  formatMonthLabel,
   normalizeDateRange,
   resolveBatchDateRange,
+  resolveMonthRequest,
   resolveQuickPresetDates,
   shiftDateText,
+  shiftMonthText,
+  weekdayHeaders,
 } from '@/features/rooms/pricing-batch-utils'
 import type { RoomCalendarItem } from '@/features/rooms/admin-room-pricing-service'
 
@@ -50,5 +55,23 @@ describe('pricing batch utils', () => {
       '2026-03-14',
       '2026-03-15',
     ])
+  })
+
+  it('builds a Monday-first month grid with month navigation helpers', () => {
+    const monthGrid = buildMonthGrid([
+      { date: '2026-03-01', weekdayLabel: '周日', price: 458, stock: 5 },
+      ...calendar,
+      { date: '2026-03-31', weekdayLabel: '周二', price: 468, stock: 4 },
+    ], '2026-03')
+
+    expect(weekdayHeaders).toEqual(['周一', '周二', '周三', '周四', '周五', '周六', '周日'])
+    expect(shiftMonthText('2026-03', 1)).toBe('2026-04')
+    expect(resolveMonthRequest('2026-02')).toEqual({ startDate: '2026-02-01', days: 28 })
+    expect(formatMonthLabel('2026-03')).toBe('2026 年 03 月')
+    expect(monthGrid).toHaveLength(42)
+    expect(monthGrid.slice(0, 6)).toEqual([null, null, null, null, null, null])
+    expect(monthGrid[6]?.date).toBe('2026-03-01')
+    expect(monthGrid[18]?.date).toBe('2026-03-13')
+    expect(monthGrid[41]).toBeNull()
   })
 })

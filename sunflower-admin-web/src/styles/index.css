@@ -525,6 +525,7 @@ a {
 .pricing-window-panel small,
 .pricing-window-panel span,
 .pricing-calendar-card__hint p,
+.pricing-calendar__weekday,
 .pricing-day-card__head span,
 .pricing-day-card__price span,
 .pricing-day-card__stock span,
@@ -553,7 +554,7 @@ a {
 .pricing-calendar-card__toolbar {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 20px;
@@ -573,18 +574,43 @@ a {
   gap: 10px;
 }
 
-.pricing-calendar-grid {
+.pricing-calendar-shell {
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.pricing-calendar__weekdays,
+.pricing-calendar__month-grid {
   display: grid;
-  gap: 14px;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  min-width: 840px;
+  grid-template-columns: repeat(7, minmax(112px, 1fr));
+}
+
+.pricing-calendar__weekdays {
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.pricing-calendar__weekday {
+  padding: 4px 0 12px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.pricing-calendar__month-grid {
+  gap: 12px;
 }
 
 .pricing-day-card {
   display: grid;
-  gap: 16px;
-  padding: 18px;
+  gap: 14px;
+  min-height: 152px;
+  padding: 16px;
   border: 1px solid rgba(36, 59, 47, 0.08);
-  border-radius: 24px;
+  border-radius: 22px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 252, 248, 0.9)),
     #ffffff;
@@ -615,8 +641,13 @@ a {
   align-items: start;
 }
 
+.pricing-day-card__head strong {
+  font-size: 32px;
+  line-height: 1;
+}
+
 .pricing-day-card__price strong {
-  font-size: 24px;
+  font-size: 22px;
   line-height: 1;
 }
 
@@ -633,6 +664,20 @@ a {
   font-weight: 700;
 }
 
+.pricing-day-card--empty {
+  min-height: 152px;
+  border-style: dashed;
+  background: rgba(246, 249, 246, 0.9);
+  box-shadow: none;
+  cursor: default;
+}
+
+.pricing-day-card--empty:hover {
+  transform: none;
+  border-color: rgba(36, 59, 47, 0.08);
+  box-shadow: none;
+}
+
 .pricing-day-card--selected {
   border-color: rgba(217, 125, 47, 0.34);
   background:
@@ -644,6 +689,11 @@ a {
 .pricing-day-card--anchor {
   border-color: rgba(217, 125, 47, 0.55);
   box-shadow: 0 20px 34px rgba(217, 125, 47, 0.12);
+}
+
+.pricing-day-card--today {
+  border-color: rgba(36, 59, 47, 0.24);
+  box-shadow: 0 0 0 3px rgba(36, 59, 47, 0.08);
 }
 
 .pricing-day-card--weekend {
@@ -869,6 +919,20 @@ a {
   .room-editor__footer {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .pricing-calendar__weekdays,
+  .pricing-calendar__month-grid {
+    min-width: 728px;
+  }
+
+  .pricing-day-card,
+  .pricing-day-card--empty {
+    min-height: 132px;
+  }
+
+  .pricing-day-card__head strong {
+    font-size: 28px;
   }
 }
 
