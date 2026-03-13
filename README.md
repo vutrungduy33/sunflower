@@ -31,6 +31,7 @@
 - `/Users/chenyao/dev/miniapp/sunflower/docs/Analytics.md`：埋点与报表 SQL 模板
 - `/Users/chenyao/dev/miniapp/sunflower/docs/Backlog.md`：Stage Backlog（执行状态）
 - `/Users/chenyao/dev/miniapp/sunflower/docs/Definition-of-Done.md`：Stage 完成清单（DoD）
+- `/Users/chenyao/dev/miniapp/sunflower/docs/Code-Conventions.md`：后续新增代码统一规范
 - `/Users/chenyao/dev/miniapp/sunflower/docs/stage-reports/README.md`：Stage 执行报告规范
 - `/Users/chenyao/dev/miniapp/sunflower/docs/CI-CD.md`：GitHub Actions CI/CD
 - `/Users/chenyao/dev/miniapp/sunflower/docs/Web-Admin-Plan.md`：管理后台 Web 选型、开发约束与环境依赖

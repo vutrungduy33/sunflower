@@ -1,3 +1,4 @@
+import { Suspense, lazy, type ReactNode } from 'react'
 import {
   createBrowserRouter,
   createMemoryRouter,
@@ -5,18 +6,48 @@ import {
 } from 'react-router-dom'
 import { navigationItems, type RouteHandle } from '@/app/navigation'
 import { ProtectedShell } from '@/app/protected-shell'
-import { FeaturePlaceholderPage } from '@/pages/feature-placeholder-page'
-import { FoundationsPage } from '@/pages/foundations-page'
-import { LoginPage } from '@/pages/login-page'
-import { NotFoundPage } from '@/pages/not-found-page'
-import { WorkspacePage } from '@/pages/workspace-page'
 
 const [overviewItem, roomsItem, pricingItem, ordersItem, foundationsItem] = navigationItems
+const FeaturePlaceholderPage = lazy(async () => import('@/pages/feature-placeholder-page').then((module) => ({
+  default: module.FeaturePlaceholderPage,
+})))
+const FoundationsPage = lazy(async () => import('@/pages/foundations-page').then((module) => ({
+  default: module.FoundationsPage,
+})))
+const LoginPage = lazy(async () => import('@/pages/login-page').then((module) => ({
+  default: module.LoginPage,
+})))
+const NotFoundPage = lazy(async () => import('@/pages/not-found-page').then((module) => ({
+  default: module.NotFoundPage,
+})))
+const RoomManagementPage = lazy(async () => import('@/pages/room-management-page').then((module) => ({
+  default: module.RoomManagementPage,
+})))
+const WorkspacePage = lazy(async () => import('@/pages/workspace-page').then((module) => ({
+  default: module.WorkspacePage,
+})))
+
+function renderDeferredPage(page: ReactNode) {
+  return (
+    <Suspense
+      fallback={(
+        <div className="page-stack">
+          <section className="panel-card page-loading-card">
+            <h3>页面加载中</h3>
+            <p>正在按路由加载对应模块。</p>
+          </section>
+        </div>
+      )}
+    >
+      {page}
+    </Suspense>
+  )
+}
 
 export const appRoutes: RouteObject[] = [
   {
     path: '/login',
-    element: <LoginPage />,
+    element: renderDeferredPage(<LoginPage />),
   },
   {
     path: '/',
@@ -24,28 +55,17 @@ export const appRoutes: RouteObject[] = [
     children: [
       {
         index: true,
-        element: <WorkspacePage />,
+        element: renderDeferredPage(<WorkspacePage />),
         handle: overviewItem satisfies RouteHandle,
       },
       {
         path: 'rooms',
-        element: (
-          <FeaturePlaceholderPage
-            title={roomsItem.label}
-            stage={roomsItem.stage}
-            summary="当前阶段先提供菜单入口与登录守卫，房型 CRUD 将在下一阶段接入。"
-            bulletPoints={[
-              '接入 S7 房型列表与详情查询接口。',
-              '补齐创建、编辑、上架与下架操作。',
-              '统一成功/失败反馈与表单校验。',
-            ]}
-          />
-        ),
+        element: renderDeferredPage(<RoomManagementPage />),
         handle: roomsItem satisfies RouteHandle,
       },
       {
         path: 'pricing',
-        element: (
+        element: renderDeferredPage(
           <FeaturePlaceholderPage
             title={pricingItem.label}
             stage={pricingItem.stage}
@@ -61,7 +81,7 @@ export const appRoutes: RouteObject[] = [
       },
       {
         path: 'orders',
-        element: (
+        element: renderDeferredPage(
           <FeaturePlaceholderPage
             title={ordersItem.label}
             stage={ordersItem.stage}
@@ -77,14 +97,14 @@ export const appRoutes: RouteObject[] = [
       },
       {
         path: 'foundations',
-        element: <FoundationsPage />,
+        element: renderDeferredPage(<FoundationsPage />),
         handle: foundationsItem satisfies RouteHandle,
       },
     ],
   },
   {
     path: '*',
-    element: <NotFoundPage />,
+    element: renderDeferredPage(<NotFoundPage />),
   },
 ]
 
