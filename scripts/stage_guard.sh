@@ -6,6 +6,7 @@ PLAN_FILE="$ROOT_DIR/docs/Agent-Stage-Plan.md"
 BACKLOG_FILE="$ROOT_DIR/docs/Backlog.md"
 REPORT_DIR="$ROOT_DIR/docs/stage-reports"
 API_GUARD_SCRIPT="$ROOT_DIR/scripts/api_contract_guard.sh"
+RELEASE_ASSET_GUARD_SCRIPT="$ROOT_DIR/scripts/check_release_assets.sh"
 SEED_SQL_FILE_REL="scripts/sql/mvp_demo_seed.sql"
 SEED_STARTUP_SCRIPT_REL="scripts/start_backend_with_mvp_seed.sh"
 
@@ -148,6 +149,14 @@ if [[ -x "$API_GUARD_SCRIPT" ]]; then
   "$API_GUARD_SCRIPT" || true
 else
   warn "api contract guard script not executable: $API_GUARD_SCRIPT"
+fi
+
+if [[ "$stage" == "S14" ]]; then
+  if [[ -x "$RELEASE_ASSET_GUARD_SCRIPT" ]]; then
+    "$RELEASE_ASSET_GUARD_SCRIPT"
+  else
+    fail "release asset guard script not executable: $RELEASE_ASSET_GUARD_SCRIPT"
+  fi
 fi
 
 changed_files="$(collect_changed_files)"

@@ -32,14 +32,18 @@
    - `make stage-pre STAGE=Sx`
    - `make stage-post STAGE=Sx`
 
-4. 自动化测试
+4. 发布交付物检查
+   - `./scripts/check_release_assets.sh`
+   - 校验 `docs/S14-Release-Acceptance-Checklist.md` 与 `docs/S14-Release-Runbook.md` 存在且具备必需章节
+
+5. 自动化测试
    - `cd sunflower-backend && mvn -B test`
    - `cd sunflower-admin-web && npm ci`
    - `cd sunflower-admin-web && npm run lint`
    - `cd sunflower-admin-web && npm run test`
    - `cd sunflower-admin-web && npm run build`
 
-5. API 契约同步提醒（非阻塞）
+6. API 契约同步提醒（非阻塞）
    - 若后端 `Controller/DTO` 变更但未同步小程序 API 调用或 API 文档，工作流给出 warning
 
 说明：
@@ -135,6 +139,9 @@
 - ECS 正常部署路径只拉取 GHCR 镜像，不在服务器上执行 Maven 构建；只有缺失 `BACKEND_IMAGE` 的本地构建回退路径，才会使用同一份 Dockerfile/Maven 镜像配置。
 - workflow 已把 backend/admin-web 镜像构建拆成独立 job，并通过 scoped GHA cache 避免两个镜像的 cache 互相覆盖。
 - admin-only 部署会复用现有 backend 容器；如果 backend 未运行或健康检查失败，`scripts/start_admin_web.sh` 会直接失败，而不会再尝试本地构建 backend。
+- 发布前后的人工验收、上线结论与回滚步骤分别记录在：
+  - `docs/S14-Release-Acceptance-Checklist.md`
+  - `docs/S14-Release-Runbook.md`
 
 ---
 

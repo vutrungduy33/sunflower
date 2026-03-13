@@ -29,6 +29,9 @@ jobs:
       - name: Stage pre-check
         run: make stage-pre STAGE=${{ steps.conventions.outputs.stage }}
 
+      - name: Release asset guard
+        run: ./scripts/check_release_assets.sh
+
       - name: Install ripgrep
         run: |
           if ! command -v rg >/dev/null 2>&1; then
