@@ -296,6 +296,7 @@ async function postRefundOrder(orderId, reason = '') {
 }
 
 module.exports = {
+  clearAuthToken,
   fetchHomeData,
   fetchOrderDetail,
   fetchOrders,

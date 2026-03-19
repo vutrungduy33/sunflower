@@ -1,4 +1,5 @@
 const { ensureWechatLogin, fetchHomeData } = require('../../../utils/mvp/api');
+const { isDevelopOrTrialEnv } = require('../../../utils/mvp/env');
 const { normalizeHomeData } = require('../../../utils/mvp/normalize');
 const { track } = require('../../../utils/mvp/tracker');
 
@@ -6,6 +7,7 @@ Page({
   data: {
     loading: true,
     errorMessage: '',
+    showDevLoginEntry: false,
     banners: [],
     services: [],
     featuredRooms: [],
@@ -13,6 +15,7 @@ Page({
   },
 
   onLoad() {
+    this.setData({ showDevLoginEntry: isDevelopOrTrialEnv() });
     this.bootstrap();
   },
 
@@ -59,5 +62,9 @@ Page({
 
   goOrderCenter() {
     wx.navigateTo({ url: '/pages/mvp/order-list/index' });
+  },
+
+  goDevLogin() {
+    wx.navigateTo({ url: '/pages/mvp/login/index' });
   },
 });

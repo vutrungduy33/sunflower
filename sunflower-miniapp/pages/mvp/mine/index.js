@@ -4,6 +4,7 @@ const {
   patchProfile,
   postBindPhone,
 } = require('../../../utils/mvp/api');
+const { isDevelopOrTrialEnv } = require('../../../utils/mvp/env');
 const { track } = require('../../../utils/mvp/tracker');
 
 const EMPTY_PROFILE = Object.freeze({
@@ -18,19 +19,6 @@ const EMPTY_ORDER_STATS = Object.freeze({
   confirmed: 0,
   completed: 0,
 });
-
-function detectCanUseManualPhoneFallback() {
-  try {
-    if (typeof wx.getAccountInfoSync !== 'function') {
-      return false;
-    }
-    const accountInfo = wx.getAccountInfoSync();
-    const envVersion = `${(accountInfo && accountInfo.miniProgram && accountInfo.miniProgram.envVersion) || ''}`.trim();
-    return envVersion === 'develop' || envVersion === 'trial';
-  } catch (error) {
-    return false;
-  }
-}
 
 function normalizeProfile(profile) {
   const nextProfile = profile && typeof profile === 'object' ? profile : {};
@@ -91,7 +79,7 @@ Page({
   },
 
   syncManualPhoneFallbackCapability() {
-    const canUseManualPhoneFallback = detectCanUseManualPhoneFallback();
+    const canUseManualPhoneFallback = isDevelopOrTrialEnv();
     if (
       canUseManualPhoneFallback !== this.data.canUseManualPhoneFallback ||
       (!canUseManualPhoneFallback && this.data.showManualPhoneFallback)
