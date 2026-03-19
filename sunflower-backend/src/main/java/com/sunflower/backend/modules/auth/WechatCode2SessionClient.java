@@ -3,6 +3,7 @@ package com.sunflower.backend.modules.auth;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sunflower.backend.common.exception.BusinessException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +12,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Component
 public class WechatCode2SessionClient {
@@ -18,6 +21,7 @@ public class WechatCode2SessionClient {
     private static final String GRANT_TYPE_AUTHORIZATION_CODE = "authorization_code";
     private static final int ERR_CODE_INVALID = 40029;
     private static final int ERR_CODE_USED = 40163;
+    private static final Logger log = LoggerFactory.getLogger(WechatCode2SessionClient.class);
 
     private final RestTemplate restTemplate;
     private final boolean mockEnabled;
@@ -27,6 +31,7 @@ public class WechatCode2SessionClient {
     private final String mockFixedOpenId;
     private final String mockOpenIdPrefix;
 
+    @Autowired
     public WechatCode2SessionClient(
         RestTemplateBuilder restTemplateBuilder,
         @Value("${app.auth.wechat.mock-enabled:true}") boolean mockEnabled,
@@ -36,7 +41,27 @@ public class WechatCode2SessionClient {
         @Value("${app.auth.wechat.mock-fixed-openid:}") String mockFixedOpenId,
         @Value("${app.auth.wechat.mock-openid-prefix:mock_openid_}") String mockOpenIdPrefix
     ) {
-        this.restTemplate = restTemplateBuilder.build();
+        this(
+            restTemplateBuilder.build(),
+            mockEnabled,
+            appId,
+            appSecret,
+            jscode2sessionUrl,
+            mockFixedOpenId,
+            mockOpenIdPrefix
+        );
+    }
+
+    WechatCode2SessionClient(
+        RestTemplate restTemplate,
+        boolean mockEnabled,
+        String appId,
+        String appSecret,
+        String jscode2sessionUrl,
+        String mockFixedOpenId,
+        String mockOpenIdPrefix
+    ) {
+        this.restTemplate = restTemplate;
         this.mockEnabled = mockEnabled;
         this.appId = trim(appId);
         this.appSecret = trim(appSecret);
@@ -88,15 +113,20 @@ public class WechatCode2SessionClient {
 
     private WechatCode2SessionResponse requestSession(String requestUrl) {
         try {
-            ResponseEntity<WechatCode2SessionResponse> responseEntity = restTemplate.getForEntity(
+            ResponseEntity<String> responseEntity = restTemplate.getForEntity(
                 requestUrl,
-                WechatCode2SessionResponse.class
+                String.class
             );
-            if (!responseEntity.getStatusCode().is2xxSuccessful() || responseEntity.getBody() == null) {
+            if (!responseEntity.getStatusCode().is2xxSuccessful()) {
                 throw BusinessException.badRequest("微信登录失败，请稍后重试");
             }
-            return responseEntity.getBody();
+            return WechatApiResponseParser.parse(
+                responseEntity.getBody(),
+                WechatCode2SessionResponse.class,
+                "微信登录失败，请稍后重试"
+            );
         } catch (RestClientException ex) {
+            log.warn("Failed to call WeChat jscode2session endpoint", ex);
             throw BusinessException.badRequest("微信登录服务暂不可用，请稍后重试");
         }
     }

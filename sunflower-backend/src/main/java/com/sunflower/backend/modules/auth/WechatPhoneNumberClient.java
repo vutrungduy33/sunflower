@@ -12,6 +12,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Component
 public class WechatPhoneNumberClient {
@@ -19,6 +21,7 @@ public class WechatPhoneNumberClient {
     private static final int ERR_CODE_INVALID = 40029;
     private static final int ERR_CODE_INVALID_APP_ID = 40013;
     private static final int ERR_CODE_RATE_LIMIT = 45011;
+    private static final Logger log = LoggerFactory.getLogger(WechatPhoneNumberClient.class);
 
     private final RestTemplate restTemplate;
     private final WechatAccessTokenClient wechatAccessTokenClient;
@@ -103,16 +106,21 @@ public class WechatPhoneNumberClient {
 
     private WechatPhoneNumberResponse requestPhoneNumber(String requestUrl, String code) {
         try {
-            ResponseEntity<WechatPhoneNumberResponse> responseEntity = restTemplate.postForEntity(
+            ResponseEntity<String> responseEntity = restTemplate.postForEntity(
                 requestUrl,
                 new WechatPhoneNumberRequest(code),
-                WechatPhoneNumberResponse.class
+                String.class
             );
-            if (!responseEntity.getStatusCode().is2xxSuccessful() || responseEntity.getBody() == null) {
+            if (!responseEntity.getStatusCode().is2xxSuccessful()) {
                 throw BusinessException.badRequest("微信手机号服务暂不可用，请稍后重试");
             }
-            return responseEntity.getBody();
+            return WechatApiResponseParser.parse(
+                responseEntity.getBody(),
+                WechatPhoneNumberResponse.class,
+                "微信手机号服务暂不可用，请稍后重试"
+            );
         } catch (RestClientException ex) {
+            log.warn("Failed to call WeChat phone number endpoint", ex);
             throw BusinessException.badRequest("微信手机号服务暂不可用，请稍后重试");
         }
     }
