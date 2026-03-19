@@ -101,6 +101,23 @@ class MvpApiIntegrationTests {
     }
 
     @Test
+    void shouldBindPhoneByWechatPhoneCode() throws Exception {
+        String token = loginAndGetToken("wechat_bind_phone_code_case");
+
+        mockMvc
+            .perform(
+                post("/api/auth/bind-phone")
+                    .header("Authorization", bearerToken(token))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"phoneCode\":\"wechat_phone_code_1234\"}")
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.phone").value("18800001234"))
+            .andExpect(jsonPath("$.data.isPhoneBound").value(true));
+    }
+
+    @Test
     void shouldListRoomsAndCalendar() throws Exception {
         mockMvc
             .perform(get("/api/rooms").param("checkInDate", "2026-02-12").param("keyword", "湖景"))
@@ -1343,6 +1360,17 @@ class MvpApiIntegrationTests {
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.code").value(40001))
             .andExpect(jsonPath("$.message").value("请输入正确的 11 位手机号"));
+
+        mockMvc
+            .perform(
+                post("/api/auth/bind-phone")
+                    .header("Authorization", bearerToken(token))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{}")
+            )
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value(40000))
+            .andExpect(jsonPath("$.message").value("手机号授权码不能为空"));
 
         mockMvc
             .perform(

@@ -30,6 +30,6 @@ public class AuthController {
 
     @PostMapping("/bind-phone")
     public ApiResponse<ProfileDto> bindPhone(@Valid @RequestBody BindPhoneRequest request) {
-        return ApiResponse.ok(authService.bindPhone(request.getPhone()));
+        return ApiResponse.ok(authService.bindPhone(request.getPhone(), request.getPhoneCode()));
     }
 }

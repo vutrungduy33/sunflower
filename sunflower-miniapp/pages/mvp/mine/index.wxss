@@ -71,6 +71,12 @@
   font-size: 22rpx;
 }
 
+.field-tip {
+  font-size: 22rpx;
+  color: #6b7280;
+  line-height: 1.6;
+}
+
 .field-input {
   height: 72rpx;
   border-radius: 14rpx;
@@ -85,4 +91,10 @@
 
 .mt16 {
   margin-top: 16rpx;
+}
+
+.manual-bind-toggle {
+  margin-top: 16rpx;
+  font-size: 22rpx;
+  color: #2e7d32;
 }

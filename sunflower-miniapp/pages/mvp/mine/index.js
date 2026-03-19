@@ -19,6 +19,19 @@ const EMPTY_ORDER_STATS = Object.freeze({
   completed: 0,
 });
 
+function detectCanUseManualPhoneFallback() {
+  try {
+    if (typeof wx.getAccountInfoSync !== 'function') {
+      return false;
+    }
+    const accountInfo = wx.getAccountInfoSync();
+    const envVersion = `${(accountInfo && accountInfo.miniProgram && accountInfo.miniProgram.envVersion) || ''}`.trim();
+    return envVersion === 'develop' || envVersion === 'trial';
+  } catch (error) {
+    return false;
+  }
+}
+
 function normalizeProfile(profile) {
   const nextProfile = profile && typeof profile === 'object' ? profile : {};
   const tags = Array.isArray(nextProfile.tags) ? nextProfile.tags : [];
@@ -68,10 +81,26 @@ Page({
     orderStats: { ...EMPTY_ORDER_STATS },
     editingNickName: '',
     bindingPhone: '',
+    canUseManualPhoneFallback: false,
+    showManualPhoneFallback: false,
   },
 
   onShow() {
+    this.syncManualPhoneFallbackCapability();
     this.loadData();
+  },
+
+  syncManualPhoneFallbackCapability() {
+    const canUseManualPhoneFallback = detectCanUseManualPhoneFallback();
+    if (
+      canUseManualPhoneFallback !== this.data.canUseManualPhoneFallback ||
+      (!canUseManualPhoneFallback && this.data.showManualPhoneFallback)
+    ) {
+      this.setData({
+        canUseManualPhoneFallback,
+        showManualPhoneFallback: canUseManualPhoneFallback ? this.data.showManualPhoneFallback : false,
+      });
+    }
   },
 
   async loadData() {
@@ -110,6 +139,7 @@ Page({
         orderStats: { ...EMPTY_ORDER_STATS },
         editingNickName: '',
         bindingPhone: '',
+        showManualPhoneFallback: false,
         errorMessage: error.message || '个人页加载失败，请稍后重试',
       });
     } finally {
@@ -161,6 +191,44 @@ Page({
     } catch (error) {
       wx.showToast({ title: error.message || '绑定失败', icon: 'none' });
     }
+  },
+
+  async bindPhoneWithWechat(event) {
+    const detail = event && event.detail ? event.detail : {};
+    const errMsg = `${detail.errMsg || ''}`;
+    const phoneCode = `${detail.code || ''}`.trim();
+
+    if (!phoneCode) {
+      wx.showToast({
+        title: errMsg.includes('deny') ? '你已取消手机号授权' : '未获取到手机号授权码',
+        icon: 'none',
+      });
+      return;
+    }
+
+    try {
+      const profile = normalizeProfile(await postBindPhone({ phoneCode }));
+      this.setData({
+        hasProfile: true,
+        profile,
+        bindingPhone: profile.phone || '',
+        profileMetaText: buildProfileMetaText(profile),
+        showManualPhoneFallback: false,
+      });
+      track('bind_phone_success', { source: 'mine', channel: 'wechat_phone' });
+      wx.showToast({ title: '绑定成功', icon: 'success' });
+    } catch (error) {
+      wx.showToast({ title: error.message || '绑定失败', icon: 'none' });
+    }
+  },
+
+  toggleManualPhoneFallback() {
+    if (!this.data.canUseManualPhoneFallback) {
+      return;
+    }
+    this.setData({
+      showManualPhoneFallback: !this.data.showManualPhoneFallback,
+    });
   },
 
   goOrderList() {

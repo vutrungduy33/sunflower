@@ -1,6 +1,6 @@
 # 接口字段级别定义（请求/响应示例）
 
-> 更新时间：2026-03-13  
+> 更新时间：2026-03-19
 > 说明：以下示例对齐当前 `sunflower-backend` 的 MVP 一期实现。
 
 统一响应壳：
@@ -33,7 +33,7 @@
 ## 1) 认证与用户
 
 登录态说明：登录后返回签名 token（默认有效期 2 小时），客户端通过 `Authorization: Bearer <token>` 调用当前用户接口；未携带、token 无效或过期返回 `40100`。
-登录链路说明：小程序先调用 `wx.login()` 获取一次性 `code`，后端用 `code` 调微信 `jscode2session` 换取 `openid`；`dev/test` 环境可通过配置开启 mock 交换。
+登录链路说明：小程序先调用 `wx.login()` 获取一次性 `code`，后端用 `code` 调微信 `jscode2session` 换取 `openid`；`dev/test` 环境可通过显式配置开启 mock，`prod` 默认关闭 mock。
 
 ### `POST /api/auth/wechat/login`
 **请求**
@@ -57,12 +57,20 @@
 ```
 
 ### `POST /api/auth/bind-phone`
-**请求**
+**请求（推荐：微信手机号授权）**
+```json
+{
+  "phoneCode": "wx_phone_code_from_getPhoneNumber"
+}
+```
+
+**请求（开发/测试兜底，仅当后端显式开启手动绑定时可用）**
 ```json
 {
   "phone": "13800000000"
 }
 ```
+
 **响应**
 ```json
 {
@@ -70,6 +78,31 @@
   "phone": "13800000000",
   "tags": ["亲子", "湖景偏好"],
   "isPhoneBound": true
+}
+```
+
+**常见错误**
+```json
+{
+  "code": 40000,
+  "message": "手机号授权码不能为空",
+  "data": null
+}
+```
+
+```json
+{
+  "code": 40000,
+  "message": "当前环境仅支持微信手机号授权绑定",
+  "data": null
+}
+```
+
+```json
+{
+  "code": 40000,
+  "message": "手机号授权已失效，请重新授权",
+  "data": null
 }
 ```
 

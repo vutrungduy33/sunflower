@@ -114,11 +114,15 @@
 可选 Secrets：
 
 - `AUTH_TOKEN_TTL_SECONDS`：token 过期秒数（默认 `7200`）
-- `WECHAT_AUTH_MOCK_ENABLED`：是否启用微信登录 mock（`true/false`，默认 `false`）
-- `WECHAT_APP_ID`：微信小程序 `appId`（当 `WECHAT_AUTH_MOCK_ENABLED=false` 时建议配置）
-- `WECHAT_APP_SECRET`：微信小程序 `appSecret`（当 `WECHAT_AUTH_MOCK_ENABLED=false` 时建议配置）
+- `WECHAT_AUTH_MOCK_ENABLED`：是否启用微信登录 / 微信手机号 mock（`true/false`，默认 `false`；`prod` 不应开启）
+- `WECHAT_APP_ID`：微信小程序 `appId`（当 `WECHAT_AUTH_MOCK_ENABLED=false` 时必填）
+- `WECHAT_APP_SECRET`：微信小程序 `appSecret`（当 `WECHAT_AUTH_MOCK_ENABLED=false` 时必填）
 - `WECHAT_JSCODE2SESSION_URL`：微信 `jscode2session` 地址（默认官方地址）
+- `WECHAT_STABLE_ACCESS_TOKEN_URL`：微信 `stable_access_token` 地址（默认官方地址）
+- `WECHAT_GET_PHONE_NUMBER_URL`：微信 `getuserphonenumber` 地址（默认官方地址）
 - `WECHAT_MOCK_OPENID_PREFIX`：mock openid 前缀（默认 `mock_openid_`）
+- `WECHAT_MOCK_PHONE_NUMBER_PREFIX`：mock 手机号前缀（默认 `1880000`）
+- `WECHAT_MANUAL_PHONE_BIND_ENABLED`：是否允许手动录入手机号兜底（`true/false`，默认 `false`；建议仅 `dev/test` 显式开启）
 
 可选 Variables：
 
@@ -133,6 +137,8 @@
 - 当前 workflow 的 GitHub-hosted 构建默认使用 Maven Central；如果后续进入阿里云 self-hosted runner 阶段，再按环境把 backend Docker build 的 `MAVEN_MIRROR` 切到 `aliyun`。
 - admin-web 当前无需单独的部署 secret；宿主机 Nginx 是唯一公网入口，负责把 `/` 转发到 admin-web，把 `/api` 转发到 backend。
 - 小程序默认也应指向统一入口，例如 `http://<ecs-host>` 或未来的 `https://<your-domain>`，由 `/api/*` 路由进入 backend。
+- S16 起生产环境不再默认回退到 mock 微信认证；若 `WECHAT_AUTH_MOCK_ENABLED=false` 且缺失 `WECHAT_APP_ID/WECHAT_APP_SECRET`，backend 启动会直接失败。
+- 小程序手机号绑定主流程为微信 `getPhoneNumber` 动态 `code`；`WECHAT_MANUAL_PHONE_BIND_ENABLED` 仅用于开发调试或特殊修复，不应作为线上主流程。
 - 若 deploy job 在 `Deploy via SSH` 阶段报 `ssh: unable to authenticate, attempted methods [none publickey]`，优先检查 `ECS_SSH_KEY` 是否与 ECS `authorized_keys` 匹配；若私钥带口令，还需配置 `ECS_SSH_PASSPHRASE`。
 - 当前 workflow 不再要求 ECS 主机可访问 GitHub 拉取仓库源码；只要求 SSH 连通和 GHCR 拉镜像权限正常。
 - 当前 workflow 会覆盖 `/etc/nginx/sites-available/${HOST_NGINX_SITE_NAME:-sunflower}` 并刷新 `/etc/nginx/sites-enabled/${HOST_NGINX_SITE_NAME:-sunflower}`。部署用户需要具备 `root` 或 `sudo` 权限。

@@ -20,3 +20,9 @@ logging:
   level:
     root: info
     com.sunflower.backend: debug
+
+app:
+  auth:
+    wechat:
+      mock-enabled: ${WECHAT_AUTH_MOCK_ENABLED:true}
+      manual-phone-bind-enabled: ${WECHAT_MANUAL_PHONE_BIND_ENABLED:true}

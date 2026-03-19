@@ -18,8 +18,10 @@ app:
   auth:
     wechat:
       mock-enabled: true
+      manual-phone-bind-enabled: true
       mock-fixed-openid: mock_openid_mvp_code
       mock-openid-prefix: mock_openid_
+      mock-phone-number-prefix: 1880000
     token:
       secret: test-signing-secret-change-me
       ttl-seconds: 3600
