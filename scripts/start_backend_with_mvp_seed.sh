@@ -5,6 +5,8 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SEED_SQL_FILE="$ROOT_DIR/scripts/sql/mvp_demo_seed.sql"
 MYSQL_CONTAINER_NAME="${MYSQL_CONTAINER_NAME:-sunflower-mysql}"
 BACKEND_HOST_PORT="${BACKEND_HOST_PORT:-8080}"
+REGISTRY_PULL_MAX_ATTEMPTS="${REGISTRY_PULL_MAX_ATTEMPTS:-4}"
+REGISTRY_PULL_INITIAL_DELAY_SECONDS="${REGISTRY_PULL_INITIAL_DELAY_SECONDS:-3}"
 
 fail() {
   echo "[deploy-seed] ERROR: $*" >&2
@@ -21,6 +23,27 @@ detect_compose_cmd() {
     return
   fi
   fail "docker compose is not installed"
+}
+
+pull_service_with_retry() {
+  local service="$1"
+  local attempt=1
+  local delay="$REGISTRY_PULL_INITIAL_DELAY_SECONDS"
+
+  while true; do
+    if "${COMPOSE_CMD[@]}" pull "$service"; then
+      return
+    fi
+
+    if (( attempt >= REGISTRY_PULL_MAX_ATTEMPTS )); then
+      fail "failed to pull '$service' image after ${REGISTRY_PULL_MAX_ATTEMPTS} attempts"
+    fi
+
+    echo "[deploy-seed] WARN: pull '$service' failed on attempt ${attempt}/${REGISTRY_PULL_MAX_ATTEMPTS}, retrying in ${delay}s..."
+    sleep "$delay"
+    attempt=$((attempt + 1))
+    delay=$((delay * 2))
+  done
 }
 
 wait_mysql_ready() {
@@ -51,7 +74,7 @@ seed_demo_data() {
 start_backend_service() {
   if [[ -n "${BACKEND_IMAGE:-}" ]]; then
     echo "[deploy-seed] Pulling backend image from registry: ${BACKEND_IMAGE}"
-    "${COMPOSE_CMD[@]}" pull backend
+    pull_service_with_retry backend
     "${COMPOSE_CMD[@]}" up -d backend
     return
   fi
