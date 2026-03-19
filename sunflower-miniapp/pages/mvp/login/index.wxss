@@ -1,0 +1,49 @@
+@import '../common.wxss';
+
+.login-page {
+  gap: 0;
+}
+
+.login-card {
+  background: linear-gradient(135deg, #f4fff7, #eef8ff);
+}
+
+.login-env {
+  font-size: 24rpx;
+  color: #166534;
+  font-weight: 600;
+}
+
+.login-desc {
+  margin-top: 12rpx;
+  color: #4b5563;
+  font-size: 24rpx;
+  line-height: 1.6;
+}
+
+.login-actions {
+  display: flex;
+  gap: 16rpx;
+  flex-wrap: wrap;
+  margin-top: 20rpx;
+}
+
+.login-message {
+  margin-top: 20rpx;
+  padding: 18rpx 20rpx;
+  border-radius: 18rpx;
+  background: #f8fafc;
+  color: #374151;
+  font-size: 24rpx;
+}
+
+.login-meta {
+  color: #374151;
+  font-size: 24rpx;
+  margin-bottom: 12rpx;
+  word-break: break-all;
+}
+
+.login-meta:last-child {
+  margin-bottom: 0;
+}

@@ -2,6 +2,7 @@
   "darkmode": true,
   "pages": [
     "pages/mvp/home/index",
+    "pages/mvp/login/index",
     "pages/mvp/booking/index",
     "pages/mvp/map/index",
     "pages/mvp/discover/index",

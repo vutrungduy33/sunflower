@@ -25,6 +25,13 @@
   margin-top: 24rpx;
 }
 
+.hero-card__dev-entry {
+  margin-top: 18rpx;
+  font-size: 22rpx;
+  opacity: 0.92;
+  text-decoration: underline;
+}
+
 .banner-swiper {
   height: 200rpx;
 }

@@ -1,0 +1,79 @@
+<view class="mvp-page login-page">
+  <mvp-nav-actions />
+
+  <view class="mvp-section login-card">
+    <view class="mvp-section__title">开发版登录测试</view>
+    <view class="login-env">当前环境：{{envVersion || 'unknown'}}</view>
+    <view class="login-env">当前 API：{{apiBaseUrl || '--'}}</view>
+    <view class="login-env">地址来源：{{apiBaseUrlSource || '--'}}</view>
+    <view class="login-desc">该页面仅用于 develop / trial 环境下验证微信登录、清理本地登录态和回看当前资料。</view>
+    <view class="login-desc">真机扫码若没有请求到后端，优先检查这里是不是 HTTPS 合法域名，而不是裸 IP。</view>
+
+    <view class="login-actions">
+      <t-button
+        size="small"
+        theme="primary"
+        loading="{{loggingIn}}"
+        disabled="{{!canUseLoginTest || loggingIn}}"
+        bindtap="loginWithWechat"
+      >
+        发起微信登录
+      </t-button>
+      <t-button
+        size="small"
+        theme="default"
+        variant="outline"
+        disabled="{{!hasToken}}"
+        bindtap="clearLoginState"
+      >
+        清除登录态
+      </t-button>
+    </view>
+
+    <view class="login-actions">
+      <t-button
+        size="small"
+        theme="primary"
+        variant="outline"
+        disabled="{{!canUseLoginTest}}"
+        bindtap="useLiveEcsApi"
+      >
+        使用当前 ECS 地址
+      </t-button>
+      <t-button
+        size="small"
+        theme="default"
+        variant="outline"
+        disabled="{{!canUseLoginTest}}"
+        bindtap="resetApiBaseUrl"
+      >
+        清除地址覆盖
+      </t-button>
+    </view>
+
+    <view class="login-message" wx:if="{{loginMessage}}">{{loginMessage}}</view>
+  </view>
+
+  <view class="mvp-section">
+    <view class="mvp-section__title">登录态概览</view>
+    <view class="login-meta">本地 Token：{{hasToken ? '已存在' : '不存在'}}</view>
+    <view class="login-meta">OpenID：{{openId || '--'}}</view>
+    <view class="login-meta">资料加载：{{loadingProfile ? '加载中' : '已完成'}}</view>
+  </view>
+
+  <view class="mvp-section">
+    <view class="mvp-section__title">当前用户资料</view>
+    <view class="login-meta">昵称：{{profile.nickName || '--'}}</view>
+    <view class="login-meta">手机号：{{profile.phone || '--'}}</view>
+    <view class="login-meta">已绑手机：{{profile.isPhoneBound ? '是' : '否'}}</view>
+    <view class="login-meta">标签：{{profile.tags.length ? profile.tags.join(' / ') : '--'}}</view>
+  </view>
+
+  <view class="mvp-section">
+    <view class="mvp-section__title">测试后跳转</view>
+    <view class="login-actions">
+      <t-button size="small" theme="primary" variant="outline" bindtap="goHome">返回首页</t-button>
+      <t-button size="small" theme="default" variant="outline" bindtap="goMine">前往我的</t-button>
+    </view>
+  </view>
+</view>

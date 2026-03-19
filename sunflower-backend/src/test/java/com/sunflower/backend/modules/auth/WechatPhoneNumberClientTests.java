@@ -43,7 +43,7 @@ class WechatPhoneNumberClientTests {
             )
             .andExpect(method(HttpMethod.POST))
             .andExpect(content().json("{\"code\":\"expired_phone_code\"}"))
-            .andRespond(withSuccess("{\"errcode\":40029,\"errmsg\":\"code invalid\"}", MediaType.APPLICATION_JSON));
+            .andRespond(withSuccess("{\"errcode\":40029,\"errmsg\":\"code invalid\"}", MediaType.TEXT_PLAIN));
 
         WechatPhoneNumberClient client = new WechatPhoneNumberClient(
             restTemplate,
@@ -58,6 +58,37 @@ class WechatPhoneNumberClientTests {
             () -> client.resolvePhoneNumber("expired_phone_code")
         );
         assertEquals("手机号授权已失效，请重新授权", exception.getMessage());
+        server.verify();
+    }
+
+    @Test
+    void shouldParseTextPlainWechatPhoneResponse() {
+        RestTemplate restTemplate = new RestTemplate();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(restTemplate).build();
+        WechatAccessTokenClient accessTokenClient = mock(WechatAccessTokenClient.class);
+        when(accessTokenClient.getAccessToken()).thenReturn("stable_access_token");
+        server
+            .expect(
+                requestTo("https://api.weixin.qq.com/wxa/business/getuserphonenumber?access_token=stable_access_token")
+            )
+            .andExpect(method(HttpMethod.POST))
+            .andExpect(content().json("{\"code\":\"fresh_phone_code\"}"))
+            .andRespond(
+                withSuccess(
+                    "{\"phone_info\":{\"phoneNumber\":\"+86 13800138000\",\"purePhoneNumber\":\"13800138000\"}}",
+                    MediaType.TEXT_PLAIN
+                )
+            );
+
+        WechatPhoneNumberClient client = new WechatPhoneNumberClient(
+            restTemplate,
+            accessTokenClient,
+            false,
+            "https://api.weixin.qq.com/wxa/business/getuserphonenumber",
+            "1880000"
+        );
+
+        assertEquals("13800138000", client.resolvePhoneNumber("fresh_phone_code"));
         server.verify();
     }
 }

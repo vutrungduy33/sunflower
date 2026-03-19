@@ -17,6 +17,9 @@
         <t-button size="small" theme="primary" bindtap="goBooking">立即预订</t-button>
         <t-button size="small" theme="default" variant="outline" bindtap="goOrderCenter">我的订单</t-button>
       </view>
+      <view class="hero-card__dev-entry" wx:if="{{showDevLoginEntry}}" bindtap="goDevLogin">
+        develop/trial 测试入口：打开登录页
+      </view>
     </view>
 
     <view class="mvp-section">
