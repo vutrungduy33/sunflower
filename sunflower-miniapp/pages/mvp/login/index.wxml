@@ -4,7 +4,10 @@
   <view class="mvp-section login-card">
     <view class="mvp-section__title">开发版登录测试</view>
     <view class="login-env">当前环境：{{envVersion || 'unknown'}}</view>
+    <view class="login-env">当前 API：{{apiBaseUrl || '--'}}</view>
+    <view class="login-env">地址来源：{{apiBaseUrlSource || '--'}}</view>
     <view class="login-desc">该页面仅用于 develop / trial 环境下验证微信登录、清理本地登录态和回看当前资料。</view>
+    <view class="login-desc">真机扫码若没有请求到后端，优先检查这里是不是 HTTPS 合法域名，而不是裸 IP。</view>
 
     <view class="login-actions">
       <t-button
@@ -24,6 +27,27 @@
         bindtap="clearLoginState"
       >
         清除登录态
+      </t-button>
+    </view>
+
+    <view class="login-actions">
+      <t-button
+        size="small"
+        theme="primary"
+        variant="outline"
+        disabled="{{!canUseLoginTest}}"
+        bindtap="useLiveEcsApi"
+      >
+        使用当前 ECS 地址
+      </t-button>
+      <t-button
+        size="small"
+        theme="default"
+        variant="outline"
+        disabled="{{!canUseLoginTest}}"
+        bindtap="resetApiBaseUrl"
+      >
+        清除地址覆盖
       </t-button>
     </view>
 

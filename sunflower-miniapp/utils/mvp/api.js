@@ -2,7 +2,7 @@ const { getDefaultBookingDate } = require('./date');
 
 const STORAGE_KEY_API_BASE_URL = 'SUNFLOWER_API_BASE_URL';
 const STORAGE_KEY_AUTH_TOKEN = 'SUNFLOWER_AUTH_TOKEN';
-const DEFAULT_API_BASE_URL = 'http://8.155.148.126';
+const DEFAULT_API_BASE_URL = 'http://47.115.231.250';
 const AUTH_EXPIRED_MESSAGE = '登录态已失效，请重新进入首页';
 
 function safeGetApp() {
@@ -13,12 +13,23 @@ function safeGetApp() {
   }
 }
 
-function getApiBaseUrl() {
+function resolveApiBaseUrl() {
   const app = safeGetApp();
   const appBaseUrl = app && app.globalData ? app.globalData.apiBaseUrl : '';
   const storageBaseUrl = wx.getStorageSync(STORAGE_KEY_API_BASE_URL);
-  const value = `${storageBaseUrl || appBaseUrl || DEFAULT_API_BASE_URL}`.trim();
-  return value.replace(/\/+$/, '');
+  const rawValue = `${storageBaseUrl || appBaseUrl || DEFAULT_API_BASE_URL}`.trim();
+  return {
+    value: rawValue.replace(/\/+$/, ''),
+    source: storageBaseUrl ? 'storage' : appBaseUrl ? 'app' : 'default',
+  };
+}
+
+function getApiBaseUrl() {
+  return resolveApiBaseUrl().value;
+}
+
+function getApiBaseUrlDebugInfo() {
+  return resolveApiBaseUrl();
 }
 
 function setApiBaseUrl(baseUrl) {
@@ -32,6 +43,19 @@ function setApiBaseUrl(baseUrl) {
     app.globalData.apiBaseUrl = value;
   }
   return value;
+}
+
+function clearApiBaseUrlOverride() {
+  try {
+    wx.removeStorageSync(STORAGE_KEY_API_BASE_URL);
+  } catch (error) {
+    // Ignore cleanup failures to avoid blocking debug reset.
+  }
+  const app = safeGetApp();
+  if (app && app.globalData) {
+    app.globalData.apiBaseUrl = DEFAULT_API_BASE_URL;
+  }
+  return DEFAULT_API_BASE_URL;
 }
 
 function getAuthToken() {
@@ -296,6 +320,7 @@ async function postRefundOrder(orderId, reason = '') {
 }
 
 module.exports = {
+  clearApiBaseUrlOverride,
   clearAuthToken,
   fetchHomeData,
   fetchOrderDetail,
@@ -305,6 +330,7 @@ module.exports = {
   fetchRoomDetail,
   fetchRooms,
   fetchTravelNotes,
+  getApiBaseUrlDebugInfo,
   patchProfile,
   postBindPhone,
   postCancelOrder,

@@ -34,6 +34,7 @@
 小程序业务页继续通过 `utils/mvp/api.js` 访问后端，页面层方法签名保持不变。
 
 当前已切换说明：
-- 默认统一 API 入口：`http://8.155.148.126`（统一入口的 `/api/*` 转发到 backend）
+- 默认统一 API 入口：`http://47.115.231.250`（统一入口的 `/api/*` 转发到 backend）
 - 可通过 `wx.setStorageSync('SUNFLOWER_API_BASE_URL', 'http://你的统一入口地址')` 覆盖
+- 真机扫码/预览若要直连小程序后端，仍需切换到 `HTTPS + 微信后台合法 request 域名`；裸 `http://IP` 仅适合开发联调排障。
 - 已对齐后端接口：`/api/auth/*`、`/api/users/me`、`/api/content/home`、`/api/rooms*`、`/api/orders*`、`/api/poi`、`/api/posts`

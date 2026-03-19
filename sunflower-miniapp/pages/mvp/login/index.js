@@ -1,12 +1,16 @@
 const {
+  clearApiBaseUrlOverride,
   clearAuthToken,
   fetchProfile,
+  getApiBaseUrlDebugInfo,
   hasAuthToken,
+  setApiBaseUrl,
   wechatLogin,
 } = require('../../../utils/mvp/api');
 const { getMiniProgramEnvVersion, isDevelopOrTrialEnv } = require('../../../utils/mvp/env');
 const { track } = require('../../../utils/mvp/tracker');
 
+const LIVE_ECS_API_BASE_URL = 'http://47.115.231.250';
 const EMPTY_PROFILE = Object.freeze({
   nickName: '',
   phone: '',
@@ -31,6 +35,8 @@ Page({
     loggingIn: false,
     loadingProfile: false,
     loginMessage: '',
+    apiBaseUrl: '',
+    apiBaseUrlSource: '',
     openId: '',
     profile: { ...EMPTY_PROFILE },
   },
@@ -43,11 +49,14 @@ Page({
     const envVersion = getMiniProgramEnvVersion();
     const canUseLoginTest = isDevelopOrTrialEnv();
     const hasToken = hasAuthToken();
+    const apiDebugInfo = getApiBaseUrlDebugInfo();
 
     this.setData({
       envVersion,
       canUseLoginTest,
       hasToken,
+      apiBaseUrl: apiDebugInfo.value,
+      apiBaseUrlSource: apiDebugInfo.source,
       loginMessage: canUseLoginTest ? '' : '当前环境不是 develop/trial，登录测试页仅用于开发调试。',
     });
 
@@ -77,6 +86,30 @@ Page({
     } finally {
       this.setData({ loadingProfile: false });
     }
+  },
+
+  useLiveEcsApi() {
+    try {
+      const value = setApiBaseUrl(LIVE_ECS_API_BASE_URL);
+      this.setData({
+        apiBaseUrl: value,
+        apiBaseUrlSource: 'storage',
+        loginMessage: '已切换到当前 ECS 联调地址。真机扫码仍需 HTTPS 合法域名。',
+      });
+      wx.showToast({ title: '已切换 API', icon: 'success' });
+    } catch (error) {
+      wx.showToast({ title: error.message || '切换失败', icon: 'none' });
+    }
+  },
+
+  resetApiBaseUrl() {
+    const value = clearApiBaseUrlOverride();
+    this.setData({
+      apiBaseUrl: value,
+      apiBaseUrlSource: 'default',
+      loginMessage: '已清除 API 地址覆盖。若是真机扫码，仍需 HTTPS 合法域名。',
+    });
+    wx.showToast({ title: '已恢复默认', icon: 'success' });
   },
 
   async loginWithWechat() {
