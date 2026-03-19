@@ -221,13 +221,26 @@ async function patchProfile(payload) {
   });
 }
 
-async function postBindPhone(phone) {
+function normalizeBindPhonePayload(payload) {
+  if (typeof payload === 'string') {
+    return {
+      phone: payload,
+    };
+  }
+  if (!payload || typeof payload !== 'object') {
+    return {};
+  }
+  return {
+    ...(payload.phone ? { phone: `${payload.phone}`.trim() } : {}),
+    ...(payload.phoneCode ? { phoneCode: `${payload.phoneCode}`.trim() } : {}),
+  };
+}
+
+async function postBindPhone(payload) {
   return request('/api/auth/bind-phone', {
     method: 'POST',
     requireAuth: true,
-    data: {
-      phone,
-    },
+    data: normalizeBindPhonePayload(payload),
   });
 }
 

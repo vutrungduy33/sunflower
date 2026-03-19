@@ -1,6 +1,6 @@
 # 接口清单（REST）
 
-> 更新时间：2026-03-13  
+> 更新时间：2026-03-19
 > 说明：以下区分“已实现（MVP 一期）”与“规划中（后续）”。
 
 ## 1. 已实现（MVP 一期）
@@ -10,11 +10,14 @@
 
 ### 1.2 认证与用户
 - `POST /api/auth/wechat/login`：微信登录（小程序先 `wx.login` 获取 code，后端通过微信 `jscode2session` 换取 openid，再返回签名 token）
-- `POST /api/auth/bind-phone`：绑定手机号
+- `POST /api/auth/bind-phone`：绑定手机号（主流程消费微信 `getPhoneNumber` 动态 `code`；开发/测试环境可显式开启手输手机号兜底）
 - `GET /api/users/me`：获取当前用户信息
 - `PATCH /api/users/me`：更新用户资料
 
 说明：当前用户相关接口（`/api/auth/bind-phone`、`/api/users/me`、`/api/orders*`）要求携带 `Authorization: Bearer <token>`；未携带或 token 无效时返回 `40100`。
+微信认证说明：
+- 默认配置下，小程序登录采用真实微信认证；`prod` 环境若缺失 `WECHAT_APP_ID/WECHAT_APP_SECRET` 会启动失败，不会回退到 mock。
+- 小程序手机号绑定主流程为 `getPhoneNumber -> /api/auth/bind-phone(phoneCode)`；手动手机号绑定仅在后端显式开启 `WECHAT_MANUAL_PHONE_BIND_ENABLED=true` 时可用。
 管理端说明：当前管理接口（`/api/admin/rooms*`、`/api/admin/room-prices`、`/api/admin/room-inventory`、`/api/admin/orders*`、`/api/admin/reports/summary`）要求携带 `Authorization: Bearer <admin-token>`；未携带时返回“请先登录管理端”，token 无效时返回“管理端登录态无效”。
 
 ### 1.3 首页与内容

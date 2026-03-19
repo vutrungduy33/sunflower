@@ -81,7 +81,7 @@
 | 前端方法（当前） | 后端接口 | 状态 |
 |---|---|---|
 | `wechatLogin` | `POST /api/auth/wechat/login` | 已实现 |
-| `postBindPhone` | `POST /api/auth/bind-phone` | 已实现 |
+| `postBindPhone` | `POST /api/auth/bind-phone` | 已实现（主流程提交微信 `phoneCode`，开发态可兜底手输手机号） |
 | `fetchProfile` / `patchProfile` | `GET/PATCH /api/users/me` | 已实现 |
 | `fetchHomeData` | `GET /api/content/home` | 已实现 |
 | `fetchRooms` | `GET /api/rooms` | 已实现 |

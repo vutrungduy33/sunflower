@@ -1,15 +1,13 @@
 package com.sunflower.backend.modules.auth.dto;
 
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 
 public class BindPhoneRequest {
 
-    @NotBlank(message = "手机号不能为空")
     @Pattern(regexp = "^1\\d{10}$", message = "请输入正确的 11 位手机号")
     private String phone;
 
-    private String smsCode;
+    private String phoneCode;
 
     public String getPhone() {
         return phone;
@@ -19,11 +17,11 @@ public class BindPhoneRequest {
         this.phone = phone;
     }
 
-    public String getSmsCode() {
-        return smsCode;
+    public String getPhoneCode() {
+        return phoneCode;
     }
 
-    public void setSmsCode(String smsCode) {
-        this.smsCode = smsCode;
+    public void setPhoneCode(String phoneCode) {
+        this.phoneCode = phoneCode;
     }
 }

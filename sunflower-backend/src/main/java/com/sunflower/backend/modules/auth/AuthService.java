@@ -9,6 +9,7 @@ import com.sunflower.backend.modules.user.persistence.UserProfileRepository;
 import com.sunflower.backend.modules.user.persistence.UserRepository;
 import java.util.UUID;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,19 +27,25 @@ public class AuthService {
     private final UserProfileRepository userProfileRepository;
     private final AuthTokenService authTokenService;
     private final WechatCode2SessionClient wechatCode2SessionClient;
+    private final WechatPhoneNumberClient wechatPhoneNumberClient;
+    private final boolean manualPhoneBindEnabled;
 
     public AuthService(
         UserService userService,
         UserRepository userRepository,
         UserProfileRepository userProfileRepository,
         AuthTokenService authTokenService,
-        WechatCode2SessionClient wechatCode2SessionClient
+        WechatCode2SessionClient wechatCode2SessionClient,
+        WechatPhoneNumberClient wechatPhoneNumberClient,
+        @Value("${app.auth.wechat.manual-phone-bind-enabled:false}") boolean manualPhoneBindEnabled
     ) {
         this.userService = userService;
         this.userRepository = userRepository;
         this.userProfileRepository = userProfileRepository;
         this.authTokenService = authTokenService;
         this.wechatCode2SessionClient = wechatCode2SessionClient;
+        this.wechatPhoneNumberClient = wechatPhoneNumberClient;
+        this.manualPhoneBindEnabled = manualPhoneBindEnabled;
     }
 
     @Transactional
@@ -52,8 +59,20 @@ public class AuthService {
         return new WechatLoginResponse(token, openId, profile);
     }
 
-    public ProfileDto bindPhone(String phone) {
-        return userService.bindCurrentUserPhone(phone);
+    public ProfileDto bindPhone(String phone, String phoneCode) {
+        String normalizedPhoneCode = normalize(phoneCode);
+        if (!normalizedPhoneCode.isEmpty()) {
+            return userService.bindCurrentUserPhone(wechatPhoneNumberClient.resolvePhoneNumber(normalizedPhoneCode));
+        }
+
+        String normalizedPhone = normalize(phone);
+        if (normalizedPhone.isEmpty()) {
+            throw com.sunflower.backend.common.exception.BusinessException.badRequest("手机号授权码不能为空");
+        }
+        if (!manualPhoneBindEnabled) {
+            throw com.sunflower.backend.common.exception.BusinessException.badRequest("当前环境仅支持微信手机号授权绑定");
+        }
+        return userService.bindCurrentUserPhone(normalizedPhone);
     }
 
     private UserEntity registerWechatUser(String openId) {
@@ -90,5 +109,9 @@ public class AuthService {
 
     private String buildUserId() {
         return "user_" + UUID.randomUUID().toString().replace("-", "");
+    }
+
+    private String normalize(String value) {
+        return value == null ? "" : value.trim();
     }
 }

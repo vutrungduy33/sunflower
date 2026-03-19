@@ -1,6 +1,6 @@
 # Stage Backlog（V1）
 
-> 更新时间：2026-03-13
+> 更新时间：2026-03-19
 > 执行基线：`docs/Agent-Stage-Plan.md`
 > 规则：每个 Stage 必须在一次与 Agent 的对话中完成开发与测试。
 > 守卫命令：`make stage-pre STAGE=Sx` / `make stage-post STAGE=Sx`
@@ -26,7 +26,7 @@
 - [x] S13 管理后台页面（订单与售后，2026-03-13：订单列表筛选、详情抽屉、经营概览卡片与改期/退款处理页完成）
 - [x] S14 联调收口、CI 门禁与发布验收（2026-02-18：后端部署切换为 GHCR 预构建镜像发布；2026-03-12：补齐 Web 管理端 CI/CD 与 ECS 自动部署；2026-03-12：公网入口收敛为宿主机 Nginx，移除容器 edge-gateway；2026-03-12：发布构建切换阿里云 Maven 镜像并增加依赖预热层；2026-03-12：admin-only 部署改为 `--no-deps`，避免回退构建 backend；2026-03-13：deploy workflow 拆分 detect/build jobs、checkout 改为浅拉取与 sparse checkout、backend/admin GHA cache scope 隔离，GitHub-hosted backend 构建默认回到 Maven Central；2026-03-13：补齐正式联调验收清单与发布/回滚 Runbook，并纳入 PR 门禁与 Stage Guard）
 - [x] S15 订单状态机重构（即时确认 + 售后子状态，2026-03-13：订单分层状态模型、售后申请表、审批/入住/离店/失约接口、小程序与管理端联调、API 文档与回归测试完成）
-- [ ] S16 小程序真实微信认证与手机号绑定
+- [x] S16 小程序真实微信认证与手机号绑定（2026-03-19：默认关闭生产 mock 登录、接入微信手机号动态 code 绑定、补齐 access token/手机号调用客户端、开发态手动手机号兜底与 API/部署文档同步）
 - [ ] S17 管理端真实账号登录（手机号 + 密码 + 短信重置）
 - [ ] S18 真实微信支付/退款与资金流水
 - [ ] S19 生产入口与微信发布阻塞项收口
