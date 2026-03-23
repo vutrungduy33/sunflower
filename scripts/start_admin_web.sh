@@ -4,6 +4,8 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ADMIN_WEB_HOST_PORT="${ADMIN_WEB_HOST_PORT:-18080}"
 BACKEND_HOST_PORT="${BACKEND_HOST_PORT:-8080}"
+REGISTRY_PULL_MAX_ATTEMPTS="${REGISTRY_PULL_MAX_ATTEMPTS:-4}"
+REGISTRY_PULL_INITIAL_DELAY_SECONDS="${REGISTRY_PULL_INITIAL_DELAY_SECONDS:-3}"
 
 fail() {
   echo "[deploy-web] ERROR: $*" >&2
@@ -20,6 +22,27 @@ detect_compose_cmd() {
     return
   fi
   fail "docker compose is not installed"
+}
+
+pull_service_with_retry() {
+  local service="$1"
+  local attempt=1
+  local delay="$REGISTRY_PULL_INITIAL_DELAY_SECONDS"
+
+  while true; do
+    if "${COMPOSE_CMD[@]}" pull "$service"; then
+      return
+    fi
+
+    if (( attempt >= REGISTRY_PULL_MAX_ATTEMPTS )); then
+      fail "failed to pull '$service' image after ${REGISTRY_PULL_MAX_ATTEMPTS} attempts"
+    fi
+
+    echo "[deploy-web] WARN: pull '$service' failed on attempt ${attempt}/${REGISTRY_PULL_MAX_ATTEMPTS}, retrying in ${delay}s..."
+    sleep "$delay"
+    attempt=$((attempt + 1))
+    delay=$((delay * 2))
+  done
 }
 
 wait_backend_ready() {
@@ -45,7 +68,7 @@ wait_admin_web_ready() {
 start_admin_web_service() {
   if [[ -n "${ADMIN_WEB_IMAGE:-}" ]]; then
     echo "[deploy-web] Pulling admin web image from registry: ${ADMIN_WEB_IMAGE}"
-    "${COMPOSE_CMD[@]}" pull admin-web
+    pull_service_with_retry admin-web
     # Admin-only deploys should reuse the existing backend and never trigger a local backend build.
     "${COMPOSE_CMD[@]}" up -d --no-deps admin-web
     return
