@@ -39,8 +39,12 @@ public class AuthTokenService {
     }
 
     public String buildToken(String userId) {
+        return buildToken(userId, 1);
+    }
+
+    public String buildToken(String userId, int authVersion) {
         long expiresAtEpochSeconds = Instant.now().plusSeconds(tokenTtlSeconds).getEpochSecond();
-        String payload = userId + ":" + expiresAtEpochSeconds;
+        String payload = userId + ":" + authVersion + ":" + expiresAtEpochSeconds;
         String payloadSegment = encodeBase64Url(payload.getBytes(StandardCharsets.UTF_8));
         String signatureSegment = encodeBase64Url(sign(payloadSegment));
         return payloadSegment + "." + signatureSegment;
@@ -71,6 +75,10 @@ public class AuthTokenService {
     }
 
     public Optional<String> parseUserId(String token) {
+        return parseClaims(token).map(AuthTokenClaims::getUserId);
+    }
+
+    public Optional<AuthTokenClaims> parseClaims(String token) {
         String[] segments = token.split("\\.");
         if (segments.length != 2) {
             return Optional.empty();
@@ -101,14 +109,22 @@ public class AuthTokenService {
             return Optional.empty();
         }
 
-        int delimiterIndex = payload.lastIndexOf(':');
-        if (delimiterIndex <= 0 || delimiterIndex >= payload.length() - 1) {
+        String[] payloadParts = payload.split(":");
+        if (payloadParts.length != 3) {
             return Optional.empty();
         }
 
-        String userId = payload.substring(0, delimiterIndex).trim();
-        String expiresAtText = payload.substring(delimiterIndex + 1).trim();
-        if (userId.isEmpty()) {
+        String userId = payloadParts[0].trim();
+        String authVersionText = payloadParts[1].trim();
+        String expiresAtText = payloadParts[2].trim();
+        if (userId.isEmpty() || authVersionText.isEmpty()) {
+            return Optional.empty();
+        }
+
+        int authVersion;
+        try {
+            authVersion = Integer.parseInt(authVersionText);
+        } catch (NumberFormatException ex) {
             return Optional.empty();
         }
 
@@ -122,7 +138,7 @@ public class AuthTokenService {
         if (expiresAtEpochSeconds <= Instant.now().getEpochSecond()) {
             return Optional.empty();
         }
-        return Optional.of(userId);
+        return Optional.of(new AuthTokenClaims(userId, authVersion, expiresAtEpochSeconds));
     }
 
     private String stripBearerPrefix(String authorization) {

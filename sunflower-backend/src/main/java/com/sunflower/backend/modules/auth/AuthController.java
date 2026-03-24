@@ -32,4 +32,10 @@ public class AuthController {
     public ApiResponse<ProfileDto> bindPhone(@Valid @RequestBody BindPhoneRequest request) {
         return ApiResponse.ok(authService.bindPhone(request.getPhone(), request.getPhoneCode()));
     }
+
+    @PostMapping("/logout")
+    public ApiResponse<Void> logout() {
+        authService.logoutCurrentUser();
+        return ApiResponse.ok(null);
+    }
 }

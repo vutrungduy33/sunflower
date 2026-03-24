@@ -3,6 +3,8 @@ App({
     globalData: {
         // 小程序端统一 API 入口地址，可在启动前通过 storage 覆盖：SUNFLOWER_API_BASE_URL
         apiBaseUrl: 'http://47.115.231.250',
+        pendingProfilePrompt: false,
+        pendingProfilePromptProfile: null,
     },
     onShow() {
         if (gulpError !== 'gulpErrorPlaceHolder') {

@@ -38,6 +38,7 @@ services:
       DB_PASSWORD: sunflower
       AUTH_TOKEN_SECRET: ${AUTH_TOKEN_SECRET:?AUTH_TOKEN_SECRET is required}
       AUTH_TOKEN_TTL_SECONDS: ${AUTH_TOKEN_TTL_SECONDS:-7200}
+      APP_MEDIA_AVATAR_STORAGE_PATH: ${APP_MEDIA_AVATAR_STORAGE_PATH:-/app/data/uploads/avatars}
       WECHAT_AUTH_MOCK_ENABLED: ${WECHAT_AUTH_MOCK_ENABLED:-false}
       WECHAT_APP_ID: ${WECHAT_APP_ID:-}
       WECHAT_APP_SECRET: ${WECHAT_APP_SECRET:-}
@@ -45,6 +46,8 @@ services:
       WECHAT_MOCK_OPENID_PREFIX: ${WECHAT_MOCK_OPENID_PREFIX:-mock_openid_}
     ports:
       - "${BACKEND_BIND_HOST:-127.0.0.1}:${BACKEND_HOST_PORT:-8080}:8080"
+    volumes:
+      - sunflower_backend_uploads:/app/data/uploads/avatars
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/api/health >/dev/null || exit 1"]
       interval: 10s
@@ -74,4 +77,5 @@ services:
       retries: 10
 
 volumes:
+  sunflower_backend_uploads:
   sunflower_mysql_data:

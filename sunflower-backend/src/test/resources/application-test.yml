@@ -12,6 +12,9 @@ spring:
     open-in-view: false
 
 app:
+  media:
+    avatar:
+      storage-path: ./target/test-uploads/avatars
   admin:
     auth:
       token: test-admin-token
@@ -19,7 +22,6 @@ app:
     wechat:
       mock-enabled: true
       manual-phone-bind-enabled: true
-      mock-fixed-openid: mock_openid_mvp_code
       mock-openid-prefix: mock_openid_
       mock-phone-number-prefix: 1880000
     token:

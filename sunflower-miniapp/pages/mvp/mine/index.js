@@ -3,15 +3,19 @@ const {
   fetchProfile,
   patchProfile,
   postBindPhone,
+  postLogout,
+  uploadProfileAvatar,
 } = require('../../../utils/mvp/api');
 const { isDevelopOrTrialEnv } = require('../../../utils/mvp/env');
 const { track } = require('../../../utils/mvp/tracker');
 
 const EMPTY_PROFILE = Object.freeze({
   nickName: '',
+  avatarUrl: '',
   phone: '',
   tags: [],
   isPhoneBound: false,
+  needsProfileCompletion: false,
 });
 
 const EMPTY_ORDER_STATS = Object.freeze({
@@ -46,7 +50,9 @@ function buildOrderStats(orders) {
       (order) => order && (order.bookingStatus === 'PENDING_PAYMENT' || order.status === 'PENDING_PAYMENT')
     ).length,
     confirmed: orders.filter(
-      (order) => order && (order.bookingStatus === 'CONFIRMED' || order.status === 'CONFIRMED' || order.status === 'RESCHEDULED')
+      (order) =>
+        order &&
+        (order.bookingStatus === 'CONFIRMED' || order.status === 'CONFIRMED' || order.status === 'RESCHEDULED')
     ).length,
     completed: orders.filter(
       (order) => order && (order.bookingStatus === 'CHECKED_OUT' || order.status === 'COMPLETED')
@@ -54,9 +60,9 @@ function buildOrderStats(orders) {
   };
 }
 
-function buildProfileMetaText(profile) {
-  const phoneText = profile.isPhoneBound && profile.phone ? profile.phone : '未绑定手机号';
-  return profile.tags.length ? `${phoneText} · ${profile.tags.join(' / ')}` : phoneText;
+function buildAvatarFallback(profile) {
+  const nickname = `${(profile && profile.nickName) || ''}`.trim();
+  return nickname ? nickname.slice(0, 1) : '葵';
 }
 
 Page({
@@ -65,12 +71,15 @@ Page({
     errorMessage: '',
     hasProfile: false,
     profile: { ...EMPTY_PROFILE },
-    profileMetaText: '',
+    avatarFallbackText: '葵',
     orderStats: { ...EMPTY_ORDER_STATS },
-    editingNickName: '',
+    editingNickNameMode: false,
+    pendingNickName: '',
     bindingPhone: '',
     canUseManualPhoneFallback: false,
     showManualPhoneFallback: false,
+    avatarSubmitting: false,
+    logoutSubmitting: false,
   },
 
   onShow() {
@@ -97,8 +106,6 @@ Page({
 
     try {
       this.setData({ loading: true, errorMessage: '' });
-      // Avoid Promise.all destructuring here: lib 3.14.2 on devtools can throw
-      // a render-layer null-iterable error while the page is switching tabs.
       const rawProfile = await fetchProfile();
       const profile = normalizeProfile(rawProfile);
       const orders = normalizeOrders(await fetchOrders());
@@ -111,10 +118,11 @@ Page({
       this.setData({
         hasProfile: !!rawProfile,
         profile,
+        avatarFallbackText: buildAvatarFallback(profile),
         orderStats,
-        editingNickName: profile.nickName || '',
+        editingNickNameMode: false,
+        pendingNickName: profile.nickName || '',
         bindingPhone: profile.phone || '',
-        profileMetaText: rawProfile ? buildProfileMetaText(profile) : '',
       });
     } catch (error) {
       if (loadSeq !== this._loadSeq) {
@@ -123,9 +131,10 @@ Page({
       this.setData({
         hasProfile: false,
         profile: { ...EMPTY_PROFILE },
-        profileMetaText: '',
+        avatarFallbackText: '葵',
         orderStats: { ...EMPTY_ORDER_STATS },
-        editingNickName: '',
+        editingNickNameMode: false,
+        pendingNickName: '',
         bindingPhone: '',
         showManualPhoneFallback: false,
         errorMessage: error.message || '个人页加载失败，请稍后重试',
@@ -148,16 +157,48 @@ Page({
     });
   },
 
+  startEditingNickName() {
+    if (!this.data.hasProfile) {
+      return;
+    }
+    this.setData({
+      editingNickNameMode: true,
+      pendingNickName: (this.data.profile && this.data.profile.nickName) || '',
+    });
+  },
+
+  cancelEditingNickName() {
+    this.setData({
+      editingNickNameMode: false,
+      pendingNickName: (this.data.profile && this.data.profile.nickName) || '',
+    });
+  },
+
   async saveNickname() {
-    const nickname = `${this.data.editingNickName || ''}`.trim();
+    const nickname = `${this.data.pendingNickName || ''}`.trim();
+    const currentNickName = `${(this.data.profile && this.data.profile.nickName) || ''}`.trim();
     if (!nickname) {
       wx.showToast({ title: '昵称不能为空', icon: 'none' });
       return;
     }
 
+    if (nickname === currentNickName) {
+      this.setData({
+        editingNickNameMode: false,
+        pendingNickName: currentNickName,
+      });
+      return;
+    }
+
     try {
       const profile = normalizeProfile(await patchProfile({ nickName: nickname }));
-      this.setData({ hasProfile: true, profile, profileMetaText: buildProfileMetaText(profile) });
+      this.setData({
+        hasProfile: true,
+        profile,
+        avatarFallbackText: buildAvatarFallback(profile),
+        editingNickNameMode: false,
+        pendingNickName: profile.nickName || '',
+      });
       wx.showToast({ title: '昵称已更新', icon: 'success' });
     } catch (error) {
       wx.showToast({ title: error.message || '更新失败', icon: 'none' });
@@ -173,7 +214,11 @@ Page({
 
     try {
       const profile = normalizeProfile(await postBindPhone(phone));
-      this.setData({ hasProfile: true, profile, profileMetaText: buildProfileMetaText(profile) });
+      this.setData({
+        hasProfile: true,
+        profile,
+        avatarFallbackText: buildAvatarFallback(profile),
+      });
       track('bind_phone_success', { source: 'mine' });
       wx.showToast({ title: '绑定成功', icon: 'success' });
     } catch (error) {
@@ -199,8 +244,8 @@ Page({
       this.setData({
         hasProfile: true,
         profile,
+        avatarFallbackText: buildAvatarFallback(profile),
         bindingPhone: profile.phone || '',
-        profileMetaText: buildProfileMetaText(profile),
         showManualPhoneFallback: false,
       });
       track('bind_phone_success', { source: 'mine', channel: 'wechat_phone' });
@@ -219,11 +264,56 @@ Page({
     });
   },
 
-  goOrderList() {
-    wx.navigateTo({ url: '/pages/mvp/order-list/index' });
+  async onChooseAvatar(event) {
+    const avatarPath = `${(event && event.detail && event.detail.avatarUrl) || ''}`.trim();
+    if (!avatarPath) {
+      wx.showToast({ title: '未获取到头像图片', icon: 'none' });
+      return;
+    }
+
+    try {
+      this.setData({ avatarSubmitting: true });
+      const profile = normalizeProfile(await uploadProfileAvatar(avatarPath));
+      this.setData({
+        hasProfile: true,
+        profile,
+        avatarFallbackText: buildAvatarFallback(profile),
+        pendingNickName: profile.nickName || '',
+      });
+      wx.showToast({ title: '头像已更新', icon: 'success' });
+    } catch (error) {
+      wx.showToast({ title: error.message || '头像更新失败', icon: 'none' });
+    } finally {
+      this.setData({ avatarSubmitting: false });
+    }
   },
 
-  goBooking() {
-    wx.redirectTo({ url: '/pages/mvp/booking/index' });
+  logout() {
+    if (this.data.logoutSubmitting) {
+      return;
+    }
+    wx.showModal({
+      title: '退出登录',
+      content: '退出后需要重新使用微信登录，是否继续？',
+      confirmText: '退出登录',
+      success: async (result) => {
+        if (!result.confirm) {
+          return;
+        }
+        try {
+          this.setData({ logoutSubmitting: true });
+          await postLogout();
+          wx.reLaunch({ url: '/pages/mvp/login/index' });
+        } catch (error) {
+          wx.showToast({ title: error.message || '退出失败，请稍后重试', icon: 'none' });
+        } finally {
+          this.setData({ logoutSubmitting: false });
+        }
+      },
+    });
+  },
+
+  goOrderList() {
+    wx.navigateTo({ url: '/pages/mvp/order-list/index' });
   },
 });

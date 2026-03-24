@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sunflower.backend.common.exception.BusinessException;
+import com.sunflower.backend.modules.auth.AuthTokenClaims;
 import com.sunflower.backend.modules.auth.AuthTokenService;
 import com.sunflower.backend.modules.user.persistence.UserEntity;
 import com.sunflower.backend.modules.user.persistence.UserProfileEntity;
@@ -23,23 +24,27 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
 
     private static final String USER_STATUS_ACTIVE = "ACTIVE";
+    private static final String DEFAULT_NICKNAME = "微信用户";
     private static final TypeReference<List<String>> STRING_LIST_TYPE = new TypeReference<List<String>>() {
     };
 
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
     private final AuthTokenService authTokenService;
+    private final AvatarStorageService avatarStorageService;
     private final ObjectMapper objectMapper;
 
     public UserService(
         UserRepository userRepository,
         UserProfileRepository userProfileRepository,
         AuthTokenService authTokenService,
+        AvatarStorageService avatarStorageService,
         ObjectMapper objectMapper
     ) {
         this.userRepository = userRepository;
         this.userProfileRepository = userProfileRepository;
         this.authTokenService = authTokenService;
+        this.avatarStorageService = avatarStorageService;
         this.objectMapper = objectMapper;
     }
 
@@ -48,13 +53,16 @@ public class UserService {
         if (token.isEmpty()) {
             throw BusinessException.unauthorized("请先登录");
         }
-        String userId = authTokenService
-            .parseUserId(token.get())
+        AuthTokenClaims claims = authTokenService
+            .parseClaims(token.get())
             .orElseThrow(() -> BusinessException.unauthorized("登录态无效"));
-        if (!userRepository.existsByIdAndStatus(userId, USER_STATUS_ACTIVE)) {
+        UserEntity user = userRepository
+            .findByIdAndStatus(claims.getUserId(), USER_STATUS_ACTIVE)
+            .orElseThrow(() -> BusinessException.unauthorized("登录态无效"));
+        if (normalizeAuthVersion(user.getAuthVersion()) != claims.getAuthVersion()) {
             throw BusinessException.unauthorized("登录态无效");
         }
-        return userId;
+        return user.getId();
     }
 
     public ProfileDto getCurrentProfile() {
@@ -116,6 +124,24 @@ public class UserService {
         return toProfileDto(user, profile);
     }
 
+    @Transactional
+    public ProfileDto updateCurrentUserAvatar(org.springframework.web.multipart.MultipartFile avatarFile) {
+        String userId = currentUserId();
+        UserEntity user = requireActiveUser(userId);
+        UserProfileEntity profile = requireProfile(user.getId());
+        profile.setAvatar(avatarStorageService.store(user.getId(), avatarFile, profile.getAvatar()));
+        userProfileRepository.save(profile);
+        return toProfileDto(user, profile);
+    }
+
+    @Transactional
+    public void logoutCurrentUser() {
+        String userId = currentUserId();
+        UserEntity user = requireActiveUser(userId);
+        user.setAuthVersion(normalizeAuthVersion(user.getAuthVersion()) + 1);
+        userRepository.save(user);
+    }
+
     public String firstActiveUserId() {
         return userRepository
             .findFirstByStatusOrderByIdAsc(USER_STATUS_ACTIVE)
@@ -137,11 +163,16 @@ public class UserService {
 
     private ProfileDto toProfileDto(UserEntity user, UserProfileEntity profile) {
         String phone = normalizeNullable(user.getPhone());
+        String avatarUrl = avatarStorageService.toPublicUrl(profile.getAvatar());
+        String nickName = normalizeNullable(profile.getNickname());
+        boolean needsProfileCompletion = avatarUrl.isEmpty() || nickName.isEmpty() || DEFAULT_NICKNAME.equals(nickName);
         return new ProfileDto(
             profile.getNickname(),
+            avatarUrl,
             phone,
             parseTags(profile.getTagsJson()),
-            !phone.isEmpty()
+            !phone.isEmpty(),
+            needsProfileCompletion
         );
     }
 
@@ -173,5 +204,9 @@ public class UserService {
 
     private String normalizeNullable(String value) {
         return value == null ? "" : value.trim();
+    }
+
+    private int normalizeAuthVersion(Integer authVersion) {
+        return authVersion == null || authVersion < 1 ? 1 : authVersion;
     }
 }

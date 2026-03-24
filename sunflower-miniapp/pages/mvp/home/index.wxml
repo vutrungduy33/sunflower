@@ -39,7 +39,7 @@
       <view class="mvp-section__title">特色服务</view>
       <view class="mvp-grid">
         <view class="service-card" wx:for="{{services}}" wx:key="id" data-name="{{item.name}}" bindtap="onServiceTap">
-          <t-icon name="{{item.icon}}" size="22px" color="#2e7d32" />
+          <t-icon name="{{item.icon}}" size="22px" color="#5f8f69" />
           <view class="service-card__name">{{item.name}}</view>
           <view class="service-card__desc">{{item.desc}}</view>
         </view>
@@ -69,6 +69,32 @@
       </view>
     </view>
   </block>
+
+  <view class="profile-prompt-mask" wx:if="{{showProfilePrompt}}">
+    <view class="profile-prompt-card">
+      <view class="profile-prompt-card__title">补充你的资料</view>
+      <view class="profile-prompt-card__desc">建议设置头像和昵称，后续订单、客服沟通和个人页展示会更完整。</view>
+
+      <button class="profile-prompt-avatar" open-type="chooseAvatar" bindchooseavatar="onProfilePromptChooseAvatar">
+        <image class="profile-prompt-avatar__image" wx:if="{{profilePromptAvatarPreview}}" src="{{profilePromptAvatarPreview}}" mode="aspectFill" />
+        <view class="profile-prompt-avatar__placeholder" wx:else>选头像</view>
+      </button>
+
+      <input
+        class="profile-prompt-input"
+        type="nickname"
+        maxlength="20"
+        placeholder="请输入昵称"
+        value="{{profilePromptNickName}}"
+        bindinput="onProfilePromptInput"
+      />
+
+      <view class="profile-prompt-actions">
+        <t-button size="small" theme="default" variant="outline" bindtap="skipProfilePrompt">稍后完善</t-button>
+        <t-button size="small" theme="primary" loading="{{profilePromptSubmitting}}" bindtap="saveProfilePrompt">保存资料</t-button>
+      </view>
+    </view>
+  </view>
 </view>
 
 <mvp-tabbar current="home" />

@@ -1,4 +1,4 @@
-<view class="mvp-page">
+<view class="mvp-page mine-page">
   <view class="mvp-state mvp-state--loading" wx:if="{{loading}}">正在加载个人信息...</view>
 
   <view class="mvp-state" wx:if="{{!loading && errorMessage}}">
@@ -10,62 +10,118 @@
   </view>
 
   <block wx:if="{{!loading && !errorMessage && hasProfile}}">
-    <view class="mvp-section profile-card">
-      <view class="avatar">葵</view>
-      <view class="profile-main">
-        <view class="profile-name">{{profile.nickName}}</view>
-        <view class="profile-phone">{{profileMetaText}}</view>
+    <view class="profile-hero">
+      <view class="hero-main-row">
+        <button
+          class="profile-avatar-button"
+          open-type="chooseAvatar"
+          bindchooseavatar="onChooseAvatar"
+          disabled="{{avatarSubmitting}}"
+        >
+          <image class="profile-avatar profile-avatar--image" wx:if="{{profile.avatarUrl}}" src="{{profile.avatarUrl}}" mode="aspectFill" />
+          <view class="profile-avatar profile-avatar--placeholder" wx:else>{{avatarFallbackText}}</view>
+          <view class="profile-avatar__edit">
+            <view class="profile-avatar__edit-text" wx:if="{{avatarSubmitting}}">中</view>
+            <view class="profile-avatar__camera" wx:else>
+              <view class="profile-avatar__camera-top"></view>
+              <view class="profile-avatar__camera-lens"></view>
+            </view>
+          </view>
+        </button>
+
+        <view class="hero-main-info">
+          <view class="profile-name-block" wx:if="{{!editingNickNameMode}}" bindtap="startEditingNickName">
+            <view class="profile-name-row">
+              <view class="profile-name">{{profile.nickName}}</view>
+              <view class="profile-name-arrow">›</view>
+            </view>
+          </view>
+
+          <view class="profile-name-editor" wx:else>
+            <input
+              class="profile-name-input"
+              type="nickname"
+              maxlength="20"
+              value="{{pendingNickName}}"
+              data-field="pendingNickName"
+              bindinput="onInput"
+              bindconfirm="saveNickname"
+              focus="{{editingNickNameMode}}"
+              placeholder="请输入昵称"
+            />
+            <view class="profile-name-actions">
+              <button class="inline-action" bindtap="cancelEditingNickName">取消</button>
+              <button class="inline-action inline-action--strong" bindtap="saveNickname">保存</button>
+            </view>
+          </view>
+
+          <button
+            class="profile-phone-inline"
+            open-type="getPhoneNumber"
+            bind:getphonenumber="bindPhoneWithWechat"
+          >
+            <view class="profile-phone-inline__row">
+              <view class="profile-phone-inline__value">
+                {{profile.isPhoneBound ? (profile.phone || '已绑定手机号') : '点击绑定手机号'}}
+              </view>
+              <view class="profile-phone-inline__arrow">›</view>
+            </view>
+            <view class="profile-phone-inline__hint">
+              {{profile.isPhoneBound ? '已绑定微信手机号' : '下单前需要完成微信手机号授权'}}
+            </view>
+          </button>
+        </view>
       </view>
-      <t-button size="small" theme="primary" variant="outline" bindtap="goOrderList">订单中心</t-button>
     </view>
 
-    <view class="mvp-section">
-      <view class="mvp-section__title">订单概览</view>
+    <view class="mvp-section stats-card" bindtap="goOrderList" hover-class="stats-card--active">
+      <view class="section-head section-head--interactive">
+        <view>
+          <view class="section-head__title">订单概览</view>
+          <view class="section-head__desc">最近的住宿安排一眼可见</view>
+        </view>
+        <view class="section-head__action">查看全部 ›</view>
+      </view>
       <view class="stats-grid">
-        <view class="stats-item">
+        <view class="stats-item stats-item--pending">
           <view class="stats-item__value">{{orderStats.pending}}</view>
           <view class="stats-item__label">待支付</view>
         </view>
-        <view class="stats-item">
+        <view class="stats-item stats-item--confirmed">
           <view class="stats-item__value">{{orderStats.confirmed}}</view>
           <view class="stats-item__label">待入住</view>
         </view>
-        <view class="stats-item">
+        <view class="stats-item stats-item--completed">
           <view class="stats-item__value">{{orderStats.completed}}</view>
           <view class="stats-item__label">已完成</view>
         </view>
       </view>
     </view>
 
-    <view class="mvp-section">
-      <view class="mvp-section__title">基础资料</view>
-      <view class="field">
-        <text class="field-label">昵称</text>
-        <input class="field-input" value="{{editingNickName}}" data-field="editingNickName" bindinput="onInput" />
+    <view class="mvp-section help-card">
+      <view class="section-head">
+        <view class="section-head__title">客服与账号</view>
+        <view class="section-head__desc">如需帮助，可随时联系前台或微信客服</view>
       </view>
-      <t-button size="small" theme="primary" variant="outline" bindtap="saveNickname">保存昵称</t-button>
 
-      <view class="field mt16">
-        <text class="field-label">手机号绑定</text>
-        <view class="field-tip">默认使用微信官方手机号授权能力，绑定后会同步到个人资料与订单联系人。</view>
+      <view class="contact-row">
+        <view class="contact-row__label">前台电话</view>
+        <view class="contact-row__value">188-0000-1234</view>
       </view>
-      <t-button
-        size="small"
-        theme="primary"
-        open-type="getPhoneNumber"
-        bind:getphonenumber="bindPhoneWithWechat"
-      >
-        {{profile.isPhoneBound ? '重新授权手机号' : '微信授权绑定手机号'}}
-      </t-button>
+      <view class="contact-row">
+        <view class="contact-row__label">微信客服</view>
+        <view class="contact-row__value">sunflower-lugu</view>
+      </view>
+
       <block wx:if="{{canUseManualPhoneFallback}}">
         <view class="manual-bind-toggle" bindtap="toggleManualPhoneFallback">
-          {{showManualPhoneFallback ? '收起调试兜底入口' : '开发调试兜底：手动录入手机号'}}
+          {{showManualPhoneFallback ? '收起调试手机号入口' : '开发调试兜底：手动录入手机号'}}
         </view>
       </block>
 
       <block wx:if="{{canUseManualPhoneFallback && showManualPhoneFallback}}">
-        <view class="field mt16">
-          <text class="field-label">手动录入手机号</text>
+        <view class="manual-bind-box">
+          <view class="field-label">手动录入手机号</view>
           <input
             class="field-input"
             type="number"
@@ -75,16 +131,18 @@
             data-field="bindingPhone"
             bindinput="onInput"
           />
+          <button class="sun-button sun-button--ghost mt16" bindtap="bindPhone">手动绑定手机号</button>
         </view>
-        <t-button size="small" theme="default" variant="outline" bindtap="bindPhone">手动绑定手机号</t-button>
       </block>
-    </view>
 
-    <view class="mvp-section">
-      <view class="mvp-section__title">客服与帮助</view>
-      <view class="mvp-muted">前台电话：188-0000-1234</view>
-      <view class="mvp-muted mt8">微信客服：sunflower-lugu</view>
-      <t-button class="mt16" size="small" theme="default" variant="outline" bindtap="goBooking">继续预订</t-button>
+      <button
+        class="sun-button sun-button--danger mt16"
+        loading="{{logoutSubmitting}}"
+        disabled="{{logoutSubmitting}}"
+        bindtap="logout"
+      >
+        退出登录
+      </button>
     </view>
   </block>
 

@@ -27,9 +27,11 @@ function toFiniteNumber(value, fallback = 0) {
 
 const EMPTY_PROFILE = Object.freeze({
   nickName: '',
+  avatarUrl: '',
   phone: '',
   tags: [],
   isPhoneBound: false,
+  needsProfileCompletion: false,
 });
 
 function normalizeProfile(profile) {
