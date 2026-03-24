@@ -1,6 +1,6 @@
 # 接口字段级别定义（请求/响应示例）
 
-> 更新时间：2026-03-19
+> 更新时间：2026-03-23
 > 说明：以下示例对齐当前 `sunflower-backend` 的 MVP 一期实现。
 
 统一响应壳：
@@ -47,13 +47,25 @@
 {
   "token": "dXNlcl9kZW1vXzEwMDE6MTc2MDAwMDAwMA.lq4XxCjv1P4lY8s5vFv1mEtN2vH8jYk4g7aD8X3T5uY",
   "openId": "oLw8s5exampleOpenId",
+  "newUser": false,
   "profile": {
     "nickName": "微信用户",
+    "avatarUrl": "",
     "phone": "",
     "tags": ["亲子", "湖景偏好"],
+    "needsProfileCompletion": true,
     "isPhoneBound": false
   }
 }
+```
+
+### `POST /api/auth/logout`
+**请求**
+- 无请求体
+
+**响应**
+```json
+null
 ```
 
 ### `POST /api/auth/bind-phone`
@@ -75,8 +87,10 @@
 ```json
 {
   "nickName": "微信用户",
+  "avatarUrl": "",
   "phone": "13800000000",
   "tags": ["亲子", "湖景偏好"],
+  "needsProfileCompletion": true,
   "isPhoneBound": true
 }
 ```
@@ -111,8 +125,10 @@
 ```json
 {
   "nickName": "微信用户",
+  "avatarUrl": "",
   "phone": "13800000000",
   "tags": ["亲子", "湖景偏好"],
+  "needsProfileCompletion": true,
   "isPhoneBound": true
 }
 ```
@@ -128,9 +144,30 @@
 ```json
 {
   "nickName": "葵花住客",
+  "avatarUrl": "",
   "phone": "13800000000",
   "tags": ["亲子", "湖景偏好"],
+  "needsProfileCompletion": true,
   "isPhoneBound": true
+}
+```
+
+### `POST /api/users/me/avatar`
+**请求**
+- `multipart/form-data`
+- 文件字段名：`avatar`
+- 允许：`jpg/png/webp`
+- 最大：`2MB`
+
+**响应**
+```json
+{
+  "nickName": "微信用户",
+  "avatarUrl": "/api/media/avatars/user_demo_1001/example.png",
+  "phone": "",
+  "tags": ["亲子", "湖景偏好"],
+  "needsProfileCompletion": true,
+  "isPhoneBound": false
 }
 ```
 

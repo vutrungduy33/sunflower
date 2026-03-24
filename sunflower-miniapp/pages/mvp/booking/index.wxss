@@ -7,9 +7,10 @@
 
 .filter-field {
   flex: 1;
-  background: #f8fafc;
-  border-radius: 16rpx;
+  background: var(--sun-soft-card);
+  border-radius: 20rpx;
   padding: 16rpx;
+  border: 1rpx solid var(--sun-card-border);
 }
 
 .filter-field--calendar {
@@ -19,7 +20,7 @@
 .filter-label {
   display: block;
   font-size: 22rpx;
-  color: #6b7280;
+  color: var(--sun-muted);
 }
 
 .filter-value-row {
@@ -31,19 +32,19 @@
 
 .filter-value {
   font-size: 26rpx;
-  color: #111827;
+  color: var(--sun-ink);
 }
 
 .filter-separator {
   font-size: 22rpx;
-  color: #6b7280;
+  color: var(--sun-muted);
 }
 
 .filter-tip {
   margin-top: 8rpx;
   display: block;
   font-size: 20rpx;
-  color: #2e7d32;
+  color: var(--sun-olive);
 }
 
 .search-row {
@@ -56,17 +57,20 @@
 .search-input {
   flex: 1;
   height: 72rpx;
-  background: #f8fafc;
-  border-radius: 16rpx;
+  background: var(--sun-field-bg);
+  border: 1rpx solid var(--sun-field-border);
+  border-radius: 18rpx;
   padding: 0 20rpx;
   font-size: 24rpx;
 }
 
 .room-card {
-  background: #f8fafc;
-  border-radius: 20rpx;
+  background: var(--sun-soft-card);
+  border-radius: 24rpx;
   overflow: hidden;
   margin-bottom: 18rpx;
+  border: 1rpx solid var(--sun-card-border);
+  box-shadow: 0 10rpx 20rpx rgba(188, 159, 87, 0.06);
 }
 
 .room-card:last-child {
@@ -85,13 +89,13 @@
 .room-card__name {
   font-size: 30rpx;
   font-weight: 600;
-  color: #111827;
+  color: var(--sun-ink);
 }
 
 .room-card__meta {
   margin-top: 8rpx;
   font-size: 22rpx;
-  color: #6b7280;
+  color: var(--sun-muted);
 }
 
 .room-card__tags {

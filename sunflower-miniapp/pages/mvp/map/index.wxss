@@ -3,15 +3,17 @@
 .map-panel {
   width: 100%;
   height: 360rpx;
-  border-radius: 20rpx;
+  border-radius: 24rpx;
   overflow: hidden;
 }
 
 .poi-card {
-  border-radius: 18rpx;
-  background: #f8fafc;
+  border-radius: 22rpx;
+  background: var(--sun-soft-card);
   padding: 20rpx;
   margin-bottom: 16rpx;
+  border: 1rpx solid var(--sun-card-border);
+  box-shadow: 0 10rpx 20rpx rgba(188, 159, 87, 0.06);
 }
 
 .poi-card:last-child {
@@ -27,16 +29,16 @@
 .poi-card__name {
   font-size: 28rpx;
   font-weight: 600;
-  color: #111827;
+  color: var(--sun-ink);
 }
 
 .poi-card__distance {
   font-size: 22rpx;
-  color: #2e7d32;
+  color: var(--sun-olive);
 }
 
 .poi-card__meta {
   margin: 10rpx 0 16rpx;
-  color: #6b7280;
+  color: var(--sun-muted);
   font-size: 23rpx;
 }

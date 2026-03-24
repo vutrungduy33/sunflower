@@ -21,6 +21,9 @@ public class UserEntity {
 
     private String status;
 
+    @Column(name = "auth_version")
+    private Integer authVersion;
+
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -65,6 +68,14 @@ public class UserEntity {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public Integer getAuthVersion() {
+        return authVersion;
+    }
+
+    public void setAuthVersion(Integer authVersion) {
+        this.authVersion = authVersion;
     }
 
     public LocalDateTime getCreatedAt() {

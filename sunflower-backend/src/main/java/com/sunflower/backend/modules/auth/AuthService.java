@@ -21,6 +21,7 @@ public class AuthService {
     private static final String DEFAULT_AVATAR = "";
     private static final String DEFAULT_TAGS_JSON = "[\"亲子\",\"湖景偏好\"]";
     private static final String DEFAULT_PREFERENCES_JSON = "{\"language\":\"zh-CN\"}";
+    private static final int INITIAL_AUTH_VERSION = 1;
 
     private final UserService userService;
     private final UserRepository userRepository;
@@ -51,12 +52,16 @@ public class AuthService {
     @Transactional
     public WechatLoginResponse wechatLogin(String code) {
         String openId = wechatCode2SessionClient.resolveOpenId(code);
-        UserEntity user = userRepository.findByOpenid(openId).orElseGet(() -> registerWechatUser(openId));
+        UserEntity user = userRepository.findByOpenid(openId).orElse(null);
+        boolean newUser = user == null;
+        if (user == null) {
+            user = registerWechatUser(openId);
+        }
         ensureProfileExists(user.getId());
 
         ProfileDto profile = userService.getProfileByUserId(user.getId());
-        String token = authTokenService.buildToken(user.getId());
-        return new WechatLoginResponse(token, openId, profile);
+        String token = authTokenService.buildToken(user.getId(), normalizeAuthVersion(user.getAuthVersion()));
+        return new WechatLoginResponse(token, openId, newUser, profile);
     }
 
     public ProfileDto bindPhone(String phone, String phoneCode) {
@@ -75,11 +80,17 @@ public class AuthService {
         return userService.bindCurrentUserPhone(normalizedPhone);
     }
 
+    @Transactional
+    public void logoutCurrentUser() {
+        userService.logoutCurrentUser();
+    }
+
     private UserEntity registerWechatUser(String openId) {
         UserEntity user = new UserEntity();
         user.setId(buildUserId());
         user.setOpenid(openId);
         user.setStatus(USER_STATUS_ACTIVE);
+        user.setAuthVersion(INITIAL_AUTH_VERSION);
         try {
             UserEntity savedUser = userRepository.save(user);
             userProfileRepository.save(buildDefaultProfile(savedUser.getId()));
@@ -113,5 +124,9 @@ public class AuthService {
 
     private String normalize(String value) {
         return value == null ? "" : value.trim();
+    }
+
+    private int normalizeAuthVersion(Integer authVersion) {
+        return authVersion == null || authVersion < 1 ? INITIAL_AUTH_VERSION : authVersion;
     }
 }

@@ -6,21 +6,25 @@
   align-items: center;
 }
 
+.mvp-section {
+  border: 1rpx solid var(--sun-card-border);
+}
+
 .note-title {
   font-size: 30rpx;
-  color: #111827;
+  color: var(--sun-ink);
   font-weight: 600;
 }
 
 .note-author {
   margin-top: 8rpx;
-  color: #6b7280;
+  color: var(--sun-muted);
   font-size: 22rpx;
 }
 
 .note-summary {
   margin-top: 14rpx;
-  color: #374151;
+  color: rgba(92, 74, 46, 0.82);
   font-size: 24rpx;
   line-height: 1.6;
 }

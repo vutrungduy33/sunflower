@@ -6,11 +6,13 @@ public class WechatLoginResponse {
 
     private String token;
     private String openId;
+    private boolean newUser;
     private ProfileDto profile;
 
-    public WechatLoginResponse(String token, String openId, ProfileDto profile) {
+    public WechatLoginResponse(String token, String openId, boolean newUser, ProfileDto profile) {
         this.token = token;
         this.openId = openId;
+        this.newUser = newUser;
         this.profile = profile;
     }
 
@@ -20,6 +22,10 @@ public class WechatLoginResponse {
 
     public String getOpenId() {
         return openId;
+    }
+
+    public boolean isNewUser() {
+        return newUser;
     }
 
     public ProfileDto getProfile() {

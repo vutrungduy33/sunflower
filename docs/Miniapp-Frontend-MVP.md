@@ -1,13 +1,13 @@
 # 小程序前端一期 MVP 说明（微信原生框架）
 
-> 更新时间：2026-02-18
+> 更新时间：2026-03-23
 > 范围基线：`docs/PRD.md` + `docs/IA.md` + `docs/Backlog.md`（M1：S1-S6）
 
 ## 1. 目标与范围
 
 一期 MVP 聚焦“可用闭环”，覆盖以下能力：
 - 微信登录（`wx.login + code2session`，dev/test 支持 mock）
-- 用户资料与手机号绑定
+- 用户资料完善、退出登录与手机号绑定
 - 房型列表/详情/价格日历
 - 订单创建/支付（MVP 模拟）
 - 订单中心（查看/支付/取消/改期/退款）
@@ -29,6 +29,7 @@
 
 | 页面 | 路由 | 状态 | 说明 |
 |---|---|---|---|
+| 登录页 | `pages/mvp/login/index` | 已完成 | 显式微信登录入口，支持退出登录后重新进入 |
 | 首页 | `pages/mvp/home/index` | 已完成 | Banner、服务入口、推荐房型、会员权益 |
 | 预订 | `pages/mvp/booking/index` | 已完成 | 入住退房选择、关键词检索、房型列表 |
 | 地图 | `pages/mvp/map/index` | 已完成 | POI 列表 + 地图 marker + 导航 |
@@ -48,10 +49,10 @@
 5. 返回订单中心查看状态
 
 ### 4.2 用户资料链路
-1. 进入“我的”页面
-2. 维护昵称
-3. 绑定手机号（11 位校验）
-4. 通过 API 持久化更新并回显
+1. 登录页触发微信登录，首次用户回到首页后弹出资料完善卡片
+2. 用户可选择头像、修改昵称，稍后也可在“我的”页继续完善
+3. “我的”页支持更换头像、维护昵称、绑定手机号与退出登录
+4. 下单页要求手机号已绑定，未绑定时先完成微信手机号授权
 
 ### 4.3 售后链路（S6）
 1. 订单中心对 `CONFIRMED/RESCHEDULED` 订单展示“改期/申请退款”入口
@@ -81,7 +82,9 @@
 | 前端方法（当前） | 后端接口 | 状态 |
 |---|---|---|
 | `wechatLogin` | `POST /api/auth/wechat/login` | 已实现 |
+| `postLogout` | `POST /api/auth/logout` | 已实现 |
 | `postBindPhone` | `POST /api/auth/bind-phone` | 已实现（主流程提交微信 `phoneCode`，开发态可兜底手输手机号） |
+| `uploadProfileAvatar` | `POST /api/users/me/avatar` | 已实现 |
 | `fetchProfile` / `patchProfile` | `GET/PATCH /api/users/me` | 已实现 |
 | `fetchHomeData` | `GET /api/content/home` | 已实现 |
 | `fetchRooms` | `GET /api/rooms` | 已实现 |
@@ -107,6 +110,7 @@
 - 支持 `SUNFLOWER_API_BASE_URL` 动态覆盖
 - 真机扫码或预览版联调仍需切换到 `HTTPS + 微信后台合法 request 域名`；裸 `http://IP` 仅适合开发态排查。
 - 后端 M1 已切换为数据库持久化事实源（S1-S6 完成）
+- 显式退出登录后，会进入 `pages/mvp/login/index` 重新拉起微信登录
 
 ## 8. 当前边界与下阶段
 

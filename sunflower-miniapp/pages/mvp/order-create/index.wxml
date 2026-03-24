@@ -19,6 +19,20 @@
       <view class="price-line">总价 <text class="price-value">¥{{totalAmount}}</text></view>
     </view>
 
+    <view class="create-section bind-card" wx:if="{{profile && !profile.isPhoneBound}}">
+      <view class="section-title">下单前请先绑定手机号</view>
+      <view class="mvp-muted">住宿订单需要绑定微信手机号，用于入住联系、改期退款通知和到店确认。</view>
+      <t-button
+        class="bind-card__action"
+        theme="primary"
+        open-type="getPhoneNumber"
+        loading="{{phoneBinding}}"
+        bind:getphonenumber="bindPhoneWithWechat"
+      >
+        微信授权绑定手机号
+      </t-button>
+    </view>
+
     <view class="create-section">
       <view class="section-title">入住信息</view>
       <view class="field">
@@ -36,6 +50,7 @@
           data-field="guestPhone"
           bindinput="onInput"
         />
+        <view class="field-tip" wx:if="{{profile && profile.isPhoneBound}}">已自动带入绑定手机号，可按实际入住联系人调整。</view>
       </view>
       <view class="field">
         <text class="field-label">预计到店时间</text>

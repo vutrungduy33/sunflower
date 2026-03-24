@@ -6,12 +6,14 @@
 -- S7 admin room API sync: keep room seeds compatible with后台房型/价格/库存写接口的持久化结构。
 -- S8 admin order API sync: keep demo order seed compatible with后台订单筛选、售后处理与经营概览统计口径。
 -- S15 order state machine sync: keep booking_status/payment_status and after-sale compatibility fields aligned.
+-- S16 auth/profile sync: keep user auth_version and profile bootstrap fields aligned.
 
-INSERT INTO users (id, openid, unionid, phone, status)
-VALUES ('user_demo_1001', 'mock_openid_mvp_code', NULL, '13800000000', 'ACTIVE')
+INSERT INTO users (id, openid, unionid, phone, status, auth_version)
+VALUES ('user_demo_1001', 'mock_openid_mvp_code', NULL, '13800000000', 'ACTIVE', 1)
 ON DUPLICATE KEY UPDATE
     phone = VALUES(phone),
     status = VALUES(status),
+    auth_version = VALUES(auth_version),
     updated_at = CURRENT_TIMESTAMP;
 
 INSERT INTO user_profiles (user_id, nickname, avatar, tags_json, preferences_json)

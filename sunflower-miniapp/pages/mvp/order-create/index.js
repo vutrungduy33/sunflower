@@ -1,6 +1,7 @@
 const {
   fetchProfile,
   fetchRoomDetail,
+  postBindPhone,
   postCreateOrder,
   postPayOrder,
 } = require('../../../utils/mvp/api');
@@ -13,7 +14,9 @@ Page({
     loading: true,
     errorMessage: '',
     submitting: false,
+    phoneBinding: false,
     room: null,
+    profile: null,
     checkInDate: '',
     checkOutDate: '',
     nights: 1,
@@ -47,8 +50,6 @@ Page({
 
     try {
       this.setData({ loading: true, errorMessage: '' });
-      // Keep sequential awaits here to avoid the same devtools null-iterable
-      // rendering regression already observed on the mine page.
       const profile = normalizeProfile(await fetchProfile());
       const rawRoomDetail = await fetchRoomDetail(this.roomId, this.data.checkInDate);
       const roomDetail = normalizeRoomDetail(rawRoomDetail);
@@ -57,6 +58,7 @@ Page({
       const totalAmount = roomDetail.calendar.slice(0, nights).reduce((sum, item) => sum + item.price, 0);
       this.setData({
         room: rawRoomDetail ? roomDetail : null,
+        profile,
         nights,
         totalAmount,
         form: {
@@ -67,6 +69,7 @@ Page({
     } catch (error) {
       this.setData({
         room: null,
+        profile: null,
         errorMessage: error.message || '订单页加载失败，请稍后重试',
       });
     } finally {
@@ -87,6 +90,11 @@ Page({
 
   validateForm() {
     const { guestName, guestPhone } = this.data.form;
+    if (!this.data.profile || !this.data.profile.isPhoneBound) {
+      wx.showToast({ title: '请先绑定微信手机号', icon: 'none' });
+      return false;
+    }
+
     if (!guestName.trim()) {
       wx.showToast({ title: '请填写入住人姓名', icon: 'none' });
       return false;
@@ -98,6 +106,37 @@ Page({
     }
 
     return true;
+  },
+
+  async bindPhoneWithWechat(event) {
+    const detail = event && event.detail ? event.detail : {};
+    const errMsg = `${detail.errMsg || ''}`;
+    const phoneCode = `${detail.code || ''}`.trim();
+
+    if (!phoneCode) {
+      wx.showToast({
+        title: errMsg.includes('deny') ? '你已取消手机号授权' : '未获取到手机号授权码',
+        icon: 'none',
+      });
+      return;
+    }
+
+    try {
+      this.setData({ phoneBinding: true });
+      const profile = normalizeProfile(await postBindPhone({ phoneCode }));
+      this.setData({
+        profile,
+        form: {
+          ...this.data.form,
+          guestPhone: profile.phone || '',
+        },
+      });
+      wx.showToast({ title: '手机号已绑定', icon: 'success' });
+    } catch (error) {
+      wx.showToast({ title: error.message || '绑定失败', icon: 'none' });
+    } finally {
+      this.setData({ phoneBinding: false });
+    }
   },
 
   async submitOrder() {

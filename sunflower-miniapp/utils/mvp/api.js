@@ -2,6 +2,7 @@ const { getDefaultBookingDate } = require('./date');
 
 const STORAGE_KEY_API_BASE_URL = 'SUNFLOWER_API_BASE_URL';
 const STORAGE_KEY_AUTH_TOKEN = 'SUNFLOWER_AUTH_TOKEN';
+const STORAGE_KEY_LOGOUT_REQUIRED = 'SUNFLOWER_LOGOUT_REQUIRED';
 const DEFAULT_API_BASE_URL = 'http://47.115.231.250';
 const AUTH_EXPIRED_MESSAGE = '登录态已失效，请重新进入首页';
 
@@ -80,6 +81,22 @@ function clearAuthToken() {
   } catch (error) {
     // Ignore cleanup failures to avoid masking the original request error.
   }
+}
+
+function markLogoutRequired() {
+  wx.setStorageSync(STORAGE_KEY_LOGOUT_REQUIRED, '1');
+}
+
+function clearLogoutRequired() {
+  try {
+    wx.removeStorageSync(STORAGE_KEY_LOGOUT_REQUIRED);
+  } catch (error) {
+    // Ignore cleanup failures to avoid masking the original request error.
+  }
+}
+
+function isLogoutRequired() {
+  return `${wx.getStorageSync(STORAGE_KEY_LOGOUT_REQUIRED) || ''}`.trim() === '1';
 }
 
 function getWechatLoginCode() {
@@ -183,6 +200,7 @@ async function wechatLogin(code) {
   });
   if (loginData && loginData.token) {
     setAuthToken(loginData.token);
+    clearLogoutRequired();
   }
   return loginData;
 }
@@ -197,6 +215,68 @@ async function ensureWechatLogin() {
     ...(loginData || {}),
     reusedToken: false,
   };
+}
+
+function upload(path, filePath, options = {}) {
+  return new Promise((resolve, reject) => {
+    const authToken = getAuthToken();
+    if (options.requireAuth && !authToken) {
+      reject(new Error(AUTH_EXPIRED_MESSAGE));
+      return;
+    }
+
+    wx.uploadFile({
+      url: buildUrl(path),
+      filePath,
+      name: options.name || 'file',
+      timeout: options.timeout || 20000,
+      header: {
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+        ...(options.header || {}),
+      },
+      formData: options.formData,
+      success(response) {
+        const statusCode = response.statusCode || 0;
+        let data = null;
+        try {
+          data = response.data ? JSON.parse(response.data) : null;
+        } catch (error) {
+          reject(new Error('上传响应解析失败'));
+          return;
+        }
+
+        if (statusCode === 401) {
+          clearAuthToken();
+          reject(new Error(AUTH_EXPIRED_MESSAGE));
+          return;
+        }
+
+        if (statusCode < 200 || statusCode >= 300) {
+          reject(new Error((data && data.message) || `上传失败(${statusCode})`));
+          return;
+        }
+
+        if (data && typeof data.code === 'number') {
+          if (data.code !== 0) {
+            if (data.code === 401 || (data.code >= 40100 && data.code < 40200)) {
+              clearAuthToken();
+              reject(new Error(AUTH_EXPIRED_MESSAGE));
+              return;
+            }
+            reject(new Error(data.message || '上传失败'));
+            return;
+          }
+          resolve(data.data);
+          return;
+        }
+
+        resolve(data);
+      },
+      fail(error) {
+        reject(new Error((error && error.errMsg) || '上传失败，请稍后重试'));
+      },
+    });
+  });
 }
 
 async function fetchHomeData() {
@@ -265,6 +345,28 @@ async function postBindPhone(payload) {
     method: 'POST',
     requireAuth: true,
     data: normalizeBindPhonePayload(payload),
+  });
+}
+
+async function postLogout() {
+  try {
+    await request('/api/auth/logout', {
+      method: 'POST',
+      requireAuth: true,
+    });
+  } catch (error) {
+    if ((error && error.message) !== AUTH_EXPIRED_MESSAGE) {
+      throw error;
+    }
+  }
+  clearAuthToken();
+  markLogoutRequired();
+}
+
+async function uploadProfileAvatar(filePath) {
+  return upload('/api/users/me/avatar', filePath, {
+    requireAuth: true,
+    name: 'avatar',
   });
 }
 
@@ -340,6 +442,11 @@ module.exports = {
   postRescheduleOrder,
   ensureWechatLogin,
   hasAuthToken,
+  isLogoutRequired,
   setApiBaseUrl,
+  clearAuthToken,
+  clearLogoutRequired,
+  postLogout,
+  uploadProfileAvatar,
   wechatLogin,
 };

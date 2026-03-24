@@ -2,7 +2,10 @@
 
 .detail-page {
   min-height: 100vh;
-  background: #f5f7fa;
+  background:
+    radial-gradient(circle at top left, rgba(255, 241, 181, 0.32), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(215, 241, 220, 0.24), transparent 28%),
+    linear-gradient(180deg, #fffefc 0%, #fffbf3 24%, #fbfff8 62%, #f8fbf8 100%);
   padding-bottom: 160rpx;
 }
 
@@ -23,33 +26,35 @@
   margin-top: -36rpx;
   border-top-left-radius: 32rpx;
   border-top-right-radius: 32rpx;
-  background: #f5f7fa;
+  background: transparent;
   padding: 24rpx;
   box-sizing: border-box;
 }
 
 .detail-section {
-  background: #ffffff;
-  border-radius: 20rpx;
+  background: var(--sun-soft-card);
+  border-radius: 24rpx;
   padding: 22rpx;
   margin-bottom: 18rpx;
+  border: 1rpx solid var(--sun-card-border);
+  box-shadow: 0 12rpx 24rpx rgba(188, 159, 87, 0.08);
 }
 
 .room-name {
   font-size: 34rpx;
   font-weight: 700;
-  color: #111827;
+  color: var(--sun-ink);
 }
 
 .room-subtitle {
   margin-top: 8rpx;
-  color: #4b5563;
+  color: rgba(92, 74, 46, 0.82);
   font-size: 24rpx;
 }
 
 .room-meta {
   margin-top: 10rpx;
-  color: #6b7280;
+  color: var(--sun-muted);
   font-size: 23rpx;
 }
 
@@ -63,28 +68,29 @@
   line-height: 44rpx;
   padding: 0 14rpx;
   border-radius: 999rpx;
-  background: #eaf5ea;
-  color: #2e7d32;
+  background: linear-gradient(180deg, #f3fff1, #e5f5e7);
+  color: var(--sun-olive);
   font-size: 22rpx;
   margin-right: 10rpx;
   margin-bottom: 10rpx;
 }
 
 .tag-light {
-  background: #f3f4f6;
-  color: #374151;
+  background: rgba(255, 255, 255, 0.74);
+  color: rgba(92, 74, 46, 0.82);
 }
 
 .section-title {
   font-size: 28rpx;
   font-weight: 600;
-  color: #111827;
+  color: var(--sun-ink);
   margin-bottom: 14rpx;
 }
 
 .date-picker-card {
-  background: #f8fafc;
-  border-radius: 16rpx;
+  background: var(--sun-field-bg);
+  border: 1rpx solid var(--sun-field-border);
+  border-radius: 18rpx;
   padding: 14rpx 16rpx;
 }
 
@@ -100,25 +106,25 @@
 .date-picker-divider {
   padding: 0 14rpx;
   font-size: 22rpx;
-  color: #6b7280;
+  color: var(--sun-muted);
 }
 
 .date-label {
   display: block;
-  color: #6b7280;
+  color: var(--sun-muted);
   font-size: 22rpx;
 }
 
 .date-value {
   margin-top: 8rpx;
-  color: #111827;
+  color: var(--sun-ink);
   font-size: 25rpx;
 }
 
 .date-picker-tip {
   margin-top: 10rpx;
   display: block;
-  color: #2e7d32;
+  color: var(--sun-olive);
   font-size: 20rpx;
 }
 
@@ -135,32 +141,33 @@
 .calendar-card {
   width: 180rpx;
   border-radius: 14rpx;
-  background: #f8fafc;
+  background: var(--sun-field-bg);
+  border: 1rpx solid var(--sun-field-border);
   padding: 14rpx;
   box-sizing: border-box;
 }
 
 .calendar-date {
   font-size: 22rpx;
-  color: #111827;
+  color: var(--sun-ink);
 }
 
 .calendar-weekday,
 .calendar-stock {
   margin-top: 6rpx;
   font-size: 20rpx;
-  color: #6b7280;
+  color: var(--sun-muted);
 }
 
 .calendar-price {
   margin-top: 10rpx;
   font-size: 28rpx;
-  color: #d32f2f;
+  color: var(--sun-gold-deep);
   font-weight: 600;
 }
 
 .rule-item {
-  color: #374151;
+  color: rgba(92, 74, 46, 0.82);
   font-size: 24rpx;
   line-height: 1.7;
 }
@@ -171,8 +178,9 @@
   right: 0;
   bottom: 0;
   height: 116rpx;
-  background: #ffffff;
-  border-top: 1rpx solid #e5e7eb;
+  background: rgba(255, 255, 255, 0.98);
+  border-top: 1rpx solid var(--sun-card-border);
+  box-shadow: 0 -8rpx 20rpx rgba(188, 159, 87, 0.06);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -183,13 +191,13 @@
 
 .action-total {
   font-size: 30rpx;
-  color: #d32f2f;
+  color: var(--sun-gold-deep);
   font-weight: 700;
 }
 
 .action-sub {
   font-size: 22rpx;
-  color: #6b7280;
+  color: var(--sun-muted);
 }
 
 .mvp-empty {
@@ -198,7 +206,7 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  color: #9ca3af;
+  color: var(--sun-muted);
   font-size: 24rpx;
   padding: 0 40rpx;
 }

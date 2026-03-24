@@ -23,11 +23,13 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.mock.web.MockMultipartFile;
 
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -63,7 +65,10 @@ class MvpApiIntegrationTests {
             .andExpect(jsonPath("$.code").value(0))
             .andExpect(jsonPath("$.data.token").exists())
             .andExpect(jsonPath("$.data.openId").value("mock_openid_mvp_code"))
+            .andExpect(jsonPath("$.data.newUser").value(false))
             .andExpect(jsonPath("$.data.profile.nickName").value("微信用户"))
+            .andExpect(jsonPath("$.data.profile.avatarUrl").value(""))
+            .andExpect(jsonPath("$.data.profile.needsProfileCompletion").value(true))
             .andReturn();
 
         JsonNode loginBody = objectMapper.readTree(loginResult.getResponse().getContentAsString());
@@ -97,7 +102,64 @@ class MvpApiIntegrationTests {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(0))
             .andExpect(jsonPath("$.data.nickName").value("葵花住客"))
+            .andExpect(jsonPath("$.data.avatarUrl").value(""))
+            .andExpect(jsonPath("$.data.needsProfileCompletion").value(true))
             .andExpect(jsonPath("$.data.isPhoneBound").value(true));
+    }
+
+    @Test
+    void shouldUploadAvatarAndReturnPublicUrl() throws Exception {
+        String token = loginAndGetToken("avatar_upload_case");
+
+        MockMultipartFile avatar = new MockMultipartFile(
+            "avatar",
+            "avatar.png",
+            MediaType.IMAGE_PNG_VALUE,
+            new byte[] { (byte) 137, 80, 78, 71, 13, 10, 26, 10, 1, 2, 3, 4 }
+        );
+
+        mockMvc
+            .perform(
+                multipart("/api/users/me/avatar")
+                    .file(avatar)
+                    .header("Authorization", bearerToken(token))
+                    .with(request -> {
+                        request.setMethod("POST");
+                        return request;
+                    })
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.avatarUrl").value(org.hamcrest.Matchers.containsString("/api/media/avatars/")))
+            .andExpect(jsonPath("$.data.needsProfileCompletion").value(true));
+
+        mockMvc
+            .perform(
+                patch("/api/users/me")
+                    .header("Authorization", bearerToken(token))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"nickName\":\"向日葵住客\"}")
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.nickName").value("向日葵住客"))
+            .andExpect(jsonPath("$.data.needsProfileCompletion").value(false));
+    }
+
+    @Test
+    void shouldLogoutAndInvalidatePreviousToken() throws Exception {
+        String token = loginAndGetToken("logout_case");
+
+        mockMvc
+            .perform(post("/api/auth/logout").header("Authorization", bearerToken(token)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0));
+
+        mockMvc
+            .perform(get("/api/users/me").header("Authorization", bearerToken(token)))
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.code").value(40100))
+            .andExpect(jsonPath("$.message").value("登录态无效"));
     }
 
     @Test
@@ -1224,7 +1286,7 @@ class MvpApiIntegrationTests {
     }
 
     @Test
-    void shouldReuseMockUserAcrossDifferentLoginCodes() throws Exception {
+    void shouldIsolateOrdersAcrossDifferentMockLoginCodes() throws Exception {
         String firstToken = loginAndGetToken("first_login_code");
 
         MvcResult createResult = mockMvc
@@ -1256,9 +1318,9 @@ class MvpApiIntegrationTests {
 
         mockMvc
             .perform(get("/api/orders/{id}", orderId).header("Authorization", bearerToken(secondToken)))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.code").value(0))
-            .andExpect(jsonPath("$.data.id").value(orderId));
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.code").value(40400))
+            .andExpect(jsonPath("$.message").value("订单不存在"));
     }
 
     @Test
