@@ -428,13 +428,12 @@ jobs:
             fi
             printf '%s\n' "$SOURCE_SHA" > .deploy-source-sha
 
-            cat > .release.env <<EOF
-            BACKEND_IMAGE=$BACKEND_IMAGE
-            ADMIN_WEB_IMAGE=$ADMIN_WEB_IMAGE
-            SOURCE_SHA=$SOURCE_SHA
-            DEPLOY_TARGET=$DEPLOY_TARGET
-            RUN_SEED=$RUN_SEED
-            EOF
+            : > .release.env
+            printf '%s\n' "BACKEND_IMAGE=$BACKEND_IMAGE" >> .release.env
+            printf '%s\n' "ADMIN_WEB_IMAGE=$ADMIN_WEB_IMAGE" >> .release.env
+            printf '%s\n' "SOURCE_SHA=$SOURCE_SHA" >> .release.env
+            printf '%s\n' "DEPLOY_TARGET=$DEPLOY_TARGET" >> .release.env
+            printf '%s\n' "RUN_SEED=$RUN_SEED" >> .release.env
 
             chmod +x scripts/*.sh
             ./scripts/validate_prod_env.sh
