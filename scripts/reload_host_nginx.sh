@@ -36,6 +36,13 @@ render_config() {
 main() {
   cd "$(project_root)"
   load_runtime_envs
+  HOST_NGINX_ENABLED="$(normalize_bool "${HOST_NGINX_ENABLED:-true}")"
+
+  if [ "$HOST_NGINX_ENABLED" != "true" ]; then
+    log_info "$PREFIX" "Skipping host nginx reload because HOST_NGINX_ENABLED=false"
+    return
+  fi
+
   detect_compose_cmd
 
   require_numeric BACKEND_HOST_PORT

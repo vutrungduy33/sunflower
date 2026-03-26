@@ -18,6 +18,19 @@ validate_secret_not_placeholder() {
   esac
 }
 
+validate_not_placeholder_domain() {
+  local name="$1"
+  local value="${!name:-}"
+
+  require_value "$name"
+
+  case "$value" in
+    admin.example.com|example.com|*.example.com)
+      fail validate "${name} must use a real domain, got placeholder value '${value}'"
+      ;;
+  esac
+}
+
 main() {
   cd "$(project_root)"
   load_prod_env
@@ -31,10 +44,6 @@ main() {
   require_value MYSQL_PASSWORD
   require_value ADMIN_ACTIVATION_ALLOWLIST
   require_value ADMIN_SMS_PROVIDER
-  require_value HOST_NGINX_SITE_NAME
-  require_value HOST_NGINX_SERVER_NAME
-  require_value HOST_NGINX_TLS_CERT_PATH
-  require_value HOST_NGINX_TLS_KEY_PATH
 
   require_numeric AUTH_TOKEN_TTL_SECONDS
   require_numeric ADMIN_AUTH_TOKEN_TTL_SECONDS
@@ -52,6 +61,7 @@ main() {
 
   WECHAT_AUTH_MOCK_ENABLED="$(normalize_bool "${WECHAT_AUTH_MOCK_ENABLED:-false}")"
   WECHAT_MANUAL_PHONE_BIND_ENABLED="$(normalize_bool "${WECHAT_MANUAL_PHONE_BIND_ENABLED:-false}")"
+  HOST_NGINX_ENABLED="$(normalize_bool "${HOST_NGINX_ENABLED:-true}")"
 
   if [ "$WECHAT_AUTH_MOCK_ENABLED" != "false" ]; then
     fail validate "WECHAT_AUTH_MOCK_ENABLED must be false in prod"
@@ -90,6 +100,16 @@ main() {
       fail validate "ADMIN_ACTIVATION_ALLOWLIST must use '手机号:角色' entries separated by commas"
       ;;
   esac
+
+  if [ "$HOST_NGINX_ENABLED" = "true" ]; then
+    require_value HOST_NGINX_SITE_NAME
+    validate_not_placeholder_domain HOST_NGINX_SERVER_NAME
+    require_value HOST_NGINX_TLS_CERT_PATH
+    require_value HOST_NGINX_TLS_KEY_PATH
+
+    [ -f "$HOST_NGINX_TLS_CERT_PATH" ] || fail validate "HOST_NGINX_TLS_CERT_PATH file not found: ${HOST_NGINX_TLS_CERT_PATH}"
+    [ -f "$HOST_NGINX_TLS_KEY_PATH" ] || fail validate "HOST_NGINX_TLS_KEY_PATH file not found: ${HOST_NGINX_TLS_KEY_PATH}"
+  fi
 
   log_info validate "prod env validation passed for ${PROD_ENV_FILE}"
 }
