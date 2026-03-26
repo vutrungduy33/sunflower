@@ -353,15 +353,38 @@ jobs:
 
       - name: Ensure deploy directory exists
         uses: appleboy/ssh-action@v1.2.0
+        env:
+          ECS_DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         with:
           host: ${{ secrets.ECS_HOST }}
           username: ${{ secrets.ECS_USER }}
           port: ${{ secrets.ECS_PORT }}
           key: ${{ secrets.ECS_SSH_KEY }}
           passphrase: ${{ secrets.ECS_SSH_PASSPHRASE }}
+          envs: ECS_DEPLOY_PATH
           script_stop: true
           script: |
-            mkdir -p "${{ secrets.DEPLOY_PATH }}"
+            sanitize_line() {
+              printf '%s' "${1:-}" | tr -d '\r\n'
+            }
+
+            normalize_deploy_path() {
+              path="$(sanitize_line "${1:-}")"
+              case "$path" in
+                "~")
+                  printf '%s\n' "$HOME"
+                  ;;
+                "~/"*)
+                  printf '%s/%s\n' "$HOME" "${path#~/}"
+                  ;;
+                *)
+                  printf '%s\n' "$path"
+                  ;;
+              esac
+            }
+
+            DEPLOY_PATH="$(normalize_deploy_path "${ECS_DEPLOY_PATH:-}")"
+            mkdir -p "$DEPLOY_PATH"
 
       - name: Upload deployment bundle
         uses: appleboy/scp-action@v0.1.7
@@ -406,12 +429,27 @@ jobs:
               printf '%s' "${1:-}" | tr -d '\r\n' | tr -cd '[:alnum:]._:/-'
             }
 
+            normalize_deploy_path() {
+              path="$(sanitize_line "${1:-}")"
+              case "$path" in
+                "~")
+                  printf '%s\n' "$HOME"
+                  ;;
+                "~/"*)
+                  printf '%s/%s\n' "$HOME" "${path#~/}"
+                  ;;
+                *)
+                  printf '%s\n' "$path"
+                  ;;
+              esac
+            }
+
             BACKEND_IMAGE="$(sanitize_image_ref "${BACKEND_IMAGE:-}")"
             ADMIN_WEB_IMAGE="$(sanitize_image_ref "${ADMIN_WEB_IMAGE:-}")"
             SOURCE_SHA="$(sanitize_line "${SOURCE_SHA:-}")"
             DEPLOY_TARGET="$(sanitize_line "${DEPLOY_TARGET:-}")"
             RUN_SEED="$(sanitize_line "${RUN_SEED:-false}")"
-            DEPLOY_PATH="$(sanitize_line "${ECS_DEPLOY_PATH:-}")"
+            DEPLOY_PATH="$(normalize_deploy_path "${ECS_DEPLOY_PATH:-}")"
             GHCR_USERNAME="$(sanitize_line "${GHCR_USERNAME:-}")"
             GHCR_TOKEN="$(sanitize_line "${GHCR_TOKEN:-}")"
 
@@ -422,8 +460,12 @@ jobs:
             mkdir -p "$DEPLOY_PATH"
             cd "$DEPLOY_PATH"
 
-            [ -f docker-compose.yml ] || { echo "Missing docker-compose.yml after upload"; exit 1; }
-            [ -f scripts/validate_prod_env.sh ] || { echo "Missing deploy scripts after upload"; exit 1; }
+            if [ ! -f docker-compose.yml ] || [ ! -f scripts/validate_prod_env.sh ]; then
+              echo "Missing deploy assets after upload"
+              pwd
+              find . -maxdepth 4 -print || true
+              exit 1
+            fi
             printf '%s\n' "$SOURCE_SHA" > .deploy-source-sha
 
             cat > .release.env <<EOF
