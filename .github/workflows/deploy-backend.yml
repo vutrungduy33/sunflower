@@ -447,6 +447,8 @@ jobs:
 
             if [ "$DEPLOY_TARGET" = "bootstrap" ]; then
               ./scripts/bootstrap_prod.sh
-            else
+            fi
+
+            if [ "$DEPLOY_TARGET" != "bootstrap" ]; then
               ./scripts/deploy_prod.sh "$DEPLOY_TARGET"
             fi
