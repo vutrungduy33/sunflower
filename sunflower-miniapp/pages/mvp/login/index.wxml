@@ -36,9 +36,9 @@
         theme="primary"
         variant="outline"
         disabled="{{!canUseLoginTest}}"
-        bindtap="useLiveEcsApi"
+        bindtap="useReleaseApiBaseUrl"
       >
-        使用当前 ECS 地址
+        使用发布域名
       </t-button>
       <t-button
         size="small"

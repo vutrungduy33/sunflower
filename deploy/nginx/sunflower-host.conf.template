@@ -1,7 +1,30 @@
 server {
   listen 80;
   listen [::]:80;
-  server_name _;
+  server_name __HOST_NGINX_SERVER_NAME__;
+
+  location = /healthz {
+    access_log off;
+    add_header Content-Type text/plain;
+    return 200 "ok\n";
+  }
+
+  location / {
+    return 301 https://$host$request_uri;
+  }
+}
+
+server {
+  listen 443 ssl http2;
+  listen [::]:443 ssl http2;
+  server_name __HOST_NGINX_SERVER_NAME__;
+
+  ssl_certificate __HOST_NGINX_TLS_CERT_PATH__;
+  ssl_certificate_key __HOST_NGINX_TLS_KEY_PATH__;
+  ssl_session_timeout 1d;
+  ssl_session_cache shared:SSL:10m;
+  ssl_protocols TLSv1.2 TLSv1.3;
+  ssl_prefer_server_ciphers off;
 
   location = /healthz {
     access_log off;
