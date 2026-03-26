@@ -156,6 +156,7 @@ S19 之后，生产部署固定采用这条链路：
 - `BACKEND_HOST_PORT`
 - `ADMIN_WEB_BIND_HOST`
 - `ADMIN_WEB_HOST_PORT`
+- `HOST_NGINX_ENABLED`
 - `HOST_NGINX_SITE_NAME`
 - `HOST_NGINX_SERVER_NAME`
 - `HOST_NGINX_TLS_CERT_PATH`
@@ -166,6 +167,9 @@ S19 之后，生产部署固定采用这条链路：
 
 说明：
 
+- `HOST_NGINX_ENABLED=true` 时，deploy 会校验证书文件并刷新宿主机 Nginx
+- `HOST_NGINX_ENABLED=false` 时，deploy 会跳过宿主机 Nginx 校验与 reload，适合正式域名尚未完成 ICP 备案或证书尚未落盘前的容器链路验证
+- `validate_prod_env.sh` 会在 `HOST_NGINX_ENABLED=true` 时拒绝 `admin.example.com` 这类样板域名，并检查证书文件是否已落盘
 - `HOST_NGINX_SERVER_NAME` 应配置为正式域名
 - `HOST_NGINX_TLS_CERT_PATH` / `HOST_NGINX_TLS_KEY_PATH` 应指向宿主机已签发证书
 - 宿主机 Nginx 模板会将 `80` 端口跳转到 `443`，并在 `443 ssl` 上将 `/api/*` 转发到 backend，将 `/` 转发到 admin-web
@@ -198,6 +202,7 @@ S19 之后，生产部署固定采用这条链路：
 注意：
 
 - `.env.prod.example` 可作为 `.env.prod` 模板，但其中 release metadata 片段只用于本地校验与对照，真正发布时以 `.release.env` 为准
+- 若 `HOST_NGINX_ENABLED=false`，backend/admin-web 仍会部署，但默认只监听 `127.0.0.1:8080/18080`；备案完成前可通过 SSH 隧道或服务器本机做验证
 - 常规 prod 不应导入 `mvp_demo_seed.sql`
 - `bootstrap` 会执行：
   - `validate_prod_env.sh`
@@ -232,6 +237,7 @@ S19 之后，生产部署固定采用这条链路：
 说明：
 
 - `target=backend` / `admin-web` / `all` 仍会在末尾统一执行 `reload_host_nginx.sh`
+- `HOST_NGINX_ENABLED=false` 时，`reload_host_nginx.sh` 会记录 skip 并直接返回
 - `target=nginx` 只刷新宿主机入口，但仍会要求 backend/admin-web 健康
 
 ---
