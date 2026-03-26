@@ -106,9 +106,9 @@
 - `mock/store` 不再作为事实源
 
 当前联调配置：
-- 默认统一 API 入口：`http://47.115.231.250`
+- 默认统一 API 入口来自 `sunflower-miniapp/utils/mvp/runtime-config.js` 的 `DEFAULT_API_BASE_URL`
 - 支持 `SUNFLOWER_API_BASE_URL` 动态覆盖
-- 真机扫码或预览版联调仍需切换到 `HTTPS + 微信后台合法 request 域名`；裸 `http://IP` 仅适合开发态排查。
+- 真机扫码或预览版联调必须切换到 `HTTPS + 微信后台合法 request 域名`；裸 `http://IP` 仅适合开发态排查。
 - 后端 M1 已切换为数据库持久化事实源（S1-S6 完成）
 - 显式退出登录后，会进入 `pages/mvp/login/index` 重新拉起微信登录
 

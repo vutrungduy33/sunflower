@@ -12,5 +12,11 @@
 # Logs
 *.log
 
+# Deployment/runtime env
+.env.prod
+.release.env
+.deploy-source-sha
+deploy-bundle.tgz
+
 # Java build
 **/target/
