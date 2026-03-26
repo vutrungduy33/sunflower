@@ -51,7 +51,7 @@ class AdminAuthIntegrationTests {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(0))
             .andExpect(jsonPath("$.data.purpose").value("ACTIVATE"))
-            .andExpect(jsonPath("$.data.expiresInSeconds").value(600));
+            .andExpect(jsonPath("$.data.expiresInSeconds").value(300));
 
         mockMvc
             .perform(

@@ -24,7 +24,7 @@ app:
     sms:
       provider: fake
       code-length: 6
-      code-ttl-seconds: 600
+      code-ttl-seconds: 300
       resend-cooldown-seconds: 60
       hourly-send-limit: 5
       daily-send-limit: 10

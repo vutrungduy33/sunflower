@@ -37,7 +37,7 @@
 - 当前角色模型仅收口为 `ADMIN` / `OPERATOR`；现有房型、价格库存、订单、经营概览接口均允许 `ADMIN/OPERATOR` 访问，账号自助接口面向任意已登录后台账号。
 - 首次激活仅允许环境变量 `ADMIN_ACTIVATION_ALLOWLIST=手机号:角色,手机号:角色` 中的手机号，不支持任意自注册。
 - 管理端密码规则：8-32 位、必须同时包含字母和数字、不能包含空格。
-- 短信验证码默认规则：6 位、10 分钟有效、60 秒重发冷却、每手机号 1 小时最多 5 次/24 小时最多 10 次、单验证码最多 5 次校验；连续 5 次密码错误锁定 15 分钟。
+- 短信验证码默认规则：6 位、固定 5 分钟有效、60 秒重发冷却、每手机号 1 小时最多 5 次/24 小时最多 10 次、单验证码最多 5 次校验；连续 5 次密码错误锁定 15 分钟。
 - `logout`、`reset-password`、`change-password` 成功后都会通过递增 `credentialVersion` 使旧 token 失效。
 - 短信服务默认走腾讯云短信：`TENCENT_SMS_SECRET_ID`、`TENCENT_SMS_SECRET_KEY`、`TENCENT_SMS_SDK_APP_ID`、`TENCENT_SMS_SIGN_NAME`、`TENCENT_SMS_TEMPLATE_ID_ACTIVATE`、`TENCENT_SMS_TEMPLATE_ID_RESET_PASSWORD` 为必填；`test` 环境使用 fake provider，`dev/prod` 缺少配置时启动失败，不回退 mock。
 

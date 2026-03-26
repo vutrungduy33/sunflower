@@ -262,7 +262,7 @@ describe('admin auth flow', () => {
       purpose: 'ACTIVATE',
       purposeLabel: '首次激活',
       maskedPhone: '138****0000',
-      expiresInSeconds: 600,
+      expiresInSeconds: 300,
       resendCooldownSeconds: 60,
     })
   })
@@ -352,7 +352,7 @@ describe('admin auth flow', () => {
       purpose: 'RESET_PASSWORD',
       purposeLabel: '重置密码',
       maskedPhone: '138****0000',
-      expiresInSeconds: 600,
+      expiresInSeconds: 300,
       resendCooldownSeconds: 60,
     })
 

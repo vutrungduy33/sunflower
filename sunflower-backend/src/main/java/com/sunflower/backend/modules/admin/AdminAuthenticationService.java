@@ -54,7 +54,7 @@ public class AdminAuthenticationService {
         AdminAuthAuditService adminAuthAuditService,
         AdminAuthMutationService adminAuthMutationService,
         @Value("${app.admin.sms.code-length:6}") int codeLength,
-        @Value("${app.admin.sms.code-ttl-seconds:600}") int codeTtlSeconds,
+        @Value("${app.admin.sms.code-ttl-seconds:300}") int codeTtlSeconds,
         @Value("${app.admin.sms.resend-cooldown-seconds:60}") int resendCooldownSeconds,
         @Value("${app.admin.sms.hourly-send-limit:5}") int hourlySendLimit,
         @Value("${app.admin.sms.daily-send-limit:10}") int dailySendLimit,
@@ -89,13 +89,7 @@ public class AdminAuthenticationService {
         adminAuthMutationService.invalidatePendingCodes(normalizedPhone, purpose);
 
         String code = generateVerificationCode();
-        int expiresInMinutes = Math.max(1, codeTtlSeconds / 60);
-        AdminSmsSendResult sendResult = adminSmsSender.sendVerificationCode(
-            normalizedPhone,
-            purpose,
-            code,
-            expiresInMinutes
-        );
+        AdminSmsSendResult sendResult = adminSmsSender.sendVerificationCode(normalizedPhone, purpose, code);
 
         AdminSmsVerificationCodeEntity entity = new AdminSmsVerificationCodeEntity();
         entity.setPhone(normalizedPhone);
