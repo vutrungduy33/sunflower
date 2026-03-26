@@ -1,6 +1,6 @@
 # Stage Backlog（V1）
 
-> 更新时间：2026-03-24
+> 更新时间：2026-03-26
 > 执行基线：`docs/Agent-Stage-Plan.md`
 > 规则：每个 Stage 必须在一次与 Agent 的对话中完成开发与测试。
 > 守卫命令：`make stage-pre STAGE=Sx` / `make stage-post STAGE=Sx`
@@ -29,7 +29,7 @@
 - [x] S16 小程序真实微信认证与手机号绑定（2026-03-19：默认关闭生产 mock 登录、接入微信手机号动态 code 绑定、补齐 access token/手机号调用客户端、开发态手动手机号兜底与 API/部署文档同步）
 - [x] S17 管理端真实账号登录（手机号 + 密码 + 短信重置，2026-03-24：真实后台账号、短信激活/重置、会话 token、管理端 Web 登录恢复与修改密码完成）
 - [ ] S18 真实微信支付/退款与资金流水
-- [x] S19 生产入口与微信发布阻塞项收口（2026-03-24：prod 配置切换到 ECS 本地 `.env.prod`，新增 `.release.env`、bootstrap/常规发布拆分、宿主机 Nginx HTTPS 入口模板、workflow_dispatch 回滚与小程序默认 HTTPS 域名配置位；2026-03-26：修复 deploy workflow 上传目录与远端解包假设不一致导致的发布失败；2026-03-26：为 `DEPLOY_PATH=~/...` 场景补齐路径归一化与目录诊断，避免 scp 上传落在家目录而 SSH 步骤进入字面量 `~/...` 目录；2026-03-26：将 deploy path 归一化改写为 ssh-action `script_stop` 可解析的单行命令，修复函数定义被 action 注入脚本打断；2026-03-26：移除 deploy SSH 收尾分支中的 `else`，避免 `script_stop` 守卫把 `DEPLOY_TARGET!=bootstrap` 的正常条件结果误判为失败；2026-03-26：运行时强制以 `.release.env` 为准，修复 `.env.prod` 中样板 `RELEASE_ENV_FILE=.env.empty` 导致镜像发布信息失效并意外回退本地 build；2026-03-26：移除 compose 顶层废弃 `version` 并增强发布诊断，修复 `.release.env` 被 ssh-action 守卫污染、在 backend 拉起前预检 MySQL 应用账号可用性，并在服务不健康时输出容器状态与日志；2026-03-26：新增 `HOST_NGINX_ENABLED` 开关，支持正式域名未备案或证书未落盘前跳过宿主机 Nginx，并将占位域名/证书缺失前移到配置校验阶段）
+- [x] S19 生产入口与微信发布阻塞项收口（2026-03-24：prod 配置切换到 ECS 本地 `.env.prod`，新增 `.release.env`、bootstrap/常规发布拆分、宿主机 Nginx HTTPS 入口模板、workflow_dispatch 回滚与小程序默认 HTTPS 域名配置位；2026-03-26：修复 deploy workflow 上传目录与远端解包假设不一致导致的发布失败；2026-03-26：为 `DEPLOY_PATH=~/...` 场景补齐路径归一化与目录诊断，避免 scp 上传落在家目录而 SSH 步骤进入字面量 `~/...` 目录；2026-03-26：将 deploy path 归一化改写为 ssh-action `script_stop` 可解析的单行命令，修复函数定义被 action 注入脚本打断；2026-03-26：移除 deploy SSH 收尾分支中的 `else`，避免 `script_stop` 守卫把 `DEPLOY_TARGET!=bootstrap` 的正常条件结果误判为失败；2026-03-26：运行时强制以 `.release.env` 为准，修复 `.env.prod` 中样板 `RELEASE_ENV_FILE=.env.empty` 导致镜像发布信息失效并意外回退本地 build；2026-03-26：移除 compose 顶层废弃 `version` 并增强发布诊断，修复 `.release.env` 被 ssh-action 守卫污染、在 backend 拉起前预检 MySQL 应用账号可用性，并在服务不健康时输出容器状态与日志；2026-03-26：新增 `HOST_NGINX_ENABLED` 开关，支持正式域名未备案或证书未落盘前跳过宿主机 Nginx，并将占位域名/证书缺失前移到配置校验阶段；2026-03-26：将 deploy bundle 上传改为宽超时 + best-effort，修复 `scp-action` 在远端已解包成功后因清理/回连超时把整次发布误判失败的问题）
 - [ ] S20 对账、安全收口与 V1 最终验收
 
 ## 里程碑映射
