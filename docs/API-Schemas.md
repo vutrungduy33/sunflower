@@ -515,7 +515,7 @@ null
 
 管理端安全与配置说明：
 - 首次激活仅允许 `ADMIN_ACTIVATION_ALLOWLIST=手机号:角色,手机号:角色`
-- 验证码默认 6 位、10 分钟有效、60 秒冷却、1 小时 5 次、24 小时 10 次、单验证码最多 5 次校验
+- 验证码默认 6 位、固定 5 分钟有效、60 秒冷却、1 小时 5 次、24 小时 10 次、单验证码最多 5 次校验
 - 密码规则：8-32 位，必须同时包含字母和数字，不能包含空格
 - 连续 5 次密码错误锁定 15 分钟；`logout/reset-password/change-password` 成功后旧 token 失效
 - `test` 使用 fake SMS provider；`dev/prod` 默认腾讯云短信，缺少 `TENCENT_SMS_*` 配置会启动失败
@@ -539,7 +539,7 @@ null
   "purpose": "ACTIVATE",
   "purposeLabel": "首次激活",
   "maskedPhone": "137****0000",
-  "expiresInSeconds": 600,
+  "expiresInSeconds": 300,
   "resendCooldownSeconds": 60
 }
 ```

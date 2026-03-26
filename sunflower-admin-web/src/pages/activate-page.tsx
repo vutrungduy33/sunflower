@@ -154,7 +154,7 @@ export function ActivatePage() {
         <Card className="login-side-panel" title="激活说明">
           <ul className="bullet-list">
             <li>仅允许白名单内手机号首次激活后台账号。</li>
-            <li>验证码默认 10 分钟有效，60 秒内不可重复发送。</li>
+            <li>验证码固定 5 分钟有效，60 秒内不可重复发送。</li>
             <li>激活成功后会自动建立后台会话并进入工作台。</li>
           </ul>
         </Card>

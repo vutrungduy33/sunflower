@@ -34,7 +34,7 @@ app:
     sms:
       provider: ${ADMIN_SMS_PROVIDER:tencent}
       code-length: ${ADMIN_SMS_CODE_LENGTH:6}
-      code-ttl-seconds: ${ADMIN_SMS_CODE_TTL_SECONDS:600}
+      code-ttl-seconds: ${ADMIN_SMS_CODE_TTL_SECONDS:300}
       resend-cooldown-seconds: ${ADMIN_SMS_RESEND_COOLDOWN_SECONDS:60}
       hourly-send-limit: ${ADMIN_SMS_HOURLY_SEND_LIMIT:5}
       daily-send-limit: ${ADMIN_SMS_DAILY_SEND_LIMIT:10}

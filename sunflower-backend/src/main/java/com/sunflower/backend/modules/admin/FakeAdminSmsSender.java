@@ -13,7 +13,7 @@ public class FakeAdminSmsSender implements AdminSmsSender {
     private final Map<String, String> latestCodes = new ConcurrentHashMap<>();
 
     @Override
-    public AdminSmsSendResult sendVerificationCode(String phone, AdminSmsPurpose purpose, String code, int expiresInMinutes) {
+    public AdminSmsSendResult sendVerificationCode(String phone, AdminSmsPurpose purpose, String code) {
         latestCodes.put(buildKey(phone, purpose), code);
         return new AdminSmsSendResult("fake-" + UUID.randomUUID(), "MOCK_ACCEPTED");
     }
