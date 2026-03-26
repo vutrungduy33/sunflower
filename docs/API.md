@@ -1,6 +1,6 @@
 # 接口清单（REST）
 
-> 更新时间：2026-03-23
+> 更新时间：2026-03-24
 > 说明：以下区分“已实现（MVP 一期）”与“规划中（后续）”。
 
 ## 1. 已实现（MVP 一期）
@@ -23,7 +23,23 @@
 - 小程序手机号绑定主流程为 `getPhoneNumber -> /api/auth/bind-phone(phoneCode)`；手动手机号绑定仅在后端显式开启 `WECHAT_MANUAL_PHONE_BIND_ENABLED=true` 时可用。
 - 当前 profile 返回包含 `avatarUrl`、`needsProfileCompletion`；后者在头像缺失或昵称仍为默认值时为 `true`，用于提醒用户继续完善资料。
 - 头像文件经 backend 保存后通过 `/api/media/avatars/**` 对外暴露，仍沿用统一 `/api` 公网入口。
-管理端说明：当前管理接口（`/api/admin/rooms*`、`/api/admin/room-prices`、`/api/admin/room-inventory`、`/api/admin/orders*`、`/api/admin/reports/summary`）要求携带 `Authorization: Bearer <admin-token>`；未携带时返回“请先登录管理端”，token 无效时返回“管理端登录态无效”。
+管理端说明：当前管理接口（`/api/admin/rooms*`、`/api/admin/room-prices`、`/api/admin/room-inventory`、`/api/admin/orders*`、`/api/admin/reports/summary`）与账号接口要求携带 `Authorization: Bearer <token>`；未携带时返回“请先登录管理端”，token 无效时返回“管理端登录态无效”。
+- `POST /api/admin/auth/sms-code`：发送管理端短信验证码（`ACTIVATE` 首次激活，`RESET_PASSWORD` 重置密码）
+- `POST /api/admin/auth/activate`：允许白名单手机号首次激活后台账号并设置密码
+- `POST /api/admin/auth/login`：手机号 + 密码登录管理端
+- `POST /api/admin/auth/reset-password`：短信验证码重置密码，成功后直接返回新登录态
+- `POST /api/admin/auth/logout`：退出当前管理端登录态
+- `GET /api/admin/account/me`：获取当前后台账号资料
+- `POST /api/admin/account/change-password`：已登录后台账号修改密码，成功后直接返回新登录态
+
+管理端认证补充说明：
+- S17 起管理端仍沿用 `Authorization: Bearer <token>`，但 token 已从静态 `app.admin.auth.token` 切换为后台签名会话 token，载荷包含 `accountId`、`role`、`credentialVersion`、`expiresAt`；现有管理业务接口路径与返回结构保持不变，旧静态 token 已废弃。
+- 当前角色模型仅收口为 `ADMIN` / `OPERATOR`；现有房型、价格库存、订单、经营概览接口均允许 `ADMIN/OPERATOR` 访问，账号自助接口面向任意已登录后台账号。
+- 首次激活仅允许环境变量 `ADMIN_ACTIVATION_ALLOWLIST=手机号:角色,手机号:角色` 中的手机号，不支持任意自注册。
+- 管理端密码规则：8-32 位、必须同时包含字母和数字、不能包含空格。
+- 短信验证码默认规则：6 位、10 分钟有效、60 秒重发冷却、每手机号 1 小时最多 5 次/24 小时最多 10 次、单验证码最多 5 次校验；连续 5 次密码错误锁定 15 分钟。
+- `logout`、`reset-password`、`change-password` 成功后都会通过递增 `credentialVersion` 使旧 token 失效。
+- 短信服务默认走腾讯云短信：`TENCENT_SMS_SECRET_ID`、`TENCENT_SMS_SECRET_KEY`、`TENCENT_SMS_SDK_APP_ID`、`TENCENT_SMS_SIGN_NAME`、`TENCENT_SMS_TEMPLATE_ID_ACTIVATE`、`TENCENT_SMS_TEMPLATE_ID_RESET_PASSWORD` 为必填；`test` 环境使用 fake provider，`dev/prod` 缺少配置时启动失败，不回退 mock。
 
 ### 1.3 首页与内容
 - `GET /api/content/home`：首页聚合数据（banner/服务/推荐房型/会员权益）

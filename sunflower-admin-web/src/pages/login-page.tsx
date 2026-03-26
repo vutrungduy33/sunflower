@@ -1,10 +1,10 @@
 import { useState, type FormEvent } from 'react'
-import { Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { Button, Card, Input, Space, Tag } from 'tdesign-react'
 import { appEnv } from '@/config/env'
 import {
-  getAdminLoginErrorMessage,
-  loginWithAdminToken,
+  getAdminAuthErrorMessage,
+  loginWithAdminPassword,
 } from '@/features/auth/auth-service'
 import { useAdminAuth } from '@/features/auth/auth-store'
 
@@ -23,12 +23,23 @@ function resolveRedirectTarget(state: LoginRouteState | null | undefined) {
 export function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { isAuthenticated } = useAdminAuth()
-  const [token, setToken] = useState('')
+  const { isAuthenticated, isBootstrapping } = useAdminAuth()
+  const [phone, setPhone] = useState('')
+  const [password, setPassword] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const redirectTo = resolveRedirectTarget(location.state as LoginRouteState | null | undefined)
+
+  if (isBootstrapping) {
+    return (
+      <div className="login-shell">
+        <Card className="login-panel">
+          <p className="login-form__hint">正在恢复后台登录态...</p>
+        </Card>
+      </div>
+    )
+  }
 
   if (isAuthenticated) {
     return <Navigate replace to={redirectTo} />
@@ -41,10 +52,10 @@ export function LoginPage() {
     setErrorMessage('')
 
     try {
-      await loginWithAdminToken(token)
+      await loginWithAdminPassword(phone, password)
       navigate(redirectTo, { replace: true })
     } catch (error) {
-      setErrorMessage(getAdminLoginErrorMessage(error))
+      setErrorMessage(getAdminAuthErrorMessage(error))
     } finally {
       setIsSubmitting(false)
     }
@@ -56,12 +67,12 @@ export function LoginPage() {
         <Card className="login-panel">
           <div className="login-panel__hero">
             <Tag theme="warning" variant="light-outline">
-              S10 管理后台登录与权限骨架
+              S17 管理端真实账号登录
             </Tag>
             <h1>管理端登录</h1>
             <p>
-              使用后端 `app.admin.auth.token` 对应的管理 token 登录，前端会自动注入
-              `Authorization: Bearer &lt;token&gt;` 并为业务路由做未登录拦截。
+              使用手机号 + 密码登录，前端会自动恢复后台会话、注入
+              `Authorization: Bearer &lt;token&gt;`，并在登录态失效后自动清理本地会话。
             </p>
             <div className="login-panel__meta">
               <span>应用标题：{appEnv.appTitle}</span>
@@ -70,14 +81,23 @@ export function LoginPage() {
           </div>
 
           <form className="login-form" onSubmit={handleSubmit}>
-            <span className="login-form__label">管理 token</span>
+            <span className="login-form__label">手机号</span>
+            <Input
+              clearable
+              size="large"
+              placeholder="请输入手机号"
+              value={phone}
+              onChange={(value) => setPhone(String(value))}
+            />
+
+            <span className="login-form__label">密码</span>
             <Input
               type="password"
               clearable
               size="large"
-              placeholder="请输入管理端 token"
-              value={token}
-              onChange={(value) => setToken(String(value))}
+              placeholder="请输入后台密码"
+              value={password}
+              onChange={(value) => setPassword(String(value))}
             />
 
             {errorMessage ? (
@@ -97,18 +117,22 @@ export function LoginPage() {
                 登录后台
               </Button>
               <p className="login-form__hint">
-                当前阶段只构建最小登录态与页面守卫，不引入后台用户表与 RBAC。
+                当前账号体系支持首次激活、短信重置密码、会话恢复与最小角色 `admin/operator`。
               </p>
+              <div className="auth-form__links">
+                <Link to="/activate">首次激活</Link>
+                <Link to="/reset-password">忘记密码</Link>
+              </div>
             </Space>
           </form>
         </Card>
 
         <Card className="login-side-panel" title="本阶段已交付能力">
           <ul className="bullet-list">
-            <li>登录页与失败提示。</li>
-            <li>受保护路由与未登录跳转。</li>
-            <li>侧边菜单、顶栏和退出登录。</li>
-            <li>请求头自动注入管理 token。</li>
+            <li>手机号 + 密码登录与失败提示。</li>
+            <li>首次激活与短信重置密码。</li>
+            <li>会话恢复、401 失效清理与退出登录。</li>
+            <li>`admin/operator` 最小角色收口。</li>
           </ul>
         </Card>
       </div>

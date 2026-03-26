@@ -1,6 +1,6 @@
 import axios, { AxiosHeaders } from 'axios'
 import { appEnv } from '@/config/env'
-import { clearAdminToken, getAdminToken } from '@/features/auth/auth-store'
+import { clearAdminSession, getAdminToken } from '@/features/auth/auth-store'
 
 export const httpClient = axios.create({
   baseURL: appEnv.apiBaseUrl,
@@ -30,7 +30,7 @@ httpClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 401) {
-      clearAdminToken()
+      clearAdminSession()
     }
 
     return Promise.reject(error)

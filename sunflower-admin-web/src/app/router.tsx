@@ -11,6 +11,12 @@ const [overviewItem, roomsItem, pricingItem, ordersItem, foundationsItem] = navi
 const FoundationsPage = lazy(async () => import('@/pages/foundations-page').then((module) => ({
   default: module.FoundationsPage,
 })))
+const ActivatePage = lazy(async () => import('@/pages/activate-page').then((module) => ({
+  default: module.ActivatePage,
+})))
+const ChangePasswordPage = lazy(async () => import('@/pages/change-password-page').then((module) => ({
+  default: module.ChangePasswordPage,
+})))
 const LoginPage = lazy(async () => import('@/pages/login-page').then((module) => ({
   default: module.LoginPage,
 })))
@@ -25,6 +31,9 @@ const OrderManagementPage = lazy(async () => import('@/pages/order-management-pa
 })))
 const RoomManagementPage = lazy(async () => import('@/pages/room-management-page').then((module) => ({
   default: module.RoomManagementPage,
+})))
+const ResetPasswordPage = lazy(async () => import('@/pages/reset-password-page').then((module) => ({
+  default: module.ResetPasswordPage,
 })))
 const WorkspacePage = lazy(async () => import('@/pages/workspace-page').then((module) => ({
   default: module.WorkspacePage,
@@ -51,6 +60,14 @@ export const appRoutes: RouteObject[] = [
   {
     path: '/login',
     element: renderDeferredPage(<LoginPage />),
+  },
+  {
+    path: '/activate',
+    element: renderDeferredPage(<ActivatePage />),
+  },
+  {
+    path: '/reset-password',
+    element: renderDeferredPage(<ResetPasswordPage />),
   },
   {
     path: '/',
@@ -80,6 +97,17 @@ export const appRoutes: RouteObject[] = [
         path: 'foundations',
         element: renderDeferredPage(<FoundationsPage />),
         handle: foundationsItem satisfies RouteHandle,
+      },
+      {
+        path: 'account/password',
+        element: renderDeferredPage(<ChangePasswordPage />),
+        handle: {
+          value: 'account-password',
+          path: '/account/password',
+          label: '修改密码',
+          description: '更新当前后台账号密码，并让旧登录态自动失效。',
+          stage: 'S17',
+        } satisfies RouteHandle,
       },
     ],
   },

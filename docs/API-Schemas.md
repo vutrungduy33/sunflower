@@ -1,6 +1,6 @@
 # 接口字段级别定义（请求/响应示例）
 
-> 更新时间：2026-03-23
+> 更新时间：2026-03-24
 > 说明：以下示例对齐当前 `sunflower-backend` 的 MVP 一期实现。
 
 统一响应壳：
@@ -509,9 +509,222 @@ null
 }
 ```
 
-## 5) 管理端房型与房态
+## 5) 管理端认证与账号
 
-管理端鉴权说明：当前 MVP 通过静态管理 token 调用管理接口，请在请求头携带 `Authorization: Bearer <admin-token>`。缺失 token 返回 `40100/请先登录管理端`，错误 token 返回 `40100/管理端登录态无效`。默认配置项为 `app.admin.auth.token`，生产环境建议通过 `ADMIN_AUTH_TOKEN` 注入。
+管理端鉴权说明：S17 起管理端业务接口和账号接口仍使用 `Authorization: Bearer <token>`，但 token 已从静态字符串升级为后台签名会话 token。token 载荷包含 `accountId`、`role`、`credentialVersion`、`expiresAt`；缺失 token 返回 `40100/请先登录管理端`，签名错误、过期、账号停用、凭证版本不匹配均返回 `40100/管理端登录态无效`。当前 `/api/admin/rooms*`、`/api/admin/room-prices`、`/api/admin/room-inventory`、`/api/admin/orders*`、`/api/admin/reports/summary` 对 `ADMIN/OPERATOR` 都开放，`/api/admin/account/*` 面向任意已登录后台账号。
+
+管理端安全与配置说明：
+- 首次激活仅允许 `ADMIN_ACTIVATION_ALLOWLIST=手机号:角色,手机号:角色`
+- 验证码默认 6 位、10 分钟有效、60 秒冷却、1 小时 5 次、24 小时 10 次、单验证码最多 5 次校验
+- 密码规则：8-32 位，必须同时包含字母和数字，不能包含空格
+- 连续 5 次密码错误锁定 15 分钟；`logout/reset-password/change-password` 成功后旧 token 失效
+- `test` 使用 fake SMS provider；`dev/prod` 默认腾讯云短信，缺少 `TENCENT_SMS_*` 配置会启动失败
+
+### `POST /api/admin/auth/sms-code`
+**请求**
+```json
+{
+  "phone": "13700000000",
+  "purpose": "ACTIVATE"
+}
+```
+
+`purpose` 仅支持：
+- `ACTIVATE`
+- `RESET_PASSWORD`
+
+**响应**
+```json
+{
+  "purpose": "ACTIVATE",
+  "purposeLabel": "首次激活",
+  "maskedPhone": "137****0000",
+  "expiresInSeconds": 600,
+  "resendCooldownSeconds": 60
+}
+```
+
+**常见错误**
+```json
+{
+  "code": 40100,
+  "message": "该手机号未在后台激活白名单中",
+  "data": null
+}
+```
+
+```json
+{
+  "code": 40000,
+  "message": "验证码发送过于频繁，请稍后再试",
+  "data": null
+}
+```
+
+### `POST /api/admin/auth/activate`
+**请求**
+```json
+{
+  "phone": "13700000000",
+  "smsCode": "123456",
+  "password": "Admin12345"
+}
+```
+
+**响应**
+```json
+{
+  "token": "YWRtaW5fZGVtb18wMDAxOkFETUlOOjE6MTc2NDAwMDAwMA.signed_segment",
+  "account": {
+    "id": "admin_demo_0001",
+    "phone": "13700000000",
+    "role": "ADMIN",
+    "roleLabel": "管理员"
+  }
+}
+```
+
+**常见错误**
+```json
+{
+  "code": 40900,
+  "message": "账号已激活，请直接登录",
+  "data": null
+}
+```
+
+```json
+{
+  "code": 40000,
+  "message": "验证码已过期，请重新获取",
+  "data": null
+}
+```
+
+### `POST /api/admin/auth/login`
+**请求**
+```json
+{
+  "phone": "13700000000",
+  "password": "Admin12345"
+}
+```
+
+**响应**
+```json
+{
+  "token": "YWRtaW5fZGVtb18wMDAxOkFETUlOOjE6MTc2NDAwMDAwMA.signed_segment",
+  "account": {
+    "id": "admin_demo_0001",
+    "phone": "13700000000",
+    "role": "ADMIN",
+    "roleLabel": "管理员"
+  }
+}
+```
+
+**常见错误**
+```json
+{
+  "code": 40100,
+  "message": "手机号或密码错误",
+  "data": null
+}
+```
+
+```json
+{
+  "code": 40100,
+  "message": "密码连续错误次数过多，请 15 分钟后再试",
+  "data": null
+}
+```
+
+### `POST /api/admin/auth/reset-password`
+**请求**
+```json
+{
+  "phone": "13700000000",
+  "smsCode": "654321",
+  "newPassword": "Admin23456"
+}
+```
+
+**响应**
+```json
+{
+  "token": "YWRtaW5fZGVtb18wMDAxOkFETUlOOjI6MTc2NDAwMDAwMA.signed_segment",
+  "account": {
+    "id": "admin_demo_0001",
+    "phone": "13700000000",
+    "role": "ADMIN",
+    "roleLabel": "管理员"
+  }
+}
+```
+
+### `POST /api/admin/auth/logout`
+**请求**
+- 无请求体，要求携带管理端 Bearer token
+
+**响应**
+```json
+null
+```
+
+### `GET /api/admin/account/me`
+**响应**
+```json
+{
+  "id": "admin_demo_0001",
+  "phone": "13700000000",
+  "role": "ADMIN",
+  "roleLabel": "管理员"
+}
+```
+
+### `POST /api/admin/account/change-password`
+**请求**
+```json
+{
+  "currentPassword": "Admin23456",
+  "newPassword": "Admin34567"
+}
+```
+
+**响应**
+```json
+{
+  "token": "YWRtaW5fZGVtb18wMDAxOkFETUlOOjM6MTc2NDAwMDAwMA.signed_segment",
+  "account": {
+    "id": "admin_demo_0001",
+    "phone": "13700000000",
+    "role": "ADMIN",
+    "roleLabel": "管理员"
+  }
+}
+```
+
+**常见错误**
+```json
+{
+  "code": 40000,
+  "message": "当前密码不正确",
+  "data": null
+}
+```
+
+```json
+{
+  "code": 40000,
+  "message": "新密码不能与当前密码相同",
+  "data": null
+}
+```
+
+## 6) 管理端房型与房态
+
+管理端业务接口鉴权沿用上一节的后台会话 token；当前 `ADMIN` / `OPERATOR` 都可访问房型、价格与库存接口。
 
 ### `GET /api/admin/rooms`
 **响应**
@@ -696,7 +909,7 @@ null
 }
 ```
 
-## 6) 管理端订单与经营概览
+## 7) 管理端订单与经营概览
 
 ### `GET /api/admin/orders`
 **Query 参数**
