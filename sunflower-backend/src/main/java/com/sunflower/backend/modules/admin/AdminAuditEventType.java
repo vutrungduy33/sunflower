@@ -1,0 +1,16 @@
+package com.sunflower.backend.modules.admin;
+
+public enum AdminAuditEventType {
+    SMS_CODE_SENT,
+    SMS_CODE_SEND_REJECTED,
+    ACTIVATE_SUCCESS,
+    ACTIVATE_FAILED,
+    LOGIN_SUCCESS,
+    LOGIN_FAILED,
+    LOGIN_LOCKED,
+    RESET_PASSWORD_SUCCESS,
+    RESET_PASSWORD_FAILED,
+    CHANGE_PASSWORD_SUCCESS,
+    CHANGE_PASSWORD_FAILED,
+    LOGOUT
+}

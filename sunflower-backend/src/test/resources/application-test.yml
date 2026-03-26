@@ -16,8 +16,21 @@ app:
     avatar:
       storage-path: ./target/test-uploads/avatars
   admin:
+    activation:
+      allowlist: 13100000000:admin,13200000000:admin,13300000000:admin,13400000000:admin,13900000000:operator
     auth:
-      token: test-admin-token
+      token-secret: test-admin-auth-secret-change-me
+      ttl-seconds: 3600
+    sms:
+      provider: fake
+      code-length: 6
+      code-ttl-seconds: 600
+      resend-cooldown-seconds: 60
+      hourly-send-limit: 5
+      daily-send-limit: 10
+      max-verify-attempts: 5
+      login-failure-limit: 5
+      login-lock-seconds: 900
   auth:
     wechat:
       mock-enabled: true

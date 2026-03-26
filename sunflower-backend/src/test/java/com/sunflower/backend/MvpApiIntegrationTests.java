@@ -2,10 +2,18 @@ package com.sunflower.backend;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sunflower.backend.modules.admin.AdminAccountStatus;
+import com.sunflower.backend.modules.admin.AdminRole;
+import com.sunflower.backend.modules.admin.AdminTokenService;
+import com.sunflower.backend.modules.admin.persistence.AdminAccountCredentialEntity;
+import com.sunflower.backend.modules.admin.persistence.AdminAccountCredentialRepository;
+import com.sunflower.backend.modules.admin.persistence.AdminAccountEntity;
+import com.sunflower.backend.modules.admin.persistence.AdminAccountRepository;
 import com.sunflower.backend.modules.auth.AuthTokenService;
 import com.sunflower.backend.modules.room.persistence.RoomInventoryEntity;
 import com.sunflower.backend.modules.room.persistence.RoomInventoryRepository;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -19,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -52,6 +61,18 @@ class MvpApiIntegrationTests {
 
     @Autowired
     private RoomInventoryRepository roomInventoryRepository;
+
+    @Autowired
+    private AdminAccountRepository adminAccountRepository;
+
+    @Autowired
+    private AdminAccountCredentialRepository adminAccountCredentialRepository;
+
+    @Autowired
+    private AdminTokenService adminTokenService;
+
+    @Autowired
+    private PasswordEncoder adminPasswordEncoder;
 
     @Test
     void shouldLoginBindPhoneAndPatchProfile() throws Exception {
@@ -1670,7 +1691,53 @@ class MvpApiIntegrationTests {
     }
 
     private String adminAuthorization() {
-        return bearerToken("test-admin-token");
+        AdminAccountEntity account = ensureAdminAccount("13800000000", AdminRole.ADMIN);
+        AdminAccountCredentialEntity credential = adminAccountCredentialRepository
+            .findById(account.getId())
+            .orElseThrow(() -> new IllegalStateException("缺少测试管理端凭证"));
+        return bearerToken(
+            adminTokenService.buildToken(
+                account.getId(),
+                account.getRole(),
+                credential.getCredentialVersion() == null ? 1 : credential.getCredentialVersion()
+            )
+        );
+    }
+
+    private AdminAccountEntity ensureAdminAccount(String phone, AdminRole role) {
+        AdminAccountEntity account = adminAccountRepository.findByPhone(phone).orElse(null);
+        LocalDateTime now = LocalDateTime.now();
+        if (account == null) {
+            account = new AdminAccountEntity();
+            account.setId("admin_test_" + phone);
+            account.setPhone(phone);
+            account.setRole(role);
+            account.setStatus(AdminAccountStatus.ACTIVE);
+            account.setActivatedAt(now);
+        } else {
+            account.setRole(role);
+            account.setStatus(AdminAccountStatus.ACTIVE);
+            if (account.getActivatedAt() == null) {
+                account.setActivatedAt(now);
+            }
+        }
+        account.setLastLoginAt(now);
+        AdminAccountEntity savedAccount = adminAccountRepository.save(account);
+
+        AdminAccountCredentialEntity credential = adminAccountCredentialRepository.findById(savedAccount.getId()).orElse(null);
+        if (credential == null) {
+            credential = new AdminAccountCredentialEntity();
+            credential.setAccountId(savedAccount.getId());
+            credential.setPasswordHash(adminPasswordEncoder.encode("Admin12345"));
+            credential.setCredentialVersion(1);
+        }
+        credential.setFailedLoginCount(0);
+        credential.setLockedUntil(null);
+        if (credential.getLastPasswordChangedAt() == null) {
+            credential.setLastPasswordChangedAt(now);
+        }
+        adminAccountCredentialRepository.save(credential);
+        return savedAccount;
     }
 
     private String bearerToken(String token) {

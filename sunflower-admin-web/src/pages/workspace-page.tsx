@@ -5,17 +5,19 @@ import { useAdminAuth } from '@/features/auth/auth-store'
 import { fetchHealth } from '@/services/health'
 
 const installedCapabilities = [
-  '登录页',
+  '手机号密码登录',
+  '首次激活',
+  '短信重置密码',
   '受保护路由',
   '统一菜单配置',
   'Axios 鉴权注入',
-  '401 失效清理',
+  '登录态恢复与 401 清理',
   '订单筛选与详情抽屉',
   '后台改期与退款处理',
 ]
 
 const nextSteps = [
-  { stage: 'S14', title: '联调验收与发布复核' },
+  { stage: 'S18', title: '真实微信支付 / 退款与资金流水' },
 ]
 
 function maskToken(token: string) {
@@ -27,7 +29,7 @@ function maskToken(token: string) {
 }
 
 export function WorkspacePage() {
-  const { token } = useAdminAuth()
+  const { token, account } = useAdminAuth()
   const healthQuery = useQuery({
     queryKey: ['health'],
     queryFn: fetchHealth,
@@ -52,16 +54,18 @@ export function WorkspacePage() {
       <section className="hero-panel">
         <div className="hero-panel__copy">
           <Tag theme="success" variant="light-outline">
-            S13 订单售后已接入
+            S17 后台真实账号体系已接入
           </Tag>
           <h3>管理工作台</h3>
           <p>
-            当前阶段已补齐登录页、统一请求鉴权、基础布局，以及房型列表、价格库存、订单筛选与售后处理能力。后续将以联调验收和发布复核为主。
+            当前阶段已补齐手机号 + 密码登录、首次激活、短信重置密码、修改密码与会话恢复，并沿用现有房型、价格库存、订单售后主链路。
           </p>
         </div>
         <div className="hero-panel__meta">
           <span>标题：{appEnv.appTitle}</span>
           <span>代理目标：{appEnv.apiProxyTarget}</span>
+          <span>当前账号：{account?.phone || '未恢复'}</span>
+          <span>角色：{account?.roleLabel || '未知'}</span>
           <span>当前 token：{maskToken(token)}</span>
         </div>
       </section>
@@ -75,15 +79,19 @@ export function WorkspacePage() {
             <dl className="status-list">
               <div>
                 <dt>鉴权模式</dt>
-                <dd>Bearer Token</dd>
+                <dd>后台会话 Token</dd>
               </div>
               <div>
-                <dt>自动处理</dt>
-                <dd>请求头注入 + 401 清理</dd>
+                <dt>当前账号</dt>
+                <dd>{account?.phone || '未恢复'}</dd>
+              </div>
+              <div>
+                <dt>当前角色</dt>
+                <dd>{account?.roleLabel || '未知'}</dd>
               </div>
               <div>
                 <dt>受保护页面</dt>
-                <dd>经营概览 / 房型管理 / 价格库存 / 订单售后</dd>
+                <dd>经营概览 / 房型管理 / 价格库存 / 订单售后 / 修改密码</dd>
               </div>
             </dl>
           </div>

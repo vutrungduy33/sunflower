@@ -3,7 +3,8 @@ import { useLocation, useMatches, useNavigate } from 'react-router-dom'
 import { Avatar, Breadcrumb, Button, Layout, Menu, Space, Tag } from 'tdesign-react'
 import { appEnv } from '@/config/env'
 import { navigationItems, type RouteHandle, resolveNavigation } from '@/app/navigation'
-import { clearAdminToken } from '@/features/auth/auth-store'
+import { logoutAdmin } from '@/features/auth/auth-service'
+import { useAdminAuth } from '@/features/auth/auth-store'
 
 function readRouteHandle(matches: ReturnType<typeof useMatches>, pathname: string) {
   const matchedRoute = [...matches]
@@ -21,6 +22,7 @@ export function ShellLayout({ children }: ShellLayoutProps) {
   const location = useLocation()
   const navigate = useNavigate()
   const matches = useMatches()
+  const { account } = useAdminAuth()
   const currentRoute = readRouteHandle(matches, location.pathname)
 
   const handleMenuChange = (value: string | number) => {
@@ -31,8 +33,8 @@ export function ShellLayout({ children }: ShellLayoutProps) {
     }
   }
 
-  const handleLogout = () => {
-    clearAdminToken()
+  const handleLogout = async () => {
+    await logoutAdmin()
     void navigate('/login', { replace: true })
   }
 
@@ -70,9 +72,9 @@ export function ShellLayout({ children }: ShellLayoutProps) {
 
         <div className="admin-layout__aside-footer">
           <Tag theme="success" variant="light-outline">
-            已登录
+            {account?.roleLabel || '已登录'}
           </Tag>
-          <p>当前使用静态 Bearer Token 鉴权，未登录访问业务页将自动跳转到登录页。</p>
+          <p>{account?.phone || '当前后台账号'} 已登录，未登录访问业务页将自动跳转到登录页。</p>
         </div>
       </Layout.Aside>
 
@@ -93,8 +95,15 @@ export function ShellLayout({ children }: ShellLayoutProps) {
             <Tag theme="warning" variant="light-outline">
               {currentRoute.stage}
             </Tag>
-            <Avatar size="40px">A</Avatar>
-            <Button variant="outline" theme="primary" onClick={handleLogout}>
+            <Avatar size="40px">{(account?.roleLabel || '管').slice(0, 1)}</Avatar>
+            <div className="admin-layout__account-copy">
+              <strong>{account?.phone || '未命名账号'}</strong>
+              <span>{account?.roleLabel || '后台账号'}</span>
+            </div>
+            <Button variant="outline" theme="default" onClick={() => void navigate('/account/password')}>
+              修改密码
+            </Button>
+            <Button variant="outline" theme="primary" onClick={() => void handleLogout()}>
               退出登录
             </Button>
           </Space>

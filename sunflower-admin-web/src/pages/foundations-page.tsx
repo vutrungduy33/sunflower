@@ -14,8 +14,9 @@ const rules = [
   '默认通过 Vite proxy 转发 /api，避免业务代码写死 localhost',
   'TDesign 作为唯一主 UI 框架',
   '服务端状态优先走 TanStack Query',
-  '登录态基于静态管理 token，未登录访问业务路由自动跳转 /login',
-  'S10 只做权限骨架，不提前实现 S11-S13 的业务交互',
+  '登录态基于后台账号会话，应用启动后通过 /api/admin/account/me 恢复并校验',
+  '401 时自动清理本地会话，未登录访问业务路由自动跳转 /login',
+  'S17 仅实现最小角色 admin/operator，不提前扩展完整 RBAC 后台',
 ]
 
 export function FoundationsPage() {

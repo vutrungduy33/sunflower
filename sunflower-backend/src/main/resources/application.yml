@@ -26,8 +26,29 @@ app:
     avatar:
       storage-path: ${APP_MEDIA_AVATAR_STORAGE_PATH:./data/uploads/avatars}
   admin:
+    activation:
+      allowlist: ${ADMIN_ACTIVATION_ALLOWLIST:}
     auth:
-      token: ${ADMIN_AUTH_TOKEN:dev-admin-token-change-me}
+      token-secret: ${ADMIN_AUTH_TOKEN_SECRET:dev-admin-auth-secret-change-me}
+      ttl-seconds: ${ADMIN_AUTH_TOKEN_TTL_SECONDS:28800}
+    sms:
+      provider: ${ADMIN_SMS_PROVIDER:tencent}
+      code-length: ${ADMIN_SMS_CODE_LENGTH:6}
+      code-ttl-seconds: ${ADMIN_SMS_CODE_TTL_SECONDS:600}
+      resend-cooldown-seconds: ${ADMIN_SMS_RESEND_COOLDOWN_SECONDS:60}
+      hourly-send-limit: ${ADMIN_SMS_HOURLY_SEND_LIMIT:5}
+      daily-send-limit: ${ADMIN_SMS_DAILY_SEND_LIMIT:10}
+      max-verify-attempts: ${ADMIN_SMS_MAX_VERIFY_ATTEMPTS:5}
+      login-failure-limit: ${ADMIN_LOGIN_FAILURE_LIMIT:5}
+      login-lock-seconds: ${ADMIN_LOGIN_LOCK_SECONDS:900}
+      tencent:
+        secret-id: ${TENCENT_SMS_SECRET_ID:}
+        secret-key: ${TENCENT_SMS_SECRET_KEY:}
+        region: ${TENCENT_SMS_REGION:ap-guangzhou}
+        sdk-app-id: ${TENCENT_SMS_SDK_APP_ID:}
+        sign-name: ${TENCENT_SMS_SIGN_NAME:}
+        activate-template-id: ${TENCENT_SMS_TEMPLATE_ID_ACTIVATE:}
+        reset-password-template-id: ${TENCENT_SMS_TEMPLATE_ID_RESET_PASSWORD:}
   auth:
     wechat:
       mock-enabled: ${WECHAT_AUTH_MOCK_ENABLED:false}

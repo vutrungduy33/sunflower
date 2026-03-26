@@ -7,6 +7,7 @@
 -- S8 admin order API sync: keep demo order seed compatible with后台订单筛选、售后处理与经营概览统计口径。
 -- S15 order state machine sync: keep booking_status/payment_status and after-sale compatibility fields aligned.
 -- S16 auth/profile sync: keep user auth_version and profile bootstrap fields aligned.
+-- S17 admin real auth sync: keep admin account/credential demo seeds aligned with真实后台账号登录与会话 token。
 
 INSERT INTO users (id, openid, unionid, phone, status, auth_version)
 VALUES ('user_demo_1001', 'mock_openid_mvp_code', NULL, '13800000000', 'ACTIVE', 1)
@@ -29,6 +30,54 @@ ON DUPLICATE KEY UPDATE
     avatar = VALUES(avatar),
     tags_json = VALUES(tags_json),
     preferences_json = VALUES(preferences_json),
+    updated_at = CURRENT_TIMESTAMP;
+
+-- Demo admin accounts (real account session, no static token):
+--   admin    -> 13700000000 / Admin12345
+--   operator -> 13900000000 / Operator123
+INSERT INTO admin_accounts (id, phone, role, status, activated_at, last_login_at)
+VALUES
+    ('admin_demo_0001', '13700000000', 'ADMIN', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('admin_demo_0002', '13900000000', 'OPERATOR', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+ON DUPLICATE KEY UPDATE
+    phone = VALUES(phone),
+    role = VALUES(role),
+    status = VALUES(status),
+    activated_at = VALUES(activated_at),
+    last_login_at = VALUES(last_login_at),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO admin_account_credentials (
+    account_id,
+    password_hash,
+    credential_version,
+    failed_login_count,
+    locked_until,
+    last_password_changed_at
+)
+VALUES
+    (
+        'admin_demo_0001',
+        '$2a$10$4RuGtyXWXnJHlx0jO1dl1.dtYe5U4EIAGQLqexWDXkmZm2Zcdu3uq',
+        1,
+        0,
+        NULL,
+        CURRENT_TIMESTAMP
+    ),
+    (
+        'admin_demo_0002',
+        '$2a$10$Oss3rAxP2XkR7k8N1nz3I.P7sv3JtTU/SZxjLBAj3cD2P/4TJQjEq',
+        1,
+        0,
+        NULL,
+        CURRENT_TIMESTAMP
+    )
+ON DUPLICATE KEY UPDATE
+    password_hash = VALUES(password_hash),
+    credential_version = VALUES(credential_version),
+    failed_login_count = VALUES(failed_login_count),
+    locked_until = VALUES(locked_until),
+    last_password_changed_at = VALUES(last_password_changed_at),
     updated_at = CURRENT_TIMESTAMP;
 
 INSERT INTO rooms (
