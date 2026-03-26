@@ -26,8 +26,9 @@
 ## 4. 本地运行
 
 1. 微信开发者工具打开目录：`/Users/chenyao/dev/miniapp/sunflower/sunflower-miniapp`
-2. 使用已有 `project.config.json` 启动
-3. 首次进入默认为 MVP 首页，可从底部导航体验主流程
+2. 仓库默认使用 `touristappid`，可直接以游客模式打开并浏览页面
+3. 若需调试微信登录等依赖真实小程序身份的能力，请在本地把 `project.config.json` 的 `appid` 改为你自己的小程序 AppID，提交前恢复为 `touristappid`
+4. 首次进入默认为 MVP 首页，可从底部导航体验主流程
 
 ## 5. 联调约定
 
