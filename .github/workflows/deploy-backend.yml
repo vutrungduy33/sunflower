@@ -364,26 +364,8 @@ jobs:
           envs: ECS_DEPLOY_PATH
           script_stop: true
           script: |
-            sanitize_line() {
-              printf '%s' "${1:-}" | tr -d '\r\n'
-            }
-
-            normalize_deploy_path() {
-              path="$(sanitize_line "${1:-}")"
-              case "$path" in
-                "~")
-                  printf '%s\n' "$HOME"
-                  ;;
-                "~/"*)
-                  printf '%s/%s\n' "$HOME" "${path#~/}"
-                  ;;
-                *)
-                  printf '%s\n' "$path"
-                  ;;
-              esac
-            }
-
-            DEPLOY_PATH="$(normalize_deploy_path "${ECS_DEPLOY_PATH:-}")"
+            DEPLOY_PATH="$(printf '%s' "${ECS_DEPLOY_PATH:-}" | tr -d '\r\n')"
+            case "$DEPLOY_PATH" in "~") DEPLOY_PATH="$HOME" ;; "~/"*) DEPLOY_PATH="$HOME/${DEPLOY_PATH#\~/}" ;; esac
             mkdir -p "$DEPLOY_PATH"
 
       - name: Upload deployment bundle
@@ -421,37 +403,15 @@ jobs:
           script: |
             set -eu
 
-            sanitize_line() {
-              printf '%s' "${1:-}" | tr -d '\r\n'
-            }
-
-            sanitize_image_ref() {
-              printf '%s' "${1:-}" | tr -d '\r\n' | tr -cd '[:alnum:]._:/-'
-            }
-
-            normalize_deploy_path() {
-              path="$(sanitize_line "${1:-}")"
-              case "$path" in
-                "~")
-                  printf '%s\n' "$HOME"
-                  ;;
-                "~/"*)
-                  printf '%s/%s\n' "$HOME" "${path#~/}"
-                  ;;
-                *)
-                  printf '%s\n' "$path"
-                  ;;
-              esac
-            }
-
-            BACKEND_IMAGE="$(sanitize_image_ref "${BACKEND_IMAGE:-}")"
-            ADMIN_WEB_IMAGE="$(sanitize_image_ref "${ADMIN_WEB_IMAGE:-}")"
-            SOURCE_SHA="$(sanitize_line "${SOURCE_SHA:-}")"
-            DEPLOY_TARGET="$(sanitize_line "${DEPLOY_TARGET:-}")"
-            RUN_SEED="$(sanitize_line "${RUN_SEED:-false}")"
-            DEPLOY_PATH="$(normalize_deploy_path "${ECS_DEPLOY_PATH:-}")"
-            GHCR_USERNAME="$(sanitize_line "${GHCR_USERNAME:-}")"
-            GHCR_TOKEN="$(sanitize_line "${GHCR_TOKEN:-}")"
+            BACKEND_IMAGE="$(printf '%s' "${BACKEND_IMAGE:-}" | tr -d '\r\n' | tr -cd '[:alnum:]._:/-')"
+            ADMIN_WEB_IMAGE="$(printf '%s' "${ADMIN_WEB_IMAGE:-}" | tr -d '\r\n' | tr -cd '[:alnum:]._:/-')"
+            SOURCE_SHA="$(printf '%s' "${SOURCE_SHA:-}" | tr -d '\r\n')"
+            DEPLOY_TARGET="$(printf '%s' "${DEPLOY_TARGET:-}" | tr -d '\r\n')"
+            RUN_SEED="$(printf '%s' "${RUN_SEED:-false}" | tr -d '\r\n')"
+            DEPLOY_PATH="$(printf '%s' "${ECS_DEPLOY_PATH:-}" | tr -d '\r\n')"
+            GHCR_USERNAME="$(printf '%s' "${GHCR_USERNAME:-}" | tr -d '\r\n')"
+            GHCR_TOKEN="$(printf '%s' "${GHCR_TOKEN:-}" | tr -d '\r\n')"
+            case "$DEPLOY_PATH" in "~") DEPLOY_PATH="$HOME" ;; "~/"*) DEPLOY_PATH="$HOME/${DEPLOY_PATH#\~/}" ;; esac
 
             [ -n "$SOURCE_SHA" ] || { echo "Missing SOURCE_SHA"; exit 1; }
             [ -n "$DEPLOY_TARGET" ] || { echo "Missing DEPLOY_TARGET"; exit 1; }
