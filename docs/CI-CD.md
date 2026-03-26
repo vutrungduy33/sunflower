@@ -138,4 +138,5 @@
 补充：
 
 - `.env.prod.example` 只用于本地渲染校验与运维对照，不应直接作为线上密钥文件使用。
+- deploy 脚本运行时会固定加载 `$DEPLOY_PATH/.release.env`；即使 `.env.prod` 来自 `.env.prod.example`，其中的 release metadata 占位值也不会覆盖当次发布写入的镜像信息。
 - 若需要回滚 backend/admin-web，优先通过 `workflow_dispatch + image_tag=<历史 sha>` 完成，而不是在 ECS 上手工改 `docker-compose.yml`。
