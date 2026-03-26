@@ -86,6 +86,44 @@ compose() {
   "${COMPOSE_CMD[@]}" "$@"
 }
 
+assert_mysql_app_access() {
+  local prefix="${1:-deploy}"
+
+  require_value MYSQL_DATABASE
+  require_value MYSQL_USER
+  require_value MYSQL_PASSWORD
+
+  if compose exec -T mysql \
+    mysql -h 127.0.0.1 -u"$MYSQL_USER" "-p$MYSQL_PASSWORD" "$MYSQL_DATABASE" \
+    -e 'SELECT 1;' >/dev/null 2>&1; then
+    return
+  fi
+
+  fail "$prefix" "mysql app credentials from .env.prod cannot access database '$MYSQL_DATABASE' as user '$MYSQL_USER'; check persisted MySQL users/passwords in the existing volume"
+}
+
+print_service_diagnostics() {
+  local service="$1"
+  local prefix="$2"
+  local container_id="${3:-}"
+  local inspect_summary
+
+  log_info "$prefix" "Diagnostics for service '$service':"
+  compose ps "$service" || true
+
+  if [ -z "$container_id" ]; then
+    compose logs --tail 200 "$service" || true
+    return
+  fi
+
+  inspect_summary="$(docker inspect -f 'state={{.State.Status}} health={{if .State.Health}}{{.State.Health.Status}}{{else}}n/a{{end}} exit={{.State.ExitCode}} error={{.State.Error}} started={{.State.StartedAt}} finished={{.State.FinishedAt}}' "$container_id" 2>/dev/null || true)"
+  if [ -n "$inspect_summary" ]; then
+    log_info "$prefix" "$inspect_summary"
+  fi
+
+  docker logs --tail 200 "$container_id" || true
+}
+
 pull_service_with_retry() {
   local service="$1"
   local prefix="${2:-deploy}"
@@ -132,10 +170,15 @@ wait_service_healthy() {
       if [ "$status" = "healthy" ] || [ "$status" = "running" ]; then
         return
       fi
+      if [ "$status" = "unhealthy" ] || [ "$status" = "exited" ] || [ "$status" = "dead" ]; then
+        print_service_diagnostics "$service" "$prefix" "$container_id"
+        fail "$prefix" "service '$service' entered terminal state '$status'"
+      fi
     fi
     sleep "$interval_seconds"
   done
 
+  print_service_diagnostics "$service" "$prefix" "$container_id"
   fail "$prefix" "service '$service' did not become healthy"
 }
 

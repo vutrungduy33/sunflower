@@ -10,6 +10,7 @@ PREFIX="deploy-backend"
 start_backend_service() {
   compose up -d mysql
   wait_service_healthy mysql "$PREFIX"
+  assert_mysql_app_access "$PREFIX"
 
   if [ -n "${BACKEND_IMAGE:-}" ]; then
     log_info "$PREFIX" "Pulling backend image from registry: ${BACKEND_IMAGE}"
