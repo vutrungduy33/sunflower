@@ -29,14 +29,21 @@
    - `make stage-post STAGE=Sx`
 4. 发布交付物检查
    - `./scripts/check_release_assets.sh`
-5. 自动化测试
+5. 小程序仓库配置守卫
+   - `./scripts/check_miniapp_project_config.sh`
+6. 自动化测试
    - `cd sunflower-backend && mvn -B test`
    - `cd sunflower-admin-web && npm ci`
    - `cd sunflower-admin-web && npm run lint`
    - `cd sunflower-admin-web && npm run test`
    - `cd sunflower-admin-web && npm run build`
-6. API 契约同步提醒（非阻塞）
+7. API 契约同步提醒（非阻塞）
    - 若后端 `Controller/DTO` 变更但未同步调用端/API 文档，工作流给出 warning
+
+补充说明：
+
+- `sunflower-miniapp/project.config.json` 在仓库中必须固定使用占位值 `touristappid`，避免把真实微信小程序 `appid` 提交入库。
+- 若本地联调需要真实小程序身份，请只在本地工作区临时替换 `project.config.json`，提交前恢复为 `touristappid`。
 
 ---
 

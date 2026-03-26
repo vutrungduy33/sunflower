@@ -24,7 +24,7 @@
 - [x] S11 管理后台页面（房型管理，2026-03-13：补充新增代码统一规范文档入口）
 - [x] S12 管理后台页面（价格日历与库存，2026-03-13：价格日历查询、按日期区间批量更新价格/库存、发布反馈与前端测试完成；2026-03-13：升级为可点击日历卡片、快捷区间与窗口切换交互；2026-03-13：重构为可选择月份的月历视图，按周一到周日 7 列排列并优化尺寸布局）
 - [x] S13 管理后台页面（订单与售后，2026-03-13：订单列表筛选、详情抽屉、经营概览卡片与改期/退款处理页完成）
-- [x] S14 联调收口、CI 门禁与发布验收（2026-02-18：后端部署切换为 GHCR 预构建镜像发布；2026-03-12：补齐 Web 管理端 CI/CD 与 ECS 自动部署；2026-03-12：公网入口收敛为宿主机 Nginx，移除容器 edge-gateway；2026-03-12：发布构建切换阿里云 Maven 镜像并增加依赖预热层；2026-03-12：admin-only 部署改为 `--no-deps`，避免回退构建 backend；2026-03-13：deploy workflow 拆分 detect/build jobs、checkout 改为浅拉取与 sparse checkout、backend/admin GHA cache scope 隔离，GitHub-hosted backend 构建默认回到 Maven Central；2026-03-13：补齐正式联调验收清单与发布/回滚 Runbook，并纳入 PR 门禁与 Stage Guard）
+- [x] S14 联调收口、CI 门禁与发布验收（2026-02-18：后端部署切换为 GHCR 预构建镜像发布；2026-03-12：补齐 Web 管理端 CI/CD 与 ECS 自动部署；2026-03-12：公网入口收敛为宿主机 Nginx，移除容器 edge-gateway；2026-03-12：发布构建切换阿里云 Maven 镜像并增加依赖预热层；2026-03-12：admin-only 部署改为 `--no-deps`，避免回退构建 backend；2026-03-13：deploy workflow 拆分 detect/build jobs、checkout 改为浅拉取与 sparse checkout、backend/admin GHA cache scope 隔离，GitHub-hosted backend 构建默认回到 Maven Central；2026-03-13：补齐正式联调验收清单与发布/回滚 Runbook，并纳入 PR 门禁与 Stage Guard；2026-03-26：补齐小程序 `project.config.json` 占位 appid、PR guard 与 GitHub secret scanning 路径忽略，避免真实微信 AppID 再次入库）
 - [x] S15 订单状态机重构（即时确认 + 售后子状态，2026-03-13：订单分层状态模型、售后申请表、审批/入住/离店/失约接口、小程序与管理端联调、API 文档与回归测试完成）
 - [x] S16 小程序真实微信认证与手机号绑定（2026-03-19：默认关闭生产 mock 登录、接入微信手机号动态 code 绑定、补齐 access token/手机号调用客户端、开发态手动手机号兜底与 API/部署文档同步）
 - [x] S17 管理端真实账号登录（手机号 + 密码 + 短信重置，2026-03-24：真实后台账号、短信激活/重置、会话 token、管理端 Web 登录恢复与修改密码完成；2026-03-26：补齐腾讯云短信回执状态校验，避免模板/签名失败时仍被误记为发送成功；2026-03-26：短信模板参数收口为单验证码变量，并统一固定 5 分钟有效）
