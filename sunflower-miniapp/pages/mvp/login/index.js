@@ -8,9 +8,9 @@ const {
   wechatLogin,
 } = require('../../../utils/mvp/api');
 const { getMiniProgramEnvVersion, isDevelopOrTrialEnv } = require('../../../utils/mvp/env');
+const { DEFAULT_API_BASE_URL } = require('../../../utils/mvp/runtime-config');
 const { track } = require('../../../utils/mvp/tracker');
 
-const LIVE_ECS_API_BASE_URL = 'http://47.115.231.250';
 const EMPTY_PROFILE = Object.freeze({
   nickName: '',
   phone: '',
@@ -88,13 +88,13 @@ Page({
     }
   },
 
-  useLiveEcsApi() {
+  useReleaseApiBaseUrl() {
     try {
-      const value = setApiBaseUrl(LIVE_ECS_API_BASE_URL);
+      const value = setApiBaseUrl(DEFAULT_API_BASE_URL);
       this.setData({
         apiBaseUrl: value,
         apiBaseUrlSource: 'storage',
-        loginMessage: '已切换到当前 ECS 联调地址。真机扫码仍需 HTTPS 合法域名。',
+        loginMessage: '已切换到发布域名配置。真机扫码请确认该域名已加入微信合法 request 域名。',
       });
       wx.showToast({ title: '已切换 API', icon: 'success' });
     } catch (error) {

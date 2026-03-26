@@ -2,6 +2,31 @@ name: Deploy Services To ECS
 
 on:
   workflow_dispatch:
+    inputs:
+      target:
+        description: Deploy target
+        required: true
+        default: auto
+        type: choice
+        options:
+          - auto
+          - backend
+          - admin-web
+          - nginx
+          - all
+          - bootstrap
+      image_tag:
+        description: Optional existing GHCR image tag for rollback or redeploy
+        required: false
+        type: string
+      run_seed:
+        description: Only used for bootstrap; import scripts/sql/mvp_demo_seed.sql
+        required: true
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
   push:
     branches:
       - main
@@ -10,6 +35,11 @@ on:
       - "sunflower-admin-web/**"
       - "deploy/nginx/**"
       - "docker-compose.yml"
+      - ".env.prod.example"
+      - ".env.empty"
+      - "scripts/deploy_*.sh"
+      - "scripts/deploy_lib.sh"
+      - "scripts/validate_prod_env.sh"
       - "scripts/start_backend_with_mvp_seed.sh"
       - "scripts/start_admin_web.sh"
       - "scripts/reload_host_nginx.sh"
@@ -29,12 +59,17 @@ jobs:
     permissions:
       contents: read
     outputs:
-      source_sha: ${{ steps.image_meta.outputs.source_sha }}
-      backend_changed: ${{ steps.targets.outputs.backend_changed }}
-      admin_web_changed: ${{ steps.targets.outputs.admin_web_changed }}
-      ingress_changed: ${{ steps.targets.outputs.ingress_changed }}
-      backend_image: ${{ steps.image_meta.outputs.backend_image_ref }}
-      admin_web_image: ${{ steps.image_meta.outputs.admin_web_image_ref }}
+      source_sha: ${{ steps.meta.outputs.source_sha }}
+      image_tag: ${{ steps.meta.outputs.image_tag }}
+      deploy_target: ${{ steps.meta.outputs.deploy_target }}
+      run_seed: ${{ steps.meta.outputs.run_seed }}
+      backend_changed: ${{ steps.meta.outputs.backend_changed }}
+      admin_web_changed: ${{ steps.meta.outputs.admin_web_changed }}
+      ingress_changed: ${{ steps.meta.outputs.ingress_changed }}
+      should_build_backend: ${{ steps.meta.outputs.should_build_backend }}
+      should_build_admin_web: ${{ steps.meta.outputs.should_build_admin_web }}
+      backend_image: ${{ steps.meta.outputs.backend_image_ref }}
+      admin_web_image: ${{ steps.meta.outputs.admin_web_image_ref }}
 
     steps:
       - name: Checkout
@@ -51,17 +86,52 @@ jobs:
             git fetch --no-tags --depth=1 origin "$before"
           fi
 
-      - name: Detect deployment targets
-        id: targets
+      - name: Resolve deployment targets
+        id: meta
         run: |
+          sanitize_tag() {
+            printf '%s' "${1:-}" | tr -d '\r\n' | tr -cd '[:alnum:]_.-'
+          }
+
+          source_sha="$(git rev-parse --verify HEAD)"
+          image_tag="$source_sha"
+          requested_target="auto"
+          run_seed="false"
+
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            requested_target="${{ github.event.inputs.target }}"
+            run_seed="$(printf '%s' "${{ github.event.inputs.run_seed }}" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')"
+            manual_image_tag="$(sanitize_tag "${{ github.event.inputs.image_tag }}")"
+            if [ -n "$manual_image_tag" ]; then
+              image_tag="$manual_image_tag"
+            fi
+          fi
+
           backend_changed=false
           admin_web_changed=false
           ingress_changed=false
 
           if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
-            backend_changed=true
-            admin_web_changed=true
-            ingress_changed=true
+            case "$requested_target" in
+              auto|all|bootstrap)
+                backend_changed=true
+                admin_web_changed=true
+                ingress_changed=true
+                ;;
+              backend)
+                backend_changed=true
+                ;;
+              admin-web)
+                admin_web_changed=true
+                ;;
+              nginx)
+                ingress_changed=true
+                ;;
+              *)
+                echo "Unsupported workflow target: $requested_target" >&2
+                exit 1
+                ;;
+            esac
           else
             before="${{ github.event.before }}"
             if [ -z "$before" ] || [ "$before" = "0000000000000000000000000000000000000000" ]; then
@@ -72,50 +142,79 @@ jobs:
 
             printf '%s\n' "$changed_files"
 
-            if printf '%s\n' "$changed_files" | grep -Eq '^(sunflower-backend/|docker-compose\.yml$|scripts/start_backend_with_mvp_seed\.sh$|scripts/sql/|\.github/workflows/deploy-backend\.yml$)'; then
+            if printf '%s\n' "$changed_files" | grep -Eq '^(sunflower-backend/|docker-compose\.yml$|\.env\.prod\.example$|\.env\.empty$|scripts/deploy_backend\.sh$|scripts/deploy_lib\.sh$|scripts/validate_prod_env\.sh$|scripts/start_backend_with_mvp_seed\.sh$|scripts/sql/|\.github/workflows/deploy-backend\.yml$)'; then
               backend_changed=true
             fi
 
-            if printf '%s\n' "$changed_files" | grep -Eq '^(sunflower-admin-web/|docker-compose\.yml$|scripts/start_admin_web\.sh$|\.github/workflows/deploy-backend\.yml$)'; then
+            if printf '%s\n' "$changed_files" | grep -Eq '^(sunflower-admin-web/|docker-compose\.yml$|\.env\.prod\.example$|\.env\.empty$|scripts/deploy_admin_web\.sh$|scripts/deploy_lib\.sh$|scripts/start_admin_web\.sh$|\.github/workflows/deploy-backend\.yml$)'; then
               admin_web_changed=true
             fi
 
-            if printf '%s\n' "$changed_files" | grep -Eq '^(deploy/nginx/|docker-compose\.yml$|scripts/reload_host_nginx\.sh$|\.github/workflows/deploy-backend\.yml$)'; then
+            if printf '%s\n' "$changed_files" | grep -Eq '^(deploy/nginx/|docker-compose\.yml$|\.env\.prod\.example$|\.env\.empty$|scripts/deploy_prod\.sh$|scripts/bootstrap_prod\.sh$|scripts/deploy_lib\.sh$|scripts/reload_host_nginx\.sh$|scripts/validate_prod_env\.sh$|\.github/workflows/deploy-backend\.yml$)'; then
               ingress_changed=true
             fi
           fi
 
-          {
-            echo "backend_changed=${backend_changed}"
-            echo "admin_web_changed=${admin_web_changed}"
-            echo "ingress_changed=${ingress_changed}"
-          } >> "${GITHUB_OUTPUT}"
-
-      - name: Resolve GHCR image refs
-        id: image_meta
-        run: |
-          source_sha="$(git rev-parse --verify HEAD)"
-          owner="$(printf '%s' "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')"
-
-          backend_image_ref=""
-          if [ "${{ steps.targets.outputs.backend_changed }}" = "true" ]; then
-            backend_image_ref="ghcr.io/${owner}/sunflower-backend:${source_sha}"
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            case "$requested_target" in
+              auto)
+                deploy_target="all"
+                ;;
+              *)
+                deploy_target="$requested_target"
+                ;;
+            esac
+          else
+            deploy_target="none"
+            if [ "$backend_changed" = "true" ] && [ "$admin_web_changed" = "true" ]; then
+              deploy_target="all"
+            elif [ "$backend_changed" = "true" ]; then
+              deploy_target="backend"
+            elif [ "$admin_web_changed" = "true" ]; then
+              deploy_target="admin-web"
+            elif [ "$ingress_changed" = "true" ]; then
+              deploy_target="nginx"
+            fi
           fi
 
+          should_build_backend=false
+          should_build_admin_web=false
+          if [ "$backend_changed" = "true" ] && [ -z "${manual_image_tag:-}" ]; then
+            should_build_backend=true
+          fi
+          if [ "$admin_web_changed" = "true" ] && [ -z "${manual_image_tag:-}" ]; then
+            should_build_admin_web=true
+          fi
+
+          owner="$(printf '%s' "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')"
+          backend_image_ref=""
           admin_web_image_ref=""
-          if [ "${{ steps.targets.outputs.admin_web_changed }}" = "true" ]; then
-            admin_web_image_ref="ghcr.io/${owner}/sunflower-admin-web:${source_sha}"
+
+          if [ "$backend_changed" = "true" ]; then
+            backend_image_ref="ghcr.io/${owner}/sunflower-backend:${image_tag}"
+          fi
+
+          if [ "$admin_web_changed" = "true" ]; then
+            admin_web_image_ref="ghcr.io/${owner}/sunflower-admin-web:${image_tag}"
           fi
 
           {
             echo "source_sha=${source_sha}"
+            echo "image_tag=${image_tag}"
+            echo "deploy_target=${deploy_target}"
+            echo "run_seed=${run_seed}"
+            echo "backend_changed=${backend_changed}"
+            echo "admin_web_changed=${admin_web_changed}"
+            echo "ingress_changed=${ingress_changed}"
+            echo "should_build_backend=${should_build_backend}"
+            echo "should_build_admin_web=${should_build_admin_web}"
             echo "backend_image_ref=${backend_image_ref}"
             echo "admin_web_image_ref=${admin_web_image_ref}"
           } >> "${GITHUB_OUTPUT}"
 
   build-backend:
     needs: detect-targets
-    if: needs.detect-targets.outputs.backend_changed == 'true'
+    if: needs.detect-targets.outputs.should_build_backend == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -169,7 +268,7 @@ jobs:
 
   build-admin-web:
     needs: detect-targets
-    if: needs.detect-targets.outputs.admin_web_changed == 'true'
+    if: needs.detect-targets.outputs.should_build_admin_web == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -228,11 +327,7 @@ jobs:
       ${{
         always() &&
         !cancelled() &&
-        (
-          needs.detect-targets.outputs.backend_changed == 'true' ||
-          needs.detect-targets.outputs.admin_web_changed == 'true' ||
-          needs.detect-targets.outputs.ingress_changed == 'true'
-        ) &&
+        needs.detect-targets.outputs.deploy_target != 'none' &&
         (needs.build-backend.result == 'success' || needs.build-backend.result == 'skipped') &&
         (needs.build-admin-web.result == 'success' || needs.build-admin-web.result == 'skipped')
       }}
@@ -249,6 +344,8 @@ jobs:
           ref: ${{ github.sha }}
           fetch-depth: 1
           sparse-checkout: |
+            .env.empty
+            .env.prod.example
             docker-compose.yml
             deploy/nginx
             scripts
@@ -257,12 +354,11 @@ jobs:
       - name: Package deployment bundle
         run: |
           tar -czf deploy-bundle.tgz \
+            .env.empty \
+            .env.prod.example \
             docker-compose.yml \
             deploy/nginx/sunflower-host.conf.template \
-            scripts/start_backend_with_mvp_seed.sh \
-            scripts/start_admin_web.sh \
-            scripts/reload_host_nginx.sh \
-            scripts/sql/mvp_demo_seed.sql
+            scripts
 
       - name: Ensure deploy directory exists
         uses: appleboy/ssh-action@v1.2.0
@@ -293,160 +389,72 @@ jobs:
         env:
           BACKEND_IMAGE: ${{ needs.detect-targets.outputs.backend_image }}
           ADMIN_WEB_IMAGE: ${{ needs.detect-targets.outputs.admin_web_image }}
-          SOURCE_SHA: ${{ needs.detect-targets.outputs.source_sha }}
+          SOURCE_SHA: ${{ needs.detect-targets.outputs.image_tag }}
+          DEPLOY_TARGET: ${{ needs.detect-targets.outputs.deploy_target }}
+          RUN_SEED: ${{ needs.detect-targets.outputs.run_seed }}
           ECS_DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
           GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
-          AUTH_TOKEN_SECRET: ${{ secrets.AUTH_TOKEN_SECRET }}
-          AUTH_TOKEN_TTL_SECONDS: ${{ secrets.AUTH_TOKEN_TTL_SECONDS }}
-          WECHAT_AUTH_MOCK_ENABLED: ${{ secrets.WECHAT_AUTH_MOCK_ENABLED }}
-          WECHAT_APP_ID: ${{ secrets.WECHAT_APP_ID }}
-          WECHAT_APP_SECRET: ${{ secrets.WECHAT_APP_SECRET }}
-          WECHAT_JSCODE2SESSION_URL: ${{ secrets.WECHAT_JSCODE2SESSION_URL }}
-          WECHAT_MOCK_OPENID_PREFIX: ${{ secrets.WECHAT_MOCK_OPENID_PREFIX }}
-          MYSQL_BIND_HOST: 127.0.0.1
-          MYSQL_HOST_PORT: ${{ vars.MYSQL_HOST_PORT }}
-          BACKEND_BIND_HOST: 127.0.0.1
-          BACKEND_HOST_PORT: ${{ vars.BACKEND_HOST_PORT }}
-          ADMIN_WEB_BIND_HOST: 127.0.0.1
-          ADMIN_WEB_HOST_PORT: ${{ vars.ADMIN_WEB_HOST_PORT }}
-          HOST_NGINX_SITE_NAME: ${{ vars.HOST_NGINX_SITE_NAME }}
         with:
           host: ${{ secrets.ECS_HOST }}
           username: ${{ secrets.ECS_USER }}
           port: ${{ secrets.ECS_PORT }}
           key: ${{ secrets.ECS_SSH_KEY }}
           passphrase: ${{ secrets.ECS_SSH_PASSPHRASE }}
-          envs: BACKEND_IMAGE,ADMIN_WEB_IMAGE,SOURCE_SHA,ECS_DEPLOY_PATH,GHCR_USERNAME,GHCR_TOKEN,AUTH_TOKEN_SECRET,AUTH_TOKEN_TTL_SECONDS,WECHAT_AUTH_MOCK_ENABLED,WECHAT_APP_ID,WECHAT_APP_SECRET,WECHAT_JSCODE2SESSION_URL,WECHAT_MOCK_OPENID_PREFIX,MYSQL_BIND_HOST,MYSQL_HOST_PORT,BACKEND_BIND_HOST,BACKEND_HOST_PORT,ADMIN_WEB_BIND_HOST,ADMIN_WEB_HOST_PORT,HOST_NGINX_SITE_NAME
+          envs: BACKEND_IMAGE,ADMIN_WEB_IMAGE,SOURCE_SHA,DEPLOY_TARGET,RUN_SEED,ECS_DEPLOY_PATH,GHCR_USERNAME,GHCR_TOKEN
           command_timeout: 30m
-          script_stop: false
+          script_stop: true
           script: |
-            set -u
-            echo "[deploy] script start"
+            set -eu
 
-            run_or_exit() {
-              "$@"
-              status=$?
-              if [ $status -ne 0 ]; then
-                echo "ERROR: command failed (status=$status): $*"
-                exit $status
-              fi
+            sanitize_line() {
+              printf '%s' "${1:-}" | tr -d '\r\n'
             }
 
-            sanitize_port() {
-              value="$(printf '%s' "${1:-}" | tr -d '\r\n' | tr -d '[:space:]' | tr -d '"' | tr -d "'")"
-              fallback="$2"
-              case "$value" in
-                ''|*[!0-9]*)
-                  printf '%s' "$fallback"
-                  ;;
-                *)
-                  printf '%s' "$value"
-                  ;;
-              esac
+            sanitize_image_ref() {
+              printf '%s' "${1:-}" | tr -d '\r\n' | tr -cd '[:alnum:]._:/-'
             }
 
-            BACKEND_IMAGE="$(printf '%s' "${BACKEND_IMAGE:-}" | tr -d '\r\n' | tr -d '[:space:]')"
-            ADMIN_WEB_IMAGE="$(printf '%s' "${ADMIN_WEB_IMAGE:-}" | tr -d '\r\n' | tr -d '[:space:]')"
-            SOURCE_SHA="$(printf '%s' "${SOURCE_SHA:-}" | tr -d '\r\n' | tr -d '[:space:]')"
-            DEPLOY_PATH="$(printf '%s' "${ECS_DEPLOY_PATH:-}" | tr -d '\r\n')"
-            GHCR_USERNAME="$(printf '%s' "${GHCR_USERNAME:-}" | tr -d '\r\n')"
-            GHCR_TOKEN="$(printf '%s' "${GHCR_TOKEN:-}" | tr -d '\r\n')"
-            AUTH_TOKEN_SECRET="$(printf '%s' "${AUTH_TOKEN_SECRET:-}" | tr -d '\r\n')"
-            AUTH_TOKEN_TTL_SECONDS="$(sanitize_port "${AUTH_TOKEN_TTL_SECONDS:-7200}" "7200")"
-            WECHAT_AUTH_MOCK_ENABLED="$(printf '%s' "${WECHAT_AUTH_MOCK_ENABLED:-false}" | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')"
-            WECHAT_AUTH_MOCK_ENABLED="$(printf '%s' "$WECHAT_AUTH_MOCK_ENABLED" | tr -d '"' | tr -d "'")"
-            WECHAT_APP_ID="$(printf '%s' "${WECHAT_APP_ID:-}" | tr -d '\r\n')"
-            WECHAT_APP_SECRET="$(printf '%s' "${WECHAT_APP_SECRET:-}" | tr -d '\r\n')"
-            WECHAT_JSCODE2SESSION_URL="$(printf '%s' "${WECHAT_JSCODE2SESSION_URL:-https://api.weixin.qq.com/sns/jscode2session}" | tr -d '\r\n')"
-            WECHAT_MOCK_OPENID_PREFIX="$(printf '%s' "${WECHAT_MOCK_OPENID_PREFIX:-mock_openid_}" | tr -d '\r\n')"
-            MYSQL_BIND_HOST="$(printf '%s' "${MYSQL_BIND_HOST:-127.0.0.1}" | tr -d '\r\n')"
-            MYSQL_HOST_PORT="$(sanitize_port "${MYSQL_HOST_PORT:-3306}" "3306")"
-            BACKEND_BIND_HOST="$(printf '%s' "${BACKEND_BIND_HOST:-127.0.0.1}" | tr -d '\r\n')"
-            BACKEND_HOST_PORT="$(sanitize_port "${BACKEND_HOST_PORT:-8080}" "8080")"
-            ADMIN_WEB_BIND_HOST="$(printf '%s' "${ADMIN_WEB_BIND_HOST:-127.0.0.1}" | tr -d '\r\n')"
-            ADMIN_WEB_HOST_PORT="$(sanitize_port "${ADMIN_WEB_HOST_PORT:-18080}" "18080")"
+            BACKEND_IMAGE="$(sanitize_image_ref "${BACKEND_IMAGE:-}")"
+            ADMIN_WEB_IMAGE="$(sanitize_image_ref "${ADMIN_WEB_IMAGE:-}")"
+            SOURCE_SHA="$(sanitize_line "${SOURCE_SHA:-}")"
+            DEPLOY_TARGET="$(sanitize_line "${DEPLOY_TARGET:-}")"
+            RUN_SEED="$(sanitize_line "${RUN_SEED:-false}")"
+            DEPLOY_PATH="$(sanitize_line "${ECS_DEPLOY_PATH:-}")"
+            GHCR_USERNAME="$(sanitize_line "${GHCR_USERNAME:-}")"
+            GHCR_TOKEN="$(sanitize_line "${GHCR_TOKEN:-}")"
 
-            if [ -z "$SOURCE_SHA" ]; then
-              echo "Missing required env SOURCE_SHA"
-              exit 1
-            fi
-            if [ -z "$DEPLOY_PATH" ]; then
-              echo "Missing required secret DEPLOY_PATH"
-              exit 1
-            fi
-            if { [ -n "$BACKEND_IMAGE" ] || [ -n "$ADMIN_WEB_IMAGE" ]; } && { [ -z "$GHCR_USERNAME" ] || [ -z "$GHCR_TOKEN" ]; }; then
-              echo "Missing required secrets GHCR_USERNAME/GHCR_TOKEN"
-              exit 1
-            fi
+            [ -n "$SOURCE_SHA" ] || { echo "Missing SOURCE_SHA"; exit 1; }
+            [ -n "$DEPLOY_TARGET" ] || { echo "Missing DEPLOY_TARGET"; exit 1; }
+            [ -n "$DEPLOY_PATH" ] || { echo "Missing DEPLOY_PATH"; exit 1; }
 
-            if [ -n "$BACKEND_IMAGE" ] && [ -z "$AUTH_TOKEN_SECRET" ]; then
-              echo "Missing required secret AUTH_TOKEN_SECRET"
-              exit 1
-            fi
+            mkdir -p "$DEPLOY_PATH"
+            cd "$DEPLOY_PATH"
 
-            if [ "$WECHAT_AUTH_MOCK_ENABLED" = "true" ] || [ "$WECHAT_AUTH_MOCK_ENABLED" = "1" ] || [ "$WECHAT_AUTH_MOCK_ENABLED" = "yes" ] || [ "$WECHAT_AUTH_MOCK_ENABLED" = "y" ] || [ "$WECHAT_AUTH_MOCK_ENABLED" = "on" ]; then
-              WECHAT_AUTH_MOCK_ENABLED="true"
-            elif [ -z "$WECHAT_AUTH_MOCK_ENABLED" ] || [ "$WECHAT_AUTH_MOCK_ENABLED" = "false" ] || [ "$WECHAT_AUTH_MOCK_ENABLED" = "0" ] || [ "$WECHAT_AUTH_MOCK_ENABLED" = "no" ] || [ "$WECHAT_AUTH_MOCK_ENABLED" = "n" ] || [ "$WECHAT_AUTH_MOCK_ENABLED" = "off" ]; then
-              WECHAT_AUTH_MOCK_ENABLED="false"
-            else
-              echo "WARN: invalid WECHAT_AUTH_MOCK_ENABLED='$WECHAT_AUTH_MOCK_ENABLED', fallback to false"
-              WECHAT_AUTH_MOCK_ENABLED="false"
-            fi
-
-            if [ -n "$BACKEND_IMAGE" ] && [ "$WECHAT_AUTH_MOCK_ENABLED" = "false" ]; then
-              if [ -z "$WECHAT_APP_ID" ] || [ -z "$WECHAT_APP_SECRET" ]; then
-                echo "WARN: WECHAT_APP_ID/WECHAT_APP_SECRET missing, fallback WECHAT_AUTH_MOCK_ENABLED=true for this deploy"
-                WECHAT_AUTH_MOCK_ENABLED="true"
-              fi
-            fi
-
-            export AUTH_TOKEN_SECRET
-            export AUTH_TOKEN_TTL_SECONDS
-            export WECHAT_AUTH_MOCK_ENABLED
-            export WECHAT_APP_ID
-            export WECHAT_APP_SECRET
-            export WECHAT_JSCODE2SESSION_URL
-            export WECHAT_MOCK_OPENID_PREFIX
-            export BACKEND_IMAGE
-            export ADMIN_WEB_IMAGE
-            export MYSQL_BIND_HOST
-            export MYSQL_HOST_PORT
-            export BACKEND_BIND_HOST
-            export BACKEND_HOST_PORT
-            export ADMIN_WEB_BIND_HOST
-            export ADMIN_WEB_HOST_PORT
-
-            run_or_exit mkdir -p "$DEPLOY_PATH"
-            run_or_exit cd "$DEPLOY_PATH"
-            if [ ! -f deploy-bundle.tgz ]; then
-              echo "Missing deployment bundle: $DEPLOY_PATH/deploy-bundle.tgz"
-              exit 1
-            fi
-
-            echo "[deploy] unpacking deployment bundle for source sha: $SOURCE_SHA"
-            run_or_exit tar -xzf deploy-bundle.tgz
-            run_or_exit rm -f deploy-bundle.tgz
+            [ -f deploy-bundle.tgz ] || { echo "Missing deployment bundle"; exit 1; }
+            tar -xzf deploy-bundle.tgz
+            rm -f deploy-bundle.tgz
             printf '%s\n' "$SOURCE_SHA" > .deploy-source-sha
 
+            cat > .release.env <<EOF
+            BACKEND_IMAGE=$BACKEND_IMAGE
+            ADMIN_WEB_IMAGE=$ADMIN_WEB_IMAGE
+            SOURCE_SHA=$SOURCE_SHA
+            DEPLOY_TARGET=$DEPLOY_TARGET
+            RUN_SEED=$RUN_SEED
+            EOF
+
+            chmod +x scripts/*.sh
+            ./scripts/validate_prod_env.sh
+
             if [ -n "$BACKEND_IMAGE" ] || [ -n "$ADMIN_WEB_IMAGE" ]; then
-              if ! printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin; then
-                echo "ERROR: failed to login GHCR"
-                exit 1
-              fi
+              [ -n "$GHCR_USERNAME" ] || { echo "Missing GHCR_USERNAME"; exit 1; }
+              [ -n "$GHCR_TOKEN" ] || { echo "Missing GHCR_TOKEN"; exit 1; }
+              printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
             fi
 
-            run_or_exit chmod +x scripts/start_backend_with_mvp_seed.sh scripts/start_admin_web.sh scripts/reload_host_nginx.sh
-
-            if [ -n "$BACKEND_IMAGE" ]; then
-              echo "[deploy] deploying backend first"
-              run_or_exit ./scripts/start_backend_with_mvp_seed.sh
+            if [ "$DEPLOY_TARGET" = "bootstrap" ]; then
+              ./scripts/bootstrap_prod.sh
+            else
+              ./scripts/deploy_prod.sh "$DEPLOY_TARGET"
             fi
-
-            if [ -n "$ADMIN_WEB_IMAGE" ]; then
-              echo "[deploy] deploying admin web second"
-              run_or_exit ./scripts/start_admin_web.sh
-            fi
-
-            echo "[deploy] reloading host nginx ingress last"
-            run_or_exit ./scripts/reload_host_nginx.sh

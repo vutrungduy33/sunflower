@@ -1,9 +1,9 @@
 const { getDefaultBookingDate } = require('./date');
+const { DEFAULT_API_BASE_URL } = require('./runtime-config');
 
 const STORAGE_KEY_API_BASE_URL = 'SUNFLOWER_API_BASE_URL';
 const STORAGE_KEY_AUTH_TOKEN = 'SUNFLOWER_AUTH_TOKEN';
 const STORAGE_KEY_LOGOUT_REQUIRED = 'SUNFLOWER_LOGOUT_REQUIRED';
-const DEFAULT_API_BASE_URL = 'http://47.115.231.250';
 const AUTH_EXPIRED_MESSAGE = '登录态已失效，请重新进入首页';
 
 function safeGetApp() {
