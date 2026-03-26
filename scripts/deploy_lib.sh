@@ -57,7 +57,14 @@ load_prod_env() {
 }
 
 load_runtime_envs() {
-  load_prod_env
+  local runtime_release_env_file
+  local runtime_release_env_path
+  resolve_env_files
+  runtime_release_env_file="$RELEASE_ENV_FILE"
+  runtime_release_env_path="$RELEASE_ENV_PATH"
+  source_env_file "$PROD_ENV_PATH"
+  export RELEASE_ENV_FILE="$runtime_release_env_file"
+  RELEASE_ENV_PATH="$runtime_release_env_path"
   source_optional_env_file "$RELEASE_ENV_PATH"
 }
 

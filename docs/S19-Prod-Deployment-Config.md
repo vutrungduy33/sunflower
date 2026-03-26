@@ -41,6 +41,11 @@ S19 之后，生产部署固定采用这条链路：
   - 仅保存镜像与发布元信息
   - 不保存业务 secret
 
+运行时约束：
+
+- deploy 脚本始终会从 `$DEPLOY_PATH/.release.env` 读取发布元信息
+- `.env.prod` 中若残留 `RELEASE_ENV_FILE`、`BACKEND_IMAGE`、`ADMIN_WEB_IMAGE` 等样板值，不会覆盖本次发布写入的 `.release.env`
+
 格式要求：
 
 - `.env.prod` 需要保持 shell 兼容的 `KEY=value` 语法
@@ -192,6 +197,7 @@ S19 之后，生产部署固定采用这条链路：
 
 注意：
 
+- `.env.prod.example` 可作为 `.env.prod` 模板，但其中 release metadata 片段只用于本地校验与对照，真正发布时以 `.release.env` 为准
 - 常规 prod 不应导入 `mvp_demo_seed.sql`
 - `bootstrap` 会执行：
   - `validate_prod_env.sh`
