@@ -351,15 +351,6 @@ jobs:
             scripts
           sparse-checkout-cone-mode: false
 
-      - name: Package deployment bundle
-        run: |
-          tar -czf deploy-bundle.tgz \
-            .env.empty \
-            .env.prod.example \
-            docker-compose.yml \
-            deploy/nginx/sunflower-host.conf.template \
-            scripts
-
       - name: Ensure deploy directory exists
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -380,7 +371,7 @@ jobs:
           port: ${{ secrets.ECS_PORT }}
           key: ${{ secrets.ECS_SSH_KEY }}
           passphrase: ${{ secrets.ECS_SSH_PASSPHRASE }}
-          source: deploy-bundle.tgz
+          source: .env.empty,.env.prod.example,docker-compose.yml,deploy/nginx/sunflower-host.conf.template,scripts
           target: ${{ secrets.DEPLOY_PATH }}
           overwrite: true
 
@@ -431,9 +422,8 @@ jobs:
             mkdir -p "$DEPLOY_PATH"
             cd "$DEPLOY_PATH"
 
-            [ -f deploy-bundle.tgz ] || { echo "Missing deployment bundle"; exit 1; }
-            tar -xzf deploy-bundle.tgz
-            rm -f deploy-bundle.tgz
+            [ -f docker-compose.yml ] || { echo "Missing docker-compose.yml after upload"; exit 1; }
+            [ -f scripts/validate_prod_env.sh ] || { echo "Missing deploy scripts after upload"; exit 1; }
             printf '%s\n' "$SOURCE_SHA" > .deploy-source-sha
 
             cat > .release.env <<EOF
