@@ -4,6 +4,8 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DEFAULT_PROD_ENV_FILE=".env.prod"
 DEFAULT_RELEASE_ENV_FILE=".release.env"
+BACKEND_COMPOSE_FILE="docker-compose.backend.yml"
+WEB_COMPOSE_FILE="docker-compose.web.yml"
 REGISTRY_PULL_MAX_ATTEMPTS="${REGISTRY_PULL_MAX_ATTEMPTS:-4}"
 REGISTRY_PULL_INITIAL_DELAY_SECONDS="${REGISTRY_PULL_INITIAL_DELAY_SECONDS:-3}"
 
@@ -22,6 +24,19 @@ log_info() {
 
 project_root() {
   printf '%s\n' "$ROOT_DIR"
+}
+
+normalize_deploy_node_role() {
+  local value
+  value="$(printf '%s' "${1:-}" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')"
+  case "$value" in
+    backend|web)
+      printf '%s\n' "$value"
+      ;;
+    *)
+      fail validate "DEPLOY_NODE_ROLE must be 'backend' or 'web', got '${1:-}'"
+      ;;
+  esac
 }
 
 resolve_env_files() {
@@ -82,8 +97,33 @@ detect_compose_cmd() {
   fail compose "docker compose is not installed"
 }
 
+set_compose_file() {
+  local role="$1"
+  case "$role" in
+    backend)
+      COMPOSE_FILE_PATH="$ROOT_DIR/$BACKEND_COMPOSE_FILE"
+      ;;
+    web)
+      COMPOSE_FILE_PATH="$ROOT_DIR/$WEB_COMPOSE_FILE"
+      ;;
+    *)
+      fail compose "unsupported compose role '${role}'"
+      ;;
+  esac
+
+  [ -f "$COMPOSE_FILE_PATH" ] || fail compose "compose file not found: ${COMPOSE_FILE_PATH#$ROOT_DIR/}"
+}
+
 compose() {
-  "${COMPOSE_CMD[@]}" "$@"
+  [ -n "${COMPOSE_FILE_PATH:-}" ] || fail compose "compose file is not selected"
+  "${COMPOSE_CMD[@]}" -f "$COMPOSE_FILE_PATH" "$@"
+}
+
+require_deploy_node_role() {
+  local expected="$1"
+  DEPLOY_NODE_ROLE="$(normalize_deploy_node_role "${DEPLOY_NODE_ROLE:-}")"
+  export DEPLOY_NODE_ROLE
+  [ "$DEPLOY_NODE_ROLE" = "$expected" ] || fail validate "DEPLOY_NODE_ROLE must be '${expected}' for this script, got '${DEPLOY_NODE_ROLE}'"
 }
 
 assert_mysql_app_access() {
@@ -238,4 +278,27 @@ normalize_bool() {
       fail validate "invalid boolean value '${1}'"
       ;;
   esac
+}
+
+normalize_http_scheme() {
+  local value
+  value="$(printf '%s' "${1:-http}" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')"
+  case "$value" in
+    http|https)
+      printf '%s\n' "$value"
+      ;;
+    *)
+      fail validate "invalid http scheme '${1}'"
+      ;;
+  esac
+}
+
+backend_upstream_health_url() {
+  local scheme
+
+  require_value BACKEND_UPSTREAM_HOST
+  require_numeric BACKEND_UPSTREAM_PORT
+  scheme="$(normalize_http_scheme "${BACKEND_UPSTREAM_SCHEME:-http}")"
+
+  printf '%s://%s:%s/api/health\n' "$scheme" "$BACKEND_UPSTREAM_HOST" "$BACKEND_UPSTREAM_PORT"
 }

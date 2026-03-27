@@ -25,7 +25,9 @@ start_backend_service() {
 main() {
   cd "$(project_root)"
   load_runtime_envs
+  require_deploy_node_role backend
   detect_compose_cmd
+  set_compose_file backend
 
   require_numeric BACKEND_HOST_PORT
 

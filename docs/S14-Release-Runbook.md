@@ -4,9 +4,9 @@
 
 - 确认待发布分支已经合入 `main`，且对应 PR 的 `PR Stage Gate` 全绿。
 - 确认 [docs/CI-CD.md](./CI-CD.md) 中列出的 GitHub Actions Secrets 已配置完成。
-- 确认 ECS 主机可通过 SSH 连接，部署目录存在且剩余磁盘空间足够。
+- 确认 ECS-1（web）与 ECS-2（backend）都可通过 SSH 连接，部署目录存在且剩余磁盘空间足够。
 - 确认 GHCR 凭据仍可拉取镜像，避免部署阶段卡在 `docker login` 或 `docker pull`。
-- 确认 ECS 本地 `$DEPLOY_PATH/.env.prod` 已存在，并已按 [docs/S19-Prod-Deployment-Config.md](./S19-Prod-Deployment-Config.md) 填好真实配置。
+- 确认两台 ECS 本地 `$DEPLOY_PATH/.env.prod` 已存在，并已按 [docs/S19-Prod-Deployment-Config.md](./S19-Prod-Deployment-Config.md) 填好真实配置。
 - 确认微信小程序合法域名、管理端域名、短信模板、腾讯云凭据与 prod 配置一致。
 - 准备本次发布对应的验收记录，使用 [docs/S14-Release-Acceptance-Checklist.md](./S14-Release-Acceptance-Checklist.md) 逐项打勾。
 
@@ -21,15 +21,22 @@
 4. 在 `detect-targets` 中确认本次命中的发布目标是否正确：
    - backend 变更：构建并发布 `sunflower-backend` 镜像
    - admin-web 变更：构建并发布 `sunflower-admin-web` 镜像
-   - ingress 变更：刷新宿主机 Nginx 入口模板
+   - ingress 变更：刷新 ECS-1 宿主机 Nginx 入口模板
 5. 等待 `build-backend`、`build-admin-web` 完成；若本次使用历史 `image_tag`，这两个 job 应显示 `skipped`。
-6. 进入 `deploy` job，确认 deployment bundle 上传完成，并在 ECS 上：
-   - 解压 bundle
+6. 进入 `prepare-backend-host`、`prepare-web-host`，确认两台机器的 deployment bundle 上传完成。
+7. 进入 `deploy-backend-host`，确认 ECS-2 上：
    - 写入 `.release.env`
    - 执行 `validate_prod_env.sh`
    - 执行 `deploy_prod.sh` 或 `bootstrap_prod.sh`
-7. 常规 prod 发布不应导入 demo seed；只有 `target=bootstrap` 且 `run_seed=true` 时才允许导入 `scripts/sql/mvp_demo_seed.sql`。
-8. 发布完成后，按 [docs/S14-Release-Acceptance-Checklist.md](./S14-Release-Acceptance-Checklist.md) 执行一轮人工验收并记录结果。
+   - backend 健康检查通过
+8. 进入 `deploy-web-host`，确认 ECS-1 上：
+   - 复用已上传 bundle
+   - 写入 `.release.env`
+   - 先检查 ECS-2 backend upstream 健康
+   - 执行 `deploy_prod.sh` 或 `bootstrap_prod.sh`
+   - 在需要时刷新宿主机 Nginx
+9. 常规 prod 发布不应导入 demo seed；只有 `target=bootstrap` 且 `run_seed=true` 时才允许导入 `scripts/sql/mvp_demo_seed.sql`。
+10. 发布完成后，按 [docs/S14-Release-Acceptance-Checklist.md](./S14-Release-Acceptance-Checklist.md) 执行一轮人工验收并记录结果。
 
 ## 回滚步骤
 
@@ -39,7 +46,7 @@
 2. 通过 GitHub Actions 重新触发 `workflow_dispatch`：
    - `target=admin-web`
    - `image_tag=<stable-tag>`
-3. workflow 会自动写入 `.release.env` 并执行 `scripts/deploy_prod.sh admin-web`。
+3. workflow 只会重发 ECS-1 的 web 链路，不触碰 ECS-2 backend。
 4. 复跑管理后台与 `/api/health` 巡检。
 
 ### 2. 仅回滚后端
@@ -48,34 +55,35 @@
 2. 通过 GitHub Actions 重新触发 `workflow_dispatch`：
    - `target=backend`
    - `image_tag=<stable-tag>`
-3. workflow 会自动写入 `.release.env` 并执行 `scripts/deploy_prod.sh backend`。
-4. 若当前前端依赖新接口且与旧后端不兼容，不执行 admin-web 回滚前不要重新开放流量。
-5. 完成后检查 `GET /api/health`、核心下单 API、小程序主链路。
+3. workflow 只会重发 ECS-2 backend 链路，不重启 admin-web。
+4. 完成后检查 `GET /api/health`、核心下单 API、小程序主链路。
 
 ### 3. 整体回滚
 
-1. 同时准备 backend 与 admin-web 的上一个稳定镜像标签。
+1. 准备 backend 与 admin-web 的稳定镜像标签。
 2. 通过 GitHub Actions 重新触发 `workflow_dispatch`：
    - `target=all`
    - `image_tag=<stable-tag>`
-3. workflow 会按“后端 -> 管理后台 -> 宿主机 Nginx”顺序执行回滚，保持与标准发布一致。
+3. workflow 会按“ECS-2 backend -> ECS-1 admin-web -> ECS-1 Nginx”顺序执行回滚。
 4. 回滚完成后重新执行一轮最小验收：
-   - `/healthz`
-   - `/api/health`
+   - `https://<api-domain>/api/health`
    - 管理后台登录
    - 小程序下单主链路
 
 ## 故障定位
 
-- `detect-targets` 误判：检查本次提交是否命中 `.github/workflows/deploy-backend.yml`、`docker-compose.yml`、脚本或对应模块目录。
+- `detect-targets` 误判：检查本次提交是否命中 `.github/workflows/deploy-backend.yml`、`docker-compose.backend.yml`、`docker-compose.web.yml`、脚本或对应模块目录。
+- backend host bundle 缺失：检查 `prepare-backend-host` 是否成功把 compose / scripts 上传到 ECS-2。
+- web host bundle 缺失：检查 `prepare-web-host` 是否成功把 compose / scripts / nginx 模板上传到 ECS-1。
 - GHCR 拉镜像失败：检查 `GHCR_USERNAME`、`GHCR_TOKEN` 是否过期，ECS 是否能访问 `ghcr.io`。
-- SSH 鉴权失败：检查 `ECS_SSH_KEY`、`ECS_SSH_PASSPHRASE`、ECS `authorized_keys`。
-- `validate_prod_env.sh` 失败：检查 `.env.prod` 是否缺失微信、短信、域名或 secret 配置。
+- SSH 鉴权失败：检查 `BACKEND_ECS_*` / `WEB_ECS_*` 对应的私钥、口令与 `authorized_keys`。
+- `validate_prod_env.sh` 失败：检查对应节点 `.env.prod` 是否缺失角色相关配置，尤其是 `DEPLOY_NODE_ROLE`。
 - backend 启动失败：检查数据库连通性、Flyway 迁移日志，以及微信/短信配置是否与 prod 要求一致。
-- admin-web 启动失败：检查 backend 健康检查是否先通过，以及 `docker compose up -d --no-deps admin-web` 日志。
+- admin-web 启动失败：检查 ECS-1 到 ECS-2 的 `BACKEND_UPSTREAM_HOST:BACKEND_UPSTREAM_PORT` 是否可达，以及 `docker compose -f docker-compose.web.yml logs --tail=200 admin-web`。
 - 宿主机入口异常：检查 `/etc/nginx/sites-available/${HOST_NGINX_SITE_NAME:-sunflower}` 是否已刷新，并执行 `sudo nginx -t`。
 
 ## 变更记录
 
 - 2026-03-13：补齐正式发布 Runbook 与联调验收清单，并纳入 GitHub Actions / Stage Guard 校验。
 - 2026-03-24：发布配置收口到 ECS 本地 `.env.prod`，新增 `.release.env`、`bootstrap`/常规发布拆分与基于 `workflow_dispatch + image_tag` 的标准回滚入口。
+- 2026-03-27：升级为双 ECS 发布 Runbook，构建/上传并行，正式切流固定为“backend -> admin-web -> nginx”。

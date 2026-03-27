@@ -9,18 +9,29 @@ PREFIX="deploy-prod"
 
 resolve_target() {
   local requested="${1:-${DEPLOY_TARGET:-auto}}"
+  local role="${DEPLOY_NODE_ROLE:-}"
 
   case "$requested" in
     auto)
-      if [ -n "${BACKEND_IMAGE:-}" ] && [ -n "${ADMIN_WEB_IMAGE:-}" ]; then
-        printf 'all\n'
-      elif [ -n "${BACKEND_IMAGE:-}" ]; then
-        printf 'backend\n'
-      elif [ -n "${ADMIN_WEB_IMAGE:-}" ]; then
-        printf 'admin-web\n'
-      else
-        printf 'nginx\n'
-      fi
+      case "$role" in
+        backend)
+          if [ -n "${BACKEND_IMAGE:-}" ]; then
+            printf 'backend\n'
+          else
+            fail "$PREFIX" "backend host cannot resolve auto target without BACKEND_IMAGE"
+          fi
+          ;;
+        web)
+          if [ -n "${ADMIN_WEB_IMAGE:-}" ]; then
+            printf 'all\n'
+          else
+            printf 'nginx\n'
+          fi
+          ;;
+        *)
+          fail "$PREFIX" "unsupported DEPLOY_NODE_ROLE for auto target: ${role}"
+          ;;
+      esac
       ;;
     backend|admin-web|nginx|all)
       printf '%s\n' "$requested"
@@ -37,26 +48,44 @@ resolve_target() {
 main() {
   cd "$(project_root)"
   load_runtime_envs
+  DEPLOY_NODE_ROLE="$(normalize_deploy_node_role "${DEPLOY_NODE_ROLE:-}")"
+  export DEPLOY_NODE_ROLE
 
   target="$(resolve_target "${1:-}")"
-  log_info "$PREFIX" "Resolved deploy target: ${target}"
+  log_info "$PREFIX" "Resolved deploy target: ${target} for role ${DEPLOY_NODE_ROLE}"
 
-  case "$target" in
+  case "$DEPLOY_NODE_ROLE" in
     backend)
-      "$SCRIPT_DIR/deploy_backend.sh"
+      case "$target" in
+        backend|all)
+          "$SCRIPT_DIR/deploy_backend.sh"
+          ;;
+        *)
+          fail "$PREFIX" "backend host only supports targets: backend, all"
+          ;;
+      esac
       ;;
-    admin-web)
-      "$SCRIPT_DIR/deploy_admin_web.sh"
-      ;;
-    nginx)
-      ;;
-    all)
-      "$SCRIPT_DIR/deploy_backend.sh"
-      "$SCRIPT_DIR/deploy_admin_web.sh"
+    web)
+      case "$target" in
+        admin-web)
+          "$SCRIPT_DIR/deploy_admin_web.sh"
+          ;;
+        nginx)
+          ;;
+        all)
+          "$SCRIPT_DIR/deploy_admin_web.sh"
+          ;;
+        *)
+          fail "$PREFIX" "web host only supports targets: admin-web, nginx, all"
+          ;;
+      esac
+
+      if [ "$target" = "nginx" ] || [ "$target" = "all" ]; then
+        "$SCRIPT_DIR/reload_host_nginx.sh"
+      fi
       ;;
   esac
 
-  "$SCRIPT_DIR/reload_host_nginx.sh"
   log_info "$PREFIX" "Deploy target '${target}' completed."
 }
 

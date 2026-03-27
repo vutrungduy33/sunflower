@@ -25,17 +25,22 @@ detect_sudo_prefix() {
 render_config() {
   [ -f "$HOST_NGINX_TEMPLATE_PATH" ] || fail "$PREFIX" "nginx template not found: $HOST_NGINX_TEMPLATE_PATH"
   sed \
-    -e "s/__BACKEND_HOST_PORT__/${BACKEND_HOST_PORT}/g" \
+    -e "s/__BACKEND_UPSTREAM_HOST__/${BACKEND_UPSTREAM_HOST}/g" \
+    -e "s/__BACKEND_UPSTREAM_PORT__/${BACKEND_UPSTREAM_PORT}/g" \
     -e "s/__ADMIN_WEB_HOST_PORT__/${ADMIN_WEB_HOST_PORT}/g" \
-    -e "s/__HOST_NGINX_SERVER_NAME__/${HOST_NGINX_SERVER_NAME}/g" \
-    -e "s#__HOST_NGINX_TLS_CERT_PATH__#${HOST_NGINX_TLS_CERT_PATH}#g" \
-    -e "s#__HOST_NGINX_TLS_KEY_PATH__#${HOST_NGINX_TLS_KEY_PATH}#g" \
+    -e "s/__HOST_NGINX_ADMIN_SERVER_NAME__/${HOST_NGINX_ADMIN_SERVER_NAME}/g" \
+    -e "s/__HOST_NGINX_API_SERVER_NAME__/${HOST_NGINX_API_SERVER_NAME}/g" \
+    -e "s#__HOST_NGINX_ADMIN_TLS_CERT_PATH__#${HOST_NGINX_ADMIN_TLS_CERT_PATH}#g" \
+    -e "s#__HOST_NGINX_ADMIN_TLS_KEY_PATH__#${HOST_NGINX_ADMIN_TLS_KEY_PATH}#g" \
+    -e "s#__HOST_NGINX_API_TLS_CERT_PATH__#${HOST_NGINX_API_TLS_CERT_PATH}#g" \
+    -e "s#__HOST_NGINX_API_TLS_KEY_PATH__#${HOST_NGINX_API_TLS_KEY_PATH}#g" \
     "$HOST_NGINX_TEMPLATE_PATH"
 }
 
 main() {
   cd "$(project_root)"
   load_runtime_envs
+  require_deploy_node_role web
   HOST_NGINX_ENABLED="$(normalize_bool "${HOST_NGINX_ENABLED:-true}")"
 
   if [ "$HOST_NGINX_ENABLED" != "true" ]; then
@@ -44,22 +49,27 @@ main() {
   fi
 
   detect_compose_cmd
+  set_compose_file web
 
-  require_numeric BACKEND_HOST_PORT
   require_numeric ADMIN_WEB_HOST_PORT
+  require_value BACKEND_UPSTREAM_HOST
+  require_numeric BACKEND_UPSTREAM_PORT
   require_value HOST_NGINX_SITE_NAME
-  require_value HOST_NGINX_SERVER_NAME
-  require_value HOST_NGINX_TLS_CERT_PATH
-  require_value HOST_NGINX_TLS_KEY_PATH
+  require_value HOST_NGINX_ADMIN_SERVER_NAME
+  require_value HOST_NGINX_API_SERVER_NAME
+  require_value HOST_NGINX_ADMIN_TLS_CERT_PATH
+  require_value HOST_NGINX_ADMIN_TLS_KEY_PATH
+  require_value HOST_NGINX_API_TLS_CERT_PATH
+  require_value HOST_NGINX_API_TLS_KEY_PATH
 
   command -v nginx >/dev/null 2>&1 || fail "$PREFIX" "nginx is not installed on host"
   command -v systemctl >/dev/null 2>&1 || fail "$PREFIX" "systemctl is not available on host"
 
   detect_sudo_prefix
+  remote_backend_health_url="$(backend_upstream_health_url)"
 
   log_info "$PREFIX" "Waiting backend healthy before nginx reload..."
-  wait_service_healthy backend "$PREFIX"
-  wait_http_ready "http://127.0.0.1:${BACKEND_HOST_PORT}/api/health" "$PREFIX"
+  wait_http_ready "$remote_backend_health_url" "$PREFIX"
 
   log_info "$PREFIX" "Waiting admin web healthy before nginx reload..."
   wait_service_healthy admin-web "$PREFIX"

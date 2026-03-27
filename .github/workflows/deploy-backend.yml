@@ -34,8 +34,10 @@ on:
       - "sunflower-backend/**"
       - "sunflower-admin-web/**"
       - "deploy/nginx/**"
-      - "docker-compose.yml"
+      - "docker-compose.backend.yml"
+      - "docker-compose.web.yml"
       - ".env.prod.example"
+      - ".env.prod.web.example"
       - ".env.empty"
       - "scripts/deploy_*.sh"
       - "scripts/deploy_lib.sh"
@@ -68,6 +70,8 @@ jobs:
       ingress_changed: ${{ steps.meta.outputs.ingress_changed }}
       should_build_backend: ${{ steps.meta.outputs.should_build_backend }}
       should_build_admin_web: ${{ steps.meta.outputs.should_build_admin_web }}
+      deploy_backend_host: ${{ steps.meta.outputs.deploy_backend_host }}
+      deploy_web_host: ${{ steps.meta.outputs.deploy_web_host }}
       backend_image: ${{ steps.meta.outputs.backend_image_ref }}
       admin_web_image: ${{ steps.meta.outputs.admin_web_image_ref }}
 
@@ -97,6 +101,7 @@ jobs:
           image_tag="$source_sha"
           requested_target="auto"
           run_seed="false"
+          manual_image_tag=""
 
           if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
             requested_target="${{ github.event.inputs.target }}"
@@ -142,15 +147,15 @@ jobs:
 
             printf '%s\n' "$changed_files"
 
-            if printf '%s\n' "$changed_files" | grep -Eq '^(sunflower-backend/|docker-compose\.yml$|\.env\.prod\.example$|\.env\.empty$|scripts/deploy_backend\.sh$|scripts/deploy_lib\.sh$|scripts/validate_prod_env\.sh$|scripts/start_backend_with_mvp_seed\.sh$|scripts/sql/|\.github/workflows/deploy-backend\.yml$)'; then
+            if printf '%s\n' "$changed_files" | grep -Eq '^(sunflower-backend/|docker-compose\.backend\.yml$|\.env\.prod\.example$|\.env\.empty$|scripts/deploy_backend\.sh$|scripts/deploy_lib\.sh$|scripts/validate_prod_env\.sh$|scripts/start_backend_with_mvp_seed\.sh$|scripts/sql/|\.github/workflows/deploy-backend\.yml$)'; then
               backend_changed=true
             fi
 
-            if printf '%s\n' "$changed_files" | grep -Eq '^(sunflower-admin-web/|docker-compose\.yml$|\.env\.prod\.example$|\.env\.empty$|scripts/deploy_admin_web\.sh$|scripts/deploy_lib\.sh$|scripts/start_admin_web\.sh$|\.github/workflows/deploy-backend\.yml$)'; then
+            if printf '%s\n' "$changed_files" | grep -Eq '^(sunflower-admin-web/|docker-compose\.web\.yml$|\.env\.prod\.web\.example$|\.env\.empty$|scripts/deploy_admin_web\.sh$|scripts/deploy_lib\.sh$|scripts/start_admin_web\.sh$|\.github/workflows/deploy-backend\.yml$)'; then
               admin_web_changed=true
             fi
 
-            if printf '%s\n' "$changed_files" | grep -Eq '^(deploy/nginx/|docker-compose\.yml$|\.env\.prod\.example$|\.env\.empty$|scripts/deploy_prod\.sh$|scripts/bootstrap_prod\.sh$|scripts/deploy_lib\.sh$|scripts/reload_host_nginx\.sh$|scripts/validate_prod_env\.sh$|\.github/workflows/deploy-backend\.yml$)'; then
+            if printf '%s\n' "$changed_files" | grep -Eq '^(deploy/nginx/|docker-compose\.web\.yml$|\.env\.prod\.web\.example$|\.env\.empty$|scripts/deploy_prod\.sh$|scripts/bootstrap_prod\.sh$|scripts/deploy_lib\.sh$|scripts/reload_host_nginx\.sh$|scripts/validate_prod_env\.sh$|\.github/workflows/deploy-backend\.yml$)'; then
               ingress_changed=true
             fi
           fi
@@ -179,12 +184,27 @@ jobs:
 
           should_build_backend=false
           should_build_admin_web=false
-          if [ "$backend_changed" = "true" ] && [ -z "${manual_image_tag:-}" ]; then
+          if [ "$backend_changed" = "true" ] && [ -z "$manual_image_tag" ]; then
             should_build_backend=true
           fi
-          if [ "$admin_web_changed" = "true" ] && [ -z "${manual_image_tag:-}" ]; then
+          if [ "$admin_web_changed" = "true" ] && [ -z "$manual_image_tag" ]; then
             should_build_admin_web=true
           fi
+
+          deploy_backend_host=false
+          deploy_web_host=false
+          case "$deploy_target" in
+            backend)
+              deploy_backend_host=true
+              ;;
+            admin-web|nginx)
+              deploy_web_host=true
+              ;;
+            all|bootstrap)
+              deploy_backend_host=true
+              deploy_web_host=true
+              ;;
+          esac
 
           owner="$(printf '%s' "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')"
           backend_image_ref=""
@@ -208,6 +228,8 @@ jobs:
             echo "ingress_changed=${ingress_changed}"
             echo "should_build_backend=${should_build_backend}"
             echo "should_build_admin_web=${should_build_admin_web}"
+            echo "deploy_backend_host=${deploy_backend_host}"
+            echo "deploy_web_host=${deploy_web_host}"
             echo "backend_image_ref=${backend_image_ref}"
             echo "admin_web_image_ref=${admin_web_image_ref}"
           } >> "${GITHUB_OUTPUT}"
@@ -322,12 +344,12 @@ jobs:
           cache-from: type=gha,scope=sunflower-admin-web
           cache-to: type=gha,mode=max,scope=sunflower-admin-web
 
-  deploy:
+  prepare-backend-host:
     if: >-
       ${{
         always() &&
         !cancelled() &&
-        needs.detect-targets.outputs.deploy_target != 'none' &&
+        needs.detect-targets.outputs.deploy_backend_host == 'true' &&
         (needs.build-backend.result == 'success' || needs.build-backend.result == 'skipped') &&
         (needs.build-admin-web.result == 'success' || needs.build-admin-web.result == 'skipped')
       }}
@@ -338,7 +360,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout deployment bundle source
+      - name: Checkout backend deployment bundle source
         uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
@@ -346,21 +368,23 @@ jobs:
           sparse-checkout: |
             .env.empty
             .env.prod.example
-            docker-compose.yml
+            .env.prod.web.example
+            docker-compose.backend.yml
+            docker-compose.web.yml
             deploy/nginx
             scripts
           sparse-checkout-cone-mode: false
 
-      - name: Ensure deploy directory exists
+      - name: Ensure backend deploy directory exists
         uses: appleboy/ssh-action@v1.2.0
         env:
-          ECS_DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          ECS_DEPLOY_PATH: ${{ secrets.BACKEND_DEPLOY_PATH }}
         with:
-          host: ${{ secrets.ECS_HOST }}
-          username: ${{ secrets.ECS_USER }}
-          port: ${{ secrets.ECS_PORT }}
-          key: ${{ secrets.ECS_SSH_KEY }}
-          passphrase: ${{ secrets.ECS_SSH_PASSPHRASE }}
+          host: ${{ secrets.BACKEND_ECS_HOST }}
+          username: ${{ secrets.BACKEND_ECS_USER }}
+          port: ${{ secrets.BACKEND_ECS_PORT }}
+          key: ${{ secrets.BACKEND_ECS_SSH_KEY }}
+          passphrase: ${{ secrets.BACKEND_ECS_SSH_PASSPHRASE }}
           envs: ECS_DEPLOY_PATH
           script_stop: true
           script: |
@@ -368,21 +392,97 @@ jobs:
             case "$DEPLOY_PATH" in "~") DEPLOY_PATH="$HOME" ;; "~/"*) DEPLOY_PATH="$HOME/${DEPLOY_PATH#\~/}" ;; esac
             mkdir -p "$DEPLOY_PATH"
 
-      - name: Upload deployment bundle
+      - name: Upload backend deployment bundle
         uses: appleboy/scp-action@v0.1.7
         continue-on-error: true
         with:
-          host: ${{ secrets.ECS_HOST }}
-          username: ${{ secrets.ECS_USER }}
-          port: ${{ secrets.ECS_PORT }}
-          key: ${{ secrets.ECS_SSH_KEY }}
-          passphrase: ${{ secrets.ECS_SSH_PASSPHRASE }}
-          source: .env.empty,.env.prod.example,docker-compose.yml,deploy/nginx/sunflower-host.conf.template,scripts
-          target: ${{ secrets.DEPLOY_PATH }}
+          host: ${{ secrets.BACKEND_ECS_HOST }}
+          username: ${{ secrets.BACKEND_ECS_USER }}
+          port: ${{ secrets.BACKEND_ECS_PORT }}
+          key: ${{ secrets.BACKEND_ECS_SSH_KEY }}
+          passphrase: ${{ secrets.BACKEND_ECS_SSH_PASSPHRASE }}
+          source: .env.empty,.env.prod.example,.env.prod.web.example,docker-compose.backend.yml,docker-compose.web.yml,deploy/nginx/sunflower-host.conf.template,scripts
+          target: ${{ secrets.BACKEND_DEPLOY_PATH }}
           timeout: 2m
           overwrite: true
 
-      - name: Deploy via SSH
+  prepare-web-host:
+    if: >-
+      ${{
+        always() &&
+        !cancelled() &&
+        needs.detect-targets.outputs.deploy_web_host == 'true' &&
+        (needs.build-backend.result == 'success' || needs.build-backend.result == 'skipped') &&
+        (needs.build-admin-web.result == 'success' || needs.build-admin-web.result == 'skipped')
+      }}
+    needs:
+      - detect-targets
+      - build-backend
+      - build-admin-web
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout web deployment bundle source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          sparse-checkout: |
+            .env.empty
+            .env.prod.example
+            .env.prod.web.example
+            docker-compose.backend.yml
+            docker-compose.web.yml
+            deploy/nginx
+            scripts
+          sparse-checkout-cone-mode: false
+
+      - name: Ensure web deploy directory exists
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          ECS_DEPLOY_PATH: ${{ secrets.WEB_DEPLOY_PATH }}
+        with:
+          host: ${{ secrets.WEB_ECS_HOST }}
+          username: ${{ secrets.WEB_ECS_USER }}
+          port: ${{ secrets.WEB_ECS_PORT }}
+          key: ${{ secrets.WEB_ECS_SSH_KEY }}
+          passphrase: ${{ secrets.WEB_ECS_SSH_PASSPHRASE }}
+          envs: ECS_DEPLOY_PATH
+          script_stop: true
+          script: |
+            DEPLOY_PATH="$(printf '%s' "${ECS_DEPLOY_PATH:-}" | tr -d '\r\n')"
+            case "$DEPLOY_PATH" in "~") DEPLOY_PATH="$HOME" ;; "~/"*) DEPLOY_PATH="$HOME/${DEPLOY_PATH#\~/}" ;; esac
+            mkdir -p "$DEPLOY_PATH"
+
+      - name: Upload web deployment bundle
+        uses: appleboy/scp-action@v0.1.7
+        continue-on-error: true
+        with:
+          host: ${{ secrets.WEB_ECS_HOST }}
+          username: ${{ secrets.WEB_ECS_USER }}
+          port: ${{ secrets.WEB_ECS_PORT }}
+          key: ${{ secrets.WEB_ECS_SSH_KEY }}
+          passphrase: ${{ secrets.WEB_ECS_SSH_PASSPHRASE }}
+          source: .env.empty,.env.prod.example,.env.prod.web.example,docker-compose.backend.yml,docker-compose.web.yml,deploy/nginx/sunflower-host.conf.template,scripts
+          target: ${{ secrets.WEB_DEPLOY_PATH }}
+          timeout: 2m
+          overwrite: true
+
+  deploy-backend-host:
+    if: >-
+      ${{
+        always() &&
+        !cancelled() &&
+        needs.detect-targets.outputs.deploy_backend_host == 'true' &&
+        needs.prepare-backend-host.result == 'success'
+      }}
+    needs:
+      - detect-targets
+      - prepare-backend-host
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy backend host via SSH
         uses: appleboy/ssh-action@v1.2.0
         env:
           BACKEND_IMAGE: ${{ needs.detect-targets.outputs.backend_image }}
@@ -390,16 +490,17 @@ jobs:
           SOURCE_SHA: ${{ needs.detect-targets.outputs.image_tag }}
           DEPLOY_TARGET: ${{ needs.detect-targets.outputs.deploy_target }}
           RUN_SEED: ${{ needs.detect-targets.outputs.run_seed }}
-          ECS_DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          DEPLOY_NODE_ROLE: backend
+          ECS_DEPLOY_PATH: ${{ secrets.BACKEND_DEPLOY_PATH }}
           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
           GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
         with:
-          host: ${{ secrets.ECS_HOST }}
-          username: ${{ secrets.ECS_USER }}
-          port: ${{ secrets.ECS_PORT }}
-          key: ${{ secrets.ECS_SSH_KEY }}
-          passphrase: ${{ secrets.ECS_SSH_PASSPHRASE }}
-          envs: BACKEND_IMAGE,ADMIN_WEB_IMAGE,SOURCE_SHA,DEPLOY_TARGET,RUN_SEED,ECS_DEPLOY_PATH,GHCR_USERNAME,GHCR_TOKEN
+          host: ${{ secrets.BACKEND_ECS_HOST }}
+          username: ${{ secrets.BACKEND_ECS_USER }}
+          port: ${{ secrets.BACKEND_ECS_PORT }}
+          key: ${{ secrets.BACKEND_ECS_SSH_KEY }}
+          passphrase: ${{ secrets.BACKEND_ECS_SSH_PASSPHRASE }}
+          envs: BACKEND_IMAGE,ADMIN_WEB_IMAGE,SOURCE_SHA,DEPLOY_TARGET,RUN_SEED,DEPLOY_NODE_ROLE,ECS_DEPLOY_PATH,GHCR_USERNAME,GHCR_TOKEN
           command_timeout: 30m
           script_stop: true
           script: |
@@ -410,6 +511,7 @@ jobs:
             SOURCE_SHA="$(printf '%s' "${SOURCE_SHA:-}" | tr -d '\r\n')"
             DEPLOY_TARGET="$(printf '%s' "${DEPLOY_TARGET:-}" | tr -d '\r\n')"
             RUN_SEED="$(printf '%s' "${RUN_SEED:-false}" | tr -d '\r\n')"
+            DEPLOY_NODE_ROLE="$(printf '%s' "${DEPLOY_NODE_ROLE:-backend}" | tr -d '\r\n')"
             DEPLOY_PATH="$(printf '%s' "${ECS_DEPLOY_PATH:-}" | tr -d '\r\n')"
             GHCR_USERNAME="$(printf '%s' "${GHCR_USERNAME:-}" | tr -d '\r\n')"
             GHCR_TOKEN="$(printf '%s' "${GHCR_TOKEN:-}" | tr -d '\r\n')"
@@ -422,8 +524,8 @@ jobs:
             mkdir -p "$DEPLOY_PATH"
             cd "$DEPLOY_PATH"
 
-            if [ ! -f docker-compose.yml ] || [ ! -f scripts/validate_prod_env.sh ]; then
-              echo "Missing deploy assets after upload"
+            if [ ! -f docker-compose.backend.yml ] || [ ! -f scripts/validate_prod_env.sh ]; then
+              echo "Missing backend deploy assets after upload"
               pwd
               find . -maxdepth 4 -print || true
               exit 1
@@ -437,10 +539,11 @@ jobs:
             printf '%s\n' "DEPLOY_TARGET=$DEPLOY_TARGET" >> .release.env
             printf '%s\n' "RUN_SEED=$RUN_SEED" >> .release.env
 
+            export DEPLOY_NODE_ROLE
             chmod +x scripts/*.sh
             ./scripts/validate_prod_env.sh
 
-            if [ -n "$BACKEND_IMAGE" ] || [ -n "$ADMIN_WEB_IMAGE" ]; then
+            if [ -n "$BACKEND_IMAGE" ]; then
               [ -n "$GHCR_USERNAME" ] || { echo "Missing GHCR_USERNAME"; exit 1; }
               [ -n "$GHCR_TOKEN" ] || { echo "Missing GHCR_TOKEN"; exit 1; }
               printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
@@ -448,8 +551,95 @@ jobs:
 
             if [ "$DEPLOY_TARGET" = "bootstrap" ]; then
               ./scripts/bootstrap_prod.sh
+            else
+              ./scripts/deploy_prod.sh "$DEPLOY_TARGET"
             fi
 
-            if [ "$DEPLOY_TARGET" != "bootstrap" ]; then
+  deploy-web-host:
+    if: >-
+      ${{
+        always() &&
+        !cancelled() &&
+        needs.detect-targets.outputs.deploy_web_host == 'true' &&
+        needs.prepare-web-host.result == 'success' &&
+        (needs.deploy-backend-host.result == 'success' || needs.deploy-backend-host.result == 'skipped')
+      }}
+    needs:
+      - detect-targets
+      - prepare-web-host
+      - deploy-backend-host
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy web host via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          BACKEND_IMAGE: ${{ needs.detect-targets.outputs.backend_image }}
+          ADMIN_WEB_IMAGE: ${{ needs.detect-targets.outputs.admin_web_image }}
+          SOURCE_SHA: ${{ needs.detect-targets.outputs.image_tag }}
+          DEPLOY_TARGET: ${{ needs.detect-targets.outputs.deploy_target }}
+          RUN_SEED: ${{ needs.detect-targets.outputs.run_seed }}
+          DEPLOY_NODE_ROLE: web
+          ECS_DEPLOY_PATH: ${{ secrets.WEB_DEPLOY_PATH }}
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+        with:
+          host: ${{ secrets.WEB_ECS_HOST }}
+          username: ${{ secrets.WEB_ECS_USER }}
+          port: ${{ secrets.WEB_ECS_PORT }}
+          key: ${{ secrets.WEB_ECS_SSH_KEY }}
+          passphrase: ${{ secrets.WEB_ECS_SSH_PASSPHRASE }}
+          envs: BACKEND_IMAGE,ADMIN_WEB_IMAGE,SOURCE_SHA,DEPLOY_TARGET,RUN_SEED,DEPLOY_NODE_ROLE,ECS_DEPLOY_PATH,GHCR_USERNAME,GHCR_TOKEN
+          command_timeout: 30m
+          script_stop: true
+          script: |
+            set -eu
+
+            BACKEND_IMAGE="$(printf '%s' "${BACKEND_IMAGE:-}" | tr -d '\r\n' | tr -cd '[:alnum:]._:/-')"
+            ADMIN_WEB_IMAGE="$(printf '%s' "${ADMIN_WEB_IMAGE:-}" | tr -d '\r\n' | tr -cd '[:alnum:]._:/-')"
+            SOURCE_SHA="$(printf '%s' "${SOURCE_SHA:-}" | tr -d '\r\n')"
+            DEPLOY_TARGET="$(printf '%s' "${DEPLOY_TARGET:-}" | tr -d '\r\n')"
+            RUN_SEED="$(printf '%s' "${RUN_SEED:-false}" | tr -d '\r\n')"
+            DEPLOY_NODE_ROLE="$(printf '%s' "${DEPLOY_NODE_ROLE:-web}" | tr -d '\r\n')"
+            DEPLOY_PATH="$(printf '%s' "${ECS_DEPLOY_PATH:-}" | tr -d '\r\n')"
+            GHCR_USERNAME="$(printf '%s' "${GHCR_USERNAME:-}" | tr -d '\r\n')"
+            GHCR_TOKEN="$(printf '%s' "${GHCR_TOKEN:-}" | tr -d '\r\n')"
+            case "$DEPLOY_PATH" in "~") DEPLOY_PATH="$HOME" ;; "~/"*) DEPLOY_PATH="$HOME/${DEPLOY_PATH#\~/}" ;; esac
+
+            [ -n "$SOURCE_SHA" ] || { echo "Missing SOURCE_SHA"; exit 1; }
+            [ -n "$DEPLOY_TARGET" ] || { echo "Missing DEPLOY_TARGET"; exit 1; }
+            [ -n "$DEPLOY_PATH" ] || { echo "Missing DEPLOY_PATH"; exit 1; }
+
+            mkdir -p "$DEPLOY_PATH"
+            cd "$DEPLOY_PATH"
+
+            if [ ! -f docker-compose.web.yml ] || [ ! -f deploy/nginx/sunflower-host.conf.template ] || [ ! -f scripts/validate_prod_env.sh ]; then
+              echo "Missing web deploy assets after upload"
+              pwd
+              find . -maxdepth 4 -print || true
+              exit 1
+            fi
+            printf '%s\n' "$SOURCE_SHA" > .deploy-source-sha
+
+            : > .release.env
+            printf '%s\n' "BACKEND_IMAGE=$BACKEND_IMAGE" >> .release.env
+            printf '%s\n' "ADMIN_WEB_IMAGE=$ADMIN_WEB_IMAGE" >> .release.env
+            printf '%s\n' "SOURCE_SHA=$SOURCE_SHA" >> .release.env
+            printf '%s\n' "DEPLOY_TARGET=$DEPLOY_TARGET" >> .release.env
+            printf '%s\n' "RUN_SEED=$RUN_SEED" >> .release.env
+
+            export DEPLOY_NODE_ROLE
+            chmod +x scripts/*.sh
+            ./scripts/validate_prod_env.sh
+
+            if [ -n "$ADMIN_WEB_IMAGE" ]; then
+              [ -n "$GHCR_USERNAME" ] || { echo "Missing GHCR_USERNAME"; exit 1; }
+              [ -n "$GHCR_TOKEN" ] || { echo "Missing GHCR_TOKEN"; exit 1; }
+              printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
+            fi
+
+            if [ "$DEPLOY_TARGET" = "bootstrap" ]; then
+              ./scripts/bootstrap_prod.sh
+            else
               ./scripts/deploy_prod.sh "$DEPLOY_TARGET"
             fi
