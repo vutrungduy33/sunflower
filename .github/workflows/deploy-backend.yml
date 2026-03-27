@@ -562,7 +562,10 @@ jobs:
         !cancelled() &&
         needs.detect-targets.outputs.deploy_web_host == 'true' &&
         needs.prepare-web-host.result == 'success' &&
-        (needs.deploy-backend-host.result == 'success' || needs.deploy-backend-host.result == 'skipped')
+        (
+          needs.detect-targets.outputs.deploy_backend_host != 'true' ||
+          needs.deploy-backend-host.result == 'success'
+        )
       }}
     needs:
       - detect-targets
