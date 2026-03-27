@@ -47,7 +47,7 @@
 
 ---
 
-## 3. 生产部署流程（双 ECS）
+## 3. 生产部署流程（双 ECS + Self-Hosted Runner）
 
 工作流路径：`.github/workflows/deploy-backend.yml`
 
@@ -61,6 +61,9 @@
   - `sunflower-backend`
   - `mysql`
   - 仅通过内网为 ECS-1 提供 upstream
+- GitHub Actions deploy runner：
+  - `ecs-backend` label 固定部署在 ECS-2
+  - `ecs-web` label 固定部署在 ECS-1
 
 触发条件：
 
@@ -70,7 +73,7 @@
 `workflow_dispatch` 输入：
 
 - `target`：`auto / backend / admin-web / nginx / all / bootstrap`
-- `image_tag`：可选，指定历史 GHCR tag 进行回滚或重发
+- `image_tag`：可选，指定历史 GHCR tag 进行回滚或重发 fallback
 - `run_seed`：仅 `bootstrap` 目标使用，默认 `false`
 
 执行流程：
@@ -81,24 +84,25 @@
    - 输出是否需要触发 backend host 与 web host 两条链路。
 2. `build-backend` / `build-admin-web`
    - 两个镜像保持并行构建。
-   - 若手动传入历史 `image_tag`，则跳过镜像构建，直接发布指定 tag。
-3. `prepare-backend-host` / `prepare-web-host`
-   - 两台 ECS 的 deployment bundle 上传并行执行。
-   - 上传内容包括 `docker-compose.backend.yml`、`docker-compose.web.yml`、Nginx 模板、示例 env 与部署脚本。
-4. `deploy-backend-host`
-   - 先在 ECS-2 写入 `.release.env`、校验 `.env.prod`、拉取 backend 镜像并部署 backend。
+   - 常规发布会在 GitHub Hosted Runner 上构建镜像、推送 GHCR 备用 tag，并额外导出压缩后的镜像 artifact。
+   - 若手动传入历史 `image_tag`，则跳过镜像构建与 artifact 生成，直接走既有 GHCR fallback。
+3. `deploy-backend-host`
+   - 运行在 `self-hosted + ecs-backend`。
+   - 本机 checkout deployment bundle、同步到 `$BACKEND_DEPLOY_PATH`、下载 backend artifact、`docker load`，然后写 `.release.env` 并部署 backend。
    - `bootstrap` 时仅 backend host 执行 seed 导入。
-5. `deploy-web-host`
+4. `deploy-web-host`
+   - 运行在 `self-hosted + ecs-web`。
    - 仅在 backend host 成功或被跳过后执行。
-   - 在 ECS-1 校验远端 backend upstream 健康，再部署 admin-web。
+   - 本机 checkout deployment bundle、同步到 `$WEB_DEPLOY_PATH`、下载 admin-web artifact、`docker load`，然后部署 admin-web。
    - `target=all / nginx / bootstrap` 时最后再刷新宿主机 Nginx。
 
 提效策略：
 
-- 构建、推送、bundle 上传并行。
+- 构建、打包 artifact 并行。
 - 真正切换流量保持串行：`ECS-2 backend -> ECS-1 admin-web -> ECS-1 nginx reload`。
 - 若只改 `sunflower-admin-web/**`，只触发 web host。
 - 若只改 `sunflower-backend/**`，只触发 backend host。
+- backend artifact 由 ECS-2 直接下载，admin-web artifact 由 ECS-1 直接下载，ECS-1 不再中转 backend 产物。
 
 部署约束：
 
@@ -108,6 +112,7 @@
 - web host 的 `.env.prod` 固定使用 `DEPLOY_NODE_ROLE=web`。
 - 常规 prod 发布不自动导入 `mvp_demo_seed.sql`。
 - web host 的宿主机 Nginx reload 只在 `target=all / nginx / bootstrap` 时执行。
+- 常规 prod 发布主路径不依赖 GitHub Hosted Runner 直连 ECS，也不依赖 ECS 在发布时临时拉取 GHCR。
 
 ---
 
@@ -115,32 +120,21 @@
 
 ### 4.1 GitHub Actions Secrets（仅部署通道）
 
-backend host 必填：
+deploy path 必填：
 
-- `BACKEND_ECS_HOST`
-- `BACKEND_ECS_USER`
-- `BACKEND_ECS_PORT`
-- `BACKEND_ECS_SSH_KEY`
-- `BACKEND_ECS_SSH_PASSPHRASE`
 - `BACKEND_DEPLOY_PATH`
-
-web host 必填：
-
-- `WEB_ECS_HOST`
-- `WEB_ECS_USER`
-- `WEB_ECS_PORT`
-- `WEB_ECS_SSH_KEY`
-- `WEB_ECS_SSH_PASSPHRASE`
 - `WEB_DEPLOY_PATH`
 
-公共必填：
+仅手动 `image_tag` fallback 回滚时需要：
 
 - `GHCR_USERNAME`
 - `GHCR_TOKEN`
 
 说明：
 
-- GitHub 仅负责 SSH 进入 ECS、拉取 GHCR 镜像和触发脚本。
+- 常规发布不再需要 `BACKEND_ECS_*`、`WEB_ECS_*` SSH Secrets。
+- GitHub Hosted Runner 只负责构建、上传 artifact，不再负责 SSH 进入 ECS。
+- self-hosted runner 会在目标主机本地下载 artifact、同步 bundle 并触发脚本。
 - 小程序认证、管理端短信、数据库口令、应用 token secret 等不再存放在 GitHub Secrets。
 
 ### 4.2 ECS 本地配置文件
@@ -174,7 +168,7 @@ web host 必填：
 - `ruby -e 'require "yaml"; YAML.load_file(".github/workflows/deploy-backend.yml")'`
 - `docker compose -f docker-compose.backend.yml --env-file .env.prod.example config`
 - `docker compose -f docker-compose.web.yml --env-file .env.prod.web.example config`
-- `bash -n scripts/deploy_lib.sh scripts/validate_prod_env.sh scripts/deploy_backend.sh scripts/deploy_admin_web.sh scripts/bootstrap_prod.sh scripts/deploy_prod.sh scripts/reload_host_nginx.sh scripts/start_backend_with_mvp_seed.sh scripts/start_admin_web.sh`
+- `bash -n scripts/deploy_lib.sh scripts/validate_prod_env.sh scripts/deploy_backend.sh scripts/deploy_admin_web.sh scripts/bootstrap_prod.sh scripts/deploy_prod.sh scripts/reload_host_nginx.sh scripts/sync_deploy_bundle.sh scripts/execute_runner_deploy.sh scripts/start_backend_with_mvp_seed.sh scripts/start_admin_web.sh`
 - `cd sunflower-backend && mvn -B test`
 - `cd sunflower-admin-web && npm run build`
 

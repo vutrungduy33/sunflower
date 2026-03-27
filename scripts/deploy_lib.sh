@@ -39,6 +39,22 @@ normalize_deploy_node_role() {
   esac
 }
 
+normalize_deploy_path() {
+  local value
+  value="$(printf '%s' "${1:-}" | tr -d '\r\n')"
+  case "$value" in
+    "~")
+      printf '%s\n' "$HOME"
+      ;;
+    "~/"*)
+      printf '%s\n' "$HOME/${value#\~/}"
+      ;;
+    *)
+      printf '%s\n' "$value"
+      ;;
+  esac
+}
+
 resolve_env_files() {
   export PROD_ENV_FILE="${PROD_ENV_FILE:-$DEFAULT_PROD_ENV_FILE}"
   export RELEASE_ENV_FILE="${RELEASE_ENV_FILE:-$DEFAULT_RELEASE_ENV_FILE}"
@@ -95,6 +111,12 @@ detect_compose_cmd() {
   fi
 
   fail compose "docker compose is not installed"
+}
+
+local_image_exists() {
+  local image_ref="$1"
+  [ -n "$image_ref" ] || return 1
+  docker image inspect "$image_ref" >/dev/null 2>&1
 }
 
 set_compose_file() {

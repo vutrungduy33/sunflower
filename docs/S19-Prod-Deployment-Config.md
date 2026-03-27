@@ -2,23 +2,24 @@
 
 ## 1. 目标
 
-S19 之后，生产部署固定采用双 ECS 链路：
+S19 之后，生产部署固定采用双 ECS + self-hosted runner 链路：
 
-`GitHub Actions -> GHCR -> ECS-2(backend/mysql) -> ECS-1(admin-web/nginx) -> 公网域名`
+`GitHub Hosted Runner(build) -> GitHub artifact -> ECS-2(self-hosted runner, backend/mysql) -> ECS-1(self-hosted runner, admin-web/nginx) -> 公网域名`
 
 职责边界：
 
 - GitHub Actions：
   - 并行构建镜像
-  - 并行上传 deployment bundle 到两台 ECS
-  - 分别写入两台主机的 `.release.env`
+  - 上传 backend/admin-web 镜像 artifact
   - 控制“先 backend、后 admin-web、最后 nginx”的串行切流
 - ECS-2（backend 节点）：
   - 保存 backend 专用 `.env.prod`
+  - 运行 `self-hosted + ecs-backend` runner
   - 运行 `docker-compose.backend.yml`
   - 承载 `mysql` 与 `backend`
 - ECS-1（web 节点）：
   - 保存 web 专用 `.env.prod`
+  - 运行 `self-hosted + ecs-web` runner
   - 运行 `docker-compose.web.yml`
   - 承载 `admin-web` 与宿主机 Nginx
   - 通过内网访问 ECS-2 backend upstream
@@ -156,7 +157,8 @@ S19 之后，生产部署固定采用双 ECS 链路：
 
 1. 在 ECS-2 部署目录放置 backend 节点 `.env.prod`
 2. 在 ECS-1 部署目录放置 web 节点 `.env.prod`
-3. 手动触发 GitHub Actions：
+3. 确认 ECS-2 安装并注册 `self-hosted + ecs-backend` runner，ECS-1 安装并注册 `self-hosted + ecs-web` runner
+4. 手动触发 GitHub Actions：
    - `target=bootstrap`
    - `run_seed=false` 或 `true`
 
@@ -177,9 +179,9 @@ S19 之后，生产部署固定采用双 ECS 链路：
 
 执行顺序：
 
-1. `prepare-backend-host` / `prepare-web-host` 并行上传 bundle
-2. `deploy-backend-host` 执行 backend bootstrap
-3. `deploy-web-host` 在 backend 健康后执行 web bootstrap
+1. `build-backend` / `build-admin-web` 并行构建并上传 artifact
+2. `deploy-backend-host` 在 ECS-2 本机同步 bundle、下载 backend artifact 并执行 backend bootstrap
+3. `deploy-web-host` 在 backend 健康后，于 ECS-1 本机同步 bundle、下载 admin-web artifact 并执行 web bootstrap
 
 ---
 
@@ -189,10 +191,10 @@ S19 之后，生产部署固定采用双 ECS 链路：
 
 将代码合入 `main` 后，workflow 会按改动自动识别目标：
 
-- backend 变更：仅发布 ECS-2 backend
-- admin-web 变更：仅发布 ECS-1 admin-web
+- backend 变更：仅发布 ECS-2 backend，artifact 只由 ECS-2 下载
+- admin-web 变更：仅发布 ECS-1 admin-web，artifact 只由 ECS-1 下载
 - ingress / web deploy 脚本变更：仅刷新 ECS-1 admin-web 或 nginx
-- backend + admin-web 变更：构建并行、上传并行、切换顺序固定为 `backend -> admin-web -> nginx`
+- backend + admin-web 变更：构建并行、artifact 下载各自主机独立完成，切换顺序固定为 `backend -> admin-web -> nginx`
 
 ### 5.2 手动发布
 
@@ -210,6 +212,7 @@ S19 之后，生产部署固定采用双 ECS 链路：
 - `target=admin-web` 只操作 ECS-1，不刷新 Nginx。
 - `target=nginx` 只刷新 ECS-1 宿主机入口，但仍会先检查 ECS-2 backend upstream 与 ECS-1 admin-web 健康。
 - `target=all` 会执行 `ECS-2 backend -> ECS-1 admin-web -> ECS-1 nginx reload`。
+- 常规发布优先使用当前 run 的 artifact；只有手动 `image_tag` 回滚才走 GHCR fallback。
 
 ---
 
