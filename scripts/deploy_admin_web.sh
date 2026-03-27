@@ -10,7 +10,7 @@ PREFIX="deploy-web"
 start_admin_web_service() {
   if [ -n "${ADMIN_WEB_IMAGE:-}" ]; then
     log_info "$PREFIX" "Pulling admin web image from registry: ${ADMIN_WEB_IMAGE}"
-    pull_service_with_retry admin-web "$PREFIX"
+    pull_image_with_retry "$ADMIN_WEB_IMAGE" "$PREFIX" "admin-web"
     compose up -d --no-deps admin-web
     return
   fi
