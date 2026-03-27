@@ -20,7 +20,8 @@
 
 - [ ] 在 `Deploy Services To ECS` 中确认 `detect-targets` 能识别本次发布目标。
 - [ ] 若同时变更 backend 和 admin-web，确认 `build-backend` 与 `build-admin-web` 并行执行。
-- [ ] 在 `prepare-backend-host` 与 `prepare-web-host` 日志中确认两台 ECS 都已上传 deployment bundle。
+- [ ] 在 `deploy-backend-host` 与 `deploy-web-host` 日志中确认对应 self-hosted runner 已完成 bundle 同步。
+- [ ] 若同时变更 backend 和 admin-web，确认 backend artifact 只在 ECS-2 下载，admin-web artifact 只在 ECS-1 下载。
 - [ ] 在 `deploy-backend-host` 日志中确认 ECS-2 已完成 backend 发布并通过健康检查。
 - [ ] 在 `deploy-web-host` 日志中确认 ECS-1 在 backend 健康后才执行 admin-web/Nginx 切换。
 - [ ] 在 ECS-2 执行 `docker ps --format '{{.Names}} {{.Status}} {{.Ports}}' | grep 'sunflower-'`，确认 `sunflower-backend`、`sunflower-mysql` 健康。
@@ -56,6 +57,7 @@
 - [ ] 在 ECS-1 上执行 `sudo nginx -T | grep -n '127.0.0.1:18080\\|<BACKEND_UPSTREAM_HOST>:<BACKEND_UPSTREAM_PORT>'`，结果符合入口转发预期。
 - [ ] 在 ECS-2 上执行 `docker compose -f docker-compose.backend.yml logs --tail=200 backend` 无持续报错或重启抖动。
 - [ ] 在 ECS-1 上执行 `docker compose -f docker-compose.web.yml logs --tail=200 admin-web` 无持续报错或重启抖动。
+- [ ] 在 GitHub 仓库的 Runners 页面确认 `ecs-backend` 与 `ecs-web` 两个 self-hosted runner 处于在线状态。
 - [ ] 记录本次发布的 Git SHA、Actions Run URL、验证人、验证时间。
 
 ## 验收结论

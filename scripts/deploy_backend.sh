@@ -13,8 +13,12 @@ start_backend_service() {
   assert_mysql_app_access "$PREFIX"
 
   if [ -n "${BACKEND_IMAGE:-}" ]; then
-    log_info "$PREFIX" "Pulling backend image from registry: ${BACKEND_IMAGE}"
-    pull_image_with_retry "$BACKEND_IMAGE" "$PREFIX" "backend"
+    if local_image_exists "$BACKEND_IMAGE"; then
+      log_info "$PREFIX" "Using preloaded backend image: ${BACKEND_IMAGE}"
+    else
+      log_info "$PREFIX" "Pulling backend image from registry: ${BACKEND_IMAGE}"
+      pull_image_with_retry "$BACKEND_IMAGE" "$PREFIX" "backend"
+    fi
     compose up -d backend
   else
     log_info "$PREFIX" "Starting backend service with local build..."

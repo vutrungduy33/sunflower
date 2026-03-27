@@ -16,7 +16,7 @@ on:
           - all
           - bootstrap
       image_tag:
-        description: Optional existing GHCR image tag for rollback or redeploy
+        description: Optional existing GHCR image tag for rollback or redeploy fallback
         required: false
         type: string
       run_seed:
@@ -45,6 +45,8 @@ on:
       - "scripts/start_backend_with_mvp_seed.sh"
       - "scripts/start_admin_web.sh"
       - "scripts/reload_host_nginx.sh"
+      - "scripts/sync_deploy_bundle.sh"
+      - "scripts/execute_runner_deploy.sh"
       - "scripts/sql/**"
       - ".github/workflows/deploy-backend.yml"
 
@@ -74,6 +76,8 @@ jobs:
       deploy_web_host: ${{ steps.meta.outputs.deploy_web_host }}
       backend_image: ${{ steps.meta.outputs.backend_image_ref }}
       admin_web_image: ${{ steps.meta.outputs.admin_web_image_ref }}
+      backend_artifact_name: ${{ steps.meta.outputs.backend_artifact_name }}
+      admin_web_artifact_name: ${{ steps.meta.outputs.admin_web_artifact_name }}
 
     steps:
       - name: Checkout
@@ -147,15 +151,15 @@ jobs:
 
             printf '%s\n' "$changed_files"
 
-            if printf '%s\n' "$changed_files" | grep -Eq '^(sunflower-backend/|docker-compose\.backend\.yml$|\.env\.prod\.example$|\.env\.empty$|scripts/deploy_backend\.sh$|scripts/deploy_lib\.sh$|scripts/validate_prod_env\.sh$|scripts/start_backend_with_mvp_seed\.sh$|scripts/sql/|\.github/workflows/deploy-backend\.yml$)'; then
+            if printf '%s\n' "$changed_files" | grep -Eq '^(sunflower-backend/|docker-compose\.backend\.yml$|\.env\.prod\.example$|\.env\.empty$|scripts/deploy_backend\.sh$|scripts/deploy_lib\.sh$|scripts/validate_prod_env\.sh$|scripts/start_backend_with_mvp_seed\.sh$|scripts/sync_deploy_bundle\.sh$|scripts/execute_runner_deploy\.sh$|scripts/sql/|\.github/workflows/deploy-backend\.yml$)'; then
               backend_changed=true
             fi
 
-            if printf '%s\n' "$changed_files" | grep -Eq '^(sunflower-admin-web/|docker-compose\.web\.yml$|\.env\.prod\.web\.example$|\.env\.empty$|scripts/deploy_admin_web\.sh$|scripts/deploy_lib\.sh$|scripts/start_admin_web\.sh$|\.github/workflows/deploy-backend\.yml$)'; then
+            if printf '%s\n' "$changed_files" | grep -Eq '^(sunflower-admin-web/|docker-compose\.web\.yml$|\.env\.prod\.web\.example$|\.env\.empty$|scripts/deploy_admin_web\.sh$|scripts/deploy_lib\.sh$|scripts/start_admin_web\.sh$|scripts/sync_deploy_bundle\.sh$|scripts/execute_runner_deploy\.sh$|\.github/workflows/deploy-backend\.yml$)'; then
               admin_web_changed=true
             fi
 
-            if printf '%s\n' "$changed_files" | grep -Eq '^(deploy/nginx/|docker-compose\.web\.yml$|\.env\.prod\.web\.example$|\.env\.empty$|scripts/deploy_prod\.sh$|scripts/bootstrap_prod\.sh$|scripts/deploy_lib\.sh$|scripts/reload_host_nginx\.sh$|scripts/validate_prod_env\.sh$|\.github/workflows/deploy-backend\.yml$)'; then
+            if printf '%s\n' "$changed_files" | grep -Eq '^(deploy/nginx/|docker-compose\.web\.yml$|\.env\.prod\.web\.example$|\.env\.empty$|scripts/deploy_prod\.sh$|scripts/bootstrap_prod\.sh$|scripts/deploy_lib\.sh$|scripts/reload_host_nginx\.sh$|scripts/validate_prod_env\.sh$|scripts/sync_deploy_bundle\.sh$|scripts/execute_runner_deploy\.sh$|\.github/workflows/deploy-backend\.yml$)'; then
               ingress_changed=true
             fi
           fi
@@ -209,13 +213,17 @@ jobs:
           owner="$(printf '%s' "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')"
           backend_image_ref=""
           admin_web_image_ref=""
+          backend_artifact_name=""
+          admin_web_artifact_name=""
 
           if [ "$backend_changed" = "true" ]; then
             backend_image_ref="ghcr.io/${owner}/sunflower-backend:${image_tag}"
+            backend_artifact_name="backend-image-${image_tag}"
           fi
 
           if [ "$admin_web_changed" = "true" ]; then
             admin_web_image_ref="ghcr.io/${owner}/sunflower-admin-web:${image_tag}"
+            admin_web_artifact_name="admin-web-image-${image_tag}"
           fi
 
           {
@@ -232,6 +240,8 @@ jobs:
             echo "deploy_web_host=${deploy_web_host}"
             echo "backend_image_ref=${backend_image_ref}"
             echo "admin_web_image_ref=${admin_web_image_ref}"
+            echo "backend_artifact_name=${backend_artifact_name}"
+            echo "admin_web_artifact_name=${admin_web_artifact_name}"
           } >> "${GITHUB_OUTPUT}"
 
   build-backend:
@@ -287,6 +297,24 @@ jobs:
             MAVEN_MIRROR=${{ env.BACKEND_MAVEN_MIRROR }}
           cache-from: type=gha,scope=sunflower-backend
           cache-to: type=gha,mode=max,scope=sunflower-backend
+
+      - name: Pull backend image for artifact packaging
+        run: docker pull "${{ needs.detect-targets.outputs.backend_image }}"
+
+      - name: Export backend image artifact
+        run: |
+          artifact_dir="${RUNNER_TEMP}/backend-image"
+          artifact_file="${artifact_dir}/${{ needs.detect-targets.outputs.backend_artifact_name }}.tar.gz"
+          mkdir -p "$artifact_dir"
+          docker save "${{ needs.detect-targets.outputs.backend_image }}" | gzip -1 > "$artifact_file"
+
+      - name: Upload backend image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ needs.detect-targets.outputs.backend_artifact_name }}
+          path: ${{ runner.temp }}/backend-image/${{ needs.detect-targets.outputs.backend_artifact_name }}.tar.gz
+          if-no-files-found: error
+          compression-level: 0
 
   build-admin-web:
     needs: detect-targets
@@ -344,7 +372,25 @@ jobs:
           cache-from: type=gha,scope=sunflower-admin-web
           cache-to: type=gha,mode=max,scope=sunflower-admin-web
 
-  prepare-backend-host:
+      - name: Pull admin web image for artifact packaging
+        run: docker pull "${{ needs.detect-targets.outputs.admin_web_image }}"
+
+      - name: Export admin web image artifact
+        run: |
+          artifact_dir="${RUNNER_TEMP}/admin-web-image"
+          artifact_file="${artifact_dir}/${{ needs.detect-targets.outputs.admin_web_artifact_name }}.tar.gz"
+          mkdir -p "$artifact_dir"
+          docker save "${{ needs.detect-targets.outputs.admin_web_image }}" | gzip -1 > "$artifact_file"
+
+      - name: Upload admin web image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ needs.detect-targets.outputs.admin_web_artifact_name }}
+          path: ${{ runner.temp }}/admin-web-image/${{ needs.detect-targets.outputs.admin_web_artifact_name }}.tar.gz
+          if-no-files-found: error
+          compression-level: 0
+
+  deploy-backend-host:
     if: >-
       ${{
         always() &&
@@ -357,7 +403,13 @@ jobs:
       - detect-targets
       - build-backend
       - build-admin-web
-    runs-on: ubuntu-latest
+    runs-on:
+      - self-hosted
+      - linux
+      - ecs-backend
+    permissions:
+      contents: read
+      actions: read
 
     steps:
       - name: Checkout backend deployment bundle source
@@ -375,51 +427,86 @@ jobs:
             scripts
           sparse-checkout-cone-mode: false
 
-      - name: Ensure backend deploy directory exists
-        uses: appleboy/ssh-action@v1.2.0
+      - name: Synchronize backend deployment bundle
         env:
           ECS_DEPLOY_PATH: ${{ secrets.BACKEND_DEPLOY_PATH }}
-        with:
-          host: ${{ secrets.BACKEND_ECS_HOST }}
-          username: ${{ secrets.BACKEND_ECS_USER }}
-          port: ${{ secrets.BACKEND_ECS_PORT }}
-          key: ${{ secrets.BACKEND_ECS_SSH_KEY }}
-          passphrase: ${{ secrets.BACKEND_ECS_SSH_PASSPHRASE }}
-          envs: ECS_DEPLOY_PATH
-          script_stop: true
-          script: |
-            DEPLOY_PATH="$(printf '%s' "${ECS_DEPLOY_PATH:-}" | tr -d '\r\n')"
-            case "$DEPLOY_PATH" in "~") DEPLOY_PATH="$HOME" ;; "~/"*) DEPLOY_PATH="$HOME/${DEPLOY_PATH#\~/}" ;; esac
-            mkdir -p "$DEPLOY_PATH"
+        run: bash scripts/sync_deploy_bundle.sh "${ECS_DEPLOY_PATH}"
 
-      - name: Upload backend deployment bundle
-        uses: appleboy/scp-action@v0.1.7
-        continue-on-error: true
+      - name: Download backend image artifact
+        if: needs.detect-targets.outputs.should_build_backend == 'true'
+        uses: actions/download-artifact@v4
         with:
-          host: ${{ secrets.BACKEND_ECS_HOST }}
-          username: ${{ secrets.BACKEND_ECS_USER }}
-          port: ${{ secrets.BACKEND_ECS_PORT }}
-          key: ${{ secrets.BACKEND_ECS_SSH_KEY }}
-          passphrase: ${{ secrets.BACKEND_ECS_SSH_PASSPHRASE }}
-          source: .env.empty,.env.prod.example,.env.prod.web.example,docker-compose.backend.yml,docker-compose.web.yml,deploy/nginx/sunflower-host.conf.template,scripts
-          target: ${{ secrets.BACKEND_DEPLOY_PATH }}
-          timeout: 2m
-          overwrite: true
+          name: ${{ needs.detect-targets.outputs.backend_artifact_name }}
+          path: ${{ runner.temp }}/backend-image
 
-  prepare-web-host:
+      - name: Load backend image artifact
+        if: needs.detect-targets.outputs.should_build_backend == 'true'
+        run: |
+          artifact_file="${RUNNER_TEMP}/backend-image/${{ needs.detect-targets.outputs.backend_artifact_name }}.tar.gz"
+          [ -f "$artifact_file" ] || { echo "Missing backend artifact: $artifact_file" >&2; exit 1; }
+          gzip -dc "$artifact_file" | docker load
+
+      - name: Check backend image availability
+        id: backend_image_state
+        if: needs.detect-targets.outputs.backend_image != ''
+        run: |
+          if docker image inspect "${{ needs.detect-targets.outputs.backend_image }}" >/dev/null 2>&1; then
+            echo "local=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "local=false" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Login to GHCR for backend rollback fallback
+        if: >-
+          ${{
+            needs.detect-targets.outputs.should_build_backend != 'true' &&
+            needs.detect-targets.outputs.backend_image != '' &&
+            steps.backend_image_state.outputs.local != 'true'
+          }}
+        env:
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+        run: |
+          [ -n "${GHCR_USERNAME:-}" ] || { echo "Missing GHCR_USERNAME" >&2; exit 1; }
+          [ -n "${GHCR_TOKEN:-}" ] || { echo "Missing GHCR_TOKEN" >&2; exit 1; }
+          printf '%s' "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin
+
+      - name: Deploy backend host locally
+        env:
+          BACKEND_IMAGE: ${{ needs.detect-targets.outputs.backend_image }}
+          ADMIN_WEB_IMAGE: ${{ needs.detect-targets.outputs.admin_web_image }}
+          SOURCE_SHA: ${{ needs.detect-targets.outputs.image_tag }}
+          DEPLOY_TARGET: ${{ needs.detect-targets.outputs.deploy_target }}
+          RUN_SEED: ${{ needs.detect-targets.outputs.run_seed }}
+          DEPLOY_NODE_ROLE: backend
+          ECS_DEPLOY_PATH: ${{ secrets.BACKEND_DEPLOY_PATH }}
+        run: bash scripts/execute_runner_deploy.sh
+
+  deploy-web-host:
     if: >-
       ${{
         always() &&
         !cancelled() &&
         needs.detect-targets.outputs.deploy_web_host == 'true' &&
         (needs.build-backend.result == 'success' || needs.build-backend.result == 'skipped') &&
-        (needs.build-admin-web.result == 'success' || needs.build-admin-web.result == 'skipped')
+        (needs.build-admin-web.result == 'success' || needs.build-admin-web.result == 'skipped') &&
+        (
+          needs.detect-targets.outputs.deploy_backend_host != 'true' ||
+          needs.deploy-backend-host.result == 'success'
+        )
       }}
     needs:
       - detect-targets
       - build-backend
       - build-admin-web
-    runs-on: ubuntu-latest
+      - deploy-backend-host
+    runs-on:
+      - self-hosted
+      - linux
+      - ecs-web
+    permissions:
+      contents: read
+      actions: read
 
     steps:
       - name: Checkout web deployment bundle source
@@ -437,145 +524,51 @@ jobs:
             scripts
           sparse-checkout-cone-mode: false
 
-      - name: Ensure web deploy directory exists
-        uses: appleboy/ssh-action@v1.2.0
+      - name: Synchronize web deployment bundle
         env:
           ECS_DEPLOY_PATH: ${{ secrets.WEB_DEPLOY_PATH }}
+        run: bash scripts/sync_deploy_bundle.sh "${ECS_DEPLOY_PATH}"
+
+      - name: Download admin web image artifact
+        if: needs.detect-targets.outputs.should_build_admin_web == 'true'
+        uses: actions/download-artifact@v4
         with:
-          host: ${{ secrets.WEB_ECS_HOST }}
-          username: ${{ secrets.WEB_ECS_USER }}
-          port: ${{ secrets.WEB_ECS_PORT }}
-          key: ${{ secrets.WEB_ECS_SSH_KEY }}
-          passphrase: ${{ secrets.WEB_ECS_SSH_PASSPHRASE }}
-          envs: ECS_DEPLOY_PATH
-          script_stop: true
-          script: |
-            DEPLOY_PATH="$(printf '%s' "${ECS_DEPLOY_PATH:-}" | tr -d '\r\n')"
-            case "$DEPLOY_PATH" in "~") DEPLOY_PATH="$HOME" ;; "~/"*) DEPLOY_PATH="$HOME/${DEPLOY_PATH#\~/}" ;; esac
-            mkdir -p "$DEPLOY_PATH"
+          name: ${{ needs.detect-targets.outputs.admin_web_artifact_name }}
+          path: ${{ runner.temp }}/admin-web-image
 
-      - name: Upload web deployment bundle
-        uses: appleboy/scp-action@v0.1.7
-        continue-on-error: true
-        with:
-          host: ${{ secrets.WEB_ECS_HOST }}
-          username: ${{ secrets.WEB_ECS_USER }}
-          port: ${{ secrets.WEB_ECS_PORT }}
-          key: ${{ secrets.WEB_ECS_SSH_KEY }}
-          passphrase: ${{ secrets.WEB_ECS_SSH_PASSPHRASE }}
-          source: .env.empty,.env.prod.example,.env.prod.web.example,docker-compose.backend.yml,docker-compose.web.yml,deploy/nginx/sunflower-host.conf.template,scripts
-          target: ${{ secrets.WEB_DEPLOY_PATH }}
-          timeout: 2m
-          overwrite: true
+      - name: Load admin web image artifact
+        if: needs.detect-targets.outputs.should_build_admin_web == 'true'
+        run: |
+          artifact_file="${RUNNER_TEMP}/admin-web-image/${{ needs.detect-targets.outputs.admin_web_artifact_name }}.tar.gz"
+          [ -f "$artifact_file" ] || { echo "Missing admin web artifact: $artifact_file" >&2; exit 1; }
+          gzip -dc "$artifact_file" | docker load
 
-  deploy-backend-host:
-    if: >-
-      ${{
-        always() &&
-        !cancelled() &&
-        needs.detect-targets.outputs.deploy_backend_host == 'true' &&
-        needs.prepare-backend-host.result == 'success'
-      }}
-    needs:
-      - detect-targets
-      - prepare-backend-host
-    runs-on: ubuntu-latest
+      - name: Check admin web image availability
+        id: admin_web_image_state
+        if: needs.detect-targets.outputs.admin_web_image != ''
+        run: |
+          if docker image inspect "${{ needs.detect-targets.outputs.admin_web_image }}" >/dev/null 2>&1; then
+            echo "local=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "local=false" >> "${GITHUB_OUTPUT}"
+          fi
 
-    steps:
-      - name: Deploy backend host via SSH
-        uses: appleboy/ssh-action@v1.2.0
+      - name: Login to GHCR for admin web rollback fallback
+        if: >-
+          ${{
+            needs.detect-targets.outputs.should_build_admin_web != 'true' &&
+            needs.detect-targets.outputs.admin_web_image != '' &&
+            steps.admin_web_image_state.outputs.local != 'true'
+          }}
         env:
-          BACKEND_IMAGE: ${{ needs.detect-targets.outputs.backend_image }}
-          ADMIN_WEB_IMAGE: ${{ needs.detect-targets.outputs.admin_web_image }}
-          SOURCE_SHA: ${{ needs.detect-targets.outputs.image_tag }}
-          DEPLOY_TARGET: ${{ needs.detect-targets.outputs.deploy_target }}
-          RUN_SEED: ${{ needs.detect-targets.outputs.run_seed }}
-          DEPLOY_NODE_ROLE: backend
-          ECS_DEPLOY_PATH: ${{ secrets.BACKEND_DEPLOY_PATH }}
           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
           GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
-        with:
-          host: ${{ secrets.BACKEND_ECS_HOST }}
-          username: ${{ secrets.BACKEND_ECS_USER }}
-          port: ${{ secrets.BACKEND_ECS_PORT }}
-          key: ${{ secrets.BACKEND_ECS_SSH_KEY }}
-          passphrase: ${{ secrets.BACKEND_ECS_SSH_PASSPHRASE }}
-          envs: BACKEND_IMAGE,ADMIN_WEB_IMAGE,SOURCE_SHA,DEPLOY_TARGET,RUN_SEED,DEPLOY_NODE_ROLE,ECS_DEPLOY_PATH,GHCR_USERNAME,GHCR_TOKEN
-          command_timeout: 30m
-          script_stop: true
-          script: |
-            set -eu
+        run: |
+          [ -n "${GHCR_USERNAME:-}" ] || { echo "Missing GHCR_USERNAME" >&2; exit 1; }
+          [ -n "${GHCR_TOKEN:-}" ] || { echo "Missing GHCR_TOKEN" >&2; exit 1; }
+          printf '%s' "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin
 
-            BACKEND_IMAGE="$(printf '%s' "${BACKEND_IMAGE:-}" | tr -d '\r\n' | tr -cd '[:alnum:]._:/-')"
-            ADMIN_WEB_IMAGE="$(printf '%s' "${ADMIN_WEB_IMAGE:-}" | tr -d '\r\n' | tr -cd '[:alnum:]._:/-')"
-            SOURCE_SHA="$(printf '%s' "${SOURCE_SHA:-}" | tr -d '\r\n')"
-            DEPLOY_TARGET="$(printf '%s' "${DEPLOY_TARGET:-}" | tr -d '\r\n')"
-            RUN_SEED="$(printf '%s' "${RUN_SEED:-false}" | tr -d '\r\n')"
-            DEPLOY_NODE_ROLE="$(printf '%s' "${DEPLOY_NODE_ROLE:-backend}" | tr -d '\r\n')"
-            DEPLOY_PATH="$(printf '%s' "${ECS_DEPLOY_PATH:-}" | tr -d '\r\n')"
-            GHCR_USERNAME="$(printf '%s' "${GHCR_USERNAME:-}" | tr -d '\r\n')"
-            GHCR_TOKEN="$(printf '%s' "${GHCR_TOKEN:-}" | tr -d '\r\n')"
-            case "$DEPLOY_PATH" in "~") DEPLOY_PATH="$HOME" ;; "~/"*) DEPLOY_PATH="$HOME/${DEPLOY_PATH#\~/}" ;; esac
-
-            [ -n "$SOURCE_SHA" ] || { echo "Missing SOURCE_SHA"; exit 1; }
-            [ -n "$DEPLOY_TARGET" ] || { echo "Missing DEPLOY_TARGET"; exit 1; }
-            [ -n "$DEPLOY_PATH" ] || { echo "Missing DEPLOY_PATH"; exit 1; }
-
-            mkdir -p "$DEPLOY_PATH"
-            cd "$DEPLOY_PATH"
-
-            if [ ! -f docker-compose.backend.yml ] || [ ! -f scripts/validate_prod_env.sh ]; then
-              echo "Missing backend deploy assets after upload"
-              pwd
-              find . -maxdepth 4 -print || true
-              exit 1
-            fi
-            printf '%s\n' "$SOURCE_SHA" > .deploy-source-sha
-
-            : > .release.env
-            printf '%s\n' "BACKEND_IMAGE=$BACKEND_IMAGE" >> .release.env
-            printf '%s\n' "ADMIN_WEB_IMAGE=$ADMIN_WEB_IMAGE" >> .release.env
-            printf '%s\n' "SOURCE_SHA=$SOURCE_SHA" >> .release.env
-            printf '%s\n' "DEPLOY_TARGET=$DEPLOY_TARGET" >> .release.env
-            printf '%s\n' "RUN_SEED=$RUN_SEED" >> .release.env
-
-            export DEPLOY_NODE_ROLE
-            chmod +x scripts/*.sh
-            ./scripts/validate_prod_env.sh
-
-            if [ -n "$BACKEND_IMAGE" ]; then
-              [ -n "$GHCR_USERNAME" ] || { echo "Missing GHCR_USERNAME"; exit 1; }
-              [ -n "$GHCR_TOKEN" ] || { echo "Missing GHCR_TOKEN"; exit 1; }
-              printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
-            fi
-
-            if [ "$DEPLOY_TARGET" = "bootstrap" ]; then
-              ./scripts/bootstrap_prod.sh
-            else
-              ./scripts/deploy_prod.sh "$DEPLOY_TARGET"
-            fi
-
-  deploy-web-host:
-    if: >-
-      ${{
-        always() &&
-        !cancelled() &&
-        needs.detect-targets.outputs.deploy_web_host == 'true' &&
-        needs.prepare-web-host.result == 'success' &&
-        (
-          needs.detect-targets.outputs.deploy_backend_host != 'true' ||
-          needs.deploy-backend-host.result == 'success'
-        )
-      }}
-    needs:
-      - detect-targets
-      - prepare-web-host
-      - deploy-backend-host
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Deploy web host via SSH
-        uses: appleboy/ssh-action@v1.2.0
+      - name: Deploy web host locally
         env:
           BACKEND_IMAGE: ${{ needs.detect-targets.outputs.backend_image }}
           ADMIN_WEB_IMAGE: ${{ needs.detect-targets.outputs.admin_web_image }}
@@ -584,65 +577,4 @@ jobs:
           RUN_SEED: ${{ needs.detect-targets.outputs.run_seed }}
           DEPLOY_NODE_ROLE: web
           ECS_DEPLOY_PATH: ${{ secrets.WEB_DEPLOY_PATH }}
-          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
-          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
-        with:
-          host: ${{ secrets.WEB_ECS_HOST }}
-          username: ${{ secrets.WEB_ECS_USER }}
-          port: ${{ secrets.WEB_ECS_PORT }}
-          key: ${{ secrets.WEB_ECS_SSH_KEY }}
-          passphrase: ${{ secrets.WEB_ECS_SSH_PASSPHRASE }}
-          envs: BACKEND_IMAGE,ADMIN_WEB_IMAGE,SOURCE_SHA,DEPLOY_TARGET,RUN_SEED,DEPLOY_NODE_ROLE,ECS_DEPLOY_PATH,GHCR_USERNAME,GHCR_TOKEN
-          command_timeout: 30m
-          script_stop: true
-          script: |
-            set -eu
-
-            BACKEND_IMAGE="$(printf '%s' "${BACKEND_IMAGE:-}" | tr -d '\r\n' | tr -cd '[:alnum:]._:/-')"
-            ADMIN_WEB_IMAGE="$(printf '%s' "${ADMIN_WEB_IMAGE:-}" | tr -d '\r\n' | tr -cd '[:alnum:]._:/-')"
-            SOURCE_SHA="$(printf '%s' "${SOURCE_SHA:-}" | tr -d '\r\n')"
-            DEPLOY_TARGET="$(printf '%s' "${DEPLOY_TARGET:-}" | tr -d '\r\n')"
-            RUN_SEED="$(printf '%s' "${RUN_SEED:-false}" | tr -d '\r\n')"
-            DEPLOY_NODE_ROLE="$(printf '%s' "${DEPLOY_NODE_ROLE:-web}" | tr -d '\r\n')"
-            DEPLOY_PATH="$(printf '%s' "${ECS_DEPLOY_PATH:-}" | tr -d '\r\n')"
-            GHCR_USERNAME="$(printf '%s' "${GHCR_USERNAME:-}" | tr -d '\r\n')"
-            GHCR_TOKEN="$(printf '%s' "${GHCR_TOKEN:-}" | tr -d '\r\n')"
-            case "$DEPLOY_PATH" in "~") DEPLOY_PATH="$HOME" ;; "~/"*) DEPLOY_PATH="$HOME/${DEPLOY_PATH#\~/}" ;; esac
-
-            [ -n "$SOURCE_SHA" ] || { echo "Missing SOURCE_SHA"; exit 1; }
-            [ -n "$DEPLOY_TARGET" ] || { echo "Missing DEPLOY_TARGET"; exit 1; }
-            [ -n "$DEPLOY_PATH" ] || { echo "Missing DEPLOY_PATH"; exit 1; }
-
-            mkdir -p "$DEPLOY_PATH"
-            cd "$DEPLOY_PATH"
-
-            if [ ! -f docker-compose.web.yml ] || [ ! -f deploy/nginx/sunflower-host.conf.template ] || [ ! -f scripts/validate_prod_env.sh ]; then
-              echo "Missing web deploy assets after upload"
-              pwd
-              find . -maxdepth 4 -print || true
-              exit 1
-            fi
-            printf '%s\n' "$SOURCE_SHA" > .deploy-source-sha
-
-            : > .release.env
-            printf '%s\n' "BACKEND_IMAGE=$BACKEND_IMAGE" >> .release.env
-            printf '%s\n' "ADMIN_WEB_IMAGE=$ADMIN_WEB_IMAGE" >> .release.env
-            printf '%s\n' "SOURCE_SHA=$SOURCE_SHA" >> .release.env
-            printf '%s\n' "DEPLOY_TARGET=$DEPLOY_TARGET" >> .release.env
-            printf '%s\n' "RUN_SEED=$RUN_SEED" >> .release.env
-
-            export DEPLOY_NODE_ROLE
-            chmod +x scripts/*.sh
-            ./scripts/validate_prod_env.sh
-
-            if [ -n "$ADMIN_WEB_IMAGE" ]; then
-              [ -n "$GHCR_USERNAME" ] || { echo "Missing GHCR_USERNAME"; exit 1; }
-              [ -n "$GHCR_TOKEN" ] || { echo "Missing GHCR_TOKEN"; exit 1; }
-              printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
-            fi
-
-            if [ "$DEPLOY_TARGET" = "bootstrap" ]; then
-              ./scripts/bootstrap_prod.sh
-            else
-              ./scripts/deploy_prod.sh "$DEPLOY_TARGET"
-            fi
+        run: bash scripts/execute_runner_deploy.sh
