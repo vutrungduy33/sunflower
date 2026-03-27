@@ -164,22 +164,25 @@ print_service_diagnostics() {
   docker logs --tail 200 "$container_id" || true
 }
 
-pull_service_with_retry() {
-  local service="$1"
+pull_image_with_retry() {
+  local image_ref="$1"
   local prefix="${2:-deploy}"
+  local image_label="${3:-$image_ref}"
   local attempt=1
   local delay="$REGISTRY_PULL_INITIAL_DELAY_SECONDS"
 
+  [ -n "$image_ref" ] || fail "$prefix" "image reference is required for registry pull"
+
   while true; do
-    if compose pull "$service"; then
+    if docker pull "$image_ref"; then
       return
     fi
 
     if (( attempt >= REGISTRY_PULL_MAX_ATTEMPTS )); then
-      fail "$prefix" "failed to pull '$service' image after ${REGISTRY_PULL_MAX_ATTEMPTS} attempts"
+      fail "$prefix" "failed to pull image '${image_label}' after ${REGISTRY_PULL_MAX_ATTEMPTS} attempts"
     fi
 
-    log_info "$prefix" "WARN: pull '$service' failed on attempt ${attempt}/${REGISTRY_PULL_MAX_ATTEMPTS}, retrying in ${delay}s..."
+    log_info "$prefix" "WARN: pull '${image_label}' failed on attempt ${attempt}/${REGISTRY_PULL_MAX_ATTEMPTS}, retrying in ${delay}s..."
     sleep "$delay"
     attempt=$((attempt + 1))
     delay=$((delay * 2))

@@ -14,7 +14,7 @@ start_backend_service() {
 
   if [ -n "${BACKEND_IMAGE:-}" ]; then
     log_info "$PREFIX" "Pulling backend image from registry: ${BACKEND_IMAGE}"
-    pull_service_with_retry backend "$PREFIX"
+    pull_image_with_retry "$BACKEND_IMAGE" "$PREFIX" "backend"
     compose up -d backend
   else
     log_info "$PREFIX" "Starting backend service with local build..."
