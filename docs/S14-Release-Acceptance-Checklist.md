@@ -20,15 +20,19 @@
 
 - [ ] 在 `Deploy Services To ECS` 中确认 `detect-targets` 能识别本次发布目标。
 - [ ] 若同时变更 backend 和 admin-web，确认 `build-backend` 与 `build-admin-web` 并行执行。
-- [ ] 在 `deploy` 日志中确认 deployment bundle 上传成功，且 ECS 解包后包含 `docker-compose.yml`、Nginx 模板、部署脚本与 seed SQL。
-- [ ] 在 ECS 上执行 `docker ps --format '{{.Names}} {{.Status}} {{.Ports}}' | grep 'sunflower-'`，确认 `sunflower-backend`、`sunflower-admin-web`、`sunflower-mysql` 均健康，且端口只绑定 `127.0.0.1`。
+- [ ] 在 `prepare-backend-host` 与 `prepare-web-host` 日志中确认两台 ECS 都已上传 deployment bundle。
+- [ ] 在 `deploy-backend-host` 日志中确认 ECS-2 已完成 backend 发布并通过健康检查。
+- [ ] 在 `deploy-web-host` 日志中确认 ECS-1 在 backend 健康后才执行 admin-web/Nginx 切换。
+- [ ] 在 ECS-2 执行 `docker ps --format '{{.Names}} {{.Status}} {{.Ports}}' | grep 'sunflower-'`，确认 `sunflower-backend`、`sunflower-mysql` 健康。
+- [ ] 在 ECS-1 执行 `docker ps --format '{{.Names}} {{.Status}} {{.Ports}}' | grep 'sunflower-'`，确认 `sunflower-admin-web` 健康。
 
 ### 3. 后端 API
 
-- [ ] 访问统一入口 `GET /api/health` 返回成功。
+- [ ] 访问对外 API 域名 `GET https://<api-domain>/api/health` 返回成功。
+- [ ] 在 ECS-1 上执行 `curl http://<BACKEND_UPSTREAM_HOST>:<BACKEND_UPSTREAM_PORT>/api/health` 返回成功。
 - [ ] 以演示账号完成一次登录，确认 token 可用于后续 API 请求。
 - [ ] 创建一笔订单并完成支付、取消或售后查询中的任一闭环，确认响应结构与既有契约一致。
-- [ ] 在宿主机或容器日志中确认无启动失败、Flyway 迁移失败、seed 导入失败等错误。
+- [ ] 在 ECS-2 宿主机或容器日志中确认无启动失败、Flyway 迁移失败、seed 导入失败等错误。
 
 ### 4. 管理后台
 
@@ -37,7 +41,7 @@
 - [ ] 验证已上线页面至少各完成一次核心动作：
   - [ ] 房型管理：列表可加载。
   - [ ] 价格与库存管理：房型切换、日期选择、批量提交成功。
-- [ ] 若本次发布仅包含 admin-web，确认部署日志中出现 `up -d --no-deps admin-web`，且未触发 backend 本地构建回退。
+- [ ] 若本次发布仅包含 admin-web，确认部署日志中出现 `up -d --no-deps admin-web`，且未触发 ECS-2 backend 发布。
 
 ### 5. 小程序
 
@@ -48,9 +52,10 @@
 
 ## 发布后巡检
 
-- [ ] 访问统一入口 `/`、`/api/health`、`/healthz` 均正常返回。
-- [ ] 宿主机 `sudo nginx -T | grep -n '127.0.0.1:18080\\|127.0.0.1:8080'` 结果符合入口转发预期。
-- [ ] `docker compose logs --tail=200 backend admin-web` 无持续报错或重启抖动。
+- [ ] 访问 `https://<admin-domain>/`、`https://<api-domain>/api/health`、`https://<admin-domain>/healthz` 均正常返回。
+- [ ] 在 ECS-1 上执行 `sudo nginx -T | grep -n '127.0.0.1:18080\\|<BACKEND_UPSTREAM_HOST>:<BACKEND_UPSTREAM_PORT>'`，结果符合入口转发预期。
+- [ ] 在 ECS-2 上执行 `docker compose -f docker-compose.backend.yml logs --tail=200 backend` 无持续报错或重启抖动。
+- [ ] 在 ECS-1 上执行 `docker compose -f docker-compose.web.yml logs --tail=200 admin-web` 无持续报错或重启抖动。
 - [ ] 记录本次发布的 Git SHA、Actions Run URL、验证人、验证时间。
 
 ## 验收结论

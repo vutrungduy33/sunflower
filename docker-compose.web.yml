@@ -1,0 +1,24 @@
+x-runtime-env-files: &runtime_env_files
+  - ${PROD_ENV_FILE:-.env.prod}
+  - ${RELEASE_ENV_FILE:-.env.empty}
+
+services:
+  admin-web:
+    image: ${ADMIN_WEB_IMAGE:-sunflower-admin-web:local}
+    build:
+      context: ./sunflower-admin-web
+      dockerfile: Dockerfile
+      args:
+        VITE_APP_TITLE: ${ADMIN_WEB_APP_TITLE:-Sunflower Admin Web}
+        VITE_API_BASE_URL: ${ADMIN_WEB_API_BASE_URL:-/api}
+        VITE_API_PROXY_TARGET: ${ADMIN_WEB_API_PROXY_TARGET:-http://127.0.0.1:8080}
+    container_name: sunflower-admin-web
+    restart: unless-stopped
+    env_file: *runtime_env_files
+    ports:
+      - "${ADMIN_WEB_BIND_HOST:-127.0.0.1}:${ADMIN_WEB_HOST_PORT:-18080}:80"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/healthz || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10

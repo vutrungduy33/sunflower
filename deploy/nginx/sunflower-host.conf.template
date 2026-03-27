@@ -1,7 +1,7 @@
 server {
   listen 80;
   listen [::]:80;
-  server_name __HOST_NGINX_SERVER_NAME__;
+  server_name __HOST_NGINX_ADMIN_SERVER_NAME__;
 
   location = /healthz {
     access_log off;
@@ -17,10 +17,10 @@ server {
 server {
   listen 443 ssl http2;
   listen [::]:443 ssl http2;
-  server_name __HOST_NGINX_SERVER_NAME__;
+  server_name __HOST_NGINX_ADMIN_SERVER_NAME__;
 
-  ssl_certificate __HOST_NGINX_TLS_CERT_PATH__;
-  ssl_certificate_key __HOST_NGINX_TLS_KEY_PATH__;
+  ssl_certificate __HOST_NGINX_ADMIN_TLS_CERT_PATH__;
+  ssl_certificate_key __HOST_NGINX_ADMIN_TLS_KEY_PATH__;
   ssl_session_timeout 1d;
   ssl_session_cache shared:SSL:10m;
   ssl_protocols TLSv1.2 TLSv1.3;
@@ -33,7 +33,7 @@ server {
   }
 
   location /api/ {
-    proxy_pass http://127.0.0.1:__BACKEND_HOST_PORT__;
+    proxy_pass http://__BACKEND_UPSTREAM_HOST__:__BACKEND_UPSTREAM_PORT__;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
@@ -46,6 +46,53 @@ server {
 
   location / {
     proxy_pass http://127.0.0.1:__ADMIN_WEB_HOST_PORT__;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_connect_timeout 10s;
+    proxy_send_timeout 60s;
+    proxy_read_timeout 60s;
+  }
+}
+
+server {
+  listen 80;
+  listen [::]:80;
+  server_name __HOST_NGINX_API_SERVER_NAME__;
+
+  location = /healthz {
+    access_log off;
+    add_header Content-Type text/plain;
+    return 200 "ok\n";
+  }
+
+  location / {
+    return 301 https://$host$request_uri;
+  }
+}
+
+server {
+  listen 443 ssl http2;
+  listen [::]:443 ssl http2;
+  server_name __HOST_NGINX_API_SERVER_NAME__;
+
+  ssl_certificate __HOST_NGINX_API_TLS_CERT_PATH__;
+  ssl_certificate_key __HOST_NGINX_API_TLS_KEY_PATH__;
+  ssl_session_timeout 1d;
+  ssl_session_cache shared:SSL:10m;
+  ssl_protocols TLSv1.2 TLSv1.3;
+  ssl_prefer_server_ciphers off;
+
+  location = /healthz {
+    access_log off;
+    add_header Content-Type text/plain;
+    return 200 "ok\n";
+  }
+
+  location / {
+    proxy_pass http://__BACKEND_UPSTREAM_HOST__:__BACKEND_UPSTREAM_PORT__;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
