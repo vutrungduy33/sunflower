@@ -21,6 +21,15 @@ public class OrderDto {
     private String bookingStatusLabel;
     private String paymentStatus;
     private String paymentStatusLabel;
+    private String paymentMode;
+    private String paymentRecordStatus;
+    private String paymentRecordNo;
+    private String transactionId;
+    private Long latestRefundRecordId;
+    private String latestRefundStatus;
+    private String latestRefundFailureCode;
+    private String latestRefundFailureMessage;
+    private int latestRefundAmount;
     private Long latestAfterSaleRequestId;
     private String latestAfterSaleType;
     private String latestAfterSaleStatus;
@@ -187,6 +196,78 @@ public class OrderDto {
 
     public void setPaymentStatusLabel(String paymentStatusLabel) {
         this.paymentStatusLabel = paymentStatusLabel;
+    }
+
+    public String getPaymentMode() {
+        return paymentMode;
+    }
+
+    public void setPaymentMode(String paymentMode) {
+        this.paymentMode = paymentMode;
+    }
+
+    public String getPaymentRecordStatus() {
+        return paymentRecordStatus;
+    }
+
+    public void setPaymentRecordStatus(String paymentRecordStatus) {
+        this.paymentRecordStatus = paymentRecordStatus;
+    }
+
+    public String getPaymentRecordNo() {
+        return paymentRecordNo;
+    }
+
+    public void setPaymentRecordNo(String paymentRecordNo) {
+        this.paymentRecordNo = paymentRecordNo;
+    }
+
+    public String getTransactionId() {
+        return transactionId;
+    }
+
+    public void setTransactionId(String transactionId) {
+        this.transactionId = transactionId;
+    }
+
+    public Long getLatestRefundRecordId() {
+        return latestRefundRecordId;
+    }
+
+    public void setLatestRefundRecordId(Long latestRefundRecordId) {
+        this.latestRefundRecordId = latestRefundRecordId;
+    }
+
+    public String getLatestRefundStatus() {
+        return latestRefundStatus;
+    }
+
+    public void setLatestRefundStatus(String latestRefundStatus) {
+        this.latestRefundStatus = latestRefundStatus;
+    }
+
+    public String getLatestRefundFailureCode() {
+        return latestRefundFailureCode;
+    }
+
+    public void setLatestRefundFailureCode(String latestRefundFailureCode) {
+        this.latestRefundFailureCode = latestRefundFailureCode;
+    }
+
+    public String getLatestRefundFailureMessage() {
+        return latestRefundFailureMessage;
+    }
+
+    public void setLatestRefundFailureMessage(String latestRefundFailureMessage) {
+        this.latestRefundFailureMessage = latestRefundFailureMessage;
+    }
+
+    public int getLatestRefundAmount() {
+        return latestRefundAmount;
+    }
+
+    public void setLatestRefundAmount(int latestRefundAmount) {
+        this.latestRefundAmount = latestRefundAmount;
     }
 
     public Long getLatestAfterSaleRequestId() {

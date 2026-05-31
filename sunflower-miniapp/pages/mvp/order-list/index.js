@@ -1,12 +1,12 @@
 const {
   fetchOrders,
   postCancelOrder,
-  postPayOrder,
   postRefundOrder,
   postRescheduleOrder,
 } = require('../../../utils/mvp/api');
 const { diffDays, formatDate, parseDate } = require('../../../utils/mvp/date');
 const { normalizeOrders } = require('../../../utils/mvp/normalize');
+const { payOrderByFlow } = require('../../../utils/mvp/payment');
 const { track } = require('../../../utils/mvp/tracker');
 
 Page({
@@ -22,6 +22,7 @@ Page({
       { key: 'CONFIRMED', label: '待入住' },
       { key: 'CHECKED_IN', label: '已入住' },
       { key: 'RESCHEDULED', label: '已改期' },
+      { key: 'REFUND_PENDING', label: '退款中' },
       { key: 'REFUNDED', label: '已退款' },
       { key: 'COMPLETED', label: '已完成' },
       { key: 'CANCELLED', label: '已取消' },
@@ -78,10 +79,22 @@ Page({
   async onPay(event) {
     const { id } = event.currentTarget.dataset;
     try {
-      const order = await postPayOrder(id);
-      track('order_pay_success', { orderId: order.id, amount: order.totalAmount });
-      wx.showToast({ title: '支付成功', icon: 'success' });
-      this.loadOrders();
+      const result = await payOrderByFlow(id);
+      if (result.status === 'success') {
+        track('order_pay_success', { orderId: result.order.id, amount: result.order.totalAmount });
+        this.loadOrders();
+        return;
+      }
+      if (result.status === 'cancelled') {
+        wx.showToast({ title: '你已取消支付', icon: 'none' });
+        return;
+      }
+      if (result.status === 'confirming') {
+        wx.showToast({ title: result.message || '支付结果确认中', icon: 'none' });
+        this.loadOrders();
+        return;
+      }
+      wx.showToast({ title: result.message || '支付失败', icon: 'none' });
     } catch (error) {
       wx.showToast({ title: error.message || '支付失败', icon: 'none' });
     }

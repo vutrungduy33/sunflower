@@ -15,6 +15,7 @@ import {
   rejectAdminAfterSaleRequest,
   refundAdminOrder,
   rescheduleAdminOrder,
+  retryAdminRefund,
   type AdminOrder,
   type AdminOrderOverview,
 } from '@/features/orders/admin-order-service'
@@ -260,6 +261,7 @@ vi.mock('@/features/orders/admin-order-service', () => ({
   rejectAdminAfterSaleRequest: vi.fn(),
   refundAdminOrder: vi.fn(),
   rescheduleAdminOrder: vi.fn(),
+  retryAdminRefund: vi.fn(),
 }))
 
 function buildOverview(overrides: Partial<AdminOrderOverview> = {}): AdminOrderOverview {
@@ -294,6 +296,15 @@ function buildOrder(overrides: Partial<AdminOrder> = {}): AdminOrder {
     bookingStatusLabel: '待入住',
     paymentStatus: 'PAID',
     paymentStatusLabel: '已支付',
+    paymentMode: 'WECHAT_MINIAPP',
+    paymentRecordStatus: 'SUCCESS',
+    paymentRecordNo: 'SFP2026031110301234A1B2C3',
+    transactionId: '4200000000000000001',
+    latestRefundRecordId: null,
+    latestRefundStatus: '',
+    latestRefundFailureCode: '',
+    latestRefundFailureMessage: '',
+    latestRefundAmount: 0,
     latestAfterSaleRequestId: null,
     latestAfterSaleType: '',
     latestAfterSaleStatus: '',
@@ -347,6 +358,7 @@ describe('OrderManagementPage', () => {
     vi.mocked(rejectAdminAfterSaleRequest).mockReset()
     vi.mocked(rescheduleAdminOrder).mockReset()
     vi.mocked(refundAdminOrder).mockReset()
+    vi.mocked(retryAdminRefund).mockReset()
     vi.mocked(getAdminOrderErrorMessage).mockClear()
 
     vi.mocked(fetchAdminOrderOverview).mockResolvedValue(buildOverview())
@@ -451,6 +463,22 @@ describe('OrderManagementPage', () => {
           refundedAt: '2026-03-13T11:40:00+08:00',
           afterSaleReason: payload.reason ?? '',
         }),
+    )
+    vi.mocked(retryAdminRefund).mockImplementation(async (orderId: string, _refundId: number) =>
+      buildOrder({
+        id: orderId,
+        status: 'CONFIRMED',
+        statusLabel: '待入住',
+        bookingStatus: 'CONFIRMED',
+        bookingStatusLabel: '待入住',
+        paymentStatus: 'REFUND_PENDING',
+        paymentStatusLabel: '退款中',
+        latestRefundRecordId: 12,
+        latestRefundStatus: 'PROCESSING',
+        latestRefundFailureCode: '',
+        latestRefundFailureMessage: '',
+        latestRefundAmount: 488,
+      }),
     )
   })
 

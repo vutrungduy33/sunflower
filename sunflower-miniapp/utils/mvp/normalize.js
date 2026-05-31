@@ -114,7 +114,9 @@ function normalizeOrder(order) {
     latestAfterSaleStatusLabel: `${next.latestAfterSaleStatusLabel || ''}`.trim(),
     latestAfterSaleRejectReason: `${next.latestAfterSaleRejectReason || ''}`.trim(),
     statusLabel: `${next.statusLabel || status}`.trim() || status,
-    canPay: status === 'PENDING_PAYMENT',
+    canPay:
+      (bookingStatus ? bookingStatus === 'PENDING_PAYMENT' : status === 'PENDING_PAYMENT') &&
+      (paymentStatus ? paymentStatus === 'UNPAID' : true),
     canCancel: bookingStatus ? bookingStatus === 'PENDING_PAYMENT' : status === 'PENDING_PAYMENT',
     canReschedule:
       bookingStatus === 'CONFIRMED' && paymentStatus === 'PAID' && latestAfterSaleStatus !== 'REQUESTED',

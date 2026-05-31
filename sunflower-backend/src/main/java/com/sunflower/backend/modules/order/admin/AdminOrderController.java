@@ -59,6 +59,11 @@ public class AdminOrderController {
         return ApiResponse.ok(adminOrderService.refundOrder(orderId, request));
     }
 
+    @PostMapping("/orders/{orderId}/refunds/{refundId}/retry")
+    public ApiResponse<AdminOrderDto> retryRefund(@PathVariable String orderId, @PathVariable Long refundId) {
+        return ApiResponse.ok(adminOrderService.retryRefund(orderId, refundId));
+    }
+
     @PostMapping("/orders/{orderId}/after-sale/{requestId}/approve")
     public ApiResponse<AdminOrderDto> approveAfterSaleRequest(
         @PathVariable String orderId,

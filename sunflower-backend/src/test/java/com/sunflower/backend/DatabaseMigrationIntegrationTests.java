@@ -24,7 +24,17 @@ class DatabaseMigrationIntegrationTests {
         );
 
         assertThat(tableNames)
-            .contains("users", "user_profiles", "rooms", "room_prices", "room_inventory", "orders");
+            .contains(
+                "users",
+                "user_profiles",
+                "rooms",
+                "room_prices",
+                "room_inventory",
+                "orders",
+                "wechat_payment_orders",
+                "wechat_refund_orders",
+                "wechat_notify_events"
+            );
     }
 
     @Test

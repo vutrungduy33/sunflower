@@ -10,33 +10,56 @@ import com.sunflower.backend.modules.admin.persistence.AdminAccountCredentialRep
 import com.sunflower.backend.modules.admin.persistence.AdminAccountEntity;
 import com.sunflower.backend.modules.admin.persistence.AdminAccountRepository;
 import com.sunflower.backend.modules.auth.AuthTokenService;
+import com.sunflower.backend.modules.order.persistence.OrderAfterSaleRequestEntity;
+import com.sunflower.backend.modules.order.persistence.OrderAfterSaleRequestRepository;
+import com.sunflower.backend.modules.payment.wechat.WechatPayCryptoSupport;
+import com.sunflower.backend.modules.payment.wechat.WechatPayProperties;
+import com.sunflower.backend.modules.payment.wechat.persistence.WechatNotifyEventEntity;
+import com.sunflower.backend.modules.payment.wechat.persistence.WechatNotifyEventRepository;
+import com.sunflower.backend.modules.payment.wechat.persistence.WechatNotifyEventStatus;
+import com.sunflower.backend.modules.payment.wechat.persistence.WechatRefundOrderEntity;
+import com.sunflower.backend.modules.payment.wechat.persistence.WechatRefundOrderRepository;
+import com.sunflower.backend.modules.payment.wechat.persistence.WechatRefundOrderStatus;
 import com.sunflower.backend.modules.room.persistence.RoomInventoryEntity;
 import com.sunflower.backend.modules.room.persistence.RoomInventoryRepository;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import javax.crypto.Cipher;
+import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.mock.web.MockMultipartFile;
 
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -73,6 +96,21 @@ class MvpApiIntegrationTests {
 
     @Autowired
     private PasswordEncoder adminPasswordEncoder;
+
+    @Autowired
+    private WechatPayCryptoSupport wechatPayCryptoSupport;
+
+    @Autowired
+    private WechatPayProperties wechatPayProperties;
+
+    @Autowired
+    private WechatRefundOrderRepository wechatRefundOrderRepository;
+
+    @Autowired
+    private WechatNotifyEventRepository wechatNotifyEventRepository;
+
+    @SpyBean
+    private OrderAfterSaleRequestRepository orderAfterSaleRequestRepository;
 
     @Test
     void shouldLoginBindPhoneAndPatchProfile() throws Exception {
@@ -514,10 +552,7 @@ class MvpApiIntegrationTests {
         );
         String confirmedOrderId = confirmedOrder.path("id").asText();
         String confirmedOrderNo = confirmedOrder.path("orderNo").asText();
-        mockMvc
-            .perform(post("/api/orders/{id}/pay", confirmedOrderId).header("Authorization", bearerToken(confirmedToken)))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data.status").value("CONFIRMED"));
+        payOrder(confirmedToken, confirmedOrderId);
 
         String pendingToken = loginAndGetToken("admin_order_filter_pending");
         JsonNode pendingOrder = createOrder(
@@ -575,7 +610,7 @@ class MvpApiIntegrationTests {
             .andExpect(jsonPath("$.code").value(40000))
             .andExpect(
                 jsonPath("$.message").value(
-                    "status 仅支持 PENDING_PAYMENT, CONFIRMED, CHECKED_IN, RESCHEDULED, REFUNDED, COMPLETED, CANCELLED, NO_SHOW"
+                    "status 仅支持 PENDING_PAYMENT, CONFIRMED, CHECKED_IN, RESCHEDULED, REFUND_PENDING, REFUNDED, COMPLETED, CANCELLED, NO_SHOW"
                 )
             );
     }
@@ -603,10 +638,7 @@ class MvpApiIntegrationTests {
         );
         String orderAId = orderA.path("id").asText();
         int orderAAmount = orderA.path("totalAmount").asInt();
-        mockMvc
-            .perform(post("/api/orders/{id}/pay", orderAId).header("Authorization", bearerToken(tokenA)))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data.status").value("CONFIRMED"));
+        payOrder(tokenA, orderAId);
 
         String tokenB = loginAndGetToken("admin_after_sale_b");
         JsonNode orderB = createOrder(
@@ -621,10 +653,7 @@ class MvpApiIntegrationTests {
             )
         );
         String orderBId = orderB.path("id").asText();
-        mockMvc
-            .perform(post("/api/orders/{id}/pay", orderBId).header("Authorization", bearerToken(tokenB)))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data.status").value("CONFIRMED"));
+        payOrder(tokenB, orderBId);
 
         String tokenC = loginAndGetToken("admin_after_sale_c");
         JsonNode orderC = createOrder(
@@ -640,10 +669,7 @@ class MvpApiIntegrationTests {
         );
         String orderCId = orderC.path("id").asText();
         int orderCAmount = orderC.path("totalAmount").asInt();
-        mockMvc
-            .perform(post("/api/orders/{id}/pay", orderCId).header("Authorization", bearerToken(tokenC)))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data.status").value("CONFIRMED"));
+        payOrder(tokenC, orderCId);
 
         mockMvc
             .perform(
@@ -675,8 +701,16 @@ class MvpApiIntegrationTests {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(0))
             .andExpect(jsonPath("$.data.id").value(orderBId))
-            .andExpect(jsonPath("$.data.status").value("REFUNDED"))
+            .andExpect(jsonPath("$.data.status").value("REFUND_PENDING"))
+            .andExpect(jsonPath("$.data.bookingStatus").value("CANCELLED"))
+            .andExpect(jsonPath("$.data.paymentStatus").value("REFUND_PENDING"))
+            .andExpect(jsonPath("$.data.latestRefundStatus").value("PROCESSING"))
             .andExpect(jsonPath("$.data.afterSaleReason").value("后台审核同意退款"));
+
+        notifyRefundStatus(orderBId, "SUCCESS", "notify_admin_refund_" + UUID.randomUUID().toString().replace("-", ""))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value("SUCCESS"))
+            .andExpect(jsonPath("$.message").value("成功"));
 
         RoomInventoryEntity rescheduledOldDate = getInventory("room-lake-101", LocalDate.parse("2026-02-12"));
         RoomInventoryEntity rescheduledNewDate = getInventory("room-lake-101", LocalDate.parse("2026-02-15"));
@@ -792,11 +826,7 @@ class MvpApiIntegrationTests {
         JsonNode createBody = objectMapper.readTree(createResult.getResponse().getContentAsString());
         String orderId = createBody.path("data").path("id").asText();
 
-        mockMvc
-            .perform(post("/api/orders/{id}/pay", orderId).header("Authorization", bearerToken(token)))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.code").value(0))
-            .andExpect(jsonPath("$.data.status").value("CONFIRMED"));
+        payOrder(token, orderId);
 
         MvcResult rescheduleRequestResult = mockMvc
             .perform(
@@ -902,10 +932,10 @@ class MvpApiIntegrationTests {
             )
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(0))
-            .andExpect(jsonPath("$.data.status").value("REFUNDED"))
+            .andExpect(jsonPath("$.data.status").value("REFUND_PENDING"))
             .andExpect(jsonPath("$.data.bookingStatus").value("CANCELLED"))
-            .andExpect(jsonPath("$.data.paymentStatus").value("REFUNDED"))
-            .andExpect(jsonPath("$.data.refundedAt").isNotEmpty());
+            .andExpect(jsonPath("$.data.paymentStatus").value("REFUND_PENDING"))
+            .andExpect(jsonPath("$.data.latestRefundStatus").value("PROCESSING"));
 
         RoomInventoryEntity refundedDay1 = getInventory("room-lake-101", secondCheckIn);
         RoomInventoryEntity refundedDay2 = getInventory("room-lake-101", secondCheckIn.plusDays(1));
@@ -914,11 +944,18 @@ class MvpApiIntegrationTests {
         assertEquals(3, refundedDay2.getAvailableStock());
         assertEquals(0, refundedDay2.getLockedStock());
 
+        notifyRefundStatus(orderId, "SUCCESS", "notify_refund_success_" + UUID.randomUUID().toString().replace("-", ""))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value("SUCCESS"))
+            .andExpect(jsonPath("$.message").value("成功"));
+
         mockMvc
             .perform(get("/api/orders/{id}", orderId).header("Authorization", bearerToken(token)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(0))
             .andExpect(jsonPath("$.data.status").value("REFUNDED"))
+            .andExpect(jsonPath("$.data.paymentStatus").value("REFUNDED"))
+            .andExpect(jsonPath("$.data.latestRefundStatus").value("SUCCESS"))
             .andExpect(jsonPath("$.data.latestAfterSaleStatus").value("APPROVED"))
             .andExpect(jsonPath("$.data.refundedAt").isNotEmpty());
     }
@@ -956,11 +993,7 @@ class MvpApiIntegrationTests {
         JsonNode createBody = objectMapper.readTree(createResult.getResponse().getContentAsString());
         String orderId = createBody.path("data").path("id").asText();
 
-        mockMvc
-            .perform(post("/api/orders/{id}/pay", orderId).header("Authorization", bearerToken(token)))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.code").value(0))
-            .andExpect(jsonPath("$.data.status").value("CONFIRMED"));
+        payOrder(token, orderId);
 
         MvcResult rescheduleRequestResult = mockMvc
             .perform(
@@ -1045,10 +1078,7 @@ class MvpApiIntegrationTests {
         JsonNode createBody = objectMapper.readTree(createResult.getResponse().getContentAsString());
         String orderId = createBody.path("data").path("id").asText();
 
-        mockMvc
-            .perform(post("/api/orders/{id}/pay", orderId).header("Authorization", bearerToken(token)))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data.status").value("CONFIRMED"));
+        payOrder(token, orderId);
 
         // Simulate historical bad seed overwrite: order is confirmed but old dates are no longer locked.
         setInventory("room-lake-101", firstCheckIn, 3, 3, 0);
@@ -1132,10 +1162,7 @@ class MvpApiIntegrationTests {
         JsonNode createBody = objectMapper.readTree(createResult.getResponse().getContentAsString());
         String orderId = createBody.path("data").path("id").asText();
 
-        mockMvc
-            .perform(post("/api/orders/{id}/pay", orderId).header("Authorization", bearerToken(token)))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data.status").value("CONFIRMED"));
+        payOrder(token, orderId);
 
         // Simulate historical bad seed overwrite: order is confirmed but date lock is gone.
         setInventory("room-lake-101", checkIn, 3, 3, 0);
@@ -1163,11 +1190,184 @@ class MvpApiIntegrationTests {
             )
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value(0))
-            .andExpect(jsonPath("$.data.status").value("REFUNDED"));
+            .andExpect(jsonPath("$.data.status").value("REFUND_PENDING"))
+            .andExpect(jsonPath("$.data.paymentStatus").value("REFUND_PENDING"))
+            .andExpect(jsonPath("$.data.latestRefundStatus").value("PROCESSING"));
+
+        notifyRefundStatus(orderId, "SUCCESS", "notify_refund_released_" + UUID.randomUUID().toString().replace("-", ""))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value("SUCCESS"));
 
         RoomInventoryEntity refundedDay = getInventory("room-lake-101", checkIn);
         assertEquals(3, refundedDay.getAvailableStock());
         assertEquals(0, refundedDay.getLockedStock());
+
+        mockMvc
+            .perform(get("/api/orders/{id}", orderId).header("Authorization", bearerToken(token)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.paymentStatus").value("REFUNDED"))
+            .andExpect(jsonPath("$.data.latestRefundStatus").value("SUCCESS"));
+    }
+
+    @Test
+    void shouldProcessRefundNotifyIdempotently() throws Exception {
+        String orderId = createRefundPendingOrder("order_refund_notify_idempotent", "退款回调幂等测试");
+        String notifyId = "notify_refund_idempotent_" + UUID.randomUUID().toString().replace("-", "");
+
+        notifyRefundStatus(orderId, "SUCCESS", notifyId)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value("SUCCESS"))
+            .andExpect(jsonPath("$.message").value("成功"));
+
+        notifyRefundStatus(orderId, "SUCCESS", notifyId)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value("SUCCESS"))
+            .andExpect(jsonPath("$.message").value("成功"));
+
+        WechatRefundOrderEntity refundOrder = requireLatestRefundRecord(orderId);
+        assertEquals(refundOrder.getRefundAmount(), wechatRefundOrderRepository.sumSuccessRefundAmountByOrderId(orderId));
+
+        mockMvc
+            .perform(get("/api/admin/orders/{orderId}", orderId).header("Authorization", adminAuthorization()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.paymentStatus").value("REFUNDED"))
+            .andExpect(jsonPath("$.data.latestRefundStatus").value("SUCCESS"));
+    }
+
+    @Test
+    void shouldRejectRefundNotifyWhenSignatureInvalid() throws Exception {
+        String orderId = createRefundPendingOrder("order_refund_bad_signature", "退款回调验签失败测试");
+        String notifyId = "notify_refund_invalid_signature_" + UUID.randomUUID().toString().replace("-", "");
+
+        notifyRefundStatus(orderId, "SUCCESS", notifyId, null, null, "invalid-signature")
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("FAIL"))
+            .andExpect(jsonPath("$.message").value("微信回调验签失败"));
+
+        assertTrue(wechatNotifyEventRepository.findByNotifyId(notifyId).isEmpty());
+
+        mockMvc
+            .perform(get("/api/admin/orders/{orderId}", orderId).header("Authorization", adminAuthorization()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.paymentStatus").value("REFUND_PENDING"))
+            .andExpect(jsonPath("$.data.latestRefundStatus").value("PROCESSING"));
+    }
+
+    @Test
+    void shouldRejectRefundNotifyWhenAmountMismatch() throws Exception {
+        String orderId = createRefundPendingOrder("order_refund_amount_mismatch", "退款回调金额校验测试");
+        WechatRefundOrderEntity refundOrder = requireLatestRefundRecord(orderId);
+        String notifyId = "notify_refund_amount_mismatch_" + UUID.randomUUID().toString().replace("-", "");
+
+        notifyRefundStatus(orderId, "SUCCESS", notifyId, refundOrder.getRefundAmount() + 1, null, null)
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("FAIL"))
+            .andExpect(jsonPath("$.message").value("微信退款回调退款金额不匹配"));
+
+        WechatNotifyEventEntity notifyEvent = wechatNotifyEventRepository
+            .findByNotifyId(notifyId)
+            .orElseThrow(() -> new IllegalStateException("应记录失败的退款回调"));
+        assertEquals(WechatNotifyEventStatus.FAILED, notifyEvent.getStatus());
+
+        mockMvc
+            .perform(get("/api/admin/orders/{orderId}", orderId).header("Authorization", adminAuthorization()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.paymentStatus").value("REFUND_PENDING"))
+            .andExpect(jsonPath("$.data.latestRefundStatus").value("PROCESSING"));
+    }
+
+    @Test
+    void shouldRetryFailedRefundNotifyWithSameNotifyId() throws Exception {
+        String orderId = createRefundPendingOrder("order_refund_retry_same_notify", "退款回调重试修复测试");
+        WechatRefundOrderEntity refundOrder = requireLatestRefundRecord(orderId);
+        String notifyId = "notify_refund_retry_same_" + UUID.randomUUID().toString().replace("-", "");
+
+        notifyRefundStatus(orderId, "SUCCESS", notifyId, refundOrder.getRefundAmount() + 1, null, null)
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("FAIL"))
+            .andExpect(jsonPath("$.message").value("微信退款回调退款金额不匹配"));
+
+        notifyRefundStatus(orderId, "SUCCESS", notifyId)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value("SUCCESS"))
+            .andExpect(jsonPath("$.message").value("成功"));
+
+        WechatNotifyEventEntity notifyEvent = wechatNotifyEventRepository
+            .findByNotifyId(notifyId)
+            .orElseThrow(() -> new IllegalStateException("应复用同一通知记录"));
+        assertEquals(WechatNotifyEventStatus.PROCESSED, notifyEvent.getStatus());
+
+        mockMvc
+            .perform(get("/api/admin/orders/{orderId}", orderId).header("Authorization", adminAuthorization()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.status").value("REFUNDED"))
+            .andExpect(jsonPath("$.data.paymentStatus").value("REFUNDED"))
+            .andExpect(jsonPath("$.data.latestRefundStatus").value("SUCCESS"));
+    }
+
+    @Test
+    void shouldRejectRefundNotifyWhenTimestampExpired() throws Exception {
+        String orderId = createRefundPendingOrder("order_refund_expired_timestamp", "退款回调时间戳测试");
+        String notifyId = "notify_refund_expired_" + UUID.randomUUID().toString().replace("-", "");
+        long expiredTimestamp = LocalDateTime.now(ZoneId.of("Asia/Shanghai"))
+            .atZone(ZoneId.of("Asia/Shanghai"))
+            .toEpochSecond() - 601;
+
+        notifyRefundStatus(orderId, "SUCCESS", notifyId, null, null, null, expiredTimestamp)
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("FAIL"))
+            .andExpect(jsonPath("$.message").value("微信回调验签失败"));
+
+        assertTrue(wechatNotifyEventRepository.findByNotifyId(notifyId).isEmpty());
+
+        mockMvc
+            .perform(get("/api/admin/orders/{orderId}", orderId).header("Authorization", adminAuthorization()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.status").value("REFUND_PENDING"))
+            .andExpect(jsonPath("$.data.paymentStatus").value("REFUND_PENDING"))
+            .andExpect(jsonPath("$.data.latestRefundStatus").value("PROCESSING"));
+    }
+
+    @Test
+    void shouldRetryRefundAfterAbnormalNotify() throws Exception {
+        String adminAuthorization = adminAuthorization();
+        String orderId = createRefundPendingOrder("order_refund_retry", "退款重试测试");
+
+        notifyRefundStatus(orderId, "ABNORMAL", "notify_refund_abnormal_" + UUID.randomUUID().toString().replace("-", ""))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value("SUCCESS"))
+            .andExpect(jsonPath("$.message").value("成功"));
+
+        WechatRefundOrderEntity abnormalRefund = requireLatestRefundRecord(orderId);
+        mockMvc
+            .perform(get("/api/admin/orders/{orderId}", orderId).header("Authorization", adminAuthorization))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.status").value("CANCELLED"))
+            .andExpect(jsonPath("$.data.paymentStatus").value("PAID"))
+            .andExpect(jsonPath("$.data.latestRefundStatus").value("ABNORMAL"))
+            .andExpect(jsonPath("$.data.latestRefundFailureCode").value("ABNORMAL"));
+
+        mockMvc
+            .perform(
+                post("/api/admin/orders/{orderId}/refunds/{refundId}/retry", orderId, abnormalRefund.getId())
+                    .header("Authorization", adminAuthorization)
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.status").value("REFUND_PENDING"))
+            .andExpect(jsonPath("$.data.paymentStatus").value("REFUND_PENDING"))
+            .andExpect(jsonPath("$.data.latestRefundStatus").value("PROCESSING"));
+
+        notifyRefundStatus(orderId, "SUCCESS", "notify_refund_retry_success_" + UUID.randomUUID().toString().replace("-", ""))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value("SUCCESS"));
+
+        mockMvc
+            .perform(get("/api/admin/orders/{orderId}", orderId).header("Authorization", adminAuthorization))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.paymentStatus").value("REFUNDED"))
+            .andExpect(jsonPath("$.data.latestRefundStatus").value("SUCCESS"))
+            .andExpect(jsonPath("$.data.refundedAt").isNotEmpty());
     }
 
     @Test
@@ -1201,6 +1401,55 @@ class MvpApiIntegrationTests {
     }
 
     @Test
+    void shouldPersistRefundRecordAndRecoverFromCallbackAfterOrderSaveRollback() throws Exception {
+        LocalDate checkIn = LocalDate.parse("2026-02-12");
+        LocalDate checkOut = checkIn.plusDays(1);
+        String token = loginAndGetToken("order_refund_crash_safe");
+        String adminAuthorization = adminAuthorization();
+
+        JsonNode order = createOrder(token, buildCreateOrderPayload("room-lake-101", checkIn.toString(), checkOut.toString()));
+        String orderId = order.path("id").asText();
+        payOrder(token, orderId);
+
+        doThrow(new RuntimeException("模拟退款售后单保存失败"))
+            .when(orderAfterSaleRequestRepository)
+            .save(any(OrderAfterSaleRequestEntity.class));
+
+        mockMvc
+            .perform(post("/api/admin/orders/{orderId}/refund", orderId).header("Authorization", adminAuthorization))
+            .andExpect(status().isInternalServerError());
+
+        WechatRefundOrderEntity refundOrder = requireLatestRefundRecord(orderId);
+        assertEquals(WechatRefundOrderStatus.PROCESSING, refundOrder.getStatus());
+
+        RoomInventoryEntity inventoryAfterRollback = getInventory("room-lake-101", checkIn);
+        assertEquals(2, inventoryAfterRollback.getAvailableStock());
+        assertEquals(1, inventoryAfterRollback.getLockedStock());
+
+        mockMvc
+            .perform(get("/api/admin/orders/{orderId}", orderId).header("Authorization", adminAuthorization))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.status").value("CONFIRMED"))
+            .andExpect(jsonPath("$.data.paymentStatus").value("PAID"))
+            .andExpect(jsonPath("$.data.latestRefundStatus").value("PROCESSING"));
+
+        notifyRefundStatus(orderId, "SUCCESS", "notify_refund_recover_" + UUID.randomUUID().toString().replace("-", ""))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value("SUCCESS"));
+
+        RoomInventoryEntity inventoryAfterCallback = getInventory("room-lake-101", checkIn);
+        assertEquals(3, inventoryAfterCallback.getAvailableStock());
+        assertEquals(0, inventoryAfterCallback.getLockedStock());
+
+        mockMvc
+            .perform(get("/api/admin/orders/{orderId}", orderId).header("Authorization", adminAuthorization))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.status").value("REFUNDED"))
+            .andExpect(jsonPath("$.data.paymentStatus").value("REFUNDED"))
+            .andExpect(jsonPath("$.data.latestRefundStatus").value("SUCCESS"));
+    }
+
+    @Test
     void shouldRejectAfterSaleRequestAndKeepOrderConfirmed() throws Exception {
         LocalDate checkIn = LocalDate.parse("2026-02-12");
         LocalDate checkOut = checkIn.plusDays(1);
@@ -1220,9 +1469,7 @@ class MvpApiIntegrationTests {
         JsonNode createBody = objectMapper.readTree(createResult.getResponse().getContentAsString());
         String orderId = createBody.path("data").path("id").asText();
 
-        mockMvc
-            .perform(post("/api/orders/{id}/pay", orderId).header("Authorization", bearerToken(token)))
-            .andExpect(status().isOk());
+        payOrder(token, orderId);
 
         MvcResult refundRequestResult = mockMvc
             .perform(
@@ -1269,7 +1516,7 @@ class MvpApiIntegrationTests {
             buildCreateOrderPayload("room-lake-101", checkIn.toString(), checkOut.toString())
         );
         String stayOrderId = stayOrder.path("id").asText();
-        mockMvc.perform(post("/api/orders/{id}/pay", stayOrderId).header("Authorization", bearerToken(stayToken))).andExpect(status().isOk());
+        payOrder(stayToken, stayOrderId);
 
         mockMvc
             .perform(post("/api/admin/orders/{orderId}/check-in", stayOrderId).header("Authorization", adminAuthorization))
@@ -1290,9 +1537,7 @@ class MvpApiIntegrationTests {
             buildCreateOrderPayload("room-lake-101", checkIn.toString(), checkOut.toString())
         );
         String noShowOrderId = noShowOrder.path("id").asText();
-        mockMvc
-            .perform(post("/api/orders/{id}/pay", noShowOrderId).header("Authorization", bearerToken(noShowToken)))
-            .andExpect(status().isOk());
+        payOrder(noShowToken, noShowOrderId);
 
         mockMvc
             .perform(post("/api/admin/orders/{orderId}/no-show", noShowOrderId).header("Authorization", adminAuthorization))
@@ -1640,6 +1885,234 @@ class MvpApiIntegrationTests {
             .andReturn();
 
         return objectMapper.readTree(createResult.getResponse().getContentAsString()).path("data");
+    }
+
+    private JsonNode prepareOrderPayment(String token, String orderId) throws Exception {
+        MvcResult prepareResult = mockMvc
+            .perform(post("/api/orders/{id}/pay", orderId).header("Authorization", bearerToken(token)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.order.id").value(orderId))
+            .andExpect(jsonPath("$.data.paymentMode").exists())
+            .andExpect(jsonPath("$.data.paymentRecordId").isNumber())
+            .andExpect(jsonPath("$.data.paymentRequest.timeStamp").isString())
+            .andExpect(jsonPath("$.data.paymentRequest.nonceStr").isString())
+            .andExpect(jsonPath("$.data.paymentRequest.package").isString())
+            .andExpect(jsonPath("$.data.paymentRequest.signType").value("RSA"))
+            .andExpect(jsonPath("$.data.paymentRequest.paySign").isString())
+            .andReturn();
+
+        return objectMapper.readTree(prepareResult.getResponse().getContentAsString()).path("data");
+    }
+
+    private JsonNode confirmOrderPayment(String token, String orderId) throws Exception {
+        MvcResult confirmResult = mockMvc
+            .perform(post("/api/orders/{id}/pay/confirm", orderId).header("Authorization", bearerToken(token)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.id").value(orderId))
+            .andExpect(jsonPath("$.data.status").value("CONFIRMED"))
+            .andExpect(jsonPath("$.data.bookingStatus").value("CONFIRMED"))
+            .andExpect(jsonPath("$.data.paymentStatus").value("PAID"))
+            .andReturn();
+
+        return objectMapper.readTree(confirmResult.getResponse().getContentAsString()).path("data");
+    }
+
+    private JsonNode payOrder(String token, String orderId) throws Exception {
+        prepareOrderPayment(token, orderId);
+        return confirmOrderPayment(token, orderId);
+    }
+
+    private String createRefundPendingOrder(String loginCode, String refundReason) throws Exception {
+        String token = loginAndGetToken(loginCode);
+        String adminAuthorization = adminAuthorization();
+        JsonNode order = createOrder(
+            token,
+            buildCreateOrderPayload(
+                "room-lake-101",
+                "2026-02-12",
+                "2026-02-13",
+                "退款回调住客",
+                "13800009999",
+                refundReason
+            )
+        );
+        String orderId = order.path("id").asText();
+
+        payOrder(token, orderId);
+
+        MvcResult refundRequestResult = mockMvc
+            .perform(
+                post("/api/orders/{id}/refund", orderId)
+                    .header("Authorization", bearerToken(token))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"reason\":\"" + refundReason + "\"}")
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.latestAfterSaleStatus").value("REQUESTED"))
+            .andReturn();
+
+        long refundRequestId = objectMapper
+            .readTree(refundRequestResult.getResponse().getContentAsString())
+            .path("data")
+            .path("latestAfterSaleRequestId")
+            .asLong();
+
+        mockMvc
+            .perform(
+                post("/api/admin/orders/{orderId}/after-sale/{requestId}/approve", orderId, refundRequestId)
+                    .header("Authorization", adminAuthorization)
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.status").value("REFUND_PENDING"))
+            .andExpect(jsonPath("$.data.paymentStatus").value("REFUND_PENDING"))
+            .andExpect(jsonPath("$.data.latestRefundStatus").value("PROCESSING"));
+
+        return orderId;
+    }
+
+    private WechatRefundOrderEntity requireLatestRefundRecord(String orderId) {
+        return wechatRefundOrderRepository
+            .findTopByOrderIdOrderByCreatedAtDescIdDesc(orderId)
+            .orElseThrow(() -> new IllegalStateException("未找到退款记录: " + orderId));
+    }
+
+    private ResultActions notifyRefundStatus(String orderId, String refundStatus, String notifyId) throws Exception {
+        return notifyRefundStatus(orderId, refundStatus, notifyId, null, null, null);
+    }
+
+    private ResultActions notifyRefundStatus(
+        String orderId,
+        String refundStatus,
+        String notifyId,
+        Integer refundAmountFen,
+        Integer totalAmountFen,
+        String signatureOverride
+    ) throws Exception {
+        return notifyRefundStatus(orderId, refundStatus, notifyId, refundAmountFen, totalAmountFen, signatureOverride, null);
+    }
+
+    private ResultActions notifyRefundStatus(
+        String orderId,
+        String refundStatus,
+        String notifyId,
+        Integer refundAmountFen,
+        Integer totalAmountFen,
+        String signatureOverride,
+        Long timestampOverride
+    ) throws Exception {
+        WechatRefundOrderEntity refundOrder = requireLatestRefundRecord(orderId);
+        int actualRefundAmount = refundAmountFen == null ? refundOrder.getRefundAmount() : refundAmountFen;
+        int actualTotalAmount = totalAmountFen == null ? refundOrder.getTotalAmount() : totalAmountFen;
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("out_refund_no", refundOrder.getOutRefundNo());
+        payload.put(
+            "refund_id",
+            normalizeText(refundOrder.getRefundId()).isEmpty() ? "mock_refund_" + refundOrder.getOutRefundNo() : refundOrder.getRefundId()
+        );
+        payload.put("refund_status", refundStatus);
+        payload.put(
+            "status",
+            "SUCCESS".equalsIgnoreCase(refundStatus) ? "SUCCESS" : refundStatus.toUpperCase()
+        );
+        payload.put("user_received_account", "SUCCESS".equalsIgnoreCase(refundStatus) ? "" : "退款异常:" + refundStatus);
+
+        Map<String, Object> amount = new LinkedHashMap<>();
+        amount.put("refund", actualRefundAmount);
+        amount.put("total", actualTotalAmount);
+        payload.put("amount", amount);
+
+        return postWechatNotify(
+            "/api/payments/wechat/refunds/notify",
+            notifyId,
+            "REFUND." + refundStatus.toUpperCase(),
+            "退款回调",
+            refundOrder.getOutRefundNo(),
+            "refund",
+            payload,
+            signatureOverride,
+            timestampOverride
+        );
+    }
+
+    private ResultActions postWechatNotify(
+        String path,
+        String notifyId,
+        String eventType,
+        String summary,
+        String resourceId,
+        String associatedData,
+        Map<String, Object> resourcePayload,
+        String signatureOverride
+    ) throws Exception {
+        return postWechatNotify(path, notifyId, eventType, summary, resourceId, associatedData, resourcePayload, signatureOverride, null);
+    }
+
+    private ResultActions postWechatNotify(
+        String path,
+        String notifyId,
+        String eventType,
+        String summary,
+        String resourceId,
+        String associatedData,
+        Map<String, Object> resourcePayload,
+        String signatureOverride,
+        Long timestampOverride
+    ) throws Exception {
+        String resourceBody = objectMapper.writeValueAsString(resourcePayload);
+        String resourceNonce = UUID.randomUUID().toString().replace("-", "").substring(0, 12);
+        String ciphertext = encryptWechatResource(associatedData, resourceNonce, resourceBody);
+
+        Map<String, Object> resource = new LinkedHashMap<>();
+        resource.put("algorithm", "AEAD_AES_256_GCM");
+        resource.put("ciphertext", ciphertext);
+        resource.put("associated_data", associatedData);
+        resource.put("nonce", resourceNonce);
+        resource.put("original_type", "resource");
+        resource.put("id", resourceId);
+
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("id", notifyId);
+        body.put("create_time", LocalDateTime.now(ZoneId.of("Asia/Shanghai")).toString());
+        body.put("resource_type", "encrypt-resource");
+        body.put("event_type", eventType);
+        body.put("summary", summary);
+        body.put("resource", resource);
+
+        String bodyText = objectMapper.writeValueAsString(body);
+        long timestampSeconds = timestampOverride == null
+            ? LocalDateTime.now(ZoneId.of("Asia/Shanghai")).atZone(ZoneId.of("Asia/Shanghai")).toEpochSecond()
+            : timestampOverride;
+        String timestamp = String.valueOf(timestampSeconds);
+        String headerNonce = UUID.randomUUID().toString().replace("-", "");
+        String signature = signatureOverride == null
+            ? wechatPayCryptoSupport.signBase64(timestamp + "\n" + headerNonce + "\n" + bodyText + "\n")
+            : signatureOverride;
+
+        return mockMvc.perform(
+            post(path)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Wechatpay-Timestamp", timestamp)
+                .header("Wechatpay-Nonce", headerNonce)
+                .header("Wechatpay-Signature", signature)
+                .header("Wechatpay-Serial", wechatPayProperties.getPublicKeyId())
+                .content(bodyText)
+        );
+    }
+
+    private String encryptWechatResource(String associatedData, String nonce, String plainText) throws Exception {
+        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+        SecretKeySpec keySpec = new SecretKeySpec(wechatPayProperties.getApiV3Key().getBytes(StandardCharsets.UTF_8), "AES");
+        cipher.init(Cipher.ENCRYPT_MODE, keySpec, new GCMParameterSpec(128, nonce.getBytes(StandardCharsets.UTF_8)));
+        cipher.updateAAD(normalizeText(associatedData).getBytes(StandardCharsets.UTF_8));
+        return Base64.getEncoder().encodeToString(cipher.doFinal(plainText.getBytes(StandardCharsets.UTF_8)));
+    }
+
+    private String normalizeText(String value) {
+        return value == null ? "" : value.trim();
     }
 
     private JsonNode getAdminOrderOverview(String adminAuthorization) throws Exception {

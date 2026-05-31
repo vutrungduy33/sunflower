@@ -26,6 +26,7 @@ import {
   rejectAdminAfterSaleRequest,
   refundAdminOrder,
   rescheduleAdminOrder,
+  retryAdminRefund,
   type AdminOrder,
   type AdminOrderOverview,
   type AdminOrderAfterSaleStatus,
@@ -65,6 +66,7 @@ const orderStatusOptions: Array<{ label: string; value: AdminOrderStatusFilter }
   { label: '待入住', value: 'CONFIRMED' },
   { label: '已入住', value: 'CHECKED_IN' },
   { label: '已改期', value: 'RESCHEDULED' },
+  { label: '退款中', value: 'REFUND_PENDING' },
   { label: '已退款', value: 'REFUNDED' },
   { label: '已完成', value: 'COMPLETED' },
   { label: '已取消', value: 'CANCELLED' },
@@ -76,6 +78,7 @@ const orderStatusThemeMap: Record<AdminOrderStatus, 'default' | 'primary' | 'suc
   CONFIRMED: 'primary',
   CHECKED_IN: 'success',
   RESCHEDULED: 'success',
+  REFUND_PENDING: 'warning',
   REFUNDED: 'danger',
   COMPLETED: 'success',
   CANCELLED: 'default',
@@ -144,6 +147,14 @@ function canDirectReschedule(order: AdminOrder) {
 
 function canDirectRefund(order: AdminOrder) {
   return order.bookingStatus === 'CONFIRMED' && order.paymentStatus === 'PAID' && !hasPendingAfterSale(order)
+}
+
+function canRetryRefund(order: AdminOrder) {
+  return (
+    order.latestRefundRecordId != null &&
+    ['FAILED', 'ABNORMAL', 'CLOSED'].includes(order.latestRefundStatus) &&
+    order.paymentStatus === 'PAID'
+  )
 }
 
 function canCheckIn(order: AdminOrder) {
@@ -390,6 +401,17 @@ export function OrderManagementPage() {
     },
   })
 
+  const retryRefundMutation = useMutation({
+    mutationFn: async ({ orderId, refundId }: { orderId: string; refundId: number }) =>
+      retryAdminRefund(orderId, refundId),
+    onSuccess: async (order) => handleOrderMutationSuccess(order, '退款已重新发起'),
+    onError: (error) => {
+      const message = getAdminOrderErrorMessage(error, '退款重试失败，请稍后重试')
+      setActionFeedback(message)
+      MessagePlugin.error(message)
+    },
+  })
+
   const approveAfterSaleMutation = useMutation({
     mutationFn: async ({ orderId, requestId }: { orderId: string; requestId: number }) =>
       approveAdminAfterSaleRequest(orderId, requestId),
@@ -472,6 +494,7 @@ export function OrderManagementPage() {
     if (
       rescheduleMutation.isPending ||
       refundMutation.isPending ||
+      retryRefundMutation.isPending ||
       approveAfterSaleMutation.isPending ||
       rejectAfterSaleMutation.isPending ||
       checkInMutation.isPending ||
@@ -612,6 +635,18 @@ export function OrderManagementPage() {
     })
   }
 
+  function handleRetryRefund() {
+    if (!selectedOrderId || !selectedOrder?.latestRefundRecordId) {
+      return
+    }
+
+    setActionFeedback(null)
+    retryRefundMutation.mutate({
+      orderId: selectedOrderId,
+      refundId: selectedOrder.latestRefundRecordId,
+    })
+  }
+
   function handleRejectAfterSale() {
     if (!selectedOrderId || !selectedOrder?.latestAfterSaleRequestId) {
       return
@@ -735,6 +770,8 @@ export function OrderManagementPage() {
         const isRescheduling =
           rescheduleMutation.isPending && rescheduleMutation.variables?.orderId === row.id
         const isRefunding = refundMutation.isPending && refundMutation.variables?.orderId === row.id
+        const isRetryingRefund =
+          retryRefundMutation.isPending && retryRefundMutation.variables?.orderId === row.id
         const isCheckingIn = checkInMutation.isPending && checkInMutation.variables === row.id
         const isCheckingOut = checkOutMutation.isPending && checkOutMutation.variables === row.id
         const isNoShowing = noShowMutation.isPending && noShowMutation.variables === row.id
@@ -769,6 +806,17 @@ export function OrderManagementPage() {
                 onClick={() => handleOpenDrawer(row, 'refund')}
               >
                 后台退款
+              </Button>
+            ) : null}
+            {canRetryRefund(row) ? (
+              <Button
+                size="small"
+                theme="warning"
+                variant="outline"
+                loading={isRetryingRefund}
+                onClick={() => handleOpenDrawer(row)}
+              >
+                重试退款
               </Button>
             ) : null}
             {canCheckIn(row) ? (
@@ -840,6 +888,7 @@ export function OrderManagementPage() {
     const canReview = hasPendingAfterSale(selectedOrder)
     const allowDirectReschedule = canDirectReschedule(selectedOrder)
     const allowDirectRefund = canDirectRefund(selectedOrder)
+    const allowRetryRefund = canRetryRefund(selectedOrder)
     const allowCheckIn = canCheckIn(selectedOrder)
     const allowCheckOut = canCheckOut(selectedOrder)
     const allowNoShow = canMarkNoShow(selectedOrder)
@@ -906,6 +955,52 @@ export function OrderManagementPage() {
                 </li>
               ))}
             </ul>
+          </article>
+        </div>
+
+        <div className="order-detail-grid">
+          <article className="order-detail-card">
+            <h4>支付流水</h4>
+            <dl className="order-detail-list">
+              <div>
+                <dt>支付模式</dt>
+                <dd>{selectedOrder.paymentMode || '未发起支付'}</dd>
+              </div>
+              <div>
+                <dt>支付单状态</dt>
+                <dd>{selectedOrder.paymentRecordStatus || '无'}</dd>
+              </div>
+              <div>
+                <dt>商户订单号</dt>
+                <dd>{selectedOrder.paymentRecordNo || '无'}</dd>
+              </div>
+              <div>
+                <dt>微信流水号</dt>
+                <dd>{selectedOrder.transactionId || '无'}</dd>
+              </div>
+            </dl>
+          </article>
+
+          <article className="order-detail-card">
+            <h4>退款流水</h4>
+            <dl className="order-detail-list">
+              <div>
+                <dt>最近退款记录</dt>
+                <dd>{selectedOrder.latestRefundRecordId ?? '无'}</dd>
+              </div>
+              <div>
+                <dt>退款状态</dt>
+                <dd>{selectedOrder.latestRefundStatus || '无'}</dd>
+              </div>
+              <div>
+                <dt>退款金额</dt>
+                <dd>{selectedOrder.latestRefundAmount ? formatCurrency(selectedOrder.latestRefundAmount) : '无'}</dd>
+              </div>
+              <div>
+                <dt>失败原因</dt>
+                <dd>{selectedOrder.latestRefundFailureMessage || selectedOrder.latestRefundFailureCode || '无'}</dd>
+              </div>
+            </dl>
           </article>
         </div>
 
@@ -1056,8 +1151,8 @@ export function OrderManagementPage() {
                   当前处理能力
                 </Tag>
                 <p>
-                  {allowDirectReschedule || allowDirectRefund || allowCheckIn || allowCheckOut || allowNoShow
-                    ? '可执行后台改期/退款、办理入住/离店或标记失约。'
+                  {allowDirectReschedule || allowDirectRefund || allowRetryRefund || allowCheckIn || allowCheckOut || allowNoShow
+                    ? '可执行后台改期/退款、重试退款、办理入住/离店或标记失约。'
                     : '当前订单暂无可执行动作，可查看状态与时间线。'}
                 </p>
               </div>
@@ -1067,6 +1162,16 @@ export function OrderManagementPage() {
                   当前支付：{selectedOrder.paymentStatusLabel}
                 </p>
                 <Space align="center" size={12}>
+                  {allowRetryRefund ? (
+                    <Button
+                      theme="warning"
+                      variant="outline"
+                      loading={retryRefundMutation.isPending}
+                      onClick={handleRetryRefund}
+                    >
+                      重试退款
+                    </Button>
+                  ) : null}
                   {allowCheckIn ? (
                     <Button
                       theme="success"

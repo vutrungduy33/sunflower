@@ -7,8 +7,14 @@ import com.sunflower.backend.common.exception.BusinessException;
 import com.sunflower.backend.modules.order.admin.dto.AdminOrderDto;
 import com.sunflower.backend.modules.order.dto.CreateOrderRequest;
 import com.sunflower.backend.modules.order.dto.OrderDto;
+import com.sunflower.backend.modules.order.dto.OrderPayPrepareDto;
 import com.sunflower.backend.modules.order.dto.RefundOrderRequest;
 import com.sunflower.backend.modules.order.dto.RescheduleOrderRequest;
+import com.sunflower.backend.modules.payment.wechat.OrderPaymentService;
+import com.sunflower.backend.modules.payment.wechat.persistence.WechatPaymentOrderEntity;
+import com.sunflower.backend.modules.payment.wechat.persistence.WechatPaymentOrderRepository;
+import com.sunflower.backend.modules.payment.wechat.persistence.WechatRefundOrderEntity;
+import com.sunflower.backend.modules.payment.wechat.persistence.WechatRefundOrderRepository;
 import com.sunflower.backend.modules.order.persistence.OrderAfterSaleRequestEntity;
 import com.sunflower.backend.modules.order.persistence.OrderAfterSaleRequestRepository;
 import com.sunflower.backend.modules.order.persistence.OrderEntity;
@@ -55,24 +61,33 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderAfterSaleRequestRepository orderAfterSaleRequestRepository;
+    private final WechatPaymentOrderRepository wechatPaymentOrderRepository;
+    private final WechatRefundOrderRepository wechatRefundOrderRepository;
     private final RoomInventoryRepository roomInventoryRepository;
     private final RoomService roomService;
     private final UserService userService;
+    private final OrderPaymentService orderPaymentService;
     private final ObjectMapper objectMapper;
 
     public OrderService(
         OrderRepository orderRepository,
         OrderAfterSaleRequestRepository orderAfterSaleRequestRepository,
+        WechatPaymentOrderRepository wechatPaymentOrderRepository,
+        WechatRefundOrderRepository wechatRefundOrderRepository,
         RoomInventoryRepository roomInventoryRepository,
         RoomService roomService,
         UserService userService,
+        OrderPaymentService orderPaymentService,
         ObjectMapper objectMapper
     ) {
         this.orderRepository = orderRepository;
         this.orderAfterSaleRequestRepository = orderAfterSaleRequestRepository;
+        this.wechatPaymentOrderRepository = wechatPaymentOrderRepository;
+        this.wechatRefundOrderRepository = wechatRefundOrderRepository;
         this.roomInventoryRepository = roomInventoryRepository;
         this.roomService = roomService;
         this.userService = userService;
+        this.orderPaymentService = orderPaymentService;
         this.objectMapper = objectMapper;
     }
 
@@ -132,16 +147,27 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderDto payCurrentUserOrder(String orderId) {
-        OrderEntity order = requireCurrentUserOrderRecord(orderId);
-        if (order.getBookingStatus() != BookingStatus.PENDING_PAYMENT || order.getPaymentStatus() != PaymentStatus.UNPAID) {
-            throw BusinessException.conflict("当前订单状态不可支付");
-        }
-        order.setBookingStatus(BookingStatus.CONFIRMED);
-        order.setPaymentStatus(PaymentStatus.PAID);
-        order.setPaidAt(LocalDateTime.now(SHANGHAI_ZONE));
-        syncLegacyStatus(order, loadLatestAfterSaleRequest(order.getId()));
-        return toOrderDto(orderRepository.save(order));
+    public OrderPayPrepareDto payCurrentUserOrder(String orderId) {
+        OrderPaymentService.PreparePaymentResult result = orderPaymentService.prepareCurrentUserOrderPayment(orderId);
+        OrderPayPrepareDto dto = new OrderPayPrepareDto();
+        dto.setOrder(toOrderDto(requireCurrentUserOrderRecord(orderId)));
+        dto.setPaymentMode(result.getPaymentMode());
+        dto.setPaymentRecordId(result.getPaymentOrder().getId());
+        dto.setExpiresAt(toDateTimeString(result.getPaymentOrder().getTimeExpire()));
+
+        OrderPayPrepareDto.PaymentRequest paymentRequest = new OrderPayPrepareDto.PaymentRequest();
+        paymentRequest.setTimeStamp(result.getPaymentRequest().getTimeStamp());
+        paymentRequest.setNonceStr(result.getPaymentRequest().getNonceStr());
+        paymentRequest.setPackageValue(result.getPaymentRequest().getPackageValue());
+        paymentRequest.setSignType(result.getPaymentRequest().getSignType());
+        paymentRequest.setPaySign(result.getPaymentRequest().getPaySign());
+        dto.setPaymentRequest(paymentRequest);
+        return dto;
+    }
+
+    @Transactional
+    public OrderDto confirmCurrentUserOrderPayment(String orderId) {
+        return toOrderDto(orderPaymentService.confirmCurrentUserOrderPayment(orderId));
     }
 
     @Transactional
@@ -234,10 +260,9 @@ public class OrderService {
             "",
             now
         );
-        applyApprovedRefund(order, afterSaleRequest, now);
+        orderPaymentService.startDirectRefund(orderId, afterSaleRequest.getReason());
         orderAfterSaleRequestRepository.save(afterSaleRequest);
-        orderRepository.save(order);
-        return toOrderDto(order);
+        return toOrderDto(requireOrderRecord(orderId));
     }
 
     @Transactional
@@ -255,7 +280,7 @@ public class OrderService {
             }
             applyApprovedReschedule(order, afterSaleRequest, nextCheckInDate, nextCheckOutDate, now);
         } else if (afterSaleRequest.getType() == AfterSaleRequestType.REFUND) {
-            applyApprovedRefund(order, afterSaleRequest, now);
+            orderPaymentService.approveRefundAfterSale(order, afterSaleRequest, now);
         } else {
             throw BusinessException.conflict("暂不支持的售后类型");
         }
@@ -323,6 +348,7 @@ public class OrderService {
 
     public OrderDto toOrderDto(OrderEntity order) {
         AfterSaleSnapshot snapshot = buildAfterSaleSnapshot(order.getId());
+        PaymentSnapshot paymentSnapshot = buildPaymentSnapshot(order.getId());
         syncLegacyStatus(order, snapshot.latestRequest);
 
         OrderDto dto = new OrderDto();
@@ -345,6 +371,15 @@ public class OrderService {
         dto.setBookingStatusLabel(order.getBookingStatus().getLabel());
         dto.setPaymentStatus(order.getPaymentStatus().name());
         dto.setPaymentStatusLabel(order.getPaymentStatus().getLabel());
+        dto.setPaymentMode(paymentSnapshot.paymentMode);
+        dto.setPaymentRecordStatus(paymentSnapshot.paymentRecordStatus);
+        dto.setPaymentRecordNo(paymentSnapshot.paymentRecordNo);
+        dto.setTransactionId(paymentSnapshot.transactionId);
+        dto.setLatestRefundRecordId(paymentSnapshot.latestRefundRecordId);
+        dto.setLatestRefundStatus(paymentSnapshot.latestRefundStatus);
+        dto.setLatestRefundFailureCode(paymentSnapshot.latestRefundFailureCode);
+        dto.setLatestRefundFailureMessage(paymentSnapshot.latestRefundFailureMessage);
+        dto.setLatestRefundAmount(paymentSnapshot.latestRefundAmount);
         dto.setLatestAfterSaleRequestId(snapshot.latestRequest == null ? null : snapshot.latestRequest.getId());
         dto.setLatestAfterSaleType(snapshot.latestType == null ? "" : snapshot.latestType.name());
         dto.setLatestAfterSaleStatus(snapshot.latestStatus == null ? "" : snapshot.latestStatus.name());
@@ -365,6 +400,7 @@ public class OrderService {
 
     public AdminOrderDto toAdminOrderDto(OrderEntity order) {
         AfterSaleSnapshot snapshot = buildAfterSaleSnapshot(order.getId());
+        PaymentSnapshot paymentSnapshot = buildPaymentSnapshot(order.getId());
         syncLegacyStatus(order, snapshot.latestRequest);
 
         AdminOrderDto dto = new AdminOrderDto();
@@ -388,6 +424,15 @@ public class OrderService {
         dto.setBookingStatusLabel(order.getBookingStatus().getLabel());
         dto.setPaymentStatus(order.getPaymentStatus().name());
         dto.setPaymentStatusLabel(order.getPaymentStatus().getLabel());
+        dto.setPaymentMode(paymentSnapshot.paymentMode);
+        dto.setPaymentRecordStatus(paymentSnapshot.paymentRecordStatus);
+        dto.setPaymentRecordNo(paymentSnapshot.paymentRecordNo);
+        dto.setTransactionId(paymentSnapshot.transactionId);
+        dto.setLatestRefundRecordId(paymentSnapshot.latestRefundRecordId);
+        dto.setLatestRefundStatus(paymentSnapshot.latestRefundStatus);
+        dto.setLatestRefundFailureCode(paymentSnapshot.latestRefundFailureCode);
+        dto.setLatestRefundFailureMessage(paymentSnapshot.latestRefundFailureMessage);
+        dto.setLatestRefundAmount(paymentSnapshot.latestRefundAmount);
         dto.setLatestAfterSaleRequestId(snapshot.latestRequest == null ? null : snapshot.latestRequest.getId());
         dto.setLatestAfterSaleType(snapshot.latestType == null ? "" : snapshot.latestType.name());
         dto.setLatestAfterSaleStatus(snapshot.latestStatus == null ? "" : snapshot.latestStatus.name());
@@ -758,6 +803,38 @@ public class OrderService {
         order.setStatus(resolveLegacyStatus(order, latestRequest));
     }
 
+    private PaymentSnapshot buildPaymentSnapshot(String orderId) {
+        WechatPaymentOrderEntity paymentOrder = wechatPaymentOrderRepository
+            .findTopByOrderIdOrderByCreatedAtDescIdDesc(orderId)
+            .orElse(null);
+        WechatRefundOrderEntity refundOrder = wechatRefundOrderRepository
+            .findTopByOrderIdOrderByCreatedAtDescIdDesc(orderId)
+            .orElse(null);
+
+        return new PaymentSnapshot(
+            resolvePaymentMode(paymentOrder),
+            paymentOrder == null || paymentOrder.getStatus() == null ? "" : paymentOrder.getStatus().name(),
+            paymentOrder == null ? "" : safeString(paymentOrder.getOutTradeNo()),
+            paymentOrder == null ? "" : safeString(paymentOrder.getTransactionId()),
+            refundOrder == null ? null : refundOrder.getId(),
+            refundOrder == null || refundOrder.getStatus() == null ? "" : refundOrder.getStatus().name(),
+            refundOrder == null ? "" : safeString(refundOrder.getFailCode()),
+            refundOrder == null ? "" : safeString(refundOrder.getFailMessage()),
+            refundOrder == null ? 0 : refundOrder.getRefundAmount() / 100
+        );
+    }
+
+    private String resolvePaymentMode(WechatPaymentOrderEntity paymentOrder) {
+        if (paymentOrder == null) {
+            return "";
+        }
+        String prepayId = safeString(paymentOrder.getPrepayId());
+        if (prepayId.startsWith("mock_")) {
+            return "MOCK_WECHAT_PAY";
+        }
+        return "WECHAT_MINIAPP";
+    }
+
     private OrderStatus resolveLegacyStatus(OrderEntity order, OrderAfterSaleRequestEntity latestRequest) {
         BookingStatus bookingStatus = Objects.requireNonNull(order.getBookingStatus(), "bookingStatus");
         PaymentStatus paymentStatus = Objects.requireNonNull(order.getPaymentStatus(), "paymentStatus");
@@ -772,9 +849,10 @@ public class OrderService {
             case NO_SHOW:
                 return OrderStatus.NO_SHOW;
             case CANCELLED:
-                return (paymentStatus == PaymentStatus.REFUNDED || paymentStatus == PaymentStatus.REFUND_PENDING)
-                    ? OrderStatus.REFUNDED
-                    : OrderStatus.CANCELLED;
+                if (paymentStatus == PaymentStatus.REFUND_PENDING) {
+                    return OrderStatus.REFUND_PENDING;
+                }
+                return paymentStatus == PaymentStatus.REFUNDED ? OrderStatus.REFUNDED : OrderStatus.CANCELLED;
             case CONFIRMED:
                 if (latestRequest != null
                     && latestRequest.getType() == AfterSaleRequestType.RESCHEDULE
@@ -836,6 +914,41 @@ public class OrderService {
             this.latestReason = latestReason;
             this.latestRejectReason = latestRejectReason;
             this.rescheduleCount = rescheduleCount;
+        }
+    }
+
+    private static final class PaymentSnapshot {
+
+        private final String paymentMode;
+        private final String paymentRecordStatus;
+        private final String paymentRecordNo;
+        private final String transactionId;
+        private final Long latestRefundRecordId;
+        private final String latestRefundStatus;
+        private final String latestRefundFailureCode;
+        private final String latestRefundFailureMessage;
+        private final int latestRefundAmount;
+
+        private PaymentSnapshot(
+            String paymentMode,
+            String paymentRecordStatus,
+            String paymentRecordNo,
+            String transactionId,
+            Long latestRefundRecordId,
+            String latestRefundStatus,
+            String latestRefundFailureCode,
+            String latestRefundFailureMessage,
+            int latestRefundAmount
+        ) {
+            this.paymentMode = paymentMode;
+            this.paymentRecordStatus = paymentRecordStatus;
+            this.paymentRecordNo = paymentRecordNo;
+            this.transactionId = transactionId;
+            this.latestRefundRecordId = latestRefundRecordId;
+            this.latestRefundStatus = latestRefundStatus;
+            this.latestRefundFailureCode = latestRefundFailureCode;
+            this.latestRefundFailureMessage = latestRefundFailureMessage;
+            this.latestRefundAmount = latestRefundAmount;
         }
     }
 }

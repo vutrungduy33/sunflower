@@ -4,6 +4,7 @@ import com.sunflower.backend.common.api.ApiResponse;
 import com.sunflower.backend.modules.order.dto.CancelOrderRequest;
 import com.sunflower.backend.modules.order.dto.CreateOrderRequest;
 import com.sunflower.backend.modules.order.dto.OrderDto;
+import com.sunflower.backend.modules.order.dto.OrderPayPrepareDto;
 import com.sunflower.backend.modules.order.dto.RefundOrderRequest;
 import com.sunflower.backend.modules.order.dto.RescheduleOrderRequest;
 import java.util.List;
@@ -43,8 +44,13 @@ public class OrderController {
     }
 
     @PostMapping("/{orderId}/pay")
-    public ApiResponse<OrderDto> payOrder(@PathVariable String orderId) {
+    public ApiResponse<OrderPayPrepareDto> payOrder(@PathVariable String orderId) {
         return ApiResponse.ok(orderService.payCurrentUserOrder(orderId));
+    }
+
+    @PostMapping("/{orderId}/pay/confirm")
+    public ApiResponse<OrderDto> confirmPayOrder(@PathVariable String orderId) {
+        return ApiResponse.ok(orderService.confirmCurrentUserOrderPayment(orderId));
     }
 
     @PostMapping("/{orderId}/cancel")

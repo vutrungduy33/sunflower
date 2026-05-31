@@ -31,6 +31,27 @@ validate_not_placeholder_domain() {
   esac
 }
 
+validate_https_url() {
+  local name="$1"
+  local value="${!name:-}"
+
+  require_value "$name"
+
+  case "$value" in
+    https://*)
+      ;;
+    *)
+      fail validate "${name} must use an https URL, got '${value}'"
+      ;;
+  esac
+
+  case "$value" in
+    *example.com*|*localhost*|*127.0.0.1*)
+      fail validate "${name} must use a real public URL, got '${value}'"
+      ;;
+  esac
+}
+
 main() {
   cd "$(project_root)"
   load_prod_env
@@ -66,6 +87,7 @@ main() {
 
       WECHAT_AUTH_MOCK_ENABLED="$(normalize_bool "${WECHAT_AUTH_MOCK_ENABLED:-false}")"
       WECHAT_MANUAL_PHONE_BIND_ENABLED="$(normalize_bool "${WECHAT_MANUAL_PHONE_BIND_ENABLED:-false}")"
+      WECHAT_PAY_MOCK_ENABLED="$(normalize_bool "${WECHAT_PAY_MOCK_ENABLED:-false}")"
 
       if [ "$WECHAT_AUTH_MOCK_ENABLED" != "false" ]; then
         fail validate "WECHAT_AUTH_MOCK_ENABLED must be false in prod"
@@ -75,11 +97,30 @@ main() {
         fail validate "WECHAT_MANUAL_PHONE_BIND_ENABLED must be false in prod"
       fi
 
+      if [ "$WECHAT_PAY_MOCK_ENABLED" != "false" ]; then
+        fail validate "WECHAT_PAY_MOCK_ENABLED must be false in prod"
+      fi
+
       require_value WECHAT_APP_ID
       require_value WECHAT_APP_SECRET
       require_value WECHAT_JSCODE2SESSION_URL
       require_value WECHAT_STABLE_ACCESS_TOKEN_URL
       require_value WECHAT_GET_PHONE_NUMBER_URL
+      require_value WECHAT_PAY_MCH_ID
+      require_value WECHAT_PAY_MERCHANT_SERIAL_NO
+      require_value WECHAT_PAY_PRIVATE_KEY_PATH
+      require_value WECHAT_PAY_PUBLIC_KEY_ID
+      require_value WECHAT_PAY_PUBLIC_KEY_PATH
+      require_value WECHAT_PAY_API_V3_KEY
+      validate_https_url WECHAT_PAY_PAYMENT_NOTIFY_URL
+      validate_https_url WECHAT_PAY_REFUND_NOTIFY_URL
+
+      [ -f "$WECHAT_PAY_PRIVATE_KEY_PATH" ] || fail validate "WECHAT_PAY_PRIVATE_KEY_PATH file not found: ${WECHAT_PAY_PRIVATE_KEY_PATH}"
+      [ -f "$WECHAT_PAY_PUBLIC_KEY_PATH" ] || fail validate "WECHAT_PAY_PUBLIC_KEY_PATH file not found: ${WECHAT_PAY_PUBLIC_KEY_PATH}"
+
+      if [ "${#WECHAT_PAY_API_V3_KEY}" -ne 32 ]; then
+        fail validate "WECHAT_PAY_API_V3_KEY must be 32 characters"
+      fi
 
       ADMIN_SMS_PROVIDER="$(printf '%s' "$ADMIN_SMS_PROVIDER" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')"
       case "$ADMIN_SMS_PROVIDER" in
