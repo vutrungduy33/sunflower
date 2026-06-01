@@ -42,6 +42,11 @@ waived by the user.
 The execution runbook for the remaining external evidence is
 `docs/MVP-External-Validation-Runbook.md`.
 
+The compact handoff entry for the next operator is
+`docs/MVP-Handoff-Packet.md`. It is checked by
+`node scripts/check_mvp_handoff_packet.js` to ensure the packet still covers all
+unresolved required evidence IDs, approval boundaries, and closeout commands.
+
 Miniapp manual QA is tracked separately in `docs/Miniapp-Manual-QA.md` and
 `docs/Miniapp-Manual-QA.json`.
 
@@ -64,6 +69,7 @@ RUN_PRODUCTION=1 scripts/check_mvp_regression.sh
 node scripts/check_mvp_external_runbook.js
 node scripts/generate_mvp_external_evidence_template.js
 node scripts/check_mvp_external_evidence_template.js
+node scripts/check_mvp_handoff_packet.js
 node scripts/check_mvp_closeout_readiness.js
 node scripts/check_mvp_closeout_readiness.js --strict
 node scripts/check_mvp_launch_evidence.js --strict
@@ -143,6 +149,11 @@ declared complete.
 `docs/MVP-External-Evidence-Template.md`, a sanitized capture template for the
 remaining external QA items. `node scripts/check_mvp_external_evidence_template.js`
 ensures the template still covers every unresolved required evidence item.
+
+`node scripts/check_mvp_handoff_packet.js` verifies
+`docs/MVP-Handoff-Packet.md` still names every unresolved required launch,
+miniapp, and admin-web evidence item, plus the required approval boundaries and
+closeout commands.
 
 When HTTPS/domain is ready, also verify:
 

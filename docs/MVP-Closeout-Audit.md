@@ -61,6 +61,8 @@ Workflow and docs:
   - `docs/MVP-Launch-Evidence.md`
 - `node scripts/check_mvp_closeout_readiness.js` now summarizes launch,
   miniapp manual QA, and admin-web manual QA closeout status in one place.
+- `docs/MVP-Handoff-Packet.md` now gives the next operator a compact,
+  machine-checked entry point for the 33 unresolved required closeout items.
 
 ## 3. Requirements Still Not Proven
 
@@ -111,6 +113,9 @@ Do not call the MVP complete until:
    checks are explicitly waived by the user.
 10. `node scripts/check_mvp_closeout_readiness.js --strict` passes as the final
     aggregate completion guard.
+11. `node scripts/check_mvp_handoff_packet.js` passes so the handoff entry stays
+    synchronized with the unresolved evidence ledgers while the goal remains
+    open.
 
 ## 5. Recommended Next Goal Prompt
 

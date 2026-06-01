@@ -1300,3 +1300,71 @@
     workflow dispatch, but the MVP goal remains open. This round did not push,
     merge, dispatch GitHub Actions, deploy current branch code, or prove
     `CURRENT-BRANCH-DEPLOYED`.
+
+## Round 24: MVP Handoff Packet
+
+- Date: 2026-06-02
+- Status: completed and committed.
+- Focus: create a compact, machine-checked MVP handoff packet that tells the
+  next operator exactly what is proven, what remains blocked on external
+  evidence, which commands to run first, and which actions still require human
+  approval.
+- Start evidence:
+  - `git status --short --untracked-files=all`: clean after Round 23 commit.
+  - `docs/MVP-Readiness.md`, `docs/MVP-Closeout-Audit.md`, and
+    `docs/MVP-External-Validation-Runbook.md` contain the needed facts, but the
+    next operator still has to stitch together multiple documents and scripts.
+  - `node scripts/check_mvp_closeout_readiness.js` reports 33 unresolved
+    required closeout items across launch, miniapp manual QA, and admin-web
+    manual QA ledgers.
+- Open-source reference check:
+  - Task classification: common release handoff / go-live checklist packaging.
+  - Sources checked: existing project artifacts and checker scripts:
+    `docs/MVP-Readiness.md`, `docs/MVP-Closeout-Audit.md`,
+    `docs/MVP-External-Validation-Runbook.md`,
+    `docs/MVP-External-Evidence-Template.md`,
+    `docs/MVP-Launch-Evidence.json`, `docs/Miniapp-Manual-QA.json`,
+    `docs/Admin-Web-Manual-QA.json`,
+    `scripts/check_mvp_closeout_readiness.js`, and
+    `scripts/check_deployment_approval_preflight.js`.
+  - Selected approach: add a repository-local Markdown handoff packet plus a
+    small Node.js coverage checker that verifies the packet references every
+    unresolved required evidence item and the canonical preflight/strict
+    closeout commands.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: existing project evidence ledger IDs and checker style.
+  - Rejected options: adding a third-party release-management tool, storing
+    screenshots/secrets in Git, or collapsing pending external evidence into a
+    false completion claim.
+- Risks:
+  - The packet improves handoff and reduces context drift, but it is not
+    external evidence. The MVP cannot be declared complete until the strict
+    closeout commands pass or the user explicitly waives remaining items.
+- Acceptance criteria:
+  - `docs/MVP-Handoff-Packet.md` exists and clearly lists proven state,
+    unresolved blockers, next execution order, approval boundaries, and final
+    strict completion commands.
+  - New checker verifies the handoff packet covers all unresolved required
+    launch, miniapp, and admin-web IDs plus critical preflight commands.
+  - Context/readiness/project-state docs reference the handoff packet.
+  - Focused verification passes and the round is committed once.
+- Verification:
+  - `node --check scripts/check_mvp_handoff_packet.js`: passed.
+  - `node scripts/check_mvp_handoff_packet.js`: passed; it covered 33 unresolved
+    required items, 10 commands, and 8 safety boundaries.
+  - `RUN_BACKEND=0 RUN_ADMIN=0 RUN_MINIAPP=0 scripts/check_mvp_regression.sh`:
+    passed evidence ledger checks and deploy config static checks. Backend,
+    admin-web, miniapp, and production checks were intentionally skipped for
+    this documentation/checker-only round.
+  - `git diff --check`: passed.
+- Change summary:
+  - Added `docs/MVP-Handoff-Packet.md`.
+  - Added `scripts/check_mvp_handoff_packet.js` and wired it into aggregate
+    evidence regression.
+  - Updated context index, readiness, closeout audit, external validation
+    runbook, project-state, and decision docs.
+- Goal correction:
+  - The handoff path is now clearer and machine-checked, but the MVP goal
+    remains open. This round did not execute external miniapp/admin QA, real
+    payment/refund, backend security-group/firewall changes, push, deploy, or
+    strict closeout completion.

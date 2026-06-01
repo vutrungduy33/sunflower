@@ -92,6 +92,10 @@ Current snapshot after 2026-06-02 Round 20 production read-only audit:
   required items.
 - External evidence template coverage
   `node scripts/check_mvp_external_evidence_template.js`: passed in Round 19.
+- MVP handoff packet `docs/MVP-Handoff-Packet.md` and coverage guard
+  `node scripts/check_mvp_handoff_packet.js`: added in Round 24 to keep the
+  next-operator entry synchronized with 33 unresolved required launch, miniapp,
+  and admin-web evidence items plus approval boundaries and closeout commands.
 - Miniapp manual QA `node scripts/check_miniapp_manual_qa.js`: passed on
   2026-06-02.
 - Miniapp manual QA `node scripts/check_miniapp_manual_qa.js --strict`:
@@ -172,8 +176,10 @@ Current snapshot after 2026-06-02 Round 20 production read-only audit:
 - Launch evidence tracker: `docs/MVP-Launch-Evidence.md`.
 - External validation runbook: `docs/MVP-External-Validation-Runbook.md`.
 - External evidence template: `docs/MVP-External-Evidence-Template.md`.
+- MVP handoff packet: `docs/MVP-Handoff-Packet.md`.
 - MVP closeout audit: `docs/MVP-Closeout-Audit.md`.
 - MVP closeout readiness guard: `scripts/check_mvp_closeout_readiness.js`.
+- MVP handoff packet guard: `scripts/check_mvp_handoff_packet.js`.
 - Aggregate MVP regression script: `scripts/check_mvp_regression.sh`.
 - Production read-only audit script:
   `scripts/check_production_readonly_audit.sh`.

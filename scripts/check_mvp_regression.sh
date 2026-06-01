@@ -83,6 +83,7 @@ run_evidence_checks() {
     node scripts/check_miniapp_manual_qa.js
     node scripts/check_admin_web_manual_qa.js
     node scripts/check_mvp_closeout_readiness.js
+    node scripts/check_mvp_handoff_packet.js
   )
 }
 

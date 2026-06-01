@@ -221,3 +221,17 @@ Append durable decisions here. Keep entries short and include provenance.
 - Provenance: `.github/workflows/deploy-backend.yml`, `docs/CI-CD.md`,
   `docs/MVP-Launch-Evidence.json`,
   `scripts/check_deployment_approval_preflight.js`.
+
+## 2026-06-02: Add MVP Handoff Packet
+
+- Decision: Use `docs/MVP-Handoff-Packet.md` as the compact first-read handoff
+  for future MVP hardening work and `scripts/check_mvp_handoff_packet.js` as
+  its coverage guard.
+- Rationale: The remaining launch blockers are spread across several evidence
+  ledgers and runbooks. A machine-checked handoff packet reduces context drift
+  while still preventing a false completion claim before strict external
+  evidence passes.
+- Provenance: `docs/MVP-Handoff-Packet.md`,
+  `scripts/check_mvp_handoff_packet.js`,
+  `docs/MVP-Launch-Evidence.json`, `docs/Miniapp-Manual-QA.json`,
+  `docs/Admin-Web-Manual-QA.json`.

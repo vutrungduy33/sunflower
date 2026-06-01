@@ -19,6 +19,9 @@ alone:
 - Current branch deployment through the approved GitHub Actions path, or an
   explicit out-of-scope decision.
 
+For a compact first-read handoff, start with `docs/MVP-Handoff-Packet.md` and
+validate it with `node scripts/check_mvp_handoff_packet.js`.
+
 ## 2. Safety Rules
 
 - Do not commit real AppID values, openId/unionId, auth tokens, phone numbers,
