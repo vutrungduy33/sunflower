@@ -51,6 +51,10 @@ Current snapshot after 2026-06-02 Round 25 admin-web validation calibration:
   local/devtools validation.
 - Miniapp `node scripts/check_miniapp_behavior_wiring.js`: passed in Round 16
   with 69 key behavior wiring checks across 14 files.
+- Miniapp `node scripts/check_miniapp_user_flow_replay.js`: added in Round 26
+  to execute a Node.js-stubbed replay of home login/content/profile prompt,
+  order creation, phone binding, payment success, order filtering, cancel,
+  refund, and reschedule page-method flows before real-device QA.
 - Miniapp `bash scripts/check_miniapp_project_config.sh`: passed.
 - Miniapp `bash scripts/check_mvp_subpage_nav.sh`: passed.
 - Miniapp external QA preflight
@@ -191,6 +195,7 @@ Current snapshot after 2026-06-02 Round 25 admin-web validation calibration:
   `scripts/check_admin_web_external_qa_preflight.js`.
 - Miniapp external QA preflight:
   `scripts/check_miniapp_external_qa_preflight.js`.
+- Miniapp user-flow replay guard: `scripts/check_miniapp_user_flow_replay.js`.
 
 ## Current Dirty Worktree Note
 

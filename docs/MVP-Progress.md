@@ -1439,3 +1439,85 @@
     should return to unresolved external evidence: miniapp real-device/WeChat
     validation, admin production or approved-staging manual QA, backend `8080`
     hardening proof, and current-branch deployment evidence after approval.
+
+## Round 26: Miniapp User Flow Replay Guard
+
+- Date: 2026-06-02
+- Status: completed and committed.
+- Focus: add a repeatable pre-real-device guard for the miniapp user path so
+  login bootstrap, home content, phone binding, order creation, payment success,
+  order filtering, cancel, reschedule, and refund page-method flows can be
+  replayed before WeChat preview/manual QA.
+- Start evidence:
+  - `git status --short --untracked-files=all`: clean after Round 25 commit.
+  - `docs/Miniapp-MVP-QA.md` already documents syntax, static wiring, project
+    config, and external QA preflight checks.
+  - `scripts/check_miniapp_behavior_wiring.js` statically checks 69 key
+    bindings, but it does not execute page methods or state transitions.
+  - `docs/Miniapp-Manual-QA.json` still has 12 pending required checks because
+    real WeChat preview/device evidence is not recorded.
+- Open-source reference check:
+  - Task classification: common miniapp auth/booking/payment flow regression
+    guard before production or real-device QA.
+  - Sources checked:
+    - WeChat Mini Program official pages responded over HTTPS:
+      `https://developers.weixin.qq.com/miniprogram/dev/api/payment/wx.requestPayment.html`
+      and
+      `https://developers.weixin.qq.com/miniprogram/dev/framework/open-ability/getPhoneNumber.html`.
+    - WeChat Pay mini program payment guide:
+      `https://pay.wechatpay.cn/doc/v3/merchant/4012791898`.
+    - Existing project code and docs:
+      `docs/Miniapp-MVP-QA.md`, `docs/Miniapp-Frontend-MVP.md`,
+      `scripts/check_miniapp_mvp_smoke.js`,
+      `scripts/check_miniapp_behavior_wiring.js`,
+      `sunflower-miniapp/pages/mvp/**`, and `sunflower-miniapp/utils/mvp/**`.
+  - Selected approach: add a repository-local Node.js replay harness that stubs
+    `wx`, `Page`, API helpers, payment helpers, and tracker calls, then invokes
+    real MVP page methods for the main user flow. This keeps the check
+    dependency-free and aligned with existing miniapp static guards.
+  - License/compatibility: official documentation referenced; no external code
+    copied.
+  - Reused/adapted: project-local checker style plus existing page method and
+    helper contracts.
+  - Rejected options: adding a browser/e2e framework, copying third-party
+    miniapp test harnesses, or marking replay results as proof of real WeChat
+    login/phone/payment readiness.
+- Risks:
+  - The replay guard runs in Node.js with stubs. It can catch broken page state
+    flows and helper calls, but it cannot prove WeChat runtime behavior, legal
+    request-domain configuration, merchant settlement, callbacks, or real-device
+    UI behavior.
+- Acceptance criteria:
+  - New replay script covers home login/content/profile-prompt navigation,
+    order-create validation/phone binding/order submission/payment success, and
+    order-list filter/pay/cancel/refund/reschedule flows.
+  - Replay script checks key API/payment/tracker calls and user feedback.
+  - Aggregate miniapp regression includes the replay script.
+  - Miniapp QA/readiness/project-state docs reference the new guard and its
+    limits.
+  - Focused validation passes and the round is committed once.
+- Verification:
+  - `node --check scripts/check_miniapp_user_flow_replay.js`: passed.
+  - `node scripts/check_miniapp_user_flow_replay.js`: passed 3 replay
+    scenarios.
+  - `node scripts/check_miniapp_mvp_smoke.js`: passed with the existing
+    bare-HTTP default API base warning.
+  - `node scripts/check_miniapp_behavior_wiring.js`: passed with 69 checks
+    across 14 files.
+  - `node scripts/check_miniapp_external_qa_preflight.js`: passed with 6 checks
+    and the expected warning that local `project.private.config.json` is absent.
+  - `bash scripts/check_miniapp_project_config.sh`: passed.
+  - `bash scripts/check_mvp_subpage_nav.sh`: passed.
+  - `RUN_BACKEND=0 RUN_ADMIN=0 RUN_EVIDENCE=0 RUN_DEPLOY_CONFIG=0 scripts/check_mvp_regression.sh`:
+    passed the aggregate miniapp check path with backend/admin/evidence/deploy
+    config/production checks intentionally skipped.
+- Change summary:
+  - Added `scripts/check_miniapp_user_flow_replay.js`.
+  - Wired the replay guard into `scripts/check_mvp_regression.sh`.
+  - Updated `docs/Miniapp-MVP-QA.md`, `docs/MVP-Readiness.md`,
+    `docs/Context-Index.md`, `docs/Project-State.md`, and this progress log.
+- Goal correction:
+  - Miniapp local pre-real-device confidence is stronger, but the MVP goal
+    remains open. This round did not create real WeChat preview/device evidence,
+    set an HTTPS legal request domain, run real payment/refund, or update
+    strict manual QA ledgers to passed/waived.

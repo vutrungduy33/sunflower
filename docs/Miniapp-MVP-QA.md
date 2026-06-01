@@ -11,6 +11,7 @@ Run from the repository root:
 ```bash
 node scripts/check_miniapp_mvp_smoke.js
 node scripts/check_miniapp_behavior_wiring.js
+node scripts/check_miniapp_user_flow_replay.js
 node scripts/check_miniapp_external_qa_preflight.js
 bash scripts/check_miniapp_project_config.sh
 bash scripts/check_mvp_subpage_nav.sh
@@ -38,6 +39,18 @@ The behavior wiring script checks:
   status filters are bound to the expected page handlers.
 - Booking date changes trigger a refreshed room search instead of leaving stale
   room results after the selected stay dates change.
+
+The user-flow replay script checks:
+
+- Home bootstrap executes login, content load, new-user profile prompt, booking
+  navigation, order-center navigation, and login success tracking with stubbed
+  `wx`/API helpers.
+- Order creation blocks unbound-phone submission, binds a WeChat phone code,
+  hydrates the guest phone, creates an order, invokes the payment helper, tracks
+  order/payment events, and redirects to the order center.
+- Order list loads and filters orders, invokes payment, cancels unpaid orders,
+  submits refund requests, submits same-night reschedule requests, tracks
+  payment/refund/reschedule events, and shows success feedback.
 
 Manual preview/real-device evidence is tracked in:
 
@@ -121,6 +134,9 @@ Production acceptance:
 - `node scripts/check_miniapp_behavior_wiring.js` is a static wiring guard; it
   cannot prove runtime WeChat API behavior, backend persistence, or payment
   settlement.
+- `node scripts/check_miniapp_user_flow_replay.js` executes page methods with
+  Node.js stubs. It is stronger than syntax/static wiring for state flow
+  regressions, but still does not replace WeChat preview/real-device QA.
 - The committed default API base is currently a bare HTTP IP for DevTools
   validation and must be replaced or overridden by HTTPS before production
   preview/release.
