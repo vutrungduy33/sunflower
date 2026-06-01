@@ -224,6 +224,9 @@ Approval boundary:
   explicit user approval first.
 - Before approval, run the read-only deployment approval preflight and report
   branch, commit, predicted target, and deployment risk.
+- Latest Round 34 preflight snapshot: branch `codex/s18-payment-hardening`,
+  HEAD `e2653d04d542`, base `origin/main` `5a37a6788c21`, 142 changed files
+  since base, predicted deploy target `all`, no push/deploy performed.
 
 Validation after evidence:
 

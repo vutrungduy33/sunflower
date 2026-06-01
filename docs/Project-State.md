@@ -45,9 +45,10 @@ regression recheck:
   production read-only checks.
 - Deployment approval preflight
   `node scripts/check_deployment_approval_preflight.js`: passed again in Round
-  30. Current branch was `codex/s18-payment-hardening`, HEAD `d50532c45a53`,
-  worktree was clean, comparison base was `origin/main` at `5a37a6788c21`, and
-  path rules predicted a future push/merge to `main` would deploy target `all`.
+  34. Current branch was `codex/s18-payment-hardening`, HEAD `e2653d04d542`,
+  worktree was clean, comparison base was `origin/main` at `5a37a6788c21`,
+  changed files since base were 142, and path rules predicted a future
+  push/merge to `main` would deploy target `all`.
 - Production smoke and backend `8080` read-only checks: passed again in Round
   32 through `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`. The checks did
   not push, deploy, reload Nginx, or change ECS/firewall/security-group state.
@@ -151,7 +152,7 @@ regression recheck:
   does not mutate production and does not prove current-branch deployment.
 - Deployment approval preflight
   `node scripts/check_deployment_approval_preflight.js`: added in Round 23 and
-  rerun in Round 30 to summarize current branch cleanliness, branch/base refs,
+  rerun in Round 34 to summarize current branch cleanliness, branch/base refs,
   changed-file deployment impact, workflow trigger shape, and the approval
   boundary before any push/merge/workflow_dispatch. It does not deploy or prove
   current branch code is live.

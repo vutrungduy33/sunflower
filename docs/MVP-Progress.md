@@ -2037,3 +2037,75 @@
     approval if it mutates production or uses real payment/refund/deployment,
     then record sanitized evidence in the relevant JSON ledger and run the
     matching strict checker.
+
+## Round 34: Current-Branch Deployment Approval Preflight Refresh
+
+- Date: 2026-06-02
+- Status: completed and committed.
+- Focus: refresh the read-only deployment approval preflight for the
+  `CURRENT-BRANCH-DEPLOYED` lane without pushing, merging, dispatching
+  workflow, deploying, or changing production.
+- Start evidence:
+  - `git status --short --branch --untracked-files=all`: clean on
+    `codex/s18-payment-hardening` after Round 33 commit.
+  - Round 33 added `docs/MVP-External-Approval-Packet.md`, which explicitly
+    requires deployment approval preflight before any current-branch deployment
+    action.
+  - `docs/Production-Smoke.md`, `docs/Project-State.md`, and
+    `docs/MVP-Readiness.md` still referenced the older Round 30 deployment
+    preflight HEAD and changed-file count.
+- Open-source reference check:
+  - Task classification: repository-specific deployment approval evidence
+    refresh using an existing script.
+  - Sources checked: not applicable; this round did not implement common
+    deployment infrastructure or copy reusable code.
+  - Selected approach: run `node scripts/check_deployment_approval_preflight.js`
+    and update durable docs from its current output.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: existing deployment approval preflight script and current
+    approval packet lane.
+  - Rejected options: pushing to `main`, invoking `workflow_dispatch`, merging,
+    or treating preflight as proof that current branch code is deployed.
+- Risks:
+  - This preflight proves only workflow shape, branch/base state, worktree
+    cleanliness, and predicted deployment impact. It does not deploy code or
+    satisfy `CURRENT-BRANCH-DEPLOYED`.
+  - The predicted target remains `all`; an approved merge/push to `main` would
+    affect backend, admin-web, and ingress deployment paths.
+  - The strict closeout still needs user-approved deployment evidence or an
+    explicit out-of-scope decision.
+- Acceptance criteria:
+  - Deployment approval preflight passes and reports current branch, HEAD, base,
+    changed-file count, path-rule impact, and approval boundary.
+  - Deployment/readiness/state docs reflect the latest preflight result.
+  - Docs continue to state that no deployment was performed and
+    `CURRENT-BRANCH-DEPLOYED` remains pending.
+  - The round is committed once.
+- Verification:
+  - `node scripts/check_deployment_approval_preflight.js`: passed 5 checks.
+    - Current branch: `codex/s18-payment-hardening`.
+    - HEAD: `e2653d04d542`.
+    - Comparison base: `origin/main` at `5a37a6788c21`.
+    - Changed files since base: 142.
+    - Predicted push-to-main deploy target: `all`.
+    - Impact counts: backend 38 files, admin-web 5 files, ingress 1 file.
+    - Worktree clean; current branch is not `main`.
+  - `node scripts/check_mvp_external_approval_packet.js`: passed.
+  - `node scripts/check_mvp_handoff_packet.js`: passed.
+  - `node scripts/check_mvp_launch_evidence.js`: passed non-strict and kept
+    `CURRENT-BRANCH-DEPLOYED` pending.
+  - `node scripts/check_mvp_closeout_readiness.js`: passed non-strict and
+    reported 33 unresolved required closeout items.
+  - `git diff --check`: passed.
+- Change summary:
+  - Updated `docs/Production-Smoke.md` with a separate latest deployment
+    approval preflight snapshot.
+  - Updated `docs/Project-State.md` and `docs/MVP-Readiness.md` with the latest
+    branch HEAD, changed-file count, and predicted deploy target.
+  - Updated `docs/MVP-External-Approval-Packet.md` so the
+    `CURRENT-BRANCH-DEPLOYED` lane carries the current preflight snapshot.
+- Goal correction:
+  - The deployment approval boundary is now current, but MVP completion remains
+    open. The next deployment-related progress requires explicit user approval
+    for push/merge/workflow dispatch, or an explicit user decision that current
+    branch deployment evidence is out of scope for MVP closeout.

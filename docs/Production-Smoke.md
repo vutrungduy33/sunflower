@@ -32,11 +32,20 @@ Latest read-only production result:
 - 7 checks passed.
 - 1 warning remained: ECS-2 backend still listens on `0.0.0.0:8080`.
 - Backend `8080` exposure check passed with 3 checks and 2 warnings.
-- `node scripts/check_deployment_approval_preflight.js`: passed 5 checks before
-  the read-only audit. Current branch was `codex/s18-payment-hardening`, HEAD
-  `d50532c45a53`, comparison base was `origin/main` at `5a37a6788c21`, and the
-  path-rule prediction for a future push/merge to `main` was `all`.
 - No deployment, push, or production configuration change was performed.
+
+Latest deployment approval preflight:
+
+- `node scripts/check_deployment_approval_preflight.js`: passed 5 checks on
+  2026-06-02 07:44 Asia/Shanghai.
+- Current branch: `codex/s18-payment-hardening`.
+- Current branch HEAD: `e2653d04d542`.
+- Comparison base: `origin/main` at `5a37a6788c21`.
+- Changed files since base: 142.
+- Predicted push-to-main deploy target from workflow path rules: `all`.
+- Impact counts: backend 38 files, admin-web 5 files, ingress 1 file.
+- Worktree was clean, branch was not `main`, and no deployment, push, or
+  production configuration change was performed.
 
 ## 1. GitHub Actions
 
@@ -45,8 +54,9 @@ Latest read-only production result:
 - Triggers:
   - `workflow_dispatch`
   - `push` to `main` for deployment-relevant paths
-- Current branch during this smoke: `codex/s18-payment-hardening`
-- Current branch HEAD during this smoke: `d50532c45a53`
+- Current branch during latest deployment preflight:
+  `codex/s18-payment-hardening`
+- Current branch HEAD during latest deployment preflight: `e2653d04d542`
 - Deployment action taken in this round: none
 - `gh auth status`: authenticated as `vutrungduy33` with `repo` and `workflow`
   scopes.
