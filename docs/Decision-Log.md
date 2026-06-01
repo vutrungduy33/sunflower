@@ -209,3 +209,15 @@ Append durable decisions here. Keep entries short and include provenance.
 - Provenance: `docs/Admin-Web-MVP-QA.md`,
   `docs/Admin-Web-Manual-QA.json`,
   `scripts/check_admin_web_external_qa_preflight.js`.
+
+## 2026-06-02: Add Deployment Approval Preflight
+
+- Decision: Use `scripts/check_deployment_approval_preflight.js` before any
+  production push/merge/workflow_dispatch approval discussion.
+- Rationale: The project needs a read-only way to summarize current branch
+  cleanliness, workflow trigger shape, changed-file deployment impact, and the
+  `CURRENT-BRANCH-DEPLOYED` evidence boundary without accidentally triggering
+  GitHub Actions or mutating production.
+- Provenance: `.github/workflows/deploy-backend.yml`, `docs/CI-CD.md`,
+  `docs/MVP-Launch-Evidence.json`,
+  `scripts/check_deployment_approval_preflight.js`.

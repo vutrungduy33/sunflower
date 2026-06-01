@@ -96,7 +96,7 @@ Ledger update reminder:
 - Area: deployment
 - Requirement: Current committed MVP branch code has been deployed through the approved GitHub Actions path, or deployment is explicitly declared out of scope by the user.
 - Current evidence: Current branch codex/s18-payment-hardening has not been pushed or merged to main; no deployment was triggered by the latest MVP commits.
-- Next action: Ask for approval before push/merge/workflow_dispatch.
+- Next action: Run node scripts/check_deployment_approval_preflight.js, then ask for approval before push/merge/workflow_dispatch.
 
 Suggested sanitized evidence entry:
 

@@ -1229,3 +1229,74 @@
     round did not log into production, send SMS, mutate live rooms/prices/orders,
     validate refunds, or provide the `node scripts/check_admin_web_manual_qa.js
     --strict` evidence needed for final completion.
+
+## Round 23: Deployment Approval Preflight
+
+- Date: 2026-06-02
+- Status: completed.
+- Focus: add a read-only preflight that summarizes whether the current MVP
+  branch is safe to consider for GitHub Actions deployment approval, what would
+  trigger on `main`, and which deployment targets are affected.
+- Start evidence:
+  - `git status --short --untracked-files=all`: clean after Round 22 commit.
+  - Active deployment workflow is `.github/workflows/deploy-backend.yml`.
+  - Launch evidence still marks `CURRENT-BRANCH-DEPLOYED` as pending because the
+    current branch has not been pushed or merged to `main`, and no deployment
+    was triggered by the latest MVP commits.
+  - Existing `scripts/check_deploy_config.sh` validates workflow YAML, compose
+    rendering, and deployment shell syntax, but does not explain current branch
+    deployment impact or approval requirements.
+- Open-source reference check:
+  - Task classification: common CI/CD pre-deployment impact and approval
+    preflight.
+  - Sources checked:
+    - GitHub Actions workflow syntax and trigger documentation:
+      `https://docs.github.com/actions/using-workflows/workflow-syntax-for-github-actions`.
+    - Existing project workflow/docs:
+      `.github/workflows/deploy-backend.yml`, `docs/CI-CD.md`,
+      `docs/Production-Smoke.md`, `docs/MVP-Launch-Evidence.json`, and
+      `scripts/check_deploy_config.sh`.
+  - Selected approach: add a repo-local Node.js preflight that reads the active
+    workflow and current git diff against `origin/main`/`main`, classifies
+    deployment-relevant paths using the workflow's path rules, and prints a
+    non-secret approval summary without pushing or calling GitHub APIs.
+  - License/compatibility: official documentation referenced; no external code
+    copied.
+  - Reused/adapted: project-local checker style and workflow path classification
+    already encoded in `.github/workflows/deploy-backend.yml`.
+  - Rejected options: pushing to `main`, running `workflow_dispatch`, or adding
+    a GitHub API dependency before explicit production approval.
+- Risks:
+  - This preflight predicts deployment impact from local workflow path rules and
+    git state, but it does not prove remote runner health, GitHub secrets,
+    production deployment success, or that current branch code is live.
+- Acceptance criteria:
+  - New preflight reports current branch, clean/dirty state, base ref, changed
+    files, target classification, and required human approval boundary.
+  - The script verifies workflow triggers and dispatch target options match the
+    documented deployment flow.
+  - Deploy config checks include the new script's syntax.
+  - Deployment/readiness/launch docs identify the preflight and its limits.
+  - Focused verification passes and the round is committed once.
+- Verification:
+  - `node --check scripts/check_deployment_approval_preflight.js`: passed.
+  - `scripts/check_deploy_config.sh`: passed; it now checks deployment shell
+    syntax plus the deployment approval preflight's Node.js syntax.
+  - `node scripts/generate_mvp_external_evidence_template.js`: passed and wrote
+    `docs/MVP-External-Evidence-Template.md` with 33 unresolved required items.
+  - `node scripts/check_mvp_external_evidence_template.js`: passed.
+  - `node scripts/check_deployment_approval_preflight.js`: expected non-zero
+    before commit because this round's staged changes made the worktree dirty;
+    it still reported current branch `codex/s18-payment-hardening`, base
+    `origin/main`, and predicted deploy target `all`.
+  - `git diff --check`: passed.
+- Change summary:
+  - Added `scripts/check_deployment_approval_preflight.js`.
+  - Added the preflight syntax check to `scripts/check_deploy_config.sh`.
+  - Updated readiness, CI/CD, external validation runbook, launch evidence,
+    context index, project-state, external evidence template, and decision docs.
+- Goal correction:
+  - Deployment approval is now easier to review safely before any push or
+    workflow dispatch, but the MVP goal remains open. This round did not push,
+    merge, dispatch GitHub Actions, deploy current branch code, or prove
+    `CURRENT-BRANCH-DEPLOYED`.

@@ -67,6 +67,13 @@ node scripts/check_mvp_external_evidence_template.js
    - Run `node scripts/check_admin_web_manual_qa.js` after each update.
 
 5. Complete deployment/security evidence:
+   - Before requesting any push, merge, or `workflow_dispatch`, run the
+     read-only deployment approval preflight:
+
+```bash
+node scripts/check_deployment_approval_preflight.js
+```
+
    - Re-run the read-only production audit:
 
 ```bash

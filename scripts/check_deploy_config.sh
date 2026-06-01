@@ -68,14 +68,22 @@ check_shell_syntax() {
   log PASS "deployment shell syntax checked"
 }
 
+check_node_syntax() {
+  log INFO "checking deployment Node.js script syntax"
+  node --check "$ROOT_DIR/scripts/check_deployment_approval_preflight.js"
+  log PASS "deployment Node.js script syntax checked"
+}
+
 main() {
   require_command ruby
   require_command docker
   require_command bash
+  require_command node
 
   check_workflow_yaml
   check_compose_rendering
   check_shell_syntax
+  check_node_syntax
 
   log INFO "deploy config checks completed"
 }

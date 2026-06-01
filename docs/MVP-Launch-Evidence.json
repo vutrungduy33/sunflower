@@ -119,7 +119,7 @@
       "status": "pending",
       "requiredForMvp": true,
       "evidence": "Current branch codex/s18-payment-hardening has not been pushed or merged to main; no deployment was triggered by the latest MVP commits.",
-      "nextAction": "Ask for approval before push/merge/workflow_dispatch."
+      "nextAction": "Run node scripts/check_deployment_approval_preflight.js, then ask for approval before push/merge/workflow_dispatch."
     }
   ]
 }

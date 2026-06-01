@@ -104,6 +104,7 @@ node --check pages/mvp/order-list/index.js
 After an approved production deploy:
 
 ```bash
+node scripts/check_deployment_approval_preflight.js
 scripts/check_production_readonly_audit.sh
 scripts/check_deploy_config.sh
 RUN_INTERNAL=1 scripts/check_production_smoke.sh
@@ -111,6 +112,12 @@ RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh
 ```
 
 Latest production smoke notes live in `docs/Production-Smoke.md`.
+
+`node scripts/check_deployment_approval_preflight.js` is the read-only
+deployment approval preflight. It checks the active workflow shape, current
+branch cleanliness, changed-file deployment impact against `main`, and the
+`CURRENT-BRANCH-DEPLOYED` evidence boundary. It does not push, dispatch,
+deploy, or prove the current branch is live.
 
 `scripts/check_production_readonly_audit.sh` is the production-only read-only
 audit wrapper. It runs deploy config static checks, production smoke, and backend

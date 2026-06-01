@@ -73,6 +73,7 @@ node --check pages/mvp/order-list/index.js
 Production smoke:
 
 ```bash
+node scripts/check_deployment_approval_preflight.js
 scripts/check_production_readonly_audit.sh
 scripts/check_deploy_config.sh
 RUN_INTERNAL=1 scripts/check_production_smoke.sh

@@ -120,6 +120,12 @@ Current snapshot after 2026-06-02 Round 20 production read-only audit:
   on 2026-06-02 as the one-command production audit entry for deploy config
   static checks, production smoke, and backend `8080` exposure inspection. It
   does not mutate production and does not prove current-branch deployment.
+- Deployment approval preflight
+  `node scripts/check_deployment_approval_preflight.js`: added in Round 23 to
+  summarize current branch cleanliness, branch/base refs, changed-file
+  deployment impact, workflow trigger shape, and the approval boundary before
+  any push/merge/workflow_dispatch. It does not deploy or prove current branch
+  code is live.
 - Miniapp behavior wiring guard `scripts/check_miniapp_behavior_wiring.js`: added
   on 2026-06-02 and included in aggregate miniapp regression. It statically
   checks login, phone binding, room browsing, order creation, payment, cancel,
@@ -171,6 +177,8 @@ Current snapshot after 2026-06-02 Round 20 production read-only audit:
 - Aggregate MVP regression script: `scripts/check_mvp_regression.sh`.
 - Production read-only audit script:
   `scripts/check_production_readonly_audit.sh`.
+- Deployment approval preflight:
+  `scripts/check_deployment_approval_preflight.js`.
 - Deploy config static check: `scripts/check_deploy_config.sh`.
 - Admin web behavior wiring check: `scripts/check_admin_web_behavior_wiring.js`.
 - Admin web external QA preflight:

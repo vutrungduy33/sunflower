@@ -144,6 +144,7 @@ deploy path 必填：
 
 ## 5. 本地校验命令
 
+- `node scripts/check_deployment_approval_preflight.js`
 - `ruby -e 'require "yaml"; YAML.load_file(".github/workflows/deploy-backend.yml")'`
 - `docker compose -f docker-compose.backend.yml --env-file .env.prod.example config`
 - `docker compose -f docker-compose.web.yml --env-file .env.prod.web.example config`
@@ -156,3 +157,6 @@ deploy path 必填：
 - `.env.prod.example` 与 `.env.prod.web.example` 只用于本地渲染校验与运维对照，不应直接作为线上密钥文件使用。
 - deploy 脚本运行时会固定加载各自 `$DEPLOY_PATH/.release.env`；即使 `.env.prod` 中残留样板 release metadata，也不会覆盖当次发布镜像信息。
 - 若需要回滚 backend/admin-web，优先通过 `workflow_dispatch + image_tag=<历史 sha>` 完成，而不是在 ECS 上手工改 compose 文件。
+- `node scripts/check_deployment_approval_preflight.js` 只读分析当前分支相对
+  `origin/main`/`main` 的部署影响面和人工审批边界，不会 push、触发
+  `workflow_dispatch` 或修改生产。
