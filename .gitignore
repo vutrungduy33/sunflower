@@ -17,6 +17,7 @@
 .release.env
 .deploy-source-sha
 deploy-bundle.tgz
+.secrets/
 
 # Java build
 **/target/

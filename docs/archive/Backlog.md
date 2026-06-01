@@ -2,11 +2,9 @@
 
 > 更新时间：2026-03-26
 > 执行基线：`docs/Agent-Stage-Plan.md`
-> 规则：每个 Stage 必须在一次与 Agent 的对话中完成开发与测试。
-> 守卫命令：`make stage-pre STAGE=Sx` / `make stage-post STAGE=Sx`
+> 当前说明：Stage Backlog 保留为历史路线图和进度记录；不再作为强制开发流程。
 > DoD：`docs/Definition-of-Done.md`
-> Git 规范：`codex/s<stage>-<slug>` + commit 前缀 `[Sx]`
-> 数据迁移同步：若变更命中 `db/migration` 或 `persistence`，需同步更新 `scripts/sql/mvp_demo_seed.sql`（由 `stage_guard post` 强校验）。
+> 数据迁移建议：若变更命中 `db/migration` 或 `persistence`，同步检查 `scripts/sql/mvp_demo_seed.sql` 与演示数据启动脚本。
 
 ## 状态看板
 

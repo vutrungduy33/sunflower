@@ -1,0 +1,71 @@
+# Context Index
+
+> This is the loading map for future Codex work. Prefer this over scanning the
+> whole repository at the start of every task.
+
+## Always Read
+
+- `AGENTS.md`: active agent entry point and workflow rules.
+- `docs/Agent-Memory.md`: memory/context management rules.
+- `docs/Project-State.md`: compact current project facts, validation status, and risks.
+- `git status --short --untracked-files=all`: current worktree reality.
+
+## Read By Task
+
+| Task | Read |
+| --- | --- |
+| Architecture / deployment | `docs/Architecture.md`, `docs/CI-CD.md`, `docs/S19-Prod-Deployment-Config.md`, compose files |
+| Backend API / contracts | `docs/API.md`, `docs/API-Schemas.md`, `sunflower-backend/src/main/java/**`, backend tests |
+| Database / persistence | `docs/DB-Design.md`, `docs/DataDictionary.md`, Flyway migrations, seed SQL |
+| Admin web | `docs/Web-Admin-Plan.md`, `sunflower-admin-web/src/**`, admin web tests |
+| Miniapp | `docs/Miniapp-Frontend-MVP.md`, `sunflower-miniapp/pages/mvp/**`, `sunflower-miniapp/utils/mvp/**` |
+| Process / decisions | `docs/Decision-Log.md`, then only relevant linked docs |
+| Historical diagnosis | `docs/archive/**` only when explicitly needed |
+
+## Do Not Load By Default
+
+- `docs/archive/**`
+- `sunflower-miniapp/miniprogram_npm/**`
+- `sunflower-admin-web/node_modules/**`
+- `sunflower-backend/target/**`
+- generated build outputs
+
+## Current Verification Commands
+
+Backend:
+
+```bash
+cd sunflower-backend && mvn -B test
+```
+
+Admin web:
+
+```bash
+cd sunflower-admin-web && npm run lint && npm run test && npm run build
+```
+
+Miniapp syntax smoke:
+
+```bash
+cd sunflower-miniapp
+node --check utils/mvp/api.js
+node --check utils/mvp/payment.js
+node --check pages/mvp/home/index.js
+node --check pages/mvp/login/index.js
+node --check pages/mvp/order-create/index.js
+node --check pages/mvp/order-list/index.js
+```
+
+Production smoke:
+
+```bash
+curl -fsS http://47.113.223.248/api/health
+curl -fsS http://47.113.223.248/api/content/home
+```
+
+## Open-Source Reference Trigger
+
+Use the `open-source-reference-first` skill before implementing common,
+well-known features or infrastructure. Record the reference check in the
+progress document or final summary.
+

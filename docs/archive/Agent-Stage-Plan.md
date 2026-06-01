@@ -1,7 +1,7 @@
 # Agent 分阶段开发计划（V1）
 
 > 更新时间：2026-03-13
-> 目标：把当前已完成的 S0-S15 交付继续收口到可正式上线的 V1（小程序 + 后端 + Web 管理后台），并确保每个 Stage 可在一次与 Agent 的对话中完成“开发 + 测试 + 文档同步”。
+> 目标：记录 V1 分阶段建设历史与后续参考方向。当前开发流程不再强制按 Stage 锁定。
 
 ## 1. 当前事实基线（2026-03-13）
 
@@ -30,48 +30,16 @@ V1 完成标准（上线就绪）：
 - P1/P2（商品、服务订单、社区深度运营等）不作为 V1 阻塞项，在 V1 收口后进入下一轮 Stage。
 - V1 现在的核心收口主线只有四条：`真实认证`、`真实支付/退款`、`后台账号安全`、`生产发布阻塞项`。
 
-## 3. Stage 执行规则（强约束）
+## 3. 开发建议
 
-每个 Stage 必须满足：
+后续开发建议：
 
-1. 单次对话内完成：需求确认 -> 编码 -> 测试 -> 结果回传。
-2. 只做一个主题，不跨多个大模块。
-3. 保持 API 契约兼容或同步更新调用端。
-4. 必须有“可执行测试”与“可人工复核步骤”。
-5. Stage 完成后必须更新对应文档（至少 `docs/Backlog.md` 勾选状态）。
-6. 若 Stage 涉及“数据迁移/持久化入库”变更（迁移脚本、`persistence` 层、核心事实源入库逻辑），必须同步更新 `scripts/sql/mvp_demo_seed.sql`，并确认 `scripts/start_backend_with_mvp_seed.sh` 仍可自动导入演示数据。
+1. 单次改动聚焦一个清晰目标。
+2. 保持 API 契约兼容或同步更新调用端。
+3. 尽量提供可执行测试与可人工复核步骤。
+4. 涉及数据迁移/持久化入库变更时，同步检查 `scripts/sql/mvp_demo_seed.sql` 与演示数据启动脚本。
 
-## 4. 对话执行模板（每个 Stage 通用）
-
-建议对 Agent 使用固定指令模板：
-
-```text
-请执行 Stage Sx（名称），要求：
-1) 完成该 Stage 的代码改动
-2) 运行并汇报测试结果
-3) 更新文档中的 Stage 状态
-4) 列出风险与下一 Stage 建议
-```
-
-Agent 回传结果至少包含：
-
-1. 改动文件列表
-2. 测试命令与结果
-3. 手工验证步骤
-4. 未解决风险
-
-执行约束（建议强制）：
-
-1. 开始前运行：`./scripts/stage_guard.sh pre Sx`
-2. 完成后更新：`docs/stage-reports/Sx.md`
-3. 结束前运行：`./scripts/stage_guard.sh post Sx`
-4. 分支命名：`codex/s<stage>-<slug>`（例：`codex/s1-db-migration`）
-5. 提交前缀：`[Sx] ...`（例：`[S1] add flyway migration`）
-6. 执行 DoD 清单：`docs/Definition-of-Done.md`
-7. PR 门禁必须通过：Stage Guard + 自动化测试
-8. 涉及“数据迁移/持久化入库”时，`stage_guard post` 必须通过 seed 同步校验（`scripts/sql/mvp_demo_seed.sql`）
-
-## 5. Stage 明细（S0-S20）
+## 4. Stage 明细（S0-S20）
 
 ### S0（已完成）目标重确认与文档分期
 

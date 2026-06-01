@@ -2,48 +2,26 @@
 
 ## 1. 工作流总览
 
-当前包含两个工作流：
+当前保留一个部署工作流：
 
-1. `pr-stage-gate.yml`：PR 门禁（质量检查）
-2. `deploy-backend.yml`：主分支/手动触发的双 ECS 发布入口
+1. `deploy-backend.yml`：主分支/手动触发的双 ECS 发布入口
 
 ---
 
-## 2. PR 门禁（强制）
+## 2. PR 门禁
 
-工作流路径：`.github/workflows/pr-stage-gate.yml`
+PR 门禁 workflow 已移除。仓库当前不再强制：
 
-触发条件：
-
-- `pull_request`（opened / synchronize / reopened / ready_for_review / edited）
-- 草稿 PR（draft）不会执行门禁
-
-门禁项：
-
-1. 分支命名规范检查
-   - 必须匹配：`codex/s<stage>-<slug>`
-2. 提交信息规范检查
-   - PR 内所有 commit subject 必须以前缀 `[Sx]` 开头
-3. Stage Guard 检查
-   - `make stage-pre STAGE=Sx`
-   - `make stage-post STAGE=Sx`
-4. 发布交付物检查
-   - `./scripts/check_release_assets.sh`
-5. 小程序仓库配置守卫
-   - `./scripts/check_miniapp_project_config.sh`
-6. 自动化测试
-   - `cd sunflower-backend && mvn -B test`
-   - `cd sunflower-admin-web && npm ci`
-   - `cd sunflower-admin-web && npm run lint`
-   - `cd sunflower-admin-web && npm run test`
-   - `cd sunflower-admin-web && npm run build`
-7. API 契约同步提醒（非阻塞）
-   - 若后端 `Controller/DTO` 变更但未同步调用端/API 文档，工作流给出 warning
+- Stage Guard
+- 分支命名规范
+- Stage 前缀提交信息
+- PR 级别自动化测试门禁
 
 补充说明：
 
 - `sunflower-miniapp/project.config.json` 在仓库中必须固定使用占位值 `touristappid`，避免把真实微信小程序 `appid` 提交入库。
 - 若本地联调需要真实小程序身份，请只在本地工作区临时替换 `project.config.json`，提交前恢复为 `touristappid`。
+- 推送到 `main` 仍会触发 `deploy-backend.yml` 自动部署。
 
 ---
 
@@ -163,8 +141,6 @@ deploy path 必填：
 
 ## 5. 本地校验命令
 
-- `make stage-pre STAGE=Sx`
-- `make stage-post STAGE=Sx`
 - `ruby -e 'require "yaml"; YAML.load_file(".github/workflows/deploy-backend.yml")'`
 - `docker compose -f docker-compose.backend.yml --env-file .env.prod.example config`
 - `docker compose -f docker-compose.web.yml --env-file .env.prod.web.example config`
