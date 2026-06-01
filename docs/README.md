@@ -57,6 +57,7 @@
 - `docs/Flows.md`：关键业务流程与状态
 - `docs/API.md`：REST 接口清单
 - `docs/API-Schemas.md`：接口字段级别定义（含示例）
+- `docs/Backend-MVP-QA.md`：后端/API 自动测试、接口覆盖与生产 smoke 清单
 - `docs/DB-Design.md`：数据库索引与约束设计
 - `docs/DataDictionary.md`：核心表数据字典
 - `docs/Analytics.md`：埋点与报表 SQL 模板
@@ -89,6 +90,7 @@
 │  ├─ Flows.md
 │  ├─ API.md
 │  ├─ API-Schemas.md
+│  ├─ Backend-MVP-QA.md
 │  ├─ DB-Design.md
 │  ├─ DataDictionary.md
 │  ├─ Analytics.md

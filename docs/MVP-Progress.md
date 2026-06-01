@@ -120,3 +120,38 @@
   - Run backend tests and broaden backend/API readiness evidence, then prepare
     for production smoke/deploy validation once production push intent is
     confirmed.
+
+## Round 4: Backend/API Readiness Evidence
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: refresh backend automated test evidence and document the current API QA
+  surface without changing API contracts.
+- Start evidence:
+  - `git status --short --untracked-files=all`: clean after Round 3 commit.
+  - Backend controllers expose the same main API families already listed in
+    `docs/API.md`.
+- Change summary:
+  - Added `docs/Backend-MVP-QA.md` with backend test command, latest result,
+    controller/API surface, production smoke checks, and known limits.
+  - Updated README/doc indexes, `docs/Context-Index.md`,
+    `docs/MVP-Readiness.md`, and `docs/Project-State.md` with Round 4 backend
+    evidence.
+- Open-source reference check:
+  - Task classification: verification and documentation.
+  - Sources checked: not applicable; no external code or common feature
+    implementation copied.
+  - Selected approach: use the existing Maven/Spring test suite and controller
+    inventory as authoritative local evidence.
+  - License/compatibility: no external code copied.
+- Acceptance criteria:
+  - `cd sunflower-backend && mvn -B test`: passed, 56 tests, 0 failures, 0
+    errors, 0 skipped.
+  - Active docs identify the backend/API QA tracker.
+- Goal correction:
+  - Backend is locally ready, but real WeChat/SMS/payment production behavior
+    still needs external-service smoke with real configured credentials.
+- Next recommended round:
+  - Perform production smoke against ECS/admin public entry and verify CI/CD
+    workflow configuration. Do not push/deploy unless production intent is
+    confirmed.

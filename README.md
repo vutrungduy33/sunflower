@@ -36,6 +36,7 @@
 - `/Users/chenyao/dev/miniapp/sunflower/docs/Flows.md`：关键业务流程与状态
 - `/Users/chenyao/dev/miniapp/sunflower/docs/API.md`：REST 接口清单
 - `/Users/chenyao/dev/miniapp/sunflower/docs/API-Schemas.md`：接口字段级别定义
+- `/Users/chenyao/dev/miniapp/sunflower/docs/Backend-MVP-QA.md`：后端/API 自动测试、接口覆盖与生产 smoke 清单
 - `/Users/chenyao/dev/miniapp/sunflower/docs/DB-Design.md`：数据库索引与约束设计
 - `/Users/chenyao/dev/miniapp/sunflower/docs/DataDictionary.md`：核心表数据字典
 - `/Users/chenyao/dev/miniapp/sunflower/docs/Analytics.md`：埋点与报表 SQL 模板

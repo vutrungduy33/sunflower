@@ -25,7 +25,7 @@ verified, and documented enough for handoff:
 
 | Area | Evidence | Status | Next action |
 | --- | --- | --- | --- |
-| Backend local quality | Prior baseline `mvn -B test`: passed, 56 tests. | Mostly ready | Rerun before final MVP closeout. |
+| Backend local quality | Round 4 `mvn -B test`: passed, 56 tests. | Ready locally | Rerun before final MVP closeout if more backend changes land. |
 | Admin web local quality | Round 1 `npm run lint`, `npm run test` (20 tests), `npm run build`: passed. | Ready locally | Keep green after future admin changes. |
 | Miniapp syntax/smoke | Round 3 `node scripts/check_miniapp_mvp_smoke.js` plus existing miniapp guards. | Partially verified | Real-device login/phone/payment evidence still required. |
 | Miniapp real user path | Code supports real API, WeChat login, phone binding, `wx.requestPayment`, order and after-sale flows. | Needs real-device evidence | Verify in WeChat DevTools/preview with legal HTTPS request domain. |
@@ -41,6 +41,8 @@ Run before declaring the MVP goal complete:
 ```bash
 cd sunflower-backend && mvn -B test
 ```
+
+Backend/API verification notes live in `docs/Backend-MVP-QA.md`.
 
 ```bash
 cd sunflower-admin-web && npm run lint && npm run test && npm run build

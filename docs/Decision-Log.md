@@ -54,3 +54,12 @@ Append durable decisions here. Keep entries short and include provenance.
   real WeChat device validation.
 - Provenance: `scripts/check_miniapp_mvp_smoke.js`,
   `docs/Miniapp-MVP-QA.md`.
+
+## 2026-06-02: Track Backend/API QA Separately
+
+- Decision: Use `docs/Backend-MVP-QA.md` as the backend/API verification and
+  smoke checklist.
+- Rationale: Backend local test evidence, controller coverage, production smoke,
+  and external-service limits need a compact source separate from broad API
+  schema docs.
+- Provenance: `docs/Backend-MVP-QA.md`, Round 4 `mvn -B test`.

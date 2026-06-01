@@ -28,13 +28,12 @@
 
 ## Recent Validation Snapshot
 
-Current snapshot after 2026-06-02 Round 3:
+Current snapshot after 2026-06-02 Round 4:
 
-- Backend `mvn -B test`: passed, 56 tests in the prior baseline; not rerun in
-  Round 3.
-- Admin web `npm run lint`: passed in Round 2; not rerun in Round 3.
-- Admin web `npm run test`: passed, 20 tests in Round 2; not rerun in Round 3.
-- Admin web `npm run build`: passed in Round 2; not rerun in Round 3.
+- Backend `mvn -B test`: passed, 56 tests in Round 4.
+- Admin web `npm run lint`: passed in Round 2; not rerun in Round 4.
+- Admin web `npm run test`: passed, 20 tests in Round 2; not rerun in Round 4.
+- Admin web `npm run build`: passed in Round 2; not rerun in Round 4.
 - Miniapp `node scripts/check_miniapp_mvp_smoke.js`: passed in Round 3 with the
   expected warning that the default API base is bare HTTP and only suitable for
   local/devtools validation.
@@ -57,8 +56,9 @@ Current snapshot after 2026-06-02 Round 3:
   refreshed before handoff.
 - Canonical MVP readiness tracker: `docs/MVP-Readiness.md`.
 - Miniapp QA tracker: `docs/Miniapp-MVP-QA.md`.
+- Backend/API QA tracker: `docs/Backend-MVP-QA.md`.
 
 ## Current Dirty Worktree Note
 
-After the Round 3 commit, no intended MVP Round 3 files should remain
+After the Round 4 commit, no intended MVP Round 4 files should remain
 uncommitted.
