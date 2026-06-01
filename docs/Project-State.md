@@ -200,6 +200,7 @@ recheck:
 - External validation runbook: `docs/MVP-External-Validation-Runbook.md`.
 - External evidence template: `docs/MVP-External-Evidence-Template.md`.
 - MVP handoff packet: `docs/MVP-Handoff-Packet.md`.
+- MVP next Codex goal prompt: `docs/MVP-Next-Goal-Prompt.md`.
 - MVP closeout audit: `docs/MVP-Closeout-Audit.md`.
 - MVP closeout readiness guard: `scripts/check_mvp_closeout_readiness.js`.
 - MVP handoff packet guard: `scripts/check_mvp_handoff_packet.js`.

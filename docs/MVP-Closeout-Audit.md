@@ -119,13 +119,8 @@ Do not call the MVP complete until:
 
 ## 5. Recommended Next Goal Prompt
 
-```text
-继续 /Users/chenyao/dev/miniapp/sunflower 的 MVP 收口，但不要自动推送或部署。
-先读取 AGENTS.md、docs/Project-State.md、docs/MVP-Readiness.md、docs/MVP-Closeout-Audit.md、docs/Miniapp-MVP-QA.md、docs/Production-Smoke.md。
-目标是补齐外部验证缺口：微信真机/预览登录、手机号授权、低额真实支付/退款、HTTPS 合法域名、admin-web 生产手工 QA、backend 8080 安全组收敛。
-每轮必须先分析本轮目标并更新分析/验证文档，再执行最小必要操作，最后运行相关验证并提交一次代码。
-常见工程能力开发前必须使用 open-source-reference-first skill，优先查成熟开源/官方实现；若未复用，记录原因、许可证兼容性和拒绝方案。
-任何 push main、workflow_dispatch、生产配置修改、安全组修改、真实支付/退款操作前必须停止并请求人工确认。
-生产只读审计使用 scripts/check_production_readonly_audit.sh；保留 docs/Production-Smoke.md 的最新结果。
-当且仅当所有自动化验证绿、生产 smoke 绿、外部验证有证据或用户明确豁免，并且工作区干净且最后一轮已提交时，才把 goal 标记完成。
-```
+Use `docs/MVP-Next-Goal-Prompt.md` as the current finite Codex goal prompt for
+continuing MVP closeout from this baseline. It supersedes the older inline
+prompt in this audit and keeps the per-round commit rule, open-source
+reference-first rule, approval boundaries, and strict completion criteria in
+one maintained place.

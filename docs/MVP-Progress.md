@@ -1811,3 +1811,62 @@
     branch deployment was not performed, backend `8080` hardening is not proven
     by cloud security-group evidence, and WeChat/admin manual external evidence
     remains pending.
+
+## Round 31: Finite Next Goal Prompt
+
+- Date: 2026-06-02
+- Status: completed and committed.
+- Focus: create a maintained, detailed Codex goal prompt for the next MVP
+  closeout run, then commit it once without pushing or deploying.
+- Start evidence:
+  - `git status --short --branch --untracked-files=all`: clean on
+    `codex/s18-payment-hardening` before this documentation update.
+  - `docs/MVP-Closeout-Audit.md` still contained an older inline recommended
+    prompt that predated the Round 29 and Round 30 evidence refreshes.
+  - The next operator needed a single prompt that states current green
+    automated baselines, the 33 unresolved external items, approval boundaries,
+    open-source reference-first requirements, per-round commit rules, and exact
+    completion criteria.
+- Open-source reference check:
+  - Task classification: repository-specific goal handoff documentation.
+  - Sources checked: not applicable; this round did not implement a common
+    feature or reusable infrastructure.
+  - Selected approach: derive the prompt from current repository-owned
+    readiness, handoff, closeout, and project-state docs.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: existing MVP evidence ledger terminology and current
+    approval boundaries.
+  - Rejected options: leaving the older inline prompt as the active entry, or
+    creating a vague open-ended goal without strict stop conditions.
+- Risks:
+  - This round does not collect missing external evidence, deploy the current
+    branch, mutate production, or prove backend `8080` security-group
+    restriction.
+  - Final MVP completion remains blocked by the same strict external evidence
+    requirements unless the user explicitly waives them and the strict guards
+    pass.
+- Acceptance criteria:
+  - A maintained next-goal prompt exists in a visible docs location.
+  - Context and docs indexes point future Codex runs to the prompt.
+  - The prompt includes finite completion criteria, per-round commit rules,
+    open-source reference-first guidance, and production approval boundaries.
+  - Documentation/ledger guard commands still pass.
+  - The round is committed once.
+- Verification:
+  - `node scripts/check_mvp_handoff_packet.js`: passed; handoff packet still
+    covers 33 unresolved required items, 10 commands, and 8 safety boundaries.
+  - `node scripts/check_mvp_closeout_readiness.js`: passed non-strict and
+    reported 33 unresolved required closeout items.
+  - `node scripts/check_mvp_launch_evidence.js`: passed non-strict and reported
+    9 unresolved required launch evidence entries.
+  - `git diff --check`: passed.
+- Change summary:
+  - Added `docs/MVP-Next-Goal-Prompt.md`.
+  - Updated `docs/Context-Index.md`, `docs/README.md`,
+    `docs/MVP-Closeout-Audit.md`, and `docs/Project-State.md` to point to the
+    new prompt.
+- Goal correction:
+  - The recommended next goal is now explicit and finite. The MVP closeout goal
+    remains open; the next round should refresh the production-enabled
+    aggregate baseline with `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`
+    or proceed to approved external evidence collection.
