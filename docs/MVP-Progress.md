@@ -609,3 +609,69 @@
     deployment evidence or waiver, production smoke as appropriate, HTTPS/domain
     proof, real WeChat/payment/admin QA evidence, and backend `8080`
     security-group evidence or accepted risk.
+
+## Round 14: External Validation Runbook Coverage
+
+- Date: 2026-06-02
+- Status: completed.
+- Focus: make the remaining external MVP validation executable and
+  machine-checkable for handoff, without performing production mutations or
+  real payment/refund actions.
+- Start evidence:
+  - `git status --short --untracked-files=all`: clean after Round 13 commit.
+  - `node scripts/check_mvp_launch_evidence.js`: 13 required launch entries,
+    with 4 passed and 9 pending.
+  - `node scripts/check_miniapp_manual_qa.js`: 12 required miniapp manual QA
+    checks pending.
+  - `node scripts/check_admin_web_manual_qa.js`: 12 required admin manual QA
+    checks pending.
+  - The evidence ledgers were structured, but there was no single execution
+    runbook that mapped all pending IDs to approval boundaries, recording rules,
+    and final strict checks.
+- Open-source reference check:
+  - Task classification: common release-readiness runbook and QA evidence
+    handoff.
+  - Sources checked: existing project ledgers and checker scripts:
+    `docs/MVP-Launch-Evidence.json`, `docs/Miniapp-Manual-QA.json`,
+    `docs/Admin-Web-Manual-QA.json`, `scripts/check_*_qa.js`,
+    `docs/MVP-Readiness.md`, and official requirements already recorded in
+    the existing evidence docs.
+  - Selected approach: add a repository-local runbook with explicit evidence
+    markers and a Node.js coverage checker that reads the existing JSON ledgers.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: existing JSON ledger/checker pattern.
+  - Rejected options: adding a release-management SaaS, committing screenshots
+    or secrets, or marking external checks complete without evidence.
+- Risks:
+  - A runbook improves execution quality but does not replace actual external
+    validation. Pending checks remain pending until evidence or explicit waivers
+    are recorded.
+- Acceptance criteria:
+  - `docs/MVP-External-Validation-Runbook.md` covers every unresolved required
+    launch, miniapp manual QA, and admin manual QA item.
+  - `scripts/check_mvp_external_runbook.js` fails if the runbook misses a
+    required pending ID or key safety text.
+  - `scripts/check_mvp_regression.sh` runs the runbook coverage check as part of
+    evidence validation.
+- Verification:
+  - `node scripts/check_mvp_external_runbook.js`: passed; covered 9 unresolved
+    launch evidence entries, 12 miniapp manual QA entries, and 12 admin manual
+    QA entries.
+  - `RUN_BACKEND=0 RUN_ADMIN=0 RUN_MINIAPP=0 RUN_DEPLOY_CONFIG=0 scripts/check_mvp_regression.sh`:
+    passed evidence checks, with deploy config and production checks skipped for
+    this focused run.
+  - `node scripts/check_mvp_launch_evidence.js`: passed with 9 required
+    external evidence entries still pending.
+  - `node --check scripts/check_mvp_external_runbook.js`: passed.
+  - `bash -n scripts/check_mvp_regression.sh`: passed.
+  - `git diff --check`: passed.
+- Change summary:
+  - Added `docs/MVP-External-Validation-Runbook.md`.
+  - Added `scripts/check_mvp_external_runbook.js`.
+  - Wired the runbook coverage check into `scripts/check_mvp_regression.sh`.
+  - Updated `docs/MVP-Readiness.md`, `docs/Context-Index.md`, and
+    `docs/Project-State.md`.
+- Goal correction:
+  - This round improves handoff and reduces the chance of missed external
+    evidence, but does not complete those external checks. The MVP goal remains
+    open until the pending evidence is recorded or explicitly waived.

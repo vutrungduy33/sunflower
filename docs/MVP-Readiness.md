@@ -39,6 +39,9 @@ Detailed launch evidence is tracked in `docs/MVP-Launch-Evidence.md` and
 evidence check to pass, or for missing external evidence to be explicitly
 waived by the user.
 
+The execution runbook for the remaining external evidence is
+`docs/MVP-External-Validation-Runbook.md`.
+
 Miniapp manual QA is tracked separately in `docs/Miniapp-Manual-QA.md` and
 `docs/Miniapp-Manual-QA.json`.
 
@@ -58,6 +61,7 @@ RUN_PRODUCTION=1 scripts/check_mvp_regression.sh
 ```
 
 ```bash
+node scripts/check_mvp_external_runbook.js
 node scripts/check_mvp_launch_evidence.js --strict
 node scripts/check_miniapp_manual_qa.js --strict
 node scripts/check_admin_web_manual_qa.js --strict

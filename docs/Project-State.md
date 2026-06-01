@@ -85,6 +85,9 @@ Current snapshot after 2026-06-02 final local audit:
   on 2026-06-02; it parses the active deployment workflow, renders backend/web
   compose files with example env files, and checks deployment shell syntax
   without pushing or deploying.
+- External validation runbook `docs/MVP-External-Validation-Runbook.md`: added
+  on 2026-06-02 with coverage checked by
+  `scripts/check_mvp_external_runbook.js`.
 
 ## Known MVP Risks
 
@@ -102,6 +105,7 @@ Current snapshot after 2026-06-02 final local audit:
 - Admin web QA tracker: `docs/Admin-Web-MVP-QA.md`.
 - Production smoke tracker: `docs/Production-Smoke.md`.
 - Launch evidence tracker: `docs/MVP-Launch-Evidence.md`.
+- External validation runbook: `docs/MVP-External-Validation-Runbook.md`.
 - MVP closeout audit: `docs/MVP-Closeout-Audit.md`.
 - Aggregate MVP regression script: `scripts/check_mvp_regression.sh`.
 - Deploy config static check: `scripts/check_deploy_config.sh`.
