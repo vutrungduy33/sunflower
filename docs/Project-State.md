@@ -28,19 +28,22 @@
 
 ## Recent Validation Snapshot
 
-Last verification from 2026-06-02:
+Current snapshot after 2026-06-02 Round 1:
 
-- Backend `mvn -B test`: passed, 56 tests.
-- Admin web `npm run build`: passed.
-- Admin web `npm run lint`: failed on an unused `_refundId` in `src/test/order-management-page.test.tsx`.
-- Admin web `npm run test`: failed 3 tests in room/pricing management tests.
-- Miniapp JS syntax smoke for MVP API/payment/core pages: passed.
-- Production `http://47.113.223.248/api/health`: returned 200.
-- Production `http://47.113.223.248/api/content/home`: returned 200.
+- Backend `mvn -B test`: passed, 56 tests in the prior baseline; not rerun in
+  Round 1.
+- Admin web `npm run lint`: passed in Round 1.
+- Admin web `npm run test`: passed, 20 tests in Round 1.
+- Admin web `npm run build`: passed in Round 1.
+- Miniapp JS syntax smoke for MVP API/payment/core pages: passed in the prior
+  baseline; not rerun in Round 1.
+- Production `http://47.113.223.248/api/health`: returned 200 in the prior
+  baseline; not rerun in Round 1.
+- Production `http://47.113.223.248/api/content/home`: returned 200 in the prior
+  baseline; not rerun in Round 1.
 
 ## Known MVP Risks
 
-- Admin web tests/lint are not green; this is the most concrete local quality gap.
 - Miniapp real-device validation for WeChat login, phone binding, and payment is
   not yet documented as passed.
 - Miniapp default API base is still bare HTTP IP for devtools validation; final
@@ -52,6 +55,5 @@ Last verification from 2026-06-02:
 
 ## Current Dirty Worktree Note
 
-As of this update, governance/docs changes are uncommitted: PR gate removal,
-stage archive move, architecture docs, and memory/context docs.
-
+After the Round 1 commit, no intended MVP Round 1 files should remain
+uncommitted.

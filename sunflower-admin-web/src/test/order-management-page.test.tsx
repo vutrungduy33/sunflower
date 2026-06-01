@@ -464,7 +464,7 @@ describe('OrderManagementPage', () => {
           afterSaleReason: payload.reason ?? '',
         }),
     )
-    vi.mocked(retryAdminRefund).mockImplementation(async (orderId: string, _refundId: number) =>
+    vi.mocked(retryAdminRefund).mockImplementation(async (orderId: string, refundId: number) =>
       buildOrder({
         id: orderId,
         status: 'CONFIRMED',
@@ -473,7 +473,7 @@ describe('OrderManagementPage', () => {
         bookingStatusLabel: '待入住',
         paymentStatus: 'REFUND_PENDING',
         paymentStatusLabel: '退款中',
-        latestRefundRecordId: 12,
+        latestRefundRecordId: refundId,
         latestRefundStatus: 'PROCESSING',
         latestRefundFailureCode: '',
         latestRefundFailureMessage: '',
