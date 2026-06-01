@@ -1870,3 +1870,90 @@
     remains open; the next round should refresh the production-enabled
     aggregate baseline with `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`
     or proceed to approved external evidence collection.
+
+## Round 32: Production-Enabled Aggregate MVP Regression
+
+- Date: 2026-06-02
+- Status: completed and committed.
+- Focus: refresh the strongest repeatable baseline by running the aggregate MVP
+  regression with production read-only checks enabled, without pushing,
+  deploying, reloading Nginx, or changing ECS/firewall/security-group state.
+- Start evidence:
+  - `git status --short --branch --untracked-files=all`: clean on
+    `codex/s18-payment-hardening` after Round 31 commit.
+  - Round 31 made the next-goal prompt explicit and recommended
+    `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh` as the next evidence
+    refresh.
+  - `docs/Project-State.md`, `docs/MVP-Readiness.md`,
+    `docs/Production-Smoke.md`, and `docs/Backend-8080-Security.md` still
+    pointed at earlier Round 29/Round 30 split baselines.
+- Open-source reference check:
+  - Task classification: repository-specific verification and evidence refresh
+    using existing scripts.
+  - Sources checked: not applicable; this round did not implement a common
+    feature, reusable infrastructure, or external-code-dependent design.
+  - Selected approach: run the repository-owned aggregate regression with
+    `RUN_PRODUCTION=1`, then update durable evidence docs from the command
+    result.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: existing `scripts/check_mvp_regression.sh`,
+    `scripts/check_production_smoke.sh`, and
+    `scripts/check_backend_8080_exposure.sh`.
+  - Rejected options: pushing to `main`, invoking `workflow_dispatch`, changing
+    cloud security groups/firewall, or treating non-strict evidence checks as
+    final MVP completion.
+- Risks:
+  - The aggregate run proves current local automation plus production read-only
+    health from this network, but it does not prove current-branch deployment.
+  - Backend public `8080` was not directly usable from this local network, but
+    ECS-2 still listens on `0.0.0.0:8080`; Alibaba Cloud security group evidence
+    or explicit waiver is still required.
+  - Real WeChat domain/login/phone/payment/refund and admin production or
+    approved-staging manual QA remain outside this automated run.
+  - The command emitted local `LC_ALL=C.UTF-8` warnings on this machine; checks
+    still passed and no application failure was observed.
+- Acceptance criteria:
+  - `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh` passes all enabled
+    steps.
+  - Docs record the latest local + production read-only aggregate evidence.
+  - Docs continue to state that 33 strict external closeout items remain
+    unresolved.
+  - The round is committed once.
+- Verification:
+  - `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: passed 6 enabled steps.
+    - Backend `mvn -B test`: passed, 57 tests.
+    - Admin-web `npm run lint`, `npm run test`, `npm run build`: passed; 23
+      Vitest tests passed.
+    - Admin behavior wiring and external QA preflight: passed.
+    - Miniapp smoke, behavior wiring, user-flow replay, external preflight,
+      project config, and subpage nav checks: passed.
+    - MVP evidence ledger checks: passed non-strict, while reporting 33
+      unresolved required closeout items.
+    - Deploy config static checks: passed.
+    - Production public/ECS internal smoke: passed with 7 passes and 1 warning.
+    - Backend `8080` exposure read-only checks: passed with 3 passes and 2
+      warnings.
+  - `node scripts/check_mvp_handoff_packet.js`: passed.
+  - `node scripts/check_mvp_closeout_readiness.js`: passed non-strict and
+    reported 33 unresolved required closeout items.
+  - `node scripts/check_mvp_launch_evidence.js`: passed non-strict and reported
+    9 unresolved required launch evidence entries.
+  - `node scripts/check_mvp_external_runbook.js`: passed.
+  - `node scripts/check_mvp_external_evidence_template.js`: passed.
+  - `git diff --check`: passed.
+- Change summary:
+  - Updated `docs/Project-State.md`, `docs/MVP-Readiness.md`,
+    `docs/Production-Smoke.md`, and `docs/Backend-8080-Security.md` with the
+    Round 32 aggregate evidence.
+  - Updated `docs/MVP-Handoff-Packet.md` and `docs/MVP-Closeout-Audit.md` to
+    remove stale backend/admin test counts and include the production-enabled
+    aggregate baseline.
+  - Updated `docs/MVP-Next-Goal-Prompt.md` so the next recommendation shifts
+    from rerunning the aggregate baseline to approved external evidence
+    collection.
+- Goal correction:
+  - The repeatable local + production read-only baseline is now current and
+    green. MVP completion remains open because the strict launch/manual QA
+    evidence still requires real WeChat/domain/payment/refund/admin production
+    or approved-staging proof, backend `8080` hardening evidence or waiver, and
+    current-branch deployment evidence after explicit approval.

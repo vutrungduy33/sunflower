@@ -1,6 +1,6 @@
 # Production Smoke
 
-> Latest run: 2026-06-02 07:20 Asia/Shanghai. This records observed production
+> Latest run: 2026-06-02 07:33 Asia/Shanghai. This records observed production
 > health for the MVP hardening goal. It does not mean a new deployment was
 > triggered.
 
@@ -23,9 +23,11 @@ internal smoke, and backend `8080` exposure inspection. It uses the ignored loca
 SSH key at `.secrets/aliyun_mba_codex.pem` for ECS checks. It does not push,
 deploy, reload Nginx, or change ECS/firewall/security-group state.
 
-Latest read-only audit result:
+Latest read-only production result:
 
-- `scripts/check_production_readonly_audit.sh`: 3 read-only steps passed.
+- `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: production smoke and
+  backend `8080` read-only checks passed as part of the 6-step aggregate MVP
+  regression.
 - Deploy config static checks passed.
 - 7 checks passed.
 - 1 warning remained: ECS-2 backend still listens on `0.0.0.0:8080`.
@@ -105,7 +107,8 @@ ECS-2 backend/data host `47.120.42.15`:
 - `ss -ltnp`: confirms MySQL local-only and backend listening on all interfaces
   through docker-proxy.
 
-Latest 2026-06-02 07:20 read-only audit reconfirmed the same health shape:
+Latest 2026-06-02 07:33 production-enabled aggregate regression reconfirmed
+the same health shape:
 
 - ECS-1 Nginx/admin-web/private backend smoke passed.
 - ECS-2 backend/MySQL/local health smoke passed.

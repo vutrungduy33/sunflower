@@ -15,13 +15,13 @@ the user explicitly waives the remaining external evidence.
 
 ## 2. Proven Baseline
 
-- Backend local tests have passed with 56 tests.
+- Backend local tests have passed with 57 tests.
 - Admin web lint, unit tests, build, behavior wiring, and external QA preflight
   have passed.
 - Miniapp syntax/smoke, behavior wiring, project config, navigation, and
   external QA preflight have passed.
-- Production read-only audit has passed for public health/admin/API smoke and
-  ECS private upstream checks.
+- Production read-only checks have passed for public health/admin/API smoke,
+  ECS private upstream checks, and backend `8080` exposure inspection.
 - Deployment config static checks and deployment approval preflight exist.
 
 The latest detailed state lives in `docs/Project-State.md`,
@@ -34,6 +34,7 @@ Run these before editing code or evidence:
 ```bash
 git status --short --untracked-files=all
 scripts/check_mvp_regression.sh
+RUN_PRODUCTION=1 scripts/check_mvp_regression.sh
 node scripts/check_mvp_closeout_readiness.js
 node scripts/generate_mvp_external_evidence_template.js
 node scripts/check_mvp_external_evidence_template.js

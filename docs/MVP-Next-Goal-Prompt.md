@@ -6,13 +6,11 @@
 
 ## Current Baseline
 
-- Local automated baseline is green as of Round 29:
-  `scripts/check_mvp_regression.sh` passed with backend 57 tests, admin-web
-  lint/test/build, miniapp smoke/wiring/replay checks, evidence non-strict
-  checks, and deploy config static checks.
-- Production read-only baseline is green as of Round 30:
-  `scripts/check_production_readonly_audit.sh` passed without pushing,
-  deploying, reloading Nginx, or changing ECS/security-group/firewall state.
+- Local and production read-only baseline is green as of Round 32:
+  `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh` passed with backend 57
+  tests, admin-web lint/test/build, miniapp smoke/wiring/replay checks,
+  evidence non-strict checks, deploy config static checks, and production
+  smoke/backend `8080` read-only checks.
 - The MVP goal is still open because strict external evidence is incomplete:
   9 launch evidence items, 12 miniapp manual QA items, and 12 admin-web manual
   QA items remain unresolved.
@@ -28,7 +26,7 @@
 
 启动时先读取 AGENTS.md、docs/Agent-Memory.md、docs/Context-Index.md、docs/Project-State.md、docs/MVP-Readiness.md、docs/MVP-Handoff-Packet.md、docs/MVP-Closeout-Audit.md，并执行 git status --short --branch --untracked-files=all。不要默认读取 docs/archive/**。
 
-当前已知基线：本地自动化在 Round 29 通过 scripts/check_mvp_regression.sh；生产只读审计在 Round 30 通过 scripts/check_production_readonly_audit.sh；但最终 MVP 仍缺 33 项外部/人工证据，包括 9 项 launch evidence、12 项小程序人工 QA、12 项 admin-web 人工 QA。旧的 admin-web _refundId lint 或 3 个测试失败记录是过期信息。
+当前已知基线：本地 + 生产只读总回归在 Round 32 通过 RUN_PRODUCTION=1 scripts/check_mvp_regression.sh；但最终 MVP 仍缺 33 项外部/人工证据，包括 9 项 launch evidence、12 项小程序人工 QA、12 项 admin-web 人工 QA。旧的 admin-web _refundId lint 或 3 个测试失败记录是过期信息。
 
 每一轮都必须按这个顺序执行：1. 分析本轮最小目标和阻塞项；2. 若要开发通用能力，先使用 open-source-reference-first skill 查询成熟开源/官方实现，优先复用或参考，记录来源、许可证兼容性、采用/拒绝原因；3. 只做本轮最小必要改动或证据采集；4. 运行相关自动化验证；5. 更新 docs/MVP-Progress.md、docs/Project-State.md 以及受影响的 QA/上线证据文档；6. 做目标纠偏，明确下一轮是否继续、改 goal 或等待人工；7. 每轮结束必须提交一次代码。
 
@@ -43,13 +41,15 @@
 
 ## Next Round Recommendation
 
-Start with a production-enabled aggregate baseline:
+The production-enabled aggregate baseline has passed. Next, prepare the first
+approved external evidence collection round:
 
-```bash
-RUN_PRODUCTION=1 scripts/check_mvp_regression.sh
-```
-
-If it passes, update the progress/state docs and commit the evidence refresh.
-If it fails because of transient network or read-only SSH issues, retry the
-smallest failing read-only command once, then document the exact remaining
-blocker without mutating production.
+- Choose one evidence lane from `docs/MVP-Handoff-Packet.md`: WeChat
+  preview/real-device QA, HTTPS legal domain, admin-web production or approved
+  staging QA, backend `8080` security-group proof, or approved current-branch
+  deployment.
+- For any lane that mutates production, uses real payment/refund, changes
+  security groups/firewall, or triggers GitHub Actions deployment, stop and ask
+  for explicit user approval first.
+- Record only sanitized evidence in the JSON ledgers and rerun the matching
+  strict checker for that lane.

@@ -28,26 +28,29 @@
 
 ## Recent Validation Snapshot
 
-Current snapshot after 2026-06-02 Round 29 aggregate local MVP regression
-recheck:
+Current snapshot after 2026-06-02 Round 32 production-enabled aggregate MVP
+regression recheck:
 
-- Backend `mvn -B test`: passed again in Round 28, 57 tests. Round 28 added
+- `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: passed in Round 32 with
+  6 enabled steps: backend tests, admin-web lint/test/build, admin behavior and
+  external preflight checks, miniapp smoke/wiring/replay/external-preflight
+  checks, MVP evidence ledger checks, deploy config static checks, and
+  production smoke/backend `8080` read-only checks.
+- Backend `mvn -B test`: passed again in Round 32, 57 tests. Round 28 added
   public order ownership isolation coverage for current-user list/detail/pay
   preparation/pay confirmation/cancel/reschedule/refund actions.
-- Aggregate local regression `scripts/check_mvp_regression.sh`: passed again in
-  Round 29 with 5 enabled steps: backend tests, admin-web lint/test/build,
-  miniapp smoke checks, MVP evidence ledger checks, and deploy config static
-  checks. Production checks were skipped by default.
+- Aggregate local regression `scripts/check_mvp_regression.sh`: passed in Round
+  29 with 5 enabled steps and production checks skipped by default. Round 32
+  reran the aggregate regression with `RUN_PRODUCTION=1` and included
+  production read-only checks.
 - Deployment approval preflight
   `node scripts/check_deployment_approval_preflight.js`: passed again in Round
   30. Current branch was `codex/s18-payment-hardening`, HEAD `d50532c45a53`,
   worktree was clean, comparison base was `origin/main` at `5a37a6788c21`, and
   path rules predicted a future push/merge to `main` would deploy target `all`.
-- Production `scripts/check_production_readonly_audit.sh`: passed again in
-  Round 30 with 3 read-only audit steps: deploy config static checks,
-  production public/ECS internal smoke, and backend `8080` exposure inspection.
-  It did not push, deploy, reload Nginx, or change ECS/firewall/security-group
-  state.
+- Production smoke and backend `8080` read-only checks: passed again in Round
+  32 through `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`. The checks did
+  not push, deploy, reload Nginx, or change ECS/firewall/security-group state.
 - Admin web `npm run lint`: passed again in Round 27.
 - Admin web `npm run test`: passed again in Round 27, 23 tests. Round 27 added
   order-management tests for check-in, check-out, no-show, after-sale rejection,
@@ -85,17 +88,16 @@ recheck:
 - Production `http://47.113.223.248/api/content/home`: returned 200 in Round 5.
 - Production `http://47.113.223.248/healthz`: returned 200 in Round 5.
 - Production `http://47.113.223.248/`: returned 200 admin web HTML in Round 5.
-- Production `scripts/check_production_readonly_audit.sh`: passed on
-  2026-06-02 07:20 Asia/Shanghai. It ran deploy config static checks,
-  production public/ECS internal smoke, and backend `8080` exposure inspection
-  without pushing, deploying, reloading Nginx, or changing ECS/firewall/security
-  group state.
+- Production checks under `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`:
+  passed on 2026-06-02 07:33 Asia/Shanghai. They ran production public/ECS
+  internal smoke and backend `8080` exposure inspection without pushing,
+  deploying, reloading Nginx, or changing ECS/firewall/security-group state.
 - Production `RUN_INTERNAL=1 scripts/check_production_smoke.sh`: passed on
-  2026-06-02 07:20 Asia/Shanghai with 7 checks and 1 known backend-bind
+  2026-06-02 07:33 Asia/Shanghai with 7 checks and 1 known backend-bind
   warning.
 - Backend 8080 read-only security check
   `RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh`: passed again on
-  2026-06-02 07:20 Asia/Shanghai with 3 checks and 2 warnings. It confirms
+  2026-06-02 07:33 Asia/Shanghai with 3 checks and 2 warnings. It confirms
   public 8080 is not directly usable from this local network and ECS-1 private
   upstream works, but does not prove security-group restriction because ECS-2
   still listens on `0.0.0.0:8080`.

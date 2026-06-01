@@ -15,10 +15,12 @@ Local automated checks:
 
 - `scripts/check_mvp_regression.sh`: passed with backend/admin/miniapp/evidence
   checks enabled and production checks skipped by default.
-- `cd sunflower-backend && mvn -B test`: passed, 56 tests, 0 failures, 0
+- `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: passed on 2026-06-02
+  with backend/admin/miniapp/evidence/deploy-config/production checks enabled.
+- `cd sunflower-backend && mvn -B test`: passed, 57 tests, 0 failures, 0
   errors, 0 skipped.
 - `cd sunflower-admin-web && npm run lint`: passed.
-- `cd sunflower-admin-web && npm run test`: passed, 20 tests.
+- `cd sunflower-admin-web && npm run test`: passed, 23 tests.
 - `cd sunflower-admin-web && npm run build`: passed.
 - `node scripts/check_miniapp_mvp_smoke.js`: passed with expected warning that
   the default API base is bare HTTP and only suitable for local/devtools
@@ -28,8 +30,8 @@ Local automated checks:
 
 Production smoke:
 
-- `scripts/check_production_readonly_audit.sh`: passed on 2026-06-02 05:59
-  Asia/Shanghai with deploy config static checks, production smoke, and backend
+- Production checks inside `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`:
+  passed on 2026-06-02 07:33 Asia/Shanghai with production smoke and backend
   `8080` read-only exposure checks enabled.
 - `RUN_INTERNAL=1 scripts/check_production_smoke.sh`: passed with 7 checks and
   1 known backend-bind warning.
