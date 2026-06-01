@@ -944,3 +944,64 @@
     declared complete when the strict closeout readiness guard passes. The
     overall MVP goal remains open because current external evidence is still
     pending.
+
+## Round 19: External QA Evidence Template Generator
+
+- Date: 2026-06-02
+- Status: completed.
+- Focus: generate a safe, human-fillable evidence template for all pending
+  external MVP checks so real-device/admin/deployment QA can be recorded
+  consistently without committing secrets or raw customer/payment data.
+- Start evidence:
+  - `git status --short --untracked-files=all`: clean after Round 18 commit.
+  - The JSON ledgers identify pending launch, miniapp, and admin-web checks, and
+    the external validation runbook explains how to execute them.
+  - Operators still need a compact per-check template for recording sanitized
+    evidence before changing JSON statuses to `passed` or `waived`.
+- Open-source reference check:
+  - Task classification: common QA/release evidence handoff template.
+  - Sources checked: existing project evidence ledgers and runbook:
+    `docs/MVP-Launch-Evidence.json`, `docs/Miniapp-Manual-QA.json`,
+    `docs/Admin-Web-Manual-QA.json`, `docs/MVP-External-Validation-Runbook.md`,
+    `scripts/check_mvp_closeout_readiness.js`, and current evidence checker
+    validation rules.
+  - Selected approach: add a project-local Node.js generator that reads the
+    ledgers and writes a Markdown template with required IDs, routes/APIs,
+    next actions, safe evidence fields, and explicit forbidden data reminders.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: existing project-local JSON ledger/status model and safety
+    wording.
+  - Rejected options: adding a release-management SaaS, storing screenshots in
+    Git, or generating pre-filled `passed` evidence without execution.
+- Risks:
+  - The generated template improves operator consistency but does not replace
+    actual external validation. It must not include real AppID, phone numbers,
+    SMS codes, passwords, tokens, payment payloads, raw screenshots, or full
+    order/payment IDs.
+- Acceptance criteria:
+  - New generator reads all three evidence ledgers and writes a Markdown
+    template under `docs/`.
+  - Generated template includes every unresolved required launch, miniapp
+    manual QA, and admin-web manual QA item.
+  - Generator output is deterministic and safe for Git.
+  - Readiness/runbook/context/project-state docs reference the template.
+  - Focused verification passes and the round is committed once.
+- Verification:
+  - `node --check scripts/generate_mvp_external_evidence_template.js`: passed.
+  - `node --check scripts/check_mvp_external_evidence_template.js`: passed.
+  - `node scripts/generate_mvp_external_evidence_template.js`: passed and wrote
+    `docs/MVP-External-Evidence-Template.md` with 33 unresolved required items.
+  - `node scripts/check_mvp_external_evidence_template.js`: passed and confirmed
+    the template covers 33 unresolved required items.
+- Change summary:
+  - Added `scripts/generate_mvp_external_evidence_template.js`.
+  - Added `scripts/check_mvp_external_evidence_template.js`.
+  - Generated `docs/MVP-External-Evidence-Template.md`.
+  - Wired the template coverage check into `scripts/check_mvp_regression.sh`.
+  - Updated external validation runbook, readiness, context index,
+    project-state, and decision docs.
+- Goal correction:
+  - External QA handoff is now easier to execute safely, but the MVP goal remains
+    open. The generated template is not evidence by itself; real external QA or
+    explicit waivers still need to be recorded in the JSON ledgers before strict
+    closeout can pass.

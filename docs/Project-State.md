@@ -70,6 +70,12 @@ Current snapshot after 2026-06-02 final local audit:
 - MVP closeout readiness `node scripts/check_mvp_closeout_readiness.js --strict`:
   expected non-zero in Round 18 because required launch, miniapp manual QA, and
   admin-web manual QA evidence remains pending.
+- External evidence template
+  `node scripts/generate_mvp_external_evidence_template.js`: passed in Round 19
+  and generated `docs/MVP-External-Evidence-Template.md` for 33 unresolved
+  required items.
+- External evidence template coverage
+  `node scripts/check_mvp_external_evidence_template.js`: passed in Round 19.
 - Miniapp manual QA `node scripts/check_miniapp_manual_qa.js`: passed on
   2026-06-02.
 - Miniapp manual QA `node scripts/check_miniapp_manual_qa.js --strict`:
@@ -114,6 +120,10 @@ Current snapshot after 2026-06-02 final local audit:
   on 2026-06-02 and included in aggregate evidence regression. Non-strict mode
   summarizes unresolved closeout evidence; strict mode is the final aggregate
   completion guard.
+- External evidence template `docs/MVP-External-Evidence-Template.md`: added on
+  2026-06-02 and generated from launch, miniapp, and admin-web evidence ledgers.
+  It provides safe operator fields for recording sanitized external QA evidence
+  before updating JSON statuses.
 
 ## Known MVP Risks
 
@@ -132,6 +142,7 @@ Current snapshot after 2026-06-02 final local audit:
 - Production smoke tracker: `docs/Production-Smoke.md`.
 - Launch evidence tracker: `docs/MVP-Launch-Evidence.md`.
 - External validation runbook: `docs/MVP-External-Validation-Runbook.md`.
+- External evidence template: `docs/MVP-External-Evidence-Template.md`.
 - MVP closeout audit: `docs/MVP-Closeout-Audit.md`.
 - MVP closeout readiness guard: `scripts/check_mvp_closeout_readiness.js`.
 - Aggregate MVP regression script: `scripts/check_mvp_regression.sh`.

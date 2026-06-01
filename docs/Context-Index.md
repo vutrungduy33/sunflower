@@ -80,6 +80,8 @@ Launch evidence:
 
 ```bash
 node scripts/check_mvp_external_runbook.js
+node scripts/generate_mvp_external_evidence_template.js
+node scripts/check_mvp_external_evidence_template.js
 node scripts/check_mvp_closeout_readiness.js
 node scripts/check_mvp_closeout_readiness.js --strict
 node scripts/check_mvp_launch_evidence.js

@@ -164,3 +164,14 @@ Append durable decisions here. Keep entries short and include provenance.
   required external evidence is still pending.
 - Provenance: `scripts/check_mvp_closeout_readiness.js`,
   `docs/MVP-Closeout-Audit.md`, `docs/MVP-Readiness.md`.
+
+## 2026-06-02: Generate External Evidence Templates
+
+- Decision: Use `scripts/generate_mvp_external_evidence_template.js` and
+  `docs/MVP-External-Evidence-Template.md` as the safe capture template for
+  external MVP QA evidence.
+- Rationale: Operators need a consistent place to record sanitized proof before
+  updating JSON ledgers, while avoiding AppID, tokens, phone numbers, SMS codes,
+  passwords, payment payloads, raw screenshots, and full order/payment IDs.
+- Provenance: `docs/MVP-External-Validation-Runbook.md`,
+  `scripts/check_mvp_external_evidence_template.js`.

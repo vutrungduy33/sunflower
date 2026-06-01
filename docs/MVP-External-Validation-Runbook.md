@@ -48,6 +48,15 @@ scripts/check_deploy_config.sh
    - Confirm the local preview uses a real AppID without committing it.
    - Confirm backend, admin web, WeChat, SMS, payment, and callback configuration
      are the intended environment.
+   - Generate the sanitized evidence capture template:
+
+```bash
+node scripts/generate_mvp_external_evidence_template.js
+node scripts/check_mvp_external_evidence_template.js
+```
+
+   - Fill `docs/MVP-External-Evidence-Template.md` during execution, then copy
+     only sanitized evidence summaries back into the JSON ledgers.
 
 3. Execute miniapp preview or real-device QA:
    - Record results in `docs/Miniapp-Manual-QA.json`.

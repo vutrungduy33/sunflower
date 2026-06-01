@@ -62,6 +62,8 @@ RUN_PRODUCTION=1 scripts/check_mvp_regression.sh
 
 ```bash
 node scripts/check_mvp_external_runbook.js
+node scripts/generate_mvp_external_evidence_template.js
+node scripts/check_mvp_external_evidence_template.js
 node scripts/check_mvp_closeout_readiness.js
 node scripts/check_mvp_closeout_readiness.js --strict
 node scripts/check_mvp_launch_evidence.js --strict
@@ -121,6 +123,11 @@ summary over launch, miniapp manual QA, and admin-web manual QA ledgers. Its
 non-strict mode is safe for daily handoff and exits zero while listing pending
 external evidence. Its `--strict` mode must pass before the MVP goal can be
 declared complete.
+
+`node scripts/generate_mvp_external_evidence_template.js` writes
+`docs/MVP-External-Evidence-Template.md`, a sanitized capture template for the
+remaining external QA items. `node scripts/check_mvp_external_evidence_template.js`
+ensures the template still covers every unresolved required evidence item.
 
 When HTTPS/domain is ready, also verify:
 
