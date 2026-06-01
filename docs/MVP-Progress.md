@@ -486,3 +486,65 @@
     Strict evidence checks, production deploy approval, HTTPS/domain, real
     WeChat/payment/admin QA, and backend `8080` security-group evidence remain
     open.
+
+## Round 12: Component README Handoff Refresh
+
+- Date: 2026-06-02
+- Status: completed.
+- Focus: refresh subproject README handoff entries so future development is not
+  misled by stale stage, mock-payment, or in-memory-backend wording.
+- Start evidence:
+  - `git status --short --untracked-files=all`: clean after Round 11 commit.
+  - `sunflower-admin-web/README.md` still described the admin web as an `S9`
+    stage skeleton.
+  - `sunflower-backend/README.md` still claimed business data used in-memory
+    seed data and that MySQL persistence was future work.
+  - `sunflower-miniapp/README.md` still described order payment as a backend
+    mock payment interface without explaining the current real/mock split.
+- Open-source reference check:
+  - Task classification: handoff documentation refresh, not feature or
+    dependency implementation.
+  - Sources checked: project-local authoritative docs and code:
+    `docs/Architecture.md`, `docs/API.md`, `docs/MVP-Readiness.md`,
+    `docs/Admin-Web-MVP-QA.md`, `docs/Backend-MVP-QA.md`,
+    `docs/Miniapp-MVP-QA.md`, subproject package/build metadata, and current
+    source layout.
+  - Selected approach: rewrite stale subproject README facts to point at the
+    active MVP readiness and QA evidence system.
+  - License/compatibility: no external code or text copied.
+  - Reused/adapted: current repository facts only.
+  - Rejected options: adding new tooling, reviving stage terminology, or
+    claiming external WeChat/payment/admin QA is complete without evidence.
+- Risks:
+  - Documentation must stay factual: local automated readiness is proven, but
+    external miniapp, payment/refund, admin production QA, HTTPS domain, backend
+    `8080` hardening, and deploy approval remain open.
+- Acceptance criteria:
+  - Component READMEs no longer contain active-stage skeleton, in-memory
+    backend, or mock-only payment wording.
+  - `docs/Project-State.md` no longer lists stale component README wording as a
+    known MVP risk.
+  - Focused doc checks pass and the round is committed once.
+- Verification:
+  - `rg -n "S9|阶段交付|工程骨架|内存种子|未落库|后续将切换|模拟支付接口|mock-only|Stage" sunflower-admin-web/README.md sunflower-backend/README.md sunflower-miniapp/README.md`: no matches.
+  - `git diff --check`: passed.
+  - `node scripts/check_mvp_launch_evidence.js`: passed with 9 required
+    external evidence entries still pending.
+  - `node scripts/check_miniapp_manual_qa.js && node scripts/check_admin_web_manual_qa.js`:
+    passed in non-strict mode, with all manual QA entries still pending.
+  - `RUN_BACKEND=0 RUN_ADMIN=0 RUN_MINIAPP=0 scripts/check_mvp_regression.sh`:
+    passed evidence-ledger checks with production checks skipped.
+- Change summary:
+  - Refreshed `sunflower-admin-web/README.md` with current operator scope,
+    runtime model, validation commands, and QA handoff references.
+  - Refreshed `sunflower-backend/README.md` with current MySQL/Flyway-backed API
+    scope, WeChat/SMS/payment integration boundaries, and verification
+    references.
+  - Refreshed `sunflower-miniapp/README.md` with current user path, runtime
+    config, payment real/mock boundary, and manual QA evidence entry points.
+  - Updated `docs/Project-State.md` and `docs/Context-Index.md`.
+- Goal correction:
+  - This removes a handoff/documentation risk but does not complete external
+    launch evidence. Real WeChat preview/device validation, HTTPS request
+    domain, payment/refund evidence, admin production QA, backend `8080`
+    security-group evidence, and approved deploy evidence remain open.

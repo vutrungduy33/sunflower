@@ -78,6 +78,9 @@ Current snapshot after 2026-06-02 final local audit:
   remain pending.
 - ECS-1 Nginx active; `sunflower-admin-web` healthy on `127.0.0.1:18080`.
 - ECS-2 `sunflower-backend` and `sunflower-mysql` healthy.
+- Component README handoff refresh completed on 2026-06-02 for
+  `sunflower-miniapp/README.md`, `sunflower-admin-web/README.md`, and
+  `sunflower-backend/README.md`.
 
 ## Known MVP Risks
 
@@ -87,8 +90,6 @@ Current snapshot after 2026-06-02 final local audit:
   production requires HTTPS legal WeChat request domain.
 - Backend container observed binding public `0.0.0.0:8080`; security group should
   restrict direct backend access to ECS-1 where possible.
-- Some component README files still contain older MVP wording and should be
-  refreshed before handoff.
 - Canonical MVP readiness tracker: `docs/MVP-Readiness.md`.
 - Miniapp QA tracker: `docs/Miniapp-MVP-QA.md`.
 - Miniapp manual QA tracker: `docs/Miniapp-Manual-QA.md`.

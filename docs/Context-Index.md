@@ -20,6 +20,7 @@
 | Admin web | `docs/Web-Admin-Plan.md`, `docs/Admin-Web-MVP-QA.md`, `sunflower-admin-web/src/**`, admin web tests |
 | Miniapp | `docs/Miniapp-Frontend-MVP.md`, `docs/Miniapp-MVP-QA.md`, `docs/Miniapp-Manual-QA.md`, `sunflower-miniapp/pages/mvp/**`, `sunflower-miniapp/utils/mvp/**` |
 | MVP hardening | `docs/MVP-Readiness.md`, `docs/MVP-Launch-Evidence.md`, `docs/MVP-Progress.md`, `docs/MVP-Closeout-Audit.md`, `docs/Project-State.md`, task-relevant app docs |
+| Component handoff docs | `sunflower-miniapp/README.md`, `sunflower-admin-web/README.md`, `sunflower-backend/README.md`, plus the matching QA docs above |
 | Process / decisions | `docs/Decision-Log.md`, then only relevant linked docs |
 | Historical diagnosis | `docs/archive/**` only when explicitly needed |
 
