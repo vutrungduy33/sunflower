@@ -19,7 +19,7 @@
       "requirement": "Admin web lint, tests, and production build remain green.",
       "status": "passed",
       "requiredForMvp": true,
-      "evidence": "cd sunflower-admin-web && npm run lint && npm run test && npm run build passed in the 2026-06-02 closeout audit.",
+      "evidence": "cd sunflower-admin-web && npm run lint && npm run test && npm run build passed in the 2026-06-02 closeout audit. Round 17 node scripts/check_admin_web_behavior_wiring.js passed with 97 key behavior wiring checks across 16 files.",
       "nextAction": "Re-run after admin-web changes."
     },
     {

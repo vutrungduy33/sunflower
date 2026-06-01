@@ -49,6 +49,16 @@ npm run test
 npm run build
 ```
 
+From the repository root:
+
+```bash
+node scripts/check_admin_web_behavior_wiring.js
+```
+
+The behavior wiring guard checks that routes, auth, room management,
+pricing/inventory, order actions, API services, and TanStack Query refreshes
+remain connected. It does not replace production or approved-staging manual QA.
+
 Node.js `>= 20.19.0` and npm `>= 10` are required. This workspace has also used
 Node `20.20.1`.
 

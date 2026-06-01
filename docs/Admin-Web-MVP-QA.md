@@ -10,6 +10,7 @@ Run from the repository root:
 
 ```bash
 cd sunflower-admin-web && npm run lint && npm run test && npm run build
+node scripts/check_admin_web_behavior_wiring.js
 ```
 
 Current recorded baseline:
@@ -17,11 +18,14 @@ Current recorded baseline:
 - `npm run lint`: passed again in Round 8.
 - `npm run test`: passed again in Round 8, 20 tests.
 - `npm run build`: passed in the 2026-06-02 closeout audit.
+- `node scripts/check_admin_web_behavior_wiring.js`: passed in Round 17 with
+  97 key behavior wiring checks across 16 files.
 
 The automated tests cover auth page behavior, protected shell routing, room
 management, price/inventory management, order list/detail/actions, and price
-batch utility logic. They do not prove production admin account, SMS, browser,
-or live data safety.
+batch utility logic. The behavior wiring guard checks route, service endpoint,
+page action, and mutation-refetch wiring. These checks do not prove production
+admin account, SMS, browser, or live data safety.
 
 ## 2. Manual QA Ledger
 
@@ -123,3 +127,23 @@ Resilience:
   keep auth state/secrets out of Git and test operator-visible behavior.
 - Rejected options: adding Playwright now, storing auth storage state in the
   repo, or marking mocked unit tests as proof of live admin production QA.
+
+## 6. Static Behavior Wiring Guard
+
+`node scripts/check_admin_web_behavior_wiring.js` verifies that the local admin
+web MVP path still has the expected wiring:
+
+- Protected routes, login, activation, reset password, change password, and
+  session recovery.
+- Axios auth token injection and 401 session cleanup.
+- Workspace health query and manual refresh.
+- Room list, create/edit, status toggle, filters, and query invalidation.
+- Pricing calendar, room/month changes, range selection, price/inventory
+  mutations, and calendar invalidation.
+- Order overview/list/detail filters, drawer actions, after-sale approval or
+  rejection, direct refund/reschedule, check-in/check-out/no-show, refund retry,
+  and list/overview invalidation.
+
+It is a static guard only. Final MVP still needs `node
+scripts/check_admin_web_manual_qa.js --strict` after safe production or
+approved-staging evidence is recorded.

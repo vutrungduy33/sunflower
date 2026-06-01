@@ -807,3 +807,75 @@
     legal HTTPS request domain, real payment/refund, admin production QA,
     backend `8080` hardening, or deployment of the current branch. The overall
     MVP goal remains open.
+
+## Round 17: Admin-Web Behavior Wiring Guard
+
+- Date: 2026-06-02
+- Status: completed.
+- Focus: add a repeatable local guard that checks whether the admin web's
+  protected routes, auth flows, room CRUD, pricing/inventory operations, order
+  actions, query invalidation, and API services remain wired to the MVP
+  operator path.
+- Start evidence:
+  - `git status --short --untracked-files=all`: clean after Round 16 commit.
+  - Admin web lint/test/build are currently recorded as green, but the
+    automated baseline does not have a single lightweight static guard for
+    route-to-page, page-to-service, and mutation-to-refetch wiring.
+  - Production or approved-staging admin manual QA remains pending and cannot
+    be replaced by a local static guard.
+- Open-source reference check:
+  - Task classification: common admin CRUD/form/action wiring verification for
+    a React dashboard.
+  - Sources checked:
+    - TanStack Query official invalidation guidance:
+      `https://tanstack.com/query/latest/docs/framework/react/guides/invalidations-from-mutations`.
+    - React Router official routing guide:
+      `https://reactrouter.com/start/data/routing`.
+    - Testing Library guiding principles:
+      `https://testing-library.com/docs/guiding-principles/`.
+    - TDesign React Table docs:
+      `https://tdesign.tencent.com/react/components/table`.
+    - Existing project code/tests under `sunflower-admin-web/src/**`.
+  - Selected approach: add a project-local Node.js static checker over explicit
+    route, service, page action, and query invalidation invariants; keep the
+    existing Vitest/Testing Library suite as the executable behavior layer.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: existing local checker style from miniapp/evidence scripts
+    and project-native React/TDesign/TanStack Query patterns.
+  - Rejected options: adding Playwright or copying a generic admin dashboard
+    test harness before production credentials and safe QA data are available.
+- Risks:
+  - Static wiring checks can catch disconnected routes, handlers, services, and
+    cache refreshes, but they cannot prove real admin account activation, SMS,
+    live room/order mutation safety, browser runtime behavior, or production
+    data correctness.
+- Acceptance criteria:
+  - New checker covers auth service/store, router/protected shell, workspace
+    health, room management, pricing/inventory, order management, and admin
+    service endpoints.
+  - `scripts/check_mvp_regression.sh` runs the new checker as part of admin web
+    checks.
+  - Admin QA/readiness/project-state docs identify the new guard and its
+    limits.
+  - Focused verification passes and the round is committed once.
+- Verification:
+  - `node --check scripts/check_admin_web_behavior_wiring.js`: passed.
+  - `node scripts/check_admin_web_behavior_wiring.js`: passed with 97 key
+    behavior wiring checks across 16 files.
+  - `cd sunflower-admin-web && npm run lint`: passed.
+  - `cd sunflower-admin-web && npm run test`: passed, 20 tests.
+  - `cd sunflower-admin-web && npm run build`: passed.
+  - `RUN_BACKEND=0 RUN_MINIAPP=0 scripts/check_mvp_regression.sh`: passed
+    admin-web, evidence, and deploy-config checks with backend, miniapp, and
+    production checks skipped for this focused run.
+- Change summary:
+  - Added `scripts/check_admin_web_behavior_wiring.js`.
+  - Wired the new checker into `scripts/check_mvp_regression.sh`.
+  - Updated admin QA, admin README, readiness, launch evidence, project-state,
+    context-index, and decision docs.
+- Goal correction:
+  - Admin web local handoff evidence is stronger and now catches route/action/API
+    wiring drift, but it still does not prove production or approved-staging
+    admin account, SMS, live data mutation safety, or browser runtime QA. The
+    overall MVP goal remains open until external evidence is recorded or
+    explicitly waived.

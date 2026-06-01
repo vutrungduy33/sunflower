@@ -37,6 +37,8 @@ Current snapshot after 2026-06-02 final local audit:
 - Admin web `npm run lint`: passed.
 - Admin web `npm run test`: passed, 20 tests.
 - Admin web `npm run build`: passed.
+- Admin web `node scripts/check_admin_web_behavior_wiring.js`: passed in
+  Round 17 with 97 key behavior wiring checks across 16 files.
 - Admin web Round 8 recheck `npm run lint`: passed.
 - Admin web Round 8 recheck `npm run test`: passed, 20 tests.
 - Miniapp `node scripts/check_miniapp_mvp_smoke.js`: passed with the
@@ -92,6 +94,11 @@ Current snapshot after 2026-06-02 final local audit:
   checks login, phone binding, room browsing, order creation, payment, cancel,
   reschedule, refund, navigation, and WXML event bindings; it does not replace
   WeChat preview/real-device QA.
+- Admin web behavior wiring guard `scripts/check_admin_web_behavior_wiring.js`:
+  added on 2026-06-02 and included in aggregate admin-web regression. It
+  statically checks protected routes, auth/session wiring, room CRUD,
+  pricing/inventory, order actions, service endpoints, and query invalidation;
+  it does not replace production or approved-staging manual QA.
 - External validation runbook `docs/MVP-External-Validation-Runbook.md`: added
   on 2026-06-02 with coverage checked by
   `scripts/check_mvp_external_runbook.js`.
@@ -119,6 +126,7 @@ Current snapshot after 2026-06-02 final local audit:
 - MVP closeout audit: `docs/MVP-Closeout-Audit.md`.
 - Aggregate MVP regression script: `scripts/check_mvp_regression.sh`.
 - Deploy config static check: `scripts/check_deploy_config.sh`.
+- Admin web behavior wiring check: `scripts/check_admin_web_behavior_wiring.js`.
 
 ## Current Dirty Worktree Note
 

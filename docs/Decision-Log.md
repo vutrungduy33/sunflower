@@ -142,3 +142,14 @@ Append durable decisions here. Keep entries short and include provenance.
   regression without adding a miniapp test framework.
 - Provenance: `scripts/check_miniapp_behavior_wiring.js`,
   `docs/Miniapp-MVP-QA.md`.
+
+## 2026-06-02: Add Admin-Web Behavior Wiring Guard
+
+- Decision: Use `scripts/check_admin_web_behavior_wiring.js` as a static guard
+  for MVP admin web route, auth, service, page action, and query invalidation
+  wiring, and include it in aggregate admin-web regression.
+- Rationale: Admin lint/unit/build checks are strong, but a lightweight static
+  guard catches route-to-page, page-to-service, and mutation-to-refetch drift
+  before handoff without adding browser credentials or a new e2e dependency.
+- Provenance: `scripts/check_admin_web_behavior_wiring.js`,
+  `docs/Admin-Web-MVP-QA.md`.

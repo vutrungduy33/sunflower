@@ -57,6 +57,8 @@ run_admin_checks() {
     npm run lint
     npm run test
     npm run build
+    cd "$ROOT_DIR"
+    node scripts/check_admin_web_behavior_wiring.js
   )
 }
 

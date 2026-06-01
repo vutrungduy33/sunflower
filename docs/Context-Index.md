@@ -50,7 +50,8 @@ cd sunflower-backend && mvn -B test
 Admin web:
 
 ```bash
-cd sunflower-admin-web && npm run lint && npm run test && npm run build
+(cd sunflower-admin-web && npm run lint && npm run test && npm run build)
+node scripts/check_admin_web_behavior_wiring.js
 ```
 
 Miniapp syntax smoke:
