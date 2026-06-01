@@ -1665,3 +1665,73 @@
     miniapp real-device/WeChat evidence, real payment/refund, admin production
     or approved-staging manual QA, backend `8080` hardening proof, and
     current-branch deployment evidence.
+
+## Round 29: Aggregate Local MVP Regression Recheck
+
+- Date: 2026-06-02
+- Status: completed and committed.
+- Focus: refresh the authoritative local regression evidence after Round 28 and
+  correct stale goal/context notes that still mention admin-web lint/test
+  failures.
+- Start evidence:
+  - `git status --short --branch --untracked-files=all`: clean on
+    `codex/s18-payment-hardening` after Round 28 commit.
+  - `docs/Project-State.md` already recorded backend, admin-web, miniapp, and
+    evidence guards as locally green, while the active long goal text still
+    contained stale admin-web `_refundId` and failing test notes.
+  - `docs/MVP-Readiness.md` still listed backend local quality as 56 tests,
+    which was stale after Round 28 expanded backend coverage to 57 tests.
+- Open-source reference check:
+  - Task classification: repository-specific evidence refresh and state
+    correction.
+  - Sources checked: not applicable; this round did not implement a common
+    feature or reusable infrastructure.
+  - Selected approach: run the repository-owned aggregate MVP regression script
+    and update durable state/readiness/progress docs from the command result.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: existing `scripts/check_mvp_regression.sh` coverage and
+    existing status document structure.
+  - Rejected options: adding new checks before first proving the current
+    aggregate baseline, or treating non-strict evidence checks as final MVP
+    completion.
+- Risks:
+  - The aggregate script intentionally skips production checks unless
+    `RUN_PRODUCTION=1` is set.
+  - Evidence ledger checks run in non-strict mode, so the 33 external closeout
+    items remain unresolved and still block final MVP completion.
+  - The run emitted local `LC_ALL=C.UTF-8` warnings on this machine; checks
+    still passed and no application failure was observed.
+- Acceptance criteria:
+  - `scripts/check_mvp_regression.sh` passes with backend, admin-web, miniapp,
+    evidence, and deploy-config steps enabled.
+  - Updated docs make the current local baseline explicit: backend 57 tests,
+    admin-web lint/test/build 23 tests, miniapp replay/static/smoke, evidence
+    guards, and deploy config static checks all pass.
+  - Docs continue to state that final MVP completion is blocked by unresolved
+    external evidence rather than local automated checks.
+  - The round is committed once.
+- Verification:
+  - `scripts/check_mvp_regression.sh`: passed 5 enabled steps.
+    - Backend `mvn -B test`: passed, 57 tests.
+    - Admin-web `npm run lint`, `npm run test`, `npm run build`: passed; 23
+      Vitest tests passed.
+    - Admin behavior wiring and external QA preflight: passed.
+    - Miniapp smoke, behavior wiring, user-flow replay, external preflight,
+      project config, and subpage nav checks: passed.
+    - MVP evidence ledger checks: passed non-strict, while reporting 33
+      unresolved required closeout items.
+    - Deploy config static checks: passed.
+    - Production checks were intentionally skipped by default.
+- Change summary:
+  - Updated `docs/MVP-Progress.md` with this Round 29 analysis and evidence.
+  - Updated `docs/Project-State.md` with the aggregate regression recheck and
+    clarified that the earlier admin-web failure notes are stale.
+  - Updated `docs/MVP-Readiness.md` backend local quality from 56 to 57 tests
+    and recorded the current aggregate local regression result.
+- Goal correction:
+  - Local automated readiness is currently green across backend, admin-web,
+    miniapp, evidence non-strict checks, and deploy config static checks.
+    Overall MVP completion remains open because strict launch/manual QA evidence
+    still requires real WeChat/domain/payment/refund/admin production or
+    approved-staging proof, backend `8080` hardening evidence or waiver, and
+    current-branch deployment evidence after explicit approval.

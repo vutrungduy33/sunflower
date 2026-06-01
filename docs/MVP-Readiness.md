@@ -25,7 +25,7 @@ verified, and documented enough for handoff:
 
 | Area | Evidence | Status | Next action |
 | --- | --- | --- | --- |
-| Backend local quality | Final audit `mvn -B test`: passed, 56 tests. | Ready locally | Keep green after future backend changes. |
+| Backend local quality | Round 29 aggregate recheck `mvn -B test`: passed, 57 tests. Round 28 added public order ownership isolation across current-user list/detail/pay preparation/pay confirmation/cancel/reschedule/refund actions. | Ready locally | Keep green after future backend changes. |
 | Admin web local quality | Round 27 recheck `npm run lint`, `npm run test` (23 tests), `npm run build`: passed. Round 27 order tests cover check-in, check-out, no-show, after-sale rejection, and failed refund retry. Round 17 `node scripts/check_admin_web_behavior_wiring.js` passed 97 key behavior wiring checks across 16 files. Round 22 `node scripts/check_admin_web_external_qa_preflight.js` checks admin manual QA handoff and safety boundaries. | Ready locally | Keep green after future admin changes. |
 | Miniapp syntax/smoke | Final audit `node scripts/check_miniapp_mvp_smoke.js` plus existing miniapp guards passed. Round 16 `node scripts/check_miniapp_behavior_wiring.js` passed 69 key behavior wiring checks across 14 files. Round 21 `node scripts/check_miniapp_external_qa_preflight.js` guards AppID/private-config boundaries before external QA. Round 26 `node scripts/check_miniapp_user_flow_replay.js` replays home/login/order/payment/order-list page-method flows with stubs. | Partially verified | Real-device login/phone/payment evidence still required. |
 | Miniapp real user path | Code supports real API, WeChat login, phone binding, `wx.requestPayment`, order and after-sale flows; manual QA ledger now exists. | Needs real-device evidence | Run `node scripts/check_miniapp_manual_qa.js --strict` after recording preview/real-device evidence. |
@@ -38,6 +38,14 @@ Detailed launch evidence is tracked in `docs/MVP-Launch-Evidence.md` and
 `docs/MVP-Launch-Evidence.json`. Final MVP completion requires the strict
 evidence check to pass, or for missing external evidence to be explicitly
 waived by the user.
+
+Latest aggregate local regression:
+
+- `scripts/check_mvp_regression.sh`: passed in Round 29 with backend,
+  admin-web, miniapp, non-strict evidence, and deploy config static checks
+  enabled. Production checks were skipped by default.
+- The aggregate evidence checks remain non-strict and reported 33 unresolved
+  required closeout items.
 
 The execution runbook for the remaining external evidence is
 `docs/MVP-External-Validation-Runbook.md`.

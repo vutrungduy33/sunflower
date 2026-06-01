@@ -28,20 +28,24 @@
 
 ## Recent Validation Snapshot
 
-Current snapshot after 2026-06-02 Round 28 backend order ownership boundary
-test expansion:
+Current snapshot after 2026-06-02 Round 29 aggregate local MVP regression
+recheck:
 
 - Backend `mvn -B test`: passed again in Round 28, 57 tests. Round 28 added
   public order ownership isolation coverage for current-user list/detail/pay
   preparation/pay confirmation/cancel/reschedule/refund actions.
-- Aggregate local regression `scripts/check_mvp_regression.sh`: passed on
-  2026-06-02 with backend/admin/miniapp/evidence checks enabled and production
-  checks skipped by default.
+- Aggregate local regression `scripts/check_mvp_regression.sh`: passed again in
+  Round 29 with 5 enabled steps: backend tests, admin-web lint/test/build,
+  miniapp smoke checks, MVP evidence ledger checks, and deploy config static
+  checks. Production checks were skipped by default.
 - Admin web `npm run lint`: passed again in Round 27.
 - Admin web `npm run test`: passed again in Round 27, 23 tests. Round 27 added
   order-management tests for check-in, check-out, no-show, after-sale rejection,
   and failed refund retry.
 - Admin web `npm run build`: passed again in Round 27.
+- Older goal notes that mention an admin-web `_refundId` lint failure or 3
+  failing/timed-out admin tests are stale. Round 29 aggregate regression proves
+  current admin-web lint/test/build is green.
 - Admin web `node scripts/check_admin_web_behavior_wiring.js`: passed in
   Round 17 with 97 key behavior wiring checks across 16 files.
 - Admin web external QA preflight
