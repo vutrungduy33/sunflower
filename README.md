@@ -24,6 +24,8 @@
 - `/Users/chenyao/dev/miniapp/sunflower/docs/Agent-Memory.md`：Codex 记忆与上下文管理规则
 - `/Users/chenyao/dev/miniapp/sunflower/docs/Context-Index.md`：后续任务的上下文加载地图
 - `/Users/chenyao/dev/miniapp/sunflower/docs/Project-State.md`：当前项目事实、验证状态与风险快照
+- `/Users/chenyao/dev/miniapp/sunflower/docs/MVP-Readiness.md`：MVP 上线可用性清单、验证矩阵与阻塞项
+- `/Users/chenyao/dev/miniapp/sunflower/docs/MVP-Progress.md`：当前 MVP 推进轮次记录
 - `/Users/chenyao/dev/miniapp/sunflower/docs/Decision-Log.md`：长期架构/流程/部署决策记录
 - `/Users/chenyao/dev/miniapp/sunflower/docs/Architecture.md`：当前系统架构与部署拓扑
 - `/Users/chenyao/dev/miniapp/sunflower/docs/PRD.md`：需求规格与开发计划
@@ -51,6 +53,7 @@
 - 后端已完成 MySQL 持久化、微信认证/手机号绑定、真实微信支付/退款、管理端账号与短信能力
 - 后台管理系统（Web）已完成核心运营页面，`/Users/chenyao/dev/miniapp/sunflower/sunflower-admin-web` 已可本地启动、测试与构建
 - CI/CD 已完成：推送到 `main` 的部署相关变更会触发 GitHub Actions 自动部署到双 ECS
+- 当前 MVP 可用性、验证状态与上线阻塞项以 `/Users/chenyao/dev/miniapp/sunflower/docs/MVP-Readiness.md` 为准
 - Web 技术选型、环境约束与本地调试说明见 `/Users/chenyao/dev/miniapp/sunflower/docs/Web-Admin-Plan.md`
 - 历史 Stage 计划与报告已归档到 `docs/archive/`，仅作为项目演进记录；当前开发不再强制 Stage 守卫、Stage 报告、分支前缀或 PR 门禁
 

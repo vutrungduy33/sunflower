@@ -37,3 +37,10 @@ Append durable decisions here. Keep entries short and include provenance.
   problems while respecting licenses.
 - Provenance: `/Users/chenyao/.codex/skills/open-source-reference-first/SKILL.md`.
 
+## 2026-06-02: Use MVP Readiness as Launch Source of Truth
+
+- Decision: Track current MVP launch usability in `docs/MVP-Readiness.md` and
+  round-by-round progress in `docs/MVP-Progress.md`.
+- Rationale: Active docs should answer what is usable, what is verified, and
+  what blocks launch without relying on archived stage materials.
+- Provenance: `docs/MVP-Readiness.md`, `docs/MVP-Progress.md`.

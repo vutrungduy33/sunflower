@@ -5,13 +5,13 @@
 1. 首页/房型列表 → 选择房型  
 2. 选择入住日期 → 展示价格日历与可售库存  
 3. 填写入住人/联系方式 → 确认订单  
-4. 模拟支付 → 支付成功  
-5. M1 订单状态主路径：`PENDING_PAYMENT`（待支付）→ `CONFIRMED`（待入住）
+4. 发起支付；生产配置下调用微信支付，dev/test 可显式走 mock
+5. 订单状态主路径：`PENDING_PAYMENT`（待支付）→ `CONFIRMED`（待入住）
 
 ### 异常流程
 - 取消订单：`PENDING_PAYMENT/CONFIRMED` → `CANCELLED`
 - 改期：`CONFIRMED/RESCHEDULED` → `RESCHEDULED`
-- 退款：`CONFIRMED/RESCHEDULED` → `REFUNDED`
+- 退款：`CONFIRMED/RESCHEDULED` → `REFUND_PENDING` → `REFUNDED`
 
 ## 2. 接驳服务流程
 
@@ -50,10 +50,14 @@
 ### 7.1 住宿订单
 - `PENDING_PAYMENT`（待支付）
 - `CONFIRMED`（待入住）
+- `CHECKED_IN`（已入住）
+- `CHECKED_OUT`（已离店）
 - `RESCHEDULED`（已改期）
+- `REFUND_PENDING`（退款中）
 - `REFUNDED`（已退款）
 - `COMPLETED`（已完成）
 - `CANCELLED`（已取消）
+- `NO_SHOW`（已失约）
 
 ### 7.2 餐饮订单
 - `pending_payment` → `paid` → `preparing` → `delivering` → `completed`

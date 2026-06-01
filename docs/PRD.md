@@ -160,10 +160,10 @@
 - 日志系统、告警、备份与恢复  
 - 灰度发布与版本管理  
 
-## 7. 开发计划（里程碑 + Stage）
+## 7. 开发计划（历史里程碑）
 
-> 为了保证执行落地，当前采用“单次对话完成 1 个 Stage（开发 + 测试）”模式。  
-> 详细 Stage 清单见：`docs/Agent-Stage-Plan.md`。
+> 当前仓库不再采用 stage 强制流程；历史 stage 清单已归档到 `docs/archive/`。
+> 当前 MVP 可用性与上线阻塞项见 `docs/MVP-Readiness.md`。
 
 ### M1：后端落库与小程序 P0 稳定（S1-S6）
 - 后端从内存种子切换到 MySQL 持久化  
@@ -174,7 +174,7 @@
 - 后台 API（房态、订单、报表）  
 - Web 管理后台工程、登录权限、房态/订单页面  
 
-### M3：联调收口与发布（S14）
+### M3：联调收口与发布（历史 S14）
 - CI 门禁与端到端验收  
 - 发布与回滚文档、上线准备  
 
@@ -341,6 +341,7 @@
 - 数据字典：`docs/DataDictionary.md`
 - 数据库索引与约束：`docs/DB-Design.md`
 - MVP 原型页：`docs/Prototype.md`
-- Stage Backlog：`docs/Backlog.md`
+- MVP 可用性：`docs/MVP-Readiness.md`
+- 历史 Stage Backlog：`docs/archive/Backlog.md`
 - 埋点与报表：`docs/Analytics.md`
 - CI/CD 部署：`docs/CI-CD.md`

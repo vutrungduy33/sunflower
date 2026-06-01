@@ -45,6 +45,8 @@
 - `docs/Agent-Memory.md`：Codex 记忆与上下文管理规则
 - `docs/Context-Index.md`：后续任务的上下文加载地图
 - `docs/Project-State.md`：当前项目事实、验证状态与风险快照
+- `docs/MVP-Readiness.md`：MVP 上线可用性清单、验证矩阵与阻塞项
+- `docs/MVP-Progress.md`：当前 MVP 推进轮次记录
 - `docs/Decision-Log.md`：长期架构/流程/部署决策记录
 - `docs/Architecture.md`：当前系统架构、部署拓扑与运行组件说明
 - `docs/PRD.md`：需求规格与开发计划（范围、优先级、里程碑）
@@ -74,6 +76,8 @@
 │  ├─ Agent-Memory.md
 │  ├─ Context-Index.md
 │  ├─ Project-State.md
+│  ├─ MVP-Readiness.md
+│  ├─ MVP-Progress.md
 │  ├─ Decision-Log.md
 │  ├─ Architecture.md
 │  ├─ PRD.md
@@ -119,6 +123,7 @@
 - 管理端后端 API 已覆盖房型/价格/库存、订单/经营概览
 - 管理后台（Web）已完成核心运营页面，`sunflower-admin-web/` 已可本地启动、测试与构建
 - CI/CD 已完成：推送到 `main` 的部署相关变更会触发 GitHub Actions 自动部署到双 ECS
+- 当前 MVP 可用性、验证状态与上线阻塞项以 `docs/MVP-Readiness.md` 为准
 - Web 技术选型、环境约束与本地调试说明见：`docs/Web-Admin-Plan.md`
 
 ## 7. 建议补齐（下一步）

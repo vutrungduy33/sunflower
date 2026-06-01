@@ -14,10 +14,12 @@ const installedCapabilities = [
   '登录态恢复与 401 清理',
   '订单筛选与详情抽屉',
   '后台改期与退款处理',
+  '真实微信支付 / 退款流水对接',
 ]
 
 const nextSteps = [
-  { stage: 'S18', title: '真实微信支付 / 退款与资金流水' },
+  { label: 'MVP QA', title: '小程序真机验证与生产 smoke' },
+  { label: 'Security', title: 'HTTPS 域名与后端端口收敛' },
 ]
 
 function maskToken(token: string) {
@@ -54,7 +56,7 @@ export function WorkspacePage() {
       <section className="hero-panel">
         <div className="hero-panel__copy">
           <Tag theme="success" variant="light-outline">
-            S17 后台真实账号体系已接入
+            MVP 核心运营能力已接入
           </Tag>
           <h3>管理工作台</h3>
           <p>
@@ -150,11 +152,11 @@ export function WorkspacePage() {
         </Card>
       </section>
 
-      <Card className="panel-card" title="后续阶段占位">
+      <Card className="panel-card" title="上线前重点">
         <div className="roadmap-grid">
           {nextSteps.map((item) => (
-            <article key={item.stage} className="roadmap-card">
-              <span className="roadmap-card__stage">{item.stage}</span>
+            <article key={item.label} className="roadmap-card">
+              <span className="roadmap-card__stage">{item.label}</span>
               <h3>{item.title}</h3>
             </article>
           ))}

@@ -39,3 +39,45 @@
 - Next recommended round:
   - Create `docs/MVP-Readiness.md` and refresh stale handoff/API/deployment
     wording against the current architecture and validation evidence.
+
+## Round 2: MVP Readiness and Handoff Docs
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: create a single MVP readiness checklist and remove stale stage/payment
+  wording from active handoff docs.
+- Start evidence:
+  - `git status --short --untracked-files=all`: clean after Round 1 commit.
+  - Active docs still contained historical references to `docs/Backlog.md`,
+    `docs/Agent-Stage-Plan.md`, `docs/stage-reports/Sx.md`, and mock-only
+    payment wording.
+- Change summary:
+  - Added `docs/MVP-Readiness.md` with target paths, readiness matrix,
+    verification commands, manual QA checklist, launch blockers, and next
+    rounds.
+  - Updated README/doc indexes to point future agents to MVP readiness/progress.
+  - Refreshed miniapp, flow, admin web, PRD, and code-convention docs so active
+    guidance no longer treats archived stages as current process.
+  - Updated the admin workspace page to show current MVP readiness priorities
+    instead of old stage labels.
+- Open-source reference check:
+  - Task classification: documentation and handoff alignment.
+  - Sources checked: not applicable; no common feature implementation or
+    external code reuse.
+  - Selected approach: derive readiness from current repository evidence and
+    local validation commands.
+  - License/compatibility: no external code copied.
+- Acceptance criteria:
+  - Active documentation includes a clear MVP readiness source of truth.
+  - Old active stage/backlog references are either removed or explicitly marked
+    historical/archived.
+  - `cd sunflower-admin-web && npm run lint`: passed.
+  - `cd sunflower-admin-web && npm run test`: passed, 20 tests.
+  - `cd sunflower-admin-web && npm run build`: passed.
+- Goal correction:
+  - Do not mark the overall MVP goal complete yet; miniapp real-device
+    validation, production HTTPS/domain readiness, backend port hardening, and
+    final full regression remain unproven.
+- Next recommended round:
+  - Broaden miniapp validation evidence and add repeatable smoke/manual QA notes
+    for login, phone binding, order creation, payment, and after-sale flows.

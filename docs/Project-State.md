@@ -28,19 +28,19 @@
 
 ## Recent Validation Snapshot
 
-Current snapshot after 2026-06-02 Round 1:
+Current snapshot after 2026-06-02 Round 2:
 
 - Backend `mvn -B test`: passed, 56 tests in the prior baseline; not rerun in
-  Round 1.
-- Admin web `npm run lint`: passed in Round 1.
-- Admin web `npm run test`: passed, 20 tests in Round 1.
-- Admin web `npm run build`: passed in Round 1.
+  Round 2.
+- Admin web `npm run lint`: passed in Round 2.
+- Admin web `npm run test`: passed, 20 tests in Round 2.
+- Admin web `npm run build`: passed in Round 2.
 - Miniapp JS syntax smoke for MVP API/payment/core pages: passed in the prior
-  baseline; not rerun in Round 1.
+  baseline; not rerun in Round 2.
 - Production `http://47.113.223.248/api/health`: returned 200 in the prior
-  baseline; not rerun in Round 1.
+  baseline; not rerun in Round 2.
 - Production `http://47.113.223.248/api/content/home`: returned 200 in the prior
-  baseline; not rerun in Round 1.
+  baseline; not rerun in Round 2.
 
 ## Known MVP Risks
 
@@ -52,8 +52,9 @@ Current snapshot after 2026-06-02 Round 1:
   restrict direct backend access to ECS-1 where possible.
 - Some component README files still contain older MVP wording and should be
   refreshed before handoff.
+- Canonical MVP readiness tracker: `docs/MVP-Readiness.md`.
 
 ## Current Dirty Worktree Note
 
-After the Round 1 commit, no intended MVP Round 1 files should remain
+After the Round 2 commit, no intended MVP Round 2 files should remain
 uncommitted.

@@ -41,8 +41,8 @@
 ### 2.5 测试与交付
 
 - 每次新增业务能力至少覆盖 1 条自动化校验，并补齐成功路径和失败/空态中的至少一种。
-- Stage 交付必须提供人工复核步骤，能让 QA 按步骤复现。
-- 合并前至少运行与改动匹配的检查命令，例如 `mvn test`、`npm run lint`、`npm run test`、`npm run build` 或 Stage Guard。
+- 面向交付的改动必须提供人工复核步骤，能让 QA 按步骤复现。
+- 合并前至少运行与改动匹配的检查命令，例如 `mvn test`、`npm run lint`、`npm run test` 或 `npm run build`。
 
 ## 3. Spring Boot 后端规范
 
@@ -111,13 +111,14 @@
 - 至少检查以下文档是否需要同步：
   - `README.md`
   - `docs/README.md`
-  - `docs/Backlog.md`
-  - `docs/stage-reports/Sx.md`
+  - `docs/MVP-Readiness.md`
+  - `docs/MVP-Progress.md`
+  - `docs/Project-State.md`
   - `docs/API.md` / `docs/API-Schemas.md`
 
 ## 7. 提交前自检清单
 
-1. 本次改动是否仍然只落在一个 Stage 内。
+1. 本次改动是否仍然聚焦在一个清晰目标内。
 2. 是否沿用了现有目录分层，而不是新开一套模式。
 3. 是否复用了现有 UI、HTTP、DTO、状态和值域定义。
 4. 是否补了自动化检查与人工复核步骤。
