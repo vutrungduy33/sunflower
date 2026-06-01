@@ -25,7 +25,7 @@ Modes:
 ## 2. Current Result
 
 Latest read-only result from `scripts/check_production_readonly_audit.sh` at
-2026-06-02 05:59 Asia/Shanghai:
+2026-06-02 07:20 Asia/Shanghai:
 
 - Public `http://47.120.42.15:8080/api/health` was not directly usable from the
   local network.

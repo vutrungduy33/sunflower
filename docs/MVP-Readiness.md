@@ -31,8 +31,8 @@ verified, and documented enough for handoff:
 | Miniapp real user path | Code supports real API, WeChat login, phone binding, `wx.requestPayment`, order and after-sale flows; manual QA ledger now exists. | Needs real-device evidence | Run `node scripts/check_miniapp_manual_qa.js --strict` after recording preview/real-device evidence. |
 | WeChat pay/refund | Backend has WeChat payment/refund gateway, callbacks, records, retry, and mock only when explicitly configured; miniapp payment QA ledger now exists. | Needs production evidence | Verify small real payment/refund with merchant config and callback domain, then record sanitized evidence. |
 | Admin operations path | Core pages and tests exist for auth, room, price/inventory, and order management; manual QA ledger now exists. | Partially verified | Run `node scripts/check_admin_web_manual_qa.js --strict` against deployed admin web after recording safe evidence. |
-| Deployment | Scripted production smoke returned 7 passes and 1 known backend-bind warning; public `/api/health`, `/api/content/home`, `/healthz`, admin web HTML, and ECS internal health passed. | Partially verified | Push/dispatch deploy only after confirming branch/production intent. |
-| Security / compliance | Secrets are local/ECS-owned; `.secrets/` ignored. `RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh` shows public 8080 not directly usable from this network, but ECS-2 still listens on `0.0.0.0:8080` and firewall/security-group restriction is not proven. | Needs hardening | Record Alibaba Cloud security group evidence or explicit user waiver; complete HTTPS/WeChat domain setup. |
+| Deployment | Round 30 read-only audit `scripts/check_production_readonly_audit.sh` passed 3 audit steps. Public `/api/health`, `/api/content/home`, `/healthz`, admin web HTML, ECS internal health, and deploy config static checks passed. `node scripts/check_deployment_approval_preflight.js` passed and predicted future push/merge to `main` would deploy target `all`; no push/deploy was performed. | Partially verified | Push/dispatch deploy only after confirming branch/production intent. |
+| Security / compliance | Secrets are local/ECS-owned; `.secrets/` ignored. Round 30 `RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh` shows public 8080 not directly usable from this network, ECS-1 private upstream works, and ECS-2 backend health is present, but ECS-2 still listens on `0.0.0.0:8080` and firewall/security-group restriction is not proven. | Needs hardening | Record Alibaba Cloud security group evidence or explicit user waiver; complete HTTPS/WeChat domain setup. |
 
 Detailed launch evidence is tracked in `docs/MVP-Launch-Evidence.md` and
 `docs/MVP-Launch-Evidence.json`. Final MVP completion requires the strict
@@ -46,6 +46,17 @@ Latest aggregate local regression:
   enabled. Production checks were skipped by default.
 - The aggregate evidence checks remain non-strict and reported 33 unresolved
   required closeout items.
+
+Latest production/deployment read-only evidence:
+
+- `node scripts/check_deployment_approval_preflight.js`: passed in Round 30.
+  Current branch was not `main`, worktree was clean, and future push/merge to
+  `main` was predicted to trigger deployment target `all`.
+- `scripts/check_production_readonly_audit.sh`: passed in Round 30 with deploy
+  config static checks, production public/ECS internal smoke, and backend
+  `8080` exposure read-only checks enabled.
+- Backend `8080` hardening remains unresolved because ECS-2 still listens on
+  `0.0.0.0:8080` and local firewall output did not prove restriction.
 
 The execution runbook for the remaining external evidence is
 `docs/MVP-External-Validation-Runbook.md`.

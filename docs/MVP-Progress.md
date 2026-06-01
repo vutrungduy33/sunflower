@@ -1735,3 +1735,79 @@
     still requires real WeChat/domain/payment/refund/admin production or
     approved-staging proof, backend `8080` hardening evidence or waiver, and
     current-branch deployment evidence after explicit approval.
+
+## Round 30: Deployment Approval and Production Read-Only Audit
+
+- Date: 2026-06-02
+- Status: completed and committed.
+- Focus: refresh deployability and cloud runtime evidence without pushing,
+  deploying, reloading Nginx, or changing ECS/firewall/security-group state.
+- Start evidence:
+  - `git status --short --branch --untracked-files=all`: clean on
+    `codex/s18-payment-hardening` after Round 29 commit.
+  - Round 29 proved local aggregate regression is green with production checks
+    skipped.
+  - `docs/Production-Smoke.md` and `docs/Backend-8080-Security.md` still pointed
+    at the earlier 2026-06-02 05:59 read-only production audit.
+  - `CURRENT-BRANCH-DEPLOYED` and `BACKEND-8080-HARDENING` remain pending
+    launch evidence entries.
+- Open-source reference check:
+  - Task classification: repository-specific deployment evidence refresh using
+    existing scripts.
+  - Sources checked: not applicable; this round did not implement common
+    deployment infrastructure or copy reusable code.
+  - Selected approach: run the existing read-only deployment approval preflight
+    and production audit scripts, then update durable evidence docs.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: existing scripts
+    `scripts/check_deployment_approval_preflight.js` and
+    `scripts/check_production_readonly_audit.sh`.
+  - Rejected options: pushing to `main`, invoking `workflow_dispatch`, changing
+    security groups/firewall, or marking pending launch evidence as passed from
+    indirect proof.
+- Risks:
+  - The production audit is read-only and proves current cloud health, but it
+    does not prove the current branch has been deployed.
+  - Backend public `8080` was not directly usable from this local network, but
+    ECS-2 still listens on `0.0.0.0:8080`; Alibaba Cloud security group evidence
+    or explicit waiver is still required.
+  - Real WeChat domain/login/phone/payment/refund and admin production manual QA
+    remain outside this automated read-only audit.
+- Acceptance criteria:
+  - Deployment approval preflight passes and reports current branch, base,
+    worktree cleanliness, and predicted deployment impact.
+  - Production read-only audit passes deploy config static checks, public/ECS
+    internal smoke, and backend `8080` exposure checks.
+  - Docs record the latest evidence while keeping unresolved launch blockers
+    accurate.
+  - The round is committed once.
+- Verification:
+  - `node scripts/check_deployment_approval_preflight.js`: passed 5 checks.
+    - Current branch: `codex/s18-payment-hardening`.
+    - HEAD: `d50532c45a53`.
+    - Comparison base: `origin/main` at `5a37a6788c21`.
+    - Changed files since base: 139.
+    - Predicted push-to-main deploy target: `all`.
+    - Worktree clean; branch is not `main`.
+  - `scripts/check_production_readonly_audit.sh`: passed 3 read-only audit
+    steps.
+    - Deploy config static checks passed.
+    - Production public and ECS internal smoke passed with 7 passes and 1
+      warning.
+    - Backend `8080` exposure read-only checks passed with 3 passes and 2
+      warnings.
+- Change summary:
+  - Updated `docs/Production-Smoke.md` with the Round 30 preflight and
+    production read-only audit result.
+  - Updated `docs/Backend-8080-Security.md` latest audit timestamp.
+  - Updated `docs/MVP-Readiness.md` deployment/security rows with the latest
+    evidence and remaining blockers.
+  - Updated `docs/Project-State.md` and this progress log with the Round 30
+    evidence.
+- Goal correction:
+  - Production public/API/admin entry and ECS internal health are currently
+    verified by read-only checks, and deployment approval preflight explains the
+    future deployment impact. The MVP goal still remains open because current
+    branch deployment was not performed, backend `8080` hardening is not proven
+    by cloud security-group evidence, and WeChat/admin manual external evidence
+    remains pending.

@@ -38,6 +38,16 @@ recheck:
   Round 29 with 5 enabled steps: backend tests, admin-web lint/test/build,
   miniapp smoke checks, MVP evidence ledger checks, and deploy config static
   checks. Production checks were skipped by default.
+- Deployment approval preflight
+  `node scripts/check_deployment_approval_preflight.js`: passed again in Round
+  30. Current branch was `codex/s18-payment-hardening`, HEAD `d50532c45a53`,
+  worktree was clean, comparison base was `origin/main` at `5a37a6788c21`, and
+  path rules predicted a future push/merge to `main` would deploy target `all`.
+- Production `scripts/check_production_readonly_audit.sh`: passed again in
+  Round 30 with 3 read-only audit steps: deploy config static checks,
+  production public/ECS internal smoke, and backend `8080` exposure inspection.
+  It did not push, deploy, reload Nginx, or change ECS/firewall/security-group
+  state.
 - Admin web `npm run lint`: passed again in Round 27.
 - Admin web `npm run test`: passed again in Round 27, 23 tests. Round 27 added
   order-management tests for check-in, check-out, no-show, after-sale rejection,
@@ -76,16 +86,16 @@ recheck:
 - Production `http://47.113.223.248/healthz`: returned 200 in Round 5.
 - Production `http://47.113.223.248/`: returned 200 admin web HTML in Round 5.
 - Production `scripts/check_production_readonly_audit.sh`: passed on
-  2026-06-02 05:59 Asia/Shanghai. It ran deploy config static checks,
+  2026-06-02 07:20 Asia/Shanghai. It ran deploy config static checks,
   production public/ECS internal smoke, and backend `8080` exposure inspection
   without pushing, deploying, reloading Nginx, or changing ECS/firewall/security
   group state.
 - Production `RUN_INTERNAL=1 scripts/check_production_smoke.sh`: passed on
-  2026-06-02 05:59 Asia/Shanghai with 7 checks and 1 known backend-bind
+  2026-06-02 07:20 Asia/Shanghai with 7 checks and 1 known backend-bind
   warning.
 - Backend 8080 read-only security check
-  `RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh`: passed on
-  2026-06-02 05:59 Asia/Shanghai with 3 checks and 2 warnings. It confirms
+  `RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh`: passed again on
+  2026-06-02 07:20 Asia/Shanghai with 3 checks and 2 warnings. It confirms
   public 8080 is not directly usable from this local network and ECS-1 private
   upstream works, but does not prove security-group restriction because ECS-2
   still listens on `0.0.0.0:8080`.
@@ -138,11 +148,11 @@ recheck:
   static checks, production smoke, and backend `8080` exposure inspection. It
   does not mutate production and does not prove current-branch deployment.
 - Deployment approval preflight
-  `node scripts/check_deployment_approval_preflight.js`: added in Round 23 to
-  summarize current branch cleanliness, branch/base refs, changed-file
-  deployment impact, workflow trigger shape, and the approval boundary before
-  any push/merge/workflow_dispatch. It does not deploy or prove current branch
-  code is live.
+  `node scripts/check_deployment_approval_preflight.js`: added in Round 23 and
+  rerun in Round 30 to summarize current branch cleanliness, branch/base refs,
+  changed-file deployment impact, workflow trigger shape, and the approval
+  boundary before any push/merge/workflow_dispatch. It does not deploy or prove
+  current branch code is live.
 - Miniapp behavior wiring guard `scripts/check_miniapp_behavior_wiring.js`: added
   on 2026-06-02 and included in aggregate miniapp regression. It statically
   checks login, phone binding, room browsing, order creation, payment, cancel,

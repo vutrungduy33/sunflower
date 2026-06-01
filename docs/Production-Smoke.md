@@ -1,6 +1,6 @@
 # Production Smoke
 
-> Latest run: 2026-06-02 05:59 Asia/Shanghai. This records observed production
+> Latest run: 2026-06-02 07:20 Asia/Shanghai. This records observed production
 > health for the MVP hardening goal. It does not mean a new deployment was
 > triggered.
 
@@ -30,6 +30,10 @@ Latest read-only audit result:
 - 7 checks passed.
 - 1 warning remained: ECS-2 backend still listens on `0.0.0.0:8080`.
 - Backend `8080` exposure check passed with 3 checks and 2 warnings.
+- `node scripts/check_deployment_approval_preflight.js`: passed 5 checks before
+  the read-only audit. Current branch was `codex/s18-payment-hardening`, HEAD
+  `d50532c45a53`, comparison base was `origin/main` at `5a37a6788c21`, and the
+  path-rule prediction for a future push/merge to `main` was `all`.
 - No deployment, push, or production configuration change was performed.
 
 ## 1. GitHub Actions
@@ -40,6 +44,7 @@ Latest read-only audit result:
   - `workflow_dispatch`
   - `push` to `main` for deployment-relevant paths
 - Current branch during this smoke: `codex/s18-payment-hardening`
+- Current branch HEAD during this smoke: `d50532c45a53`
 - Deployment action taken in this round: none
 - `gh auth status`: authenticated as `vutrungduy33` with `repo` and `workflow`
   scopes.
@@ -100,6 +105,15 @@ ECS-2 backend/data host `47.120.42.15`:
 - `ss -ltnp`: confirms MySQL local-only and backend listening on all interfaces
   through docker-proxy.
 
+Latest 2026-06-02 07:20 read-only audit reconfirmed the same health shape:
+
+- ECS-1 Nginx/admin-web/private backend smoke passed.
+- ECS-2 backend/MySQL/local health smoke passed.
+- Public direct backend `8080` probe was not directly usable from this local
+  network.
+- ECS-2 still reports Docker proxy listening on `0.0.0.0:8080`, and local
+  firewall output did not prove the restriction.
+
 ## 4. Current Production Risks
 
 - HTTPS/domain validation is not proven in this smoke. Miniapp production still
@@ -107,7 +121,8 @@ ECS-2 backend/data host `47.120.42.15`:
 - Backend container is bound to `0.0.0.0:8080`; security group or host firewall
   should restrict access to ECS-1.
 - This branch has not been pushed to `main`; current committed MVP hardening
-  work has not triggered deployment.
+  work has not triggered deployment. The latest approval preflight predicts an
+  `all` deployment target if these branch changes are merged/pushed to `main`.
 - Real WeChat login, phone authorization, payment, refund, SMS, and callback
   delivery still require external-service production validation.
 
