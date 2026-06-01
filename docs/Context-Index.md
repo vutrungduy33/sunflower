@@ -71,6 +71,7 @@ node --check pages/mvp/order-list/index.js
 Production smoke:
 
 ```bash
+scripts/check_production_readonly_audit.sh
 scripts/check_deploy_config.sh
 RUN_INTERNAL=1 scripts/check_production_smoke.sh
 RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh

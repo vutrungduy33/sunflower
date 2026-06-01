@@ -246,8 +246,15 @@ S19 之后，生产部署固定采用双 ECS + self-hosted runner 链路：
 本地标准冒烟命令：
 
 ```bash
+scripts/check_production_readonly_audit.sh
 RUN_INTERNAL=1 scripts/check_production_smoke.sh
 ```
+
+`scripts/check_production_readonly_audit.sh` is the preferred read-only audit
+entry when checking production outside a deployment. It runs deploy config
+static checks, production smoke, and backend `8080` exposure inspection without
+pushing, deploying, reloading Nginx, or changing ECS/firewall/security-group
+state.
 
 backend 节点：
 

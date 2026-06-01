@@ -28,7 +28,7 @@
 
 ## Recent Validation Snapshot
 
-Current snapshot after 2026-06-02 final local audit:
+Current snapshot after 2026-06-02 Round 20 production read-only audit:
 
 - Backend `mvn -B test`: passed, 56 tests.
 - Aggregate local regression `scripts/check_mvp_regression.sh`: passed on
@@ -52,14 +52,20 @@ Current snapshot after 2026-06-02 final local audit:
 - Production `http://47.113.223.248/api/content/home`: returned 200 in Round 5.
 - Production `http://47.113.223.248/healthz`: returned 200 in Round 5.
 - Production `http://47.113.223.248/`: returned 200 admin web HTML in Round 5.
+- Production `scripts/check_production_readonly_audit.sh`: passed on
+  2026-06-02 05:59 Asia/Shanghai. It ran deploy config static checks,
+  production public/ECS internal smoke, and backend `8080` exposure inspection
+  without pushing, deploying, reloading Nginx, or changing ECS/firewall/security
+  group state.
 - Production `RUN_INTERNAL=1 scripts/check_production_smoke.sh`: passed on
-  2026-06-02 with 7 checks and 1 known backend-bind warning.
+  2026-06-02 05:59 Asia/Shanghai with 7 checks and 1 known backend-bind
+  warning.
 - Backend 8080 read-only security check
   `RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh`: passed on
-  2026-06-02 with 3 checks and 2 warnings. It confirms public 8080 is not
-  directly usable from this local network and ECS-1 private upstream works, but
-  does not prove security-group restriction because ECS-2 still listens on
-  `0.0.0.0:8080`.
+  2026-06-02 05:59 Asia/Shanghai with 3 checks and 2 warnings. It confirms
+  public 8080 is not directly usable from this local network and ECS-1 private
+  upstream works, but does not prove security-group restriction because ECS-2
+  still listens on `0.0.0.0:8080`.
 - Launch evidence `node scripts/check_mvp_launch_evidence.js`: passed on
   2026-06-02.
 - Launch evidence `node scripts/check_mvp_launch_evidence.js --strict`: expected
@@ -100,6 +106,10 @@ Current snapshot after 2026-06-02 final local audit:
   on 2026-06-02; it parses the active deployment workflow, renders backend/web
   compose files with example env files, and checks deployment shell syntax
   without pushing or deploying.
+- Production read-only audit `scripts/check_production_readonly_audit.sh`: added
+  on 2026-06-02 as the one-command production audit entry for deploy config
+  static checks, production smoke, and backend `8080` exposure inspection. It
+  does not mutate production and does not prove current-branch deployment.
 - Miniapp behavior wiring guard `scripts/check_miniapp_behavior_wiring.js`: added
   on 2026-06-02 and included in aggregate miniapp regression. It statically
   checks login, phone binding, room browsing, order creation, payment, cancel,
@@ -146,6 +156,8 @@ Current snapshot after 2026-06-02 final local audit:
 - MVP closeout audit: `docs/MVP-Closeout-Audit.md`.
 - MVP closeout readiness guard: `scripts/check_mvp_closeout_readiness.js`.
 - Aggregate MVP regression script: `scripts/check_mvp_regression.sh`.
+- Production read-only audit script:
+  `scripts/check_production_readonly_audit.sh`.
 - Deploy config static check: `scripts/check_deploy_config.sh`.
 - Admin web behavior wiring check: `scripts/check_admin_web_behavior_wiring.js`.
 

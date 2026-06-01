@@ -1,25 +1,35 @@
 # Production Smoke
 
-> Latest run: 2026-06-02 02:02 Asia/Shanghai. This records observed production
+> Latest run: 2026-06-02 05:59 Asia/Shanghai. This records observed production
 > health for the MVP hardening goal. It does not mean a new deployment was
 > triggered.
 
 ## 0. Repeatable Script
 
-Canonical production smoke command:
+Canonical read-only production audit command:
+
+```bash
+scripts/check_production_readonly_audit.sh
+```
+
+Production smoke sub-command:
 
 ```bash
 RUN_INTERNAL=1 scripts/check_production_smoke.sh
 ```
 
-The script performs public smoke checks first, then uses the ignored local SSH
-key at `.secrets/aliyun_mba_codex.pem` to check ECS internal health when
-`RUN_INTERNAL=1`.
+The audit wrapper runs deploy config static checks, public production smoke, ECS
+internal smoke, and backend `8080` exposure inspection. It uses the ignored local
+SSH key at `.secrets/aliyun_mba_codex.pem` for ECS checks. It does not push,
+deploy, reload Nginx, or change ECS/firewall/security-group state.
 
-Latest scripted result:
+Latest read-only audit result:
 
+- `scripts/check_production_readonly_audit.sh`: 3 read-only steps passed.
+- Deploy config static checks passed.
 - 7 checks passed.
 - 1 warning remained: ECS-2 backend still listens on `0.0.0.0:8080`.
+- Backend `8080` exposure check passed with 3 checks and 2 warnings.
 - No deployment, push, or production configuration change was performed.
 
 ## 1. GitHub Actions

@@ -1005,3 +1005,75 @@
     open. The generated template is not evidence by itself; real external QA or
     explicit waivers still need to be recorded in the JSON ledgers before strict
     closeout can pass.
+
+## Round 20: Production Read-Only Audit Entry
+
+- Date: 2026-06-02
+- Status: completed.
+- Focus: add a single repeatable production-only audit command that combines
+  static deploy configuration checks, public/ECS smoke, and backend `8080`
+  exposure inspection without pushing, deploying, or changing production
+  configuration.
+- Start evidence:
+  - `git status --short --untracked-files=all`: clean after Round 19 commit.
+  - Existing production verification is split across
+    `scripts/check_deploy_config.sh`, `scripts/check_production_smoke.sh`, and
+    `scripts/check_backend_8080_exposure.sh`.
+  - Current docs already warn that backend `8080` remains a launch blocker until
+    Alibaba Cloud security group/firewall evidence or an explicit waiver is
+    recorded.
+- Open-source reference check:
+  - Task classification: common production readiness / smoke audit wrapper,
+    but highly repository-specific because it relies on this project's dual-ECS
+    topology, ignored SSH key location, compose files, and evidence ledgers.
+  - Sources checked: existing repository scripts and docs:
+    `scripts/check_deploy_config.sh`, `scripts/check_production_smoke.sh`,
+    `scripts/check_backend_8080_exposure.sh`, `docs/Production-Smoke.md`,
+    `docs/Backend-8080-Security.md`, and `docs/CI-CD.md`.
+  - Selected approach: add a thin Bash wrapper that executes the existing
+    project-native checks in a clear order and keeps all production operations
+    read-only.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: existing local Bash logging and validation script style.
+  - Rejected options: copying a generic deployment smoke framework, adding a new
+    dependency, or making this command mutate ECS/firewall/security-group state.
+- Risks:
+  - A read-only audit can prove current reachability and container health from
+    the checked vantage points, but it still cannot prove WeChat domain
+    approval, real payment/refund, admin manual QA, or Alibaba Cloud console
+    security-group rules.
+- Acceptance criteria:
+  - New wrapper runs deploy config, production smoke, and backend `8080`
+    read-only checks from one command.
+  - The wrapper is included in shell syntax validation.
+  - Readiness/context/project-state/production docs identify the wrapper and
+    its limits.
+  - Focused verification passes and the round is committed once.
+- Verification:
+  - `bash -n scripts/check_production_readonly_audit.sh scripts/check_deploy_config.sh`:
+    passed.
+  - `scripts/check_production_readonly_audit.sh`: passed at 2026-06-02 05:59
+    Asia/Shanghai with 3 read-only audit steps.
+  - Deploy config static checks passed inside the wrapper.
+  - Production smoke passed with 7 checks and 1 known warning that ECS-2 backend
+    still listens on `0.0.0.0:8080`.
+  - Backend `8080` exposure inspection passed with 3 checks and 2 warnings:
+    public `8080` was not directly usable from this local network and ECS-1
+    private upstream worked, but local firewall/security-group restriction was
+    not proven.
+  - `node scripts/generate_mvp_external_evidence_template.js`: passed and wrote
+    `docs/MVP-External-Evidence-Template.md` with 33 unresolved required items.
+  - `node scripts/check_mvp_external_evidence_template.js`: passed.
+- Change summary:
+  - Added `scripts/check_production_readonly_audit.sh`.
+  - Included the new wrapper in deploy shell syntax validation.
+  - Updated production smoke, backend `8080`, readiness, context, deployment,
+    closeout, launch evidence, external validation, project-state, and decision
+    docs.
+- Goal correction:
+  - The two Alibaba Cloud servers are currently reachable and serving the
+    existing production app through the read-only audit, but the MVP goal remains
+    open. This round did not prove WeChat HTTPS legal domain, real-device login
+    and phone binding, real payment/refund, admin production manual QA, current
+    branch deployment, or Alibaba Cloud security-group restriction for backend
+    `8080`.

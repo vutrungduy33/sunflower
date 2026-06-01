@@ -175,3 +175,13 @@ Append durable decisions here. Keep entries short and include provenance.
   passwords, payment payloads, raw screenshots, and full order/payment IDs.
 - Provenance: `docs/MVP-External-Validation-Runbook.md`,
   `scripts/check_mvp_external_evidence_template.js`.
+
+## 2026-06-02: Add Production Read-Only Audit Entry
+
+- Decision: Use `scripts/check_production_readonly_audit.sh` as the canonical
+  production-only read-only audit wrapper.
+- Rationale: Deploy config static checks, production smoke, and backend `8080`
+  exposure inspection should be replayable from one explicit command without
+  making normal local regression contact production by default.
+- Provenance: `scripts/check_production_readonly_audit.sh`,
+  `docs/Production-Smoke.md`, `docs/MVP-Readiness.md`.

@@ -102,12 +102,18 @@ node --check pages/mvp/order-list/index.js
 After an approved production deploy:
 
 ```bash
+scripts/check_production_readonly_audit.sh
 scripts/check_deploy_config.sh
 RUN_INTERNAL=1 scripts/check_production_smoke.sh
 RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh
 ```
 
 Latest production smoke notes live in `docs/Production-Smoke.md`.
+
+`scripts/check_production_readonly_audit.sh` is the production-only read-only
+audit wrapper. It runs deploy config static checks, production smoke, and backend
+`8080` exposure inspection. It does not push, deploy, reload Nginx, change ECS
+configuration, or prove that the current branch is live.
 
 `scripts/check_deploy_config.sh` is a local static deployability check for the
 GitHub Actions workflow, production compose rendering, and deployment shell

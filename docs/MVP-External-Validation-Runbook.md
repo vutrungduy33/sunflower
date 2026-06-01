@@ -67,6 +67,12 @@ node scripts/check_mvp_external_evidence_template.js
    - Run `node scripts/check_admin_web_manual_qa.js` after each update.
 
 5. Complete deployment/security evidence:
+   - Re-run the read-only production audit:
+
+```bash
+scripts/check_production_readonly_audit.sh
+```
+
    - Record backend `8080` evidence in `docs/Backend-8080-Security.md` and
      `docs/MVP-Launch-Evidence.json`.
    - Record current-branch deployment evidence in `docs/MVP-Launch-Evidence.json`

@@ -67,7 +67,7 @@ Ledger update reminder:
 - Status now: `pending`
 - Area: security
 - Requirement: Direct public access to backend port 8080 is restricted to ECS-1 by security group or host firewall, or explicitly accepted by the user as a launch risk.
-- Current evidence: RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh passed read-only checks: public 8080 was not directly usable from this network, ECS-1 private upstream works, and ECS-2 backend is healthy. ECS-2 still shows docker-proxy listening on 0.0.0.0:8080, and local firewall output did not prove restriction.
+- Current evidence: scripts/check_production_readonly_audit.sh re-ran RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh on 2026-06-02 05:59 Asia/Shanghai: public 8080 was not directly usable from this network, ECS-1 private upstream works, and ECS-2 backend is healthy. ECS-2 still shows docker-proxy listening on 0.0.0.0:8080, and local firewall output did not prove restriction.
 - Next action: Record Alibaba Cloud security group evidence in docs/Backend-8080-Security.md or get explicit user waiver before marking this entry passed or waived. Modifying security group/firewall requires user approval.
 
 Suggested sanitized evidence entry:
