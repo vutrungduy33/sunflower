@@ -16,9 +16,9 @@ node scripts/check_admin_web_external_qa_preflight.js
 
 Current recorded baseline:
 
-- `npm run lint`: passed again in Round 8.
-- `npm run test`: passed again in Round 8, 20 tests.
-- `npm run build`: passed in the 2026-06-02 closeout audit.
+- `npm run lint`: passed again in Round 25.
+- `npm run test`: passed again in Round 25, 20 tests.
+- `npm run build`: passed again in Round 25.
 - `node scripts/check_admin_web_behavior_wiring.js`: passed in Round 17 with
   97 key behavior wiring checks across 16 files.
 - `node scripts/check_admin_web_external_qa_preflight.js`: added in Round 22 to

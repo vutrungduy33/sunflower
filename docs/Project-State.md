@@ -28,15 +28,15 @@
 
 ## Recent Validation Snapshot
 
-Current snapshot after 2026-06-02 Round 20 production read-only audit:
+Current snapshot after 2026-06-02 Round 25 admin-web validation calibration:
 
 - Backend `mvn -B test`: passed, 56 tests.
 - Aggregate local regression `scripts/check_mvp_regression.sh`: passed on
   2026-06-02 with backend/admin/miniapp/evidence checks enabled and production
   checks skipped by default.
-- Admin web `npm run lint`: passed.
-- Admin web `npm run test`: passed, 20 tests.
-- Admin web `npm run build`: passed.
+- Admin web `npm run lint`: passed again in Round 25.
+- Admin web `npm run test`: passed again in Round 25, 20 tests.
+- Admin web `npm run build`: passed again in Round 25.
 - Admin web `node scripts/check_admin_web_behavior_wiring.js`: passed in
   Round 17 with 97 key behavior wiring checks across 16 files.
 - Admin web external QA preflight

@@ -1368,3 +1368,74 @@
     remains open. This round did not execute external miniapp/admin QA, real
     payment/refund, backend security-group/firewall changes, push, deploy, or
     strict closeout completion.
+
+## Round 25: Admin-Web Baseline Recheck
+
+- Date: 2026-06-02
+- Status: completed and committed.
+- Focus: reconcile the active goal's stale admin-web failure notes with the
+  current worktree and recorded project state, then keep the MVP handoff docs
+  pointed at the verified admin quality baseline.
+- Start evidence:
+  - `git status --short --untracked-files=all`: clean after Round 24 commit.
+  - The active goal context still mentions an admin lint `_refundId` issue and
+    3 failing or timed-out admin tests.
+  - `docs/Project-State.md` already records admin lint/test/build as passed, so
+    current commands must be treated as authoritative before changing code.
+- Open-source reference check:
+  - Task classification: common frontend lint/test/build quality baseline and
+    React admin regression verification.
+  - Sources checked:
+    - ESLint CLI reference:
+      `https://eslint.org/docs/latest/use/command-line-interface`.
+    - Vitest CLI reference:
+      `https://vitest.dev/guide/cli.html`.
+    - React Router future flags reference:
+      `https://reactrouter.com/en/v6/upgrading/future`.
+    - Existing project commands and tests in `sunflower-admin-web/package.json`
+      and `sunflower-admin-web/src/test/**`.
+  - Selected approach: rerun the repository's own admin quality commands and
+    update the current-state docs rather than changing implementation for a
+    stale failure that no longer reproduces.
+  - License/compatibility: official documentation referenced; no external code
+    copied.
+  - Reused/adapted: project-local npm scripts and existing Vitest/ESLint setup.
+  - Rejected options: adding a new test runner, suppressing React Router
+    future-flag warnings without a failing symptom, or editing admin order code
+    for a non-reproducing `_refundId` issue.
+- Risks:
+  - This round confirms local admin quality only. It does not provide admin
+    production manual QA evidence, miniapp real-device evidence, real
+    payment/refund evidence, backend `8080` hardening evidence, or
+    current-branch deployment evidence.
+- Acceptance criteria:
+  - `npm run lint`, `npm run test`, and `npm run build` pass in
+    `sunflower-admin-web`.
+  - Search confirms `_refundId` is no longer present as an unused symbol.
+  - Admin QA/readiness/project-state docs identify the Round 25 recheck as the
+    current admin local baseline.
+  - Focused validation passes and the round is committed once.
+- Verification:
+  - `cd sunflower-admin-web && npm run lint`: passed.
+  - `cd sunflower-admin-web && npm run test`: passed, 20 tests. Vitest emitted
+    React Router v7 future-flag warnings only.
+  - `cd sunflower-admin-web && npm run build`: passed.
+  - `rg -n '_refundId|refundId' sunflower-admin-web/src`: found no
+    `_refundId`; current `refundId` usages are active order/refund service and
+    test parameters.
+  - `node scripts/check_admin_web_behavior_wiring.js`: passed with 97 key
+    behavior wiring checks across 16 files.
+  - `node scripts/check_admin_web_external_qa_preflight.js`: passed with 6
+    checks.
+  - `node scripts/check_mvp_handoff_packet.js`: passed, still covering 33
+    unresolved required closeout items.
+- Change summary:
+  - Updated `docs/MVP-Progress.md`, `docs/Project-State.md`,
+    `docs/MVP-Readiness.md`, and `docs/Admin-Web-MVP-QA.md` with the current
+    Round 25 admin local quality baseline.
+- Goal correction:
+  - The active goal's admin-web lint/test failure notes are stale relative to
+    the current worktree. Admin local quality is green, so the next MVP work
+    should return to unresolved external evidence: miniapp real-device/WeChat
+    validation, admin production or approved-staging manual QA, backend `8080`
+    hardening proof, and current-branch deployment evidence after approval.
