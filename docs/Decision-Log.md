@@ -63,3 +63,12 @@ Append durable decisions here. Keep entries short and include provenance.
   and external-service limits need a compact source separate from broad API
   schema docs.
 - Provenance: `docs/Backend-MVP-QA.md`, Round 4 `mvn -B test`.
+
+## 2026-06-02: Do Not Auto-Deploy MVP Branch
+
+- Decision: Record production smoke for the currently deployed system, but do
+  not push or trigger deployment from `codex/s18-payment-hardening` without
+  explicit production approval.
+- Rationale: The deploy workflow triggers on `main` and production state changes
+  should be intentional.
+- Provenance: `docs/Production-Smoke.md`, `.github/workflows/deploy-backend.yml`.

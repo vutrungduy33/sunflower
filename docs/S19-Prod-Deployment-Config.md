@@ -255,3 +255,17 @@ web 节点：
 3. `sudo nginx -t`
 4. `curl https://<HOST_NGINX_API_SERVER_NAME>/api/health`
 5. 打开 `https://<HOST_NGINX_ADMIN_SERVER_NAME>` 验证管理端登录
+
+Latest observed production smoke is tracked in
+[Production-Smoke.md](/Users/chenyao/dev/miniapp/sunflower/docs/Production-Smoke.md).
+
+As of the 2026-06-02 smoke:
+
+- Public `http://47.113.223.248/api/health` returned 200.
+- Public `http://47.113.223.248/api/content/home` returned 200.
+- Public `http://47.113.223.248/healthz` returned 200.
+- ECS-1 Nginx is active and `sunflower-admin-web` is healthy.
+- ECS-2 `sunflower-backend` and `sunflower-mysql` are healthy.
+- HTTPS/domain validation remains unproven.
+- Backend still binds `0.0.0.0:8080`; security group or firewall hardening
+  should restrict direct backend access to ECS-1.

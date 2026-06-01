@@ -28,21 +28,23 @@
 
 ## Recent Validation Snapshot
 
-Current snapshot after 2026-06-02 Round 4:
+Current snapshot after 2026-06-02 Round 5:
 
-- Backend `mvn -B test`: passed, 56 tests in Round 4.
-- Admin web `npm run lint`: passed in Round 2; not rerun in Round 4.
-- Admin web `npm run test`: passed, 20 tests in Round 2; not rerun in Round 4.
-- Admin web `npm run build`: passed in Round 2; not rerun in Round 4.
+- Backend `mvn -B test`: passed, 56 tests in Round 4; not rerun in Round 5.
+- Admin web `npm run lint`: passed in Round 2; not rerun in Round 5.
+- Admin web `npm run test`: passed, 20 tests in Round 2; not rerun in Round 5.
+- Admin web `npm run build`: passed in Round 2; not rerun in Round 5.
 - Miniapp `node scripts/check_miniapp_mvp_smoke.js`: passed in Round 3 with the
   expected warning that the default API base is bare HTTP and only suitable for
   local/devtools validation.
 - Miniapp `bash scripts/check_miniapp_project_config.sh`: passed in Round 3.
 - Miniapp `bash scripts/check_mvp_subpage_nav.sh`: passed in Round 3.
-- Production `http://47.113.223.248/api/health`: returned 200 in the prior
-  baseline; not rerun in Round 3.
-- Production `http://47.113.223.248/api/content/home`: returned 200 in the prior
-  baseline; not rerun in Round 3.
+- Production `http://47.113.223.248/api/health`: returned 200 in Round 5.
+- Production `http://47.113.223.248/api/content/home`: returned 200 in Round 5.
+- Production `http://47.113.223.248/healthz`: returned 200 in Round 5.
+- Production `http://47.113.223.248/`: returned 200 admin web HTML in Round 5.
+- ECS-1 Nginx active; `sunflower-admin-web` healthy on `127.0.0.1:18080`.
+- ECS-2 `sunflower-backend` and `sunflower-mysql` healthy.
 
 ## Known MVP Risks
 
@@ -57,8 +59,9 @@ Current snapshot after 2026-06-02 Round 4:
 - Canonical MVP readiness tracker: `docs/MVP-Readiness.md`.
 - Miniapp QA tracker: `docs/Miniapp-MVP-QA.md`.
 - Backend/API QA tracker: `docs/Backend-MVP-QA.md`.
+- Production smoke tracker: `docs/Production-Smoke.md`.
 
 ## Current Dirty Worktree Note
 
-After the Round 4 commit, no intended MVP Round 4 files should remain
+After the Round 5 commit, no intended MVP Round 5 files should remain
 uncommitted.

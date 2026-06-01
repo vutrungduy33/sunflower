@@ -155,3 +155,46 @@
   - Perform production smoke against ECS/admin public entry and verify CI/CD
     workflow configuration. Do not push/deploy unless production intent is
     confirmed.
+
+## Round 5: Production Smoke and CI/CD Evidence
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: verify current production health and deployment workflow configuration
+  without pushing or triggering deployment.
+- Start evidence:
+  - `git status --short --untracked-files=all`: clean after Round 4 commit.
+  - Current branch: `codex/s18-payment-hardening`, not `main`.
+- Change summary:
+  - Added `docs/Production-Smoke.md` with public smoke, ECS internal smoke,
+    GitHub Actions status, risks, and deployment decision notes.
+  - Updated deployment/readiness/context/project-state docs with Round 5
+    evidence.
+- Open-source reference check:
+  - Task classification: production verification and documentation.
+  - Sources checked: not applicable; no external code or common feature
+    implementation copied.
+  - Selected approach: use existing curl, SSH, Docker, systemd, and GitHub CLI
+    checks.
+  - License/compatibility: no external code copied.
+- Acceptance criteria:
+  - `.github/workflows/deploy-backend.yml` YAML parsed successfully.
+  - Workflow triggers are `workflow_dispatch` and `push` to `main` for
+    deployment-relevant paths.
+  - GitHub CLI can access the repo and list deployment workflow runs.
+  - Public `http://47.113.223.248/api/health`: 200.
+  - Public `http://47.113.223.248/api/content/home`: 200.
+  - Public `http://47.113.223.248/healthz`: 200.
+  - Public `http://47.113.223.248/`: 200 admin web HTML.
+  - ECS-1 Nginx active and `sunflower-admin-web` healthy.
+  - ECS-2 `sunflower-backend` and `sunflower-mysql` healthy.
+- Goal correction:
+  - The current branch has not been deployed. Do not claim current branch code
+    is live until it is merged/pushed to `main` or manually dispatched with
+    production approval.
+  - Backend `8080` still binds `0.0.0.0`; keep security-group/firewall
+    hardening as a launch blocker.
+- Next recommended round:
+  - Run a final full local regression across backend/admin/miniapp, produce a
+    final MVP closeout audit, and stop for human approval before any production
+    push/deploy.

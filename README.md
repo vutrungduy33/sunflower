@@ -44,6 +44,7 @@
 - `/Users/chenyao/dev/miniapp/sunflower/docs/Code-Conventions.md`：后续新增代码统一规范
 - `/Users/chenyao/dev/miniapp/sunflower/docs/CI-CD.md`：GitHub Actions CI/CD
 - `/Users/chenyao/dev/miniapp/sunflower/docs/S19-Prod-Deployment-Config.md`：生产部署配置说明
+- `/Users/chenyao/dev/miniapp/sunflower/docs/Production-Smoke.md`：最近一次生产 smoke 与 ECS 状态记录
 - `/Users/chenyao/dev/miniapp/sunflower/docs/Web-Admin-Plan.md`：管理后台 Web 选型、开发约束与环境依赖
 - `/Users/chenyao/dev/miniapp/sunflower/docs/archive/`：历史 Stage 计划、报告和旧门禁材料（非当前约束）
 

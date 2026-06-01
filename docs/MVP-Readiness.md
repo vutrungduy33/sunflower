@@ -31,7 +31,7 @@ verified, and documented enough for handoff:
 | Miniapp real user path | Code supports real API, WeChat login, phone binding, `wx.requestPayment`, order and after-sale flows. | Needs real-device evidence | Verify in WeChat DevTools/preview with legal HTTPS request domain. |
 | WeChat pay/refund | Backend has WeChat payment/refund gateway, callbacks, records, retry, and mock only when explicitly configured. | Needs production evidence | Verify small real payment/refund with merchant config and callback domain. |
 | Admin operations path | Core pages and tests exist for auth, room, price/inventory, and order management. | Partially verified | Run manual QA against deployed admin web. |
-| Deployment | `.github/workflows/deploy-backend.yml` is the active deploy workflow; prior production smoke returned 200 for `/api/health` and `/api/content/home`. | Partially verified | Push/dispatch deploy only after confirming branch/production intent. |
+| Deployment | Round 5 production smoke returned 200 for public `/api/health`, `/api/content/home`, `/healthz`, and admin web HTML; ECS containers healthy. | Partially verified | Push/dispatch deploy only after confirming branch/production intent. |
 | Security / compliance | Secrets are local/ECS-owned; `.secrets/` ignored. Known issue: backend `8080` observed publicly bound. | Needs hardening | Restrict backend port to ECS-1 and complete HTTPS/WeChat domain setup. |
 
 ## 3. Final Verification Commands
@@ -67,6 +67,8 @@ After an approved production deploy:
 curl -fsS http://47.113.223.248/api/health
 curl -fsS http://47.113.223.248/api/content/home
 ```
+
+Latest production smoke notes live in `docs/Production-Smoke.md`.
 
 When HTTPS/domain is ready, also verify:
 

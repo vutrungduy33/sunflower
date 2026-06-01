@@ -14,7 +14,7 @@
 
 | Task | Read |
 | --- | --- |
-| Architecture / deployment | `docs/Architecture.md`, `docs/CI-CD.md`, `docs/S19-Prod-Deployment-Config.md`, compose files |
+| Architecture / deployment | `docs/Architecture.md`, `docs/CI-CD.md`, `docs/S19-Prod-Deployment-Config.md`, `docs/Production-Smoke.md`, compose files |
 | Backend API / contracts | `docs/API.md`, `docs/API-Schemas.md`, `docs/Backend-MVP-QA.md`, `sunflower-backend/src/main/java/**`, backend tests |
 | Database / persistence | `docs/DB-Design.md`, `docs/DataDictionary.md`, Flyway migrations, seed SQL |
 | Admin web | `docs/Web-Admin-Plan.md`, `sunflower-admin-web/src/**`, admin web tests |

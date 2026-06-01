@@ -65,6 +65,7 @@
 - `docs/Code-Conventions.md`：后续新增代码统一规范
 - `docs/CI-CD.md`：GitHub Actions CI/CD
 - `docs/S19-Prod-Deployment-Config.md`：生产部署与配置说明
+- `docs/Production-Smoke.md`：最近一次生产 smoke 与 ECS 状态记录
 - `docs/Web-Admin-Plan.md`：管理后台 Web 选型、开发约束与环境依赖
 - `docs/archive/`：历史 Stage 计划、报告、M1/S14 验收与旧门禁材料（非当前约束）
 - `README.md`：项目总览 + 运营调研资料
@@ -98,6 +99,7 @@
 │  ├─ Code-Conventions.md
 │  ├─ CI-CD.md
 │  ├─ S19-Prod-Deployment-Config.md
+│  ├─ Production-Smoke.md
 │  ├─ archive/
 │  └─ Web-Admin-Plan.md
 ├─ sunflower-admin-web/           # Web 管理后台工程
