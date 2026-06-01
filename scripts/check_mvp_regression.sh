@@ -59,6 +59,7 @@ run_admin_checks() {
     npm run build
     cd "$ROOT_DIR"
     node scripts/check_admin_web_behavior_wiring.js
+    node scripts/check_admin_web_external_qa_preflight.js
   )
 }
 

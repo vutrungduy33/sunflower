@@ -53,11 +53,16 @@ From the repository root:
 
 ```bash
 node scripts/check_admin_web_behavior_wiring.js
+node scripts/check_admin_web_external_qa_preflight.js
 ```
 
 The behavior wiring guard checks that routes, auth, room management,
 pricing/inventory, order actions, API services, and TanStack Query refreshes
 remain connected. It does not replace production or approved-staging manual QA.
+
+The external QA preflight checks the admin manual QA ledger and safety wording
+before a human validates production or approved staging. It does not log in,
+store credentials, mutate live data, or replace manual evidence.
 
 Node.js `>= 20.19.0` and npm `>= 10` are required. This workspace has also used
 Node `20.20.1`.

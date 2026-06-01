@@ -63,7 +63,7 @@
       "status": "pending",
       "requiredForMvp": true,
       "evidence": "Not recorded in repo.",
-      "nextAction": "Use a clearly named QA room or an approved existing room; record before/after summary without raw customer data."
+      "nextAction": "Use a clearly named QA room or an approved existing room; record before/after summary without raw customer data and restore or explicitly accept the final change."
     },
     {
       "id": "ADMIN-ROOM-SHELF",
@@ -96,7 +96,7 @@
       "status": "pending",
       "requiredForMvp": true,
       "evidence": "Not recorded in repo.",
-      "nextAction": "Use future QA dates to avoid live customer impact; record sanitized updated counts and restoration decision."
+      "nextAction": "Use future QA dates to avoid live customer impact; record sanitized updated counts and restore, accept, or waive the final state explicitly."
     },
     {
       "id": "ADMIN-ORDER-LIST-DETAIL",

@@ -853,7 +853,7 @@ Ledger update reminder:
 - Requirement: Batch price and inventory update succeeds for approved QA dates and can be restored or accepted as intended.
 - Related APIs/capabilities: `/api/admin/room-prices`, `/api/admin/room-inventory`
 - Current evidence: Not recorded in repo.
-- Next action: Use future QA dates to avoid live customer impact; record sanitized updated counts and restoration decision.
+- Next action: Use future QA dates to avoid live customer impact; record sanitized updated counts and restore, accept, or waive the final state explicitly.
 
 Suggested sanitized evidence entry:
 
@@ -911,7 +911,7 @@ Ledger update reminder:
 - Requirement: Room list loads, keyword/status filtering works, and a test room can be created or edited with reversible field changes.
 - Related APIs/capabilities: `/api/admin/rooms`, `/api/admin/rooms/{roomId}`
 - Current evidence: Not recorded in repo.
-- Next action: Use a clearly named QA room or an approved existing room; record before/after summary without raw customer data.
+- Next action: Use a clearly named QA room or an approved existing room; record before/after summary without raw customer data and restore or explicitly accept the final change.
 
 Suggested sanitized evidence entry:
 

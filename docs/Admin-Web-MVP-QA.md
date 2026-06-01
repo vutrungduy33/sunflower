@@ -11,6 +11,7 @@ Run from the repository root:
 ```bash
 cd sunflower-admin-web && npm run lint && npm run test && npm run build
 node scripts/check_admin_web_behavior_wiring.js
+node scripts/check_admin_web_external_qa_preflight.js
 ```
 
 Current recorded baseline:
@@ -20,6 +21,10 @@ Current recorded baseline:
 - `npm run build`: passed in the 2026-06-02 closeout audit.
 - `node scripts/check_admin_web_behavior_wiring.js`: passed in Round 17 with
   97 key behavior wiring checks across 16 files.
+- `node scripts/check_admin_web_external_qa_preflight.js`: added in Round 22 to
+  check admin manual QA environment URLs, required evidence IDs, high-risk
+  mutation next actions, sensitive evidence boundaries, and credential/live-data
+  safety wording before production or approved-staging QA.
 
 The automated tests cover auth page behavior, protected shell routing, room
 management, price/inventory management, order list/detail/actions, and price
@@ -147,3 +152,21 @@ web MVP path still has the expected wiring:
 It is a static guard only. Final MVP still needs `node
 scripts/check_admin_web_manual_qa.js --strict` after safe production or
 approved-staging evidence is recorded.
+
+## 7. External QA Preflight
+
+`node scripts/check_admin_web_external_qa_preflight.js` verifies the handoff
+state before a human starts production or approved-staging admin QA:
+
+- Manual QA ledger contains all required MVP admin check IDs.
+- Admin/API entry URLs are recorded and temporary HTTP-IP usage remains explicit
+  until HTTPS/domain evidence is ready.
+- Resolved evidence does not match obvious credential, token, SMS code, phone,
+  cookie, or password patterns.
+- High-risk room, pricing, order, after-sale, and refund checks require QA or
+  approved data plus restoration, accepted final state, or explicit waiver.
+- Admin runtime still defaults to same-origin `/api`, injects auth from the
+  session store, and clears session on unauthorized responses.
+
+The preflight does not log in, mutate data, send SMS, or validate a browser
+session. It only makes the manual QA boundary harder to misread.

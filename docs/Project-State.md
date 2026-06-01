@@ -39,6 +39,11 @@ Current snapshot after 2026-06-02 Round 20 production read-only audit:
 - Admin web `npm run build`: passed.
 - Admin web `node scripts/check_admin_web_behavior_wiring.js`: passed in
   Round 17 with 97 key behavior wiring checks across 16 files.
+- Admin web external QA preflight
+  `node scripts/check_admin_web_external_qa_preflight.js`: added in Round 22 to
+  verify admin manual QA environment URLs, required check IDs, high-risk
+  mutation safety wording, sensitive evidence boundaries, and same-origin API
+  runtime assumptions before production or approved-staging QA.
 - Admin web Round 8 recheck `npm run lint`: passed.
 - Admin web Round 8 recheck `npm run test`: passed, 20 tests.
 - Miniapp `node scripts/check_miniapp_mvp_smoke.js`: passed with the
@@ -168,6 +173,8 @@ Current snapshot after 2026-06-02 Round 20 production read-only audit:
   `scripts/check_production_readonly_audit.sh`.
 - Deploy config static check: `scripts/check_deploy_config.sh`.
 - Admin web behavior wiring check: `scripts/check_admin_web_behavior_wiring.js`.
+- Admin web external QA preflight:
+  `scripts/check_admin_web_external_qa_preflight.js`.
 - Miniapp external QA preflight:
   `scripts/check_miniapp_external_qa_preflight.js`.
 

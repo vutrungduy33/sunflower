@@ -1156,3 +1156,76 @@
     preview/real-device pass, but the MVP goal remains open. This round did not
     execute real WeChat login, phone authorization, legal HTTPS request-domain
     validation, real payment/refund, or admin production QA.
+
+## Round 22: Admin-Web External QA Preflight
+
+- Date: 2026-06-02
+- Status: completed.
+- Focus: add a machine-checkable admin-web external QA preflight so operators
+  can prepare production or approved-staging manual QA without committing
+  credentials, raw customer/order data, SMS codes, cookies, or unsafe live data
+  mutations.
+- Start evidence:
+  - `git status --short --untracked-files=all`: clean after Round 21 commit.
+  - Admin-web local lint/test/build and behavior wiring are recorded as green.
+  - `docs/Admin-Web-Manual-QA.json` still has 12 required manual checks pending.
+  - Existing docs describe safety rules, but there is no dedicated preflight
+    script to verify admin QA ledger boundaries before external execution.
+- Open-source reference check:
+  - Task classification: common admin dashboard release-readiness and manual QA
+    secret/data-safety preflight.
+  - Sources checked:
+    - Playwright authentication guide:
+      `https://playwright.dev/docs/auth`.
+    - Playwright best practices:
+      `https://playwright.dev/docs/best-practices`.
+    - Testing Library guiding principles:
+      `https://testing-library.com/docs/guiding-principles/`.
+    - Existing project docs/scripts:
+      `docs/Admin-Web-MVP-QA.md`, `docs/Admin-Web-Manual-QA.json`,
+      `scripts/check_admin_web_manual_qa.js`,
+      `scripts/check_admin_web_behavior_wiring.js`, and
+      `sunflower-admin-web/README.md`.
+  - Selected approach: add a repo-local Node.js preflight that validates the
+    admin manual QA ledger, environment URLs, required high-risk action
+    warnings, and safe evidence wording; avoid storing browser auth state or
+    adding Playwright until credentials and QA data are available.
+  - License/compatibility: official/reference documentation only; no external
+    code copied.
+  - Reused/adapted: existing project-local checker style and evidence ledger
+    model.
+  - Rejected options: adding E2E login automation now, storing auth state in
+    Git, or treating local tests as proof of live admin operation safety.
+- Risks:
+  - The preflight can catch unsafe ledger drift and missing handoff rules, but
+    it cannot prove a real admin account, SMS, browser runtime, live data
+    mutation safety, or production correctness. Those still need external
+    execution or explicit waiver.
+- Acceptance criteria:
+  - New preflight verifies admin manual QA environment URLs, required check IDs,
+    safe evidence/nextAction wording, high-risk action approvals/restoration
+    notes, and credential/secrets prohibitions.
+  - Admin automated checks include the new preflight.
+  - Admin QA/readiness/project-state/context docs identify the preflight and
+    its limits.
+  - Focused verification passes and the round is committed once.
+- Verification:
+  - `node --check scripts/check_admin_web_external_qa_preflight.js`: passed.
+  - `node scripts/check_admin_web_external_qa_preflight.js`: passed with 6
+    preflight checks.
+  - `node scripts/check_mvp_external_evidence_template.js`: passed.
+  - `node scripts/check_admin_web_manual_qa.js`: passed in non-strict mode and
+    still reports 12 pending required admin manual QA checks.
+- Change summary:
+  - Added `scripts/check_admin_web_external_qa_preflight.js`.
+  - Wired the new preflight into aggregate admin-web regression.
+  - Tightened `docs/Admin-Web-Manual-QA.json` next actions for room edit and
+    pricing batch checks so final state restoration, acceptance, or waiver is
+    explicit.
+  - Updated admin QA, admin README, readiness, context, project-state, external
+    evidence template, and decision docs.
+- Goal correction:
+  - Admin-web handoff safety is stronger, but the MVP goal remains open. This
+    round did not log into production, send SMS, mutate live rooms/prices/orders,
+    validate refunds, or provide the `node scripts/check_admin_web_manual_qa.js
+    --strict` evidence needed for final completion.

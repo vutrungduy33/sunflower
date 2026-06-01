@@ -52,6 +52,7 @@ Admin web:
 ```bash
 (cd sunflower-admin-web && npm run lint && npm run test && npm run build)
 node scripts/check_admin_web_behavior_wiring.js
+node scripts/check_admin_web_external_qa_preflight.js
 ```
 
 Miniapp syntax smoke:

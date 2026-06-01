@@ -197,3 +197,15 @@ Append durable decisions here. Keep entries short and include provenance.
 - Provenance: WeChat DevTools project configuration documentation,
   `sunflower-miniapp/project.private.config.example.json`,
   `scripts/check_miniapp_external_qa_preflight.js`.
+
+## 2026-06-02: Add Admin-Web External QA Preflight
+
+- Decision: Use `scripts/check_admin_web_external_qa_preflight.js` as the
+  admin-web production/approved-staging manual QA preflight.
+- Rationale: Operators need a machine-checkable handoff boundary that validates
+  admin QA ledger completeness, credential/privacy wording, high-risk mutation
+  restoration or waiver requirements, and same-origin API runtime assumptions
+  before using a real admin account or live QA data.
+- Provenance: `docs/Admin-Web-MVP-QA.md`,
+  `docs/Admin-Web-Manual-QA.json`,
+  `scripts/check_admin_web_external_qa_preflight.js`.
