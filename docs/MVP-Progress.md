@@ -675,3 +675,65 @@
   - This round improves handoff and reduces the chance of missed external
     evidence, but does not complete those external checks. The MVP goal remains
     open until the pending evidence is recorded or explicitly waived.
+
+## Round 15: Evidence Quality Guard
+
+- Date: 2026-06-02
+- Status: completed.
+- Focus: prevent final strict evidence checks from being satisfied by simply
+  changing `status` to `passed` or `waived` while leaving placeholder evidence.
+- Start evidence:
+  - `git status --short --untracked-files=all`: clean after Round 14 commit.
+  - Existing launch, miniapp manual QA, and admin manual QA checkers validated
+    schema and unresolved counts, but did not reject resolved statuses whose
+    evidence still said `Not recorded in repo.`
+  - Final MVP completion depends on strict evidence being meaningful, not just
+    status-field bookkeeping.
+- Open-source reference check:
+  - Task classification: common release gate / evidence validation hardening.
+  - Sources checked: existing repository JSON ledgers and checker scripts:
+    `scripts/check_mvp_launch_evidence.js`,
+    `scripts/check_miniapp_manual_qa.js`,
+    `scripts/check_admin_web_manual_qa.js`,
+    `docs/MVP-Launch-Evidence.json`, `docs/Miniapp-Manual-QA.json`, and
+    `docs/Admin-Web-Manual-QA.json`.
+  - Selected approach: extend the existing Node.js checker pattern with
+    placeholder-evidence rejection, minimum evidence length for resolved items,
+    and explicit user-acceptance wording for waived items.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: project-local checker functions and status model.
+  - Rejected options: adding a third-party schema validator, changing JSON
+    schema version, or modifying evidence statuses without real evidence.
+- Risks:
+  - This is still textual validation. It improves guardrails but cannot verify
+    screenshots, payment records, security-group console state, or real-device
+    behavior without external execution.
+- Acceptance criteria:
+  - Launch evidence checker rejects `passed`/`waived` entries with placeholder
+    evidence.
+  - Miniapp manual QA checker rejects `passed`/`waived` entries with placeholder
+    evidence.
+  - Admin manual QA checker rejects `passed`/`waived` entries with placeholder
+    evidence.
+  - Current real ledgers still pass non-strict checks and aggregate evidence
+    regression.
+- Verification:
+  - `node --check scripts/check_mvp_launch_evidence.js && node --check scripts/check_miniapp_manual_qa.js && node --check scripts/check_admin_web_manual_qa.js`:
+    passed.
+  - Negative temporary-ledger test: all three checkers rejected a required item
+    changed to `passed` with evidence `Not recorded in repo.`
+  - `node scripts/check_mvp_launch_evidence.js && node scripts/check_miniapp_manual_qa.js && node scripts/check_admin_web_manual_qa.js`:
+    passed against current ledgers, preserving pending external evidence.
+  - `RUN_BACKEND=0 RUN_ADMIN=0 RUN_MINIAPP=0 scripts/check_mvp_regression.sh`:
+    passed evidence and deploy-config checks with production checks skipped.
+  - `git diff --check`: passed.
+- Change summary:
+  - Added resolved-evidence quality checks to
+    `scripts/check_mvp_launch_evidence.js`.
+  - Added the same guard to `scripts/check_miniapp_manual_qa.js` and
+    `scripts/check_admin_web_manual_qa.js`.
+  - Updated `docs/Project-State.md`.
+- Goal correction:
+  - This makes future MVP closeout harder to fake and safer to audit, but does
+    not complete the external evidence itself. The goal remains open until the
+    pending external evidence is recorded or explicitly waived.

@@ -9,6 +9,23 @@ const qaPath = path.join(rootDir, 'docs', 'Miniapp-Manual-QA.json');
 const args = new Set(process.argv.slice(2));
 const strict = args.has('--strict');
 const VALID_STATUSES = new Set(['passed', 'pending', 'blocked', 'waived']);
+const PLACEHOLDER_EVIDENCE_PATTERNS = [
+  /\bnot recorded\b/i,
+  /\bpending\b/i,
+  /\btodo\b/i,
+  /\btbd\b/i,
+  /待补/,
+  /未记录/,
+  /暂无/,
+];
+const WAIVER_EVIDENCE_PATTERNS = [
+  /\buser\b/i,
+  /\bwaiv/i,
+  /\baccept/i,
+  /用户/,
+  /豁免/,
+  /接受/,
+];
 
 function fail(message) {
   console.error(`[miniapp-qa] ERROR: ${message}`);
@@ -26,6 +43,26 @@ function readQaLedger() {
 function assertString(entry, field) {
   if (typeof entry[field] !== 'string' || entry[field].trim() === '') {
     fail(`${entry.id || '<missing id>'} must include non-empty ${field}`);
+  }
+}
+
+function assertResolvedEvidence(check) {
+  if (check.status !== 'passed' && check.status !== 'waived') {
+    return;
+  }
+
+  for (const pattern of PLACEHOLDER_EVIDENCE_PATTERNS) {
+    if (pattern.test(check.evidence)) {
+      fail(`${check.id} is ${check.status} but evidence still looks unresolved: ${check.evidence}`);
+    }
+  }
+
+  if (check.evidence.trim().length < 30) {
+    fail(`${check.id} is ${check.status} but evidence is too short for handoff`);
+  }
+
+  if (check.status === 'waived' && !WAIVER_EVIDENCE_PATTERNS.some((pattern) => pattern.test(check.evidence))) {
+    fail(`${check.id} is waived but evidence does not mention explicit user acceptance or waiver`);
   }
 }
 
@@ -55,6 +92,8 @@ function validateCheck(check) {
       fail(`${check.id} relatedApis must be non-empty strings`);
     }
   }
+
+  assertResolvedEvidence(check);
 }
 
 function validateQaLedger(data) {

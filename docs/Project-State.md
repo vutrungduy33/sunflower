@@ -88,6 +88,9 @@ Current snapshot after 2026-06-02 final local audit:
 - External validation runbook `docs/MVP-External-Validation-Runbook.md`: added
   on 2026-06-02 with coverage checked by
   `scripts/check_mvp_external_runbook.js`.
+- Evidence quality guard added on 2026-06-02: launch, miniapp manual QA, and
+  admin manual QA checkers now reject `passed`/`waived` entries whose evidence
+  still looks unresolved or too short for handoff.
 
 ## Known MVP Risks
 
