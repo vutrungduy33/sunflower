@@ -121,3 +121,12 @@ Append durable decisions here. Keep entries short and include provenance.
   needs security-group/firewall evidence or explicit risk acceptance.
 - Provenance: `docs/Backend-8080-Security.md`,
   `docs/MVP-Launch-Evidence.md`.
+
+## 2026-06-02: Add Aggregate MVP Regression Script
+
+- Decision: Use `scripts/check_mvp_regression.sh` as the repeatable local MVP
+  regression entry point.
+- Rationale: Backend, admin-web, miniapp, and evidence checks should be
+  replayable from one command while keeping production smoke opt-in and manual
+  evidence strictness explicit.
+- Provenance: `scripts/check_mvp_regression.sh`, `docs/MVP-Readiness.md`.

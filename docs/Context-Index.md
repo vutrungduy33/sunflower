@@ -33,6 +33,13 @@
 
 ## Current Verification Commands
 
+Aggregate MVP regression:
+
+```bash
+scripts/check_mvp_regression.sh
+RUN_PRODUCTION=1 scripts/check_mvp_regression.sh
+```
+
 Backend:
 
 ```bash

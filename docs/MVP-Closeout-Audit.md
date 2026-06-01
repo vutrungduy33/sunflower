@@ -13,6 +13,8 @@ external production/mobile validation that is not currently proven.
 
 Local automated checks:
 
+- `scripts/check_mvp_regression.sh`: passed with backend/admin/miniapp/evidence
+  checks enabled and production checks skipped by default.
 - `cd sunflower-backend && mvn -B test`: passed, 56 tests, 0 failures, 0
   errors, 0 skipped.
 - `cd sunflower-admin-web && npm run lint`: passed.

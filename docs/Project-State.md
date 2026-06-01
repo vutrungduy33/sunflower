@@ -31,6 +31,9 @@
 Current snapshot after 2026-06-02 final local audit:
 
 - Backend `mvn -B test`: passed, 56 tests.
+- Aggregate local regression `scripts/check_mvp_regression.sh`: passed on
+  2026-06-02 with backend/admin/miniapp/evidence checks enabled and production
+  checks skipped by default.
 - Admin web `npm run lint`: passed.
 - Admin web `npm run test`: passed, 20 tests.
 - Admin web `npm run build`: passed.
@@ -95,6 +98,7 @@ Current snapshot after 2026-06-02 final local audit:
 - Production smoke tracker: `docs/Production-Smoke.md`.
 - Launch evidence tracker: `docs/MVP-Launch-Evidence.md`.
 - MVP closeout audit: `docs/MVP-Closeout-Audit.md`.
+- Aggregate MVP regression script: `scripts/check_mvp_regression.sh`.
 
 ## Current Dirty Worktree Note
 

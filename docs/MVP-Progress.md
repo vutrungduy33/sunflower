@@ -448,3 +448,41 @@
   - This round improves evidence but does not complete backend hardening. Final
     MVP still needs Alibaba Cloud security group/firewall evidence or explicit
     user acceptance of the direct-backend-port risk.
+
+## Round 11: Aggregate MVP Regression Script
+
+- Date: 2026-06-02
+- Status: completed.
+- Focus: make local MVP regression replayable from one command while keeping
+  production smoke and strict external evidence checks explicit.
+- Start evidence:
+  - `git status --short --untracked-files=all`: clean after Round 10 commit.
+  - Verification commands existed in `docs/Context-Index.md` and
+    `docs/MVP-Readiness.md`, but there was no single entry point for
+    backend/admin/miniapp/evidence regression.
+- Change summary:
+  - Added `scripts/check_mvp_regression.sh`.
+  - Updated readiness, context, project-state, closeout, and decision docs to
+    reference the aggregate regression command.
+- Open-source reference check:
+  - Task classification: common CI/local regression orchestration.
+  - Sources checked: existing project scripts and command docs; no external code
+    needed because this is a thin command runner over repository-native checks.
+  - Selected approach: portable Bash wrapper with opt-in production checks via
+    `RUN_PRODUCTION=1`.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: local script conventions and existing verification commands.
+  - Rejected options: adding a new task-runner dependency, making production
+    smoke run by default, or running strict manual evidence checks before the
+    user has provided external validation/waivers.
+- Acceptance criteria:
+  - `bash -n scripts/check_mvp_regression.sh`: passed.
+  - `scripts/check_mvp_regression.sh`: passed with backend/admin/miniapp/evidence
+    checks enabled and production checks skipped by default.
+  - `node scripts/check_mvp_launch_evidence.js`: passed and still lists pending
+    external evidence.
+- Goal correction:
+  - The aggregate script improves repeatability but does not complete the MVP.
+    Strict evidence checks, production deploy approval, HTTPS/domain, real
+    WeChat/payment/admin QA, and backend `8080` security-group evidence remain
+    open.

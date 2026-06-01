@@ -53,6 +53,11 @@ Backend `8080` hardening evidence is tracked separately in
 Run before declaring the MVP goal complete:
 
 ```bash
+scripts/check_mvp_regression.sh
+RUN_PRODUCTION=1 scripts/check_mvp_regression.sh
+```
+
+```bash
 node scripts/check_mvp_launch_evidence.js --strict
 node scripts/check_miniapp_manual_qa.js --strict
 node scripts/check_admin_web_manual_qa.js --strict
@@ -89,6 +94,10 @@ RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh
 ```
 
 Latest production smoke notes live in `docs/Production-Smoke.md`.
+
+The aggregate local regression script intentionally runs manual evidence checks
+in non-strict mode; strict evidence commands still need to pass separately
+before MVP completion.
 
 When HTTPS/domain is ready, also verify:
 
