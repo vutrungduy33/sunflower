@@ -31,6 +31,7 @@
 - `/Users/chenyao/dev/miniapp/sunflower/docs/PRD.md`：需求规格与开发计划
 - `/Users/chenyao/dev/miniapp/sunflower/docs/Prototype.md`：MVP 原型页面清单
 - `/Users/chenyao/dev/miniapp/sunflower/docs/Miniapp-Frontend-MVP.md`：小程序前端一期 MVP 说明（页面/流程/API 映射）
+- `/Users/chenyao/dev/miniapp/sunflower/docs/Miniapp-MVP-QA.md`：小程序 MVP 自动 smoke 与人工 QA 清单
 - `/Users/chenyao/dev/miniapp/sunflower/docs/IA.md`：信息架构（小程序 + 后台）
 - `/Users/chenyao/dev/miniapp/sunflower/docs/Flows.md`：关键业务流程与状态
 - `/Users/chenyao/dev/miniapp/sunflower/docs/API.md`：REST 接口清单

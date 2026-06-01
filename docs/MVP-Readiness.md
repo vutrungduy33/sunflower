@@ -27,7 +27,7 @@ verified, and documented enough for handoff:
 | --- | --- | --- | --- |
 | Backend local quality | Prior baseline `mvn -B test`: passed, 56 tests. | Mostly ready | Rerun before final MVP closeout. |
 | Admin web local quality | Round 1 `npm run lint`, `npm run test` (20 tests), `npm run build`: passed. | Ready locally | Keep green after future admin changes. |
-| Miniapp syntax | Prior baseline `node --check` for MVP API/payment/home/login/order-create/order-list: passed. | Partially verified | Add broader miniapp/manual QA evidence. |
+| Miniapp syntax/smoke | Round 3 `node scripts/check_miniapp_mvp_smoke.js` plus existing miniapp guards. | Partially verified | Real-device login/phone/payment evidence still required. |
 | Miniapp real user path | Code supports real API, WeChat login, phone binding, `wx.requestPayment`, order and after-sale flows. | Needs real-device evidence | Verify in WeChat DevTools/preview with legal HTTPS request domain. |
 | WeChat pay/refund | Backend has WeChat payment/refund gateway, callbacks, records, retry, and mock only when explicitly configured. | Needs production evidence | Verify small real payment/refund with merchant config and callback domain. |
 | Admin operations path | Core pages and tests exist for auth, room, price/inventory, and order management. | Partially verified | Run manual QA against deployed admin web. |
@@ -48,6 +48,9 @@ cd sunflower-admin-web && npm run lint && npm run test && npm run build
 
 ```bash
 cd sunflower-miniapp
+node ../scripts/check_miniapp_mvp_smoke.js
+bash ../scripts/check_miniapp_project_config.sh
+bash ../scripts/check_mvp_subpage_nav.sh
 node --check utils/mvp/api.js
 node --check utils/mvp/payment.js
 node --check pages/mvp/home/index.js

@@ -18,7 +18,7 @@
 | Backend API / contracts | `docs/API.md`, `docs/API-Schemas.md`, `sunflower-backend/src/main/java/**`, backend tests |
 | Database / persistence | `docs/DB-Design.md`, `docs/DataDictionary.md`, Flyway migrations, seed SQL |
 | Admin web | `docs/Web-Admin-Plan.md`, `sunflower-admin-web/src/**`, admin web tests |
-| Miniapp | `docs/Miniapp-Frontend-MVP.md`, `sunflower-miniapp/pages/mvp/**`, `sunflower-miniapp/utils/mvp/**` |
+| Miniapp | `docs/Miniapp-Frontend-MVP.md`, `docs/Miniapp-MVP-QA.md`, `sunflower-miniapp/pages/mvp/**`, `sunflower-miniapp/utils/mvp/**` |
 | MVP hardening | `docs/MVP-Readiness.md`, `docs/MVP-Progress.md`, `docs/Project-State.md`, task-relevant app docs |
 | Process / decisions | `docs/Decision-Log.md`, then only relevant linked docs |
 | Historical diagnosis | `docs/archive/**` only when explicitly needed |
@@ -49,6 +49,7 @@ Miniapp syntax smoke:
 
 ```bash
 cd sunflower-miniapp
+node ../scripts/check_miniapp_mvp_smoke.js
 node --check utils/mvp/api.js
 node --check utils/mvp/payment.js
 node --check pages/mvp/home/index.js

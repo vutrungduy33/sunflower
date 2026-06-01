@@ -52,6 +52,7 @@
 - `docs/PRD.md`：需求规格与开发计划（范围、优先级、里程碑）
 - `docs/Prototype.md`：MVP 原型页面清单
 - `docs/Miniapp-Frontend-MVP.md`：小程序前端一期 MVP 设计与实现说明
+- `docs/Miniapp-MVP-QA.md`：小程序 MVP 自动 smoke 与人工 QA 清单
 - `docs/IA.md`：信息架构（小程序 + 后台）
 - `docs/Flows.md`：关键业务流程与状态
 - `docs/API.md`：REST 接口清单
@@ -83,6 +84,7 @@
 │  ├─ PRD.md
 │  ├─ Prototype.md
 │  ├─ Miniapp-Frontend-MVP.md
+│  ├─ Miniapp-MVP-QA.md
 │  ├─ IA.md
 │  ├─ Flows.md
 │  ├─ API.md

@@ -81,3 +81,42 @@
 - Next recommended round:
   - Broaden miniapp validation evidence and add repeatable smoke/manual QA notes
     for login, phone binding, order creation, payment, and after-sale flows.
+
+## Round 3: Miniapp MVP Smoke and QA
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: add repeatable local miniapp verification and manual QA guidance for
+  the MVP user path.
+- Start evidence:
+  - `git status --short --untracked-files=all`: clean after Round 2 commit.
+  - Miniapp had individual `node --check` commands and existing shell guards,
+    but no single local smoke covering page registration, key exports, and
+    runtime config warnings.
+- Change summary:
+  - Added `scripts/check_miniapp_mvp_smoke.js`.
+  - Added `docs/Miniapp-MVP-QA.md` with automated checks, WeChat DevTools setup,
+    manual QA checklist, production acceptance, and known limits.
+  - Updated README/doc indexes, `docs/Context-Index.md`, and
+    `docs/MVP-Readiness.md` to reference the miniapp QA path.
+- Open-source reference check:
+  - Task classification: repo-specific smoke and QA documentation.
+  - Sources checked: not applicable; no external code or common framework
+    implementation copied.
+  - Selected approach: use Node's built-in syntax checker and CommonJS require
+    checks to avoid adding a miniapp test framework dependency in this round.
+  - License/compatibility: no external code copied.
+- Acceptance criteria:
+  - `node scripts/check_miniapp_mvp_smoke.js`: passed with expected warning that
+    `DEFAULT_API_BASE_URL` is bare HTTP and only suitable for local/devtools
+    validation.
+  - `bash scripts/check_miniapp_project_config.sh`: passed.
+  - `bash scripts/check_mvp_subpage_nav.sh`: passed.
+- Goal correction:
+  - Local smoke improves regression evidence but does not prove WeChat real
+    login, phone authorization, payment, refund, HTTPS domain, or device
+    preview. Those remain launch blockers.
+- Next recommended round:
+  - Run backend tests and broaden backend/API readiness evidence, then prepare
+    for production smoke/deploy validation once production push intent is
+    confirmed.

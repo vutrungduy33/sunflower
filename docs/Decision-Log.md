@@ -44,3 +44,13 @@ Append durable decisions here. Keep entries short and include provenance.
 - Rationale: Active docs should answer what is usable, what is verified, and
   what blocks launch without relying on archived stage materials.
 - Provenance: `docs/MVP-Readiness.md`, `docs/MVP-Progress.md`.
+
+## 2026-06-02: Add Miniapp Local Smoke Without New Test Framework
+
+- Decision: Use `scripts/check_miniapp_mvp_smoke.js` plus existing shell guards
+  for repeatable local miniapp MVP checks.
+- Rationale: The miniapp has no package-managed test runner; Node syntax/export
+  checks catch low-cost regressions without adding a heavy framework before
+  real WeChat device validation.
+- Provenance: `scripts/check_miniapp_mvp_smoke.js`,
+  `docs/Miniapp-MVP-QA.md`.

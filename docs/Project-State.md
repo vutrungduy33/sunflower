@@ -28,19 +28,22 @@
 
 ## Recent Validation Snapshot
 
-Current snapshot after 2026-06-02 Round 2:
+Current snapshot after 2026-06-02 Round 3:
 
 - Backend `mvn -B test`: passed, 56 tests in the prior baseline; not rerun in
-  Round 2.
-- Admin web `npm run lint`: passed in Round 2.
-- Admin web `npm run test`: passed, 20 tests in Round 2.
-- Admin web `npm run build`: passed in Round 2.
-- Miniapp JS syntax smoke for MVP API/payment/core pages: passed in the prior
-  baseline; not rerun in Round 2.
+  Round 3.
+- Admin web `npm run lint`: passed in Round 2; not rerun in Round 3.
+- Admin web `npm run test`: passed, 20 tests in Round 2; not rerun in Round 3.
+- Admin web `npm run build`: passed in Round 2; not rerun in Round 3.
+- Miniapp `node scripts/check_miniapp_mvp_smoke.js`: passed in Round 3 with the
+  expected warning that the default API base is bare HTTP and only suitable for
+  local/devtools validation.
+- Miniapp `bash scripts/check_miniapp_project_config.sh`: passed in Round 3.
+- Miniapp `bash scripts/check_mvp_subpage_nav.sh`: passed in Round 3.
 - Production `http://47.113.223.248/api/health`: returned 200 in the prior
-  baseline; not rerun in Round 2.
+  baseline; not rerun in Round 3.
 - Production `http://47.113.223.248/api/content/home`: returned 200 in the prior
-  baseline; not rerun in Round 2.
+  baseline; not rerun in Round 3.
 
 ## Known MVP Risks
 
@@ -53,8 +56,9 @@ Current snapshot after 2026-06-02 Round 2:
 - Some component README files still contain older MVP wording and should be
   refreshed before handoff.
 - Canonical MVP readiness tracker: `docs/MVP-Readiness.md`.
+- Miniapp QA tracker: `docs/Miniapp-MVP-QA.md`.
 
 ## Current Dirty Worktree Note
 
-After the Round 2 commit, no intended MVP Round 2 files should remain
+After the Round 3 commit, no intended MVP Round 3 files should remain
 uncommitted.
