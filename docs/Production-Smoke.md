@@ -1,8 +1,26 @@
 # Production Smoke
 
-> Latest run: 2026-06-02 01:52 Asia/Shanghai. This records observed production
+> Latest run: 2026-06-02 02:02 Asia/Shanghai. This records observed production
 > health for the MVP hardening goal. It does not mean a new deployment was
 > triggered.
+
+## 0. Repeatable Script
+
+Canonical production smoke command:
+
+```bash
+RUN_INTERNAL=1 scripts/check_production_smoke.sh
+```
+
+The script performs public smoke checks first, then uses the ignored local SSH
+key at `.secrets/aliyun_mba_codex.pem` to check ECS internal health when
+`RUN_INTERNAL=1`.
+
+Latest scripted result:
+
+- 7 checks passed.
+- 1 warning remained: ECS-2 backend still listens on `0.0.0.0:8080`.
+- No deployment, push, or production configuration change was performed.
 
 ## 1. GitHub Actions
 
@@ -21,7 +39,7 @@
 
 ## 2. Public Smoke
 
-Commands run from local workspace:
+Equivalent public commands:
 
 ```bash
 curl -fsS http://47.113.223.248/api/health
@@ -30,7 +48,7 @@ curl -fsS http://47.113.223.248/healthz
 curl -fsSI http://47.113.223.248/
 ```
 
-Observed result:
+Latest scripted/manual result:
 
 - `http://47.113.223.248/api/health`: 200, backend status `UP`.
 - `http://47.113.223.248/api/content/home`: 200, returned home content.
@@ -45,9 +63,10 @@ curl -fsS http://47.120.42.15:8080/api/health
 
 Observed result:
 
-- Empty reply after timeout window, HTTP code `000`.
-- This does not prove the port is properly restricted, because ECS-2 still shows
-  the backend container bound to `0.0.0.0:8080`.
+- Not directly usable from this local network during the scripted smoke.
+- This is useful, but it does not by itself prove the port is properly
+  restricted, because ECS-2 still shows the backend container bound to
+  `0.0.0.0:8080`.
 
 ## 3. ECS Internal Smoke
 

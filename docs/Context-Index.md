@@ -61,8 +61,7 @@ node --check pages/mvp/order-list/index.js
 Production smoke:
 
 ```bash
-curl -fsS http://47.113.223.248/api/health
-curl -fsS http://47.113.223.248/api/content/home
+RUN_INTERNAL=1 scripts/check_production_smoke.sh
 ```
 
 ## Open-Source Reference Trigger

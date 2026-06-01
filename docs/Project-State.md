@@ -43,6 +43,8 @@ Current snapshot after 2026-06-02 final local audit:
 - Production `http://47.113.223.248/api/content/home`: returned 200 in Round 5.
 - Production `http://47.113.223.248/healthz`: returned 200 in Round 5.
 - Production `http://47.113.223.248/`: returned 200 admin web HTML in Round 5.
+- Production `RUN_INTERNAL=1 scripts/check_production_smoke.sh`: passed on
+  2026-06-02 with 7 checks and 1 known backend-bind warning.
 - ECS-1 Nginx active; `sunflower-admin-web` healthy on `127.0.0.1:18080`.
 - ECS-2 `sunflower-backend` and `sunflower-mysql` healthy.
 
@@ -64,5 +66,4 @@ Current snapshot after 2026-06-02 final local audit:
 
 ## Current Dirty Worktree Note
 
-After the final local audit commit, no intended MVP audit files should remain
-uncommitted.
+No intended MVP audit files should remain uncommitted after each round commit.

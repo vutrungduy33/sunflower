@@ -243,6 +243,12 @@ S19 之后，生产部署固定采用双 ECS + self-hosted runner 链路：
 
 ## 7. Smoke Test
 
+本地标准冒烟命令：
+
+```bash
+RUN_INTERNAL=1 scripts/check_production_smoke.sh
+```
+
 backend 节点：
 
 1. `curl http://127.0.0.1:8080/api/health`
@@ -259,11 +265,12 @@ web 节点：
 Latest observed production smoke is tracked in
 [Production-Smoke.md](/Users/chenyao/dev/miniapp/sunflower/docs/Production-Smoke.md).
 
-As of the 2026-06-02 smoke:
+As of the 2026-06-02 scripted smoke:
 
 - Public `http://47.113.223.248/api/health` returned 200.
 - Public `http://47.113.223.248/api/content/home` returned 200.
 - Public `http://47.113.223.248/healthz` returned 200.
+- Public `http://47.113.223.248/` returned 200 admin web HTML.
 - ECS-1 Nginx is active and `sunflower-admin-web` is healthy.
 - ECS-2 `sunflower-backend` and `sunflower-mysql` are healthy.
 - HTTPS/domain validation remains unproven.

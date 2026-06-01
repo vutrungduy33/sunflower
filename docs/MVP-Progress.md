@@ -228,3 +228,40 @@
     and production smoke evidence, but lacks real WeChat preview/device,
     payment/refund, HTTPS domain, admin production manual QA, and backend 8080
     hardening evidence.
+
+## Round 6: Repeatable Production Smoke Script
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: turn the production smoke commands into a repeatable script and keep
+  deployment evidence easy for future Codex runs to replay.
+- Start evidence:
+  - `git status --short --untracked-files=all`: clean except the new smoke
+    script created for this round.
+  - Production smoke evidence existed in `docs/Production-Smoke.md`, but the
+    executable checks were still scattered across manual curl/SSH notes.
+- Change summary:
+  - Added `scripts/check_production_smoke.sh`.
+  - Updated production, deployment, readiness, context, project-state,
+    closeout, and decision docs to use the script as the canonical smoke entry.
+- Open-source reference check:
+  - Task classification: common production smoke wrapper with repository-specific
+    ECS topology.
+  - Sources checked: existing local deployment and validation scripts
+    (`scripts/deploy_lib.sh`, `scripts/validate_prod_env.sh`) plus the current
+    production smoke document.
+  - Selected approach: use portable Bash, curl, ssh, systemd, Docker, and `ss`
+    checks already present in the project/runtime.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: local script style and existing smoke commands.
+  - Rejected options: adding a new smoke-test framework or encoding production
+    secrets in tracked files.
+- Acceptance criteria:
+  - `bash -n scripts/check_production_smoke.sh`: passed.
+  - `RUN_INTERNAL=1 scripts/check_production_smoke.sh`: passed with 7 checks
+    and 1 known warning that ECS-2 backend listens on `0.0.0.0:8080`.
+- Goal correction:
+  - The smoke is now replayable, but it does not close the external launch
+    blockers: WeChat real-device/payment/refund, HTTPS legal request domain,
+    admin production manual QA, backend port hardening, and approved deployment
+    of the current branch remain unresolved.

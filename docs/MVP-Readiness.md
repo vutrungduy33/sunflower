@@ -31,7 +31,7 @@ verified, and documented enough for handoff:
 | Miniapp real user path | Code supports real API, WeChat login, phone binding, `wx.requestPayment`, order and after-sale flows. | Needs real-device evidence | Verify in WeChat DevTools/preview with legal HTTPS request domain. |
 | WeChat pay/refund | Backend has WeChat payment/refund gateway, callbacks, records, retry, and mock only when explicitly configured. | Needs production evidence | Verify small real payment/refund with merchant config and callback domain. |
 | Admin operations path | Core pages and tests exist for auth, room, price/inventory, and order management. | Partially verified | Run manual QA against deployed admin web. |
-| Deployment | Round 5 production smoke returned 200 for public `/api/health`, `/api/content/home`, `/healthz`, and admin web HTML; ECS containers healthy. | Partially verified | Push/dispatch deploy only after confirming branch/production intent. |
+| Deployment | Scripted production smoke returned 7 passes and 1 known backend-bind warning; public `/api/health`, `/api/content/home`, `/healthz`, admin web HTML, and ECS internal health passed. | Partially verified | Push/dispatch deploy only after confirming branch/production intent. |
 | Security / compliance | Secrets are local/ECS-owned; `.secrets/` ignored. Known issue: backend `8080` observed publicly bound. | Needs hardening | Restrict backend port to ECS-1 and complete HTTPS/WeChat domain setup. |
 
 ## 3. Final Verification Commands
@@ -64,8 +64,7 @@ node --check pages/mvp/order-list/index.js
 After an approved production deploy:
 
 ```bash
-curl -fsS http://47.113.223.248/api/health
-curl -fsS http://47.113.223.248/api/content/home
+RUN_INTERNAL=1 scripts/check_production_smoke.sh
 ```
 
 Latest production smoke notes live in `docs/Production-Smoke.md`.
@@ -120,10 +119,11 @@ Production:
 
 ## 6. Next Rounds
 
-1. Broaden miniapp validation evidence and add repeatable smoke/manual QA notes.
+1. Complete WeChat preview/real-device validation for login, phone binding,
+   order creation, payment, refund, and after-sale flows.
 2. Harden admin operational manual QA against a running backend or production.
-3. Run full backend/admin/miniapp verification and production smoke after an
-   approved deploy.
+3. Verify HTTPS legal request domain and backend `8080` restriction before
+   declaring launch readiness.
 
 ## 7. Closeout Audit
 

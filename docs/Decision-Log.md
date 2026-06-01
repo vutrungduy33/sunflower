@@ -72,3 +72,11 @@ Append durable decisions here. Keep entries short and include provenance.
 - Rationale: The deploy workflow triggers on `main` and production state changes
   should be intentional.
 - Provenance: `docs/Production-Smoke.md`, `.github/workflows/deploy-backend.yml`.
+
+## 2026-06-02: Codify Production Smoke Script
+
+- Decision: Use `scripts/check_production_smoke.sh` as the repeatable
+  production smoke entry point.
+- Rationale: Public curl checks and ECS internal SSH checks should be replayable
+  without copying long command sequences between docs.
+- Provenance: `scripts/check_production_smoke.sh`, `docs/Production-Smoke.md`.
