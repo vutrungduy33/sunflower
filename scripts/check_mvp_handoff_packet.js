@@ -35,6 +35,7 @@ const requiredCommands = [
   'node scripts/check_admin_web_manual_qa.js --strict',
   'node scripts/generate_mvp_external_evidence_template.js',
   'node scripts/check_mvp_external_evidence_template.js',
+  'node scripts/check_mvp_external_approval_packet.js',
   'node scripts/check_deployment_approval_preflight.js',
   'scripts/check_production_readonly_audit.sh',
 ];

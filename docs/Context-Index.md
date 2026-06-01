@@ -19,8 +19,8 @@
 | Database / persistence | `docs/DB-Design.md`, `docs/DataDictionary.md`, Flyway migrations, seed SQL |
 | Admin web | `docs/Web-Admin-Plan.md`, `docs/Admin-Web-MVP-QA.md`, `sunflower-admin-web/src/**`, admin web tests |
 | Miniapp | `docs/Miniapp-Frontend-MVP.md`, `docs/Miniapp-MVP-QA.md`, `docs/Miniapp-Manual-QA.md`, `sunflower-miniapp/pages/mvp/**`, `sunflower-miniapp/utils/mvp/**` |
-| MVP hardening | `docs/MVP-Handoff-Packet.md`, `docs/MVP-Readiness.md`, `docs/MVP-Launch-Evidence.md`, `docs/MVP-External-Validation-Runbook.md`, `docs/MVP-Progress.md`, `docs/MVP-Closeout-Audit.md`, `docs/Project-State.md`, task-relevant app docs |
-| New Codex MVP goal | `docs/MVP-Next-Goal-Prompt.md`, `docs/MVP-Handoff-Packet.md`, `docs/MVP-Readiness.md`, `docs/MVP-Closeout-Audit.md`, `docs/Project-State.md` |
+| MVP hardening | `docs/MVP-Handoff-Packet.md`, `docs/MVP-Readiness.md`, `docs/MVP-Launch-Evidence.md`, `docs/MVP-External-Validation-Runbook.md`, `docs/MVP-External-Approval-Packet.md`, `docs/MVP-Progress.md`, `docs/MVP-Closeout-Audit.md`, `docs/Project-State.md`, task-relevant app docs |
+| New Codex MVP goal | `docs/MVP-Next-Goal-Prompt.md`, `docs/MVP-Handoff-Packet.md`, `docs/MVP-External-Approval-Packet.md`, `docs/MVP-Readiness.md`, `docs/MVP-Closeout-Audit.md`, `docs/Project-State.md` |
 | Component handoff docs | `sunflower-miniapp/README.md`, `sunflower-admin-web/README.md`, `sunflower-backend/README.md`, plus the matching QA docs above |
 | Process / decisions | `docs/Decision-Log.md`, then only relevant linked docs |
 | Historical diagnosis | `docs/archive/**` only when explicitly needed |
@@ -95,6 +95,7 @@ Launch evidence:
 node scripts/check_mvp_external_runbook.js
 node scripts/generate_mvp_external_evidence_template.js
 node scripts/check_mvp_external_evidence_template.js
+node scripts/check_mvp_external_approval_packet.js
 node scripts/check_mvp_handoff_packet.js
 node scripts/check_mvp_closeout_readiness.js
 node scripts/check_mvp_closeout_readiness.js --strict

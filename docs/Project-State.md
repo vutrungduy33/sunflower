@@ -168,6 +168,11 @@ regression recheck:
 - External validation runbook `docs/MVP-External-Validation-Runbook.md`: added
   on 2026-06-02 with coverage checked by
   `scripts/check_mvp_external_runbook.js`.
+- External approval packet `docs/MVP-External-Approval-Packet.md`: added on
+  2026-06-02 as the pre-approval checklist for WeChat preview/domain, real
+  payment/refund, admin production or approved-staging QA, backend `8080`
+  hardening evidence, and current-branch deployment evidence. It is checked by
+  `scripts/check_mvp_external_approval_packet.js`.
 - Evidence quality guard added on 2026-06-02: launch, miniapp manual QA, and
   admin manual QA checkers now reject `passed`/`waived` entries whose evidence
   still looks unresolved or too short for handoff.
@@ -200,6 +205,7 @@ regression recheck:
 - Production smoke tracker: `docs/Production-Smoke.md`.
 - Launch evidence tracker: `docs/MVP-Launch-Evidence.md`.
 - External validation runbook: `docs/MVP-External-Validation-Runbook.md`.
+- External approval packet: `docs/MVP-External-Approval-Packet.md`.
 - External evidence template: `docs/MVP-External-Evidence-Template.md`.
 - MVP handoff packet: `docs/MVP-Handoff-Packet.md`.
 - MVP next Codex goal prompt: `docs/MVP-Next-Goal-Prompt.md`.

@@ -48,6 +48,9 @@ approved external evidence collection round:
   preview/real-device QA, HTTPS legal domain, admin-web production or approved
   staging QA, backend `8080` security-group proof, or approved current-branch
   deployment.
+- Prepare the matching approval lane in
+  `docs/MVP-External-Approval-Packet.md` and run
+  `node scripts/check_mvp_external_approval_packet.js`.
 - For any lane that mutates production, uses real payment/refund, changes
   security groups/firewall, or triggers GitHub Actions deployment, stop and ask
   for explicit user approval first.

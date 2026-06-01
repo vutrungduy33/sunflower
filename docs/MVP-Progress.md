@@ -1957,3 +1957,83 @@
     evidence still requires real WeChat/domain/payment/refund/admin production
     or approved-staging proof, backend `8080` hardening evidence or waiver, and
     current-branch deployment evidence after explicit approval.
+
+## Round 33: External Evidence Approval Packet
+
+- Date: 2026-06-02
+- Status: completed and committed.
+- Focus: make the next external evidence step executable without accidental
+  production mutation by adding a machine-checked approval packet for the
+  remaining real-world MVP evidence lanes.
+- Start evidence:
+  - `git status --short --branch --untracked-files=all`: clean on
+    `codex/s18-payment-hardening` after Round 32 commit.
+  - Round 32 proved the repeatable local + production read-only aggregate
+    baseline is green.
+  - The strict closeout still has 33 unresolved items, but the next meaningful
+    progress requires human-approved external action rather than more local
+    reruns.
+  - `docs/MVP-External-Validation-Runbook.md` and
+    `docs/MVP-External-Evidence-Template.md` describe execution and capture,
+    but there was no separate machine-checked approval packet grouping risky
+    lanes by approval boundary.
+- Open-source reference check:
+  - Task classification: common release/QA approval governance, implemented as
+    repository-specific documentation and a small local guard.
+  - Sources checked:
+    - GitHub Actions deployments and environments documentation:
+      `https://docs.github.com/en/actions/reference/deployments-and-environments`.
+    - OWASP Logging Cheat Sheet:
+      `https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html`.
+    - Existing repository patterns:
+      `scripts/check_mvp_handoff_packet.js`,
+      `scripts/check_mvp_external_runbook.js`, and
+      `scripts/check_mvp_external_evidence_template.js`.
+  - Selected approach: keep approval gating as committed docs plus a local
+    coverage guard, rather than adding a new deployment dependency or GitHub
+    environment configuration without user approval.
+  - License/compatibility: no external code copied; external sources were used
+    only for process/security guidance.
+  - Reused/adapted: existing local Node.js checker style and ledger-driven
+    unresolved-item coverage model.
+  - Rejected options: mutating GitHub environment protection settings,
+    triggering deployment, collecting real payment/refund evidence, or adding a
+    heavyweight approval workflow dependency.
+- Risks:
+  - This round does not collect the missing external evidence itself.
+  - The approval packet reduces ambiguity, but actual WeChat/admin/payment/
+    security-group/deployment evidence still requires user-approved execution.
+  - The new guard proves coverage of current unresolved ids and safety text; it
+    does not validate external screenshots, payment status, cloud console state,
+    or deployment run outcomes.
+- Acceptance criteria:
+  - A visible external approval packet exists and groups the remaining evidence
+    into clear lanes.
+  - The packet includes an approval request template, sanitized evidence rules,
+    rollback/restoration requirements, and explicit stop conditions.
+  - A local checker proves the packet covers all current unresolved required
+    launch, miniapp manual QA, and admin-web manual QA ids.
+  - Handoff/context/readiness docs point future runs to the packet and checker.
+  - The round is committed once.
+- Verification:
+  - `node scripts/check_mvp_external_approval_packet.js`: passed; approval
+    packet covers 6 lanes, 33 unresolved items, 14 safety text items, and 8
+    command references.
+  - `node scripts/check_mvp_handoff_packet.js`: passed; handoff packet covers
+    33 unresolved required items, 11 commands, and 8 safety boundaries.
+  - `node scripts/check_mvp_external_runbook.js`: passed.
+  - `node scripts/check_mvp_external_evidence_template.js`: passed.
+- Change summary:
+  - Added `docs/MVP-External-Approval-Packet.md`.
+  - Added `scripts/check_mvp_external_approval_packet.js`.
+  - Updated `docs/MVP-Handoff-Packet.md`,
+    `docs/MVP-External-Validation-Runbook.md`,
+    `docs/MVP-Next-Goal-Prompt.md`, `docs/MVP-Readiness.md`,
+    `docs/Context-Index.md`, `docs/Project-State.md`, `docs/README.md`, and
+    `docs/Decision-Log.md` to point to the approval packet.
+- Goal correction:
+  - The next meaningful MVP closeout round should choose exactly one approval
+    lane from `docs/MVP-External-Approval-Packet.md`, request explicit user
+    approval if it mutates production or uses real payment/refund/deployment,
+    then record sanitized evidence in the relevant JSON ledger and run the
+    matching strict checker.

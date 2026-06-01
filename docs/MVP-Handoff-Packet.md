@@ -27,6 +27,10 @@ the user explicitly waives the remaining external evidence.
 The latest detailed state lives in `docs/Project-State.md`,
 `docs/MVP-Readiness.md`, and `docs/MVP-Closeout-Audit.md`.
 
+Before any external action that needs human approval, use
+`docs/MVP-External-Approval-Packet.md` and validate it with
+`node scripts/check_mvp_external_approval_packet.js`.
+
 ## 3. Do First
 
 Run these before editing code or evidence:
@@ -38,6 +42,7 @@ RUN_PRODUCTION=1 scripts/check_mvp_regression.sh
 node scripts/check_mvp_closeout_readiness.js
 node scripts/generate_mvp_external_evidence_template.js
 node scripts/check_mvp_external_evidence_template.js
+node scripts/check_mvp_external_approval_packet.js
 node scripts/check_deployment_approval_preflight.js
 ```
 
@@ -125,16 +130,19 @@ These admin-web entries are still unresolved in
    `node scripts/generate_mvp_external_evidence_template.js`.
 3. Validate the capture template with
    `node scripts/check_mvp_external_evidence_template.js`.
-4. Run miniapp preview or real-device QA and update
+4. Prepare the matching approval lane with
+   `docs/MVP-External-Approval-Packet.md` before any external action that needs
+   user confirmation.
+5. Run miniapp preview or real-device QA and update
    `docs/Miniapp-Manual-QA.json`.
-5. Run admin-web production or approved-staging QA and update
+6. Run admin-web production or approved-staging QA and update
    `docs/Admin-Web-Manual-QA.json`.
-6. Run backend `8080` read-only evidence and record security-group/firewall
+7. Run backend `8080` read-only evidence and record security-group/firewall
    proof or a user waiver in the launch ledger.
-7. Before any approved deploy action, run
+8. Before any approved deploy action, run
    `node scripts/check_deployment_approval_preflight.js`.
-8. After approved deploy, run `scripts/check_production_readonly_audit.sh`.
-9. Run final strict closeout:
+9. After approved deploy, run `scripts/check_production_readonly_audit.sh`.
+10. Run final strict closeout:
 
 ```bash
 node scripts/check_mvp_launch_evidence.js --strict

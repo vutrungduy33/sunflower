@@ -235,3 +235,19 @@ Append durable decisions here. Keep entries short and include provenance.
   `scripts/check_mvp_handoff_packet.js`,
   `docs/MVP-Launch-Evidence.json`, `docs/Miniapp-Manual-QA.json`,
   `docs/Admin-Web-Manual-QA.json`.
+
+## 2026-06-02: Add External Approval Packet Before Risky MVP Evidence
+
+- Decision: Use `docs/MVP-External-Approval-Packet.md` and
+  `scripts/check_mvp_external_approval_packet.js` before collecting external
+  evidence that may involve real WeChat preview credentials, live data, real
+  payment/refund, security-group/firewall changes, or GitHub Actions
+  deployment.
+- Rationale: Round 32 proved the repeatable local and production read-only
+  baseline, so remaining progress depends on external evidence with explicit
+  approval boundaries. A machine-checked approval packet keeps the next action
+  precise and reduces the chance of committing secrets or mutating production
+  without consent.
+- Provenance: `docs/MVP-External-Approval-Packet.md`,
+  `scripts/check_mvp_external_approval_packet.js`,
+  `docs/MVP-Handoff-Packet.md`.

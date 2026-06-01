@@ -22,6 +22,10 @@ alone:
 For a compact first-read handoff, start with `docs/MVP-Handoff-Packet.md` and
 validate it with `node scripts/check_mvp_handoff_packet.js`.
 
+Before any external action that needs human approval, prepare the matching lane
+in `docs/MVP-External-Approval-Packet.md` and validate the packet with
+`node scripts/check_mvp_external_approval_packet.js`.
+
 ## 2. Safety Rules
 
 - Do not commit real AppID values, openId/unionId, auth tokens, phone numbers,
@@ -56,6 +60,7 @@ scripts/check_deploy_config.sh
 ```bash
 node scripts/generate_mvp_external_evidence_template.js
 node scripts/check_mvp_external_evidence_template.js
+node scripts/check_mvp_external_approval_packet.js
 ```
 
    - Fill `docs/MVP-External-Evidence-Template.md` during execution, then copy

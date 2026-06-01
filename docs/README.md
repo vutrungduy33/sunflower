@@ -49,6 +49,7 @@
 - `docs/MVP-Progress.md`：当前 MVP 推进轮次记录
 - `docs/MVP-Closeout-Audit.md`：MVP 完成度审计与剩余外部验证缺口
 - `docs/MVP-Next-Goal-Prompt.md`：用于继续 MVP 收口的 Codex goal 提示词
+- `docs/MVP-External-Approval-Packet.md`：外部证据采集前的审批边界与请求模板
 - `docs/Decision-Log.md`：长期架构/流程/部署决策记录
 - `docs/Architecture.md`：当前系统架构、部署拓扑与运行组件说明
 - `docs/PRD.md`：需求规格与开发计划（范围、优先级、里程碑）

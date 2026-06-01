@@ -88,6 +88,7 @@ RUN_PRODUCTION=1 scripts/check_mvp_regression.sh
 node scripts/check_mvp_external_runbook.js
 node scripts/generate_mvp_external_evidence_template.js
 node scripts/check_mvp_external_evidence_template.js
+node scripts/check_mvp_external_approval_packet.js
 node scripts/check_mvp_handoff_packet.js
 node scripts/check_mvp_closeout_readiness.js
 node scripts/check_mvp_closeout_readiness.js --strict
