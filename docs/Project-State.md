@@ -28,15 +28,17 @@
 
 ## Recent Validation Snapshot
 
-Current snapshot after 2026-06-02 Round 25 admin-web validation calibration:
+Current snapshot after 2026-06-02 Round 27 admin order operations test expansion:
 
 - Backend `mvn -B test`: passed, 56 tests.
 - Aggregate local regression `scripts/check_mvp_regression.sh`: passed on
   2026-06-02 with backend/admin/miniapp/evidence checks enabled and production
   checks skipped by default.
-- Admin web `npm run lint`: passed again in Round 25.
-- Admin web `npm run test`: passed again in Round 25, 20 tests.
-- Admin web `npm run build`: passed again in Round 25.
+- Admin web `npm run lint`: passed again in Round 27.
+- Admin web `npm run test`: passed again in Round 27, 23 tests. Round 27 added
+  order-management tests for check-in, check-out, no-show, after-sale rejection,
+  and failed refund retry.
+- Admin web `npm run build`: passed again in Round 27.
 - Admin web `node scripts/check_admin_web_behavior_wiring.js`: passed in
   Round 17 with 97 key behavior wiring checks across 16 files.
 - Admin web external QA preflight

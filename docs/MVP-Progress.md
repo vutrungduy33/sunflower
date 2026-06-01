@@ -1521,3 +1521,80 @@
     remains open. This round did not create real WeChat preview/device evidence,
     set an HTTPS legal request domain, run real payment/refund, or update
     strict manual QA ledgers to passed/waived.
+
+## Round 27: Admin Order Operations Test Expansion
+
+- Date: 2026-06-02
+- Status: completed and committed.
+- Focus: strengthen admin-web local evidence for the highest-risk order
+  operations path before production or approved-staging manual QA.
+- Start evidence:
+  - `git status --short --untracked-files=all`: clean after Round 26 commit.
+  - `docs/Admin-Web-MVP-QA.md` records admin lint/test/build as green and
+    describes production manual QA as still pending.
+  - Existing `sunflower-admin-web/src/test/order-management-page.test.tsx`
+    covers order filters, direct reschedule, after-sale approval, and direct
+    refund failure feedback.
+  - The required `ADMIN-ORDER-OPS` and `ADMIN-AFTER-SALE` manual QA IDs still
+    include check-in, check-out, no-show, after-sale rejection, and failed refund
+    retry operations that are only statically guarded by
+    `scripts/check_admin_web_behavior_wiring.js`.
+- Open-source reference check:
+  - Task classification: common React admin dashboard mutation-flow testing for
+    operational CRUD and after-sale actions.
+  - Sources checked:
+    - Testing Library guiding principles:
+      `https://testing-library.com/docs/guiding-principles/`.
+    - Vitest mocking guide:
+      `https://vitest.dev/guide/mocking.html`.
+    - TanStack Query testing guidance:
+      `https://tanstack.com/query/latest/docs/framework/react/guides/testing`.
+    - Existing project tests and service/page code:
+      `sunflower-admin-web/src/test/order-management-page.test.tsx`,
+      `sunflower-admin-web/src/pages/order-management-page.tsx`, and
+      `sunflower-admin-web/src/features/orders/admin-order-service.ts`.
+  - Selected approach: extend the existing Vitest + Testing Library order page
+    tests with user-visible interactions for check-in, check-out, no-show,
+    after-sale rejection, and failed refund retry. This reuses the current
+    TDesign component mocks and TanStack Query test harness instead of adding a
+    new browser/e2e dependency.
+  - License/compatibility: official documentation referenced; no external code
+    copied.
+  - Reused/adapted: existing project test helpers, mocked service contracts, and
+    operator-visible behavior assertions.
+  - Rejected options: adding Playwright before production credentials/safe QA
+    data exist, creating a generic static coverage-only checker, or marking unit
+    tests as proof of production manual QA.
+- Risks:
+  - These are local mocked tests. They improve confidence that admin UI actions
+    call the right services and show feedback, but they do not prove real admin
+    credentials, SMS, deployed browser behavior, live data safety, or backend
+    mutation outcomes.
+- Acceptance criteria:
+  - Order page tests cover check-in, check-out, no-show, after-sale rejection,
+    and failed refund retry service calls and success feedback.
+  - Admin lint/test/build and admin behavior/preflight guards pass.
+  - Admin QA/readiness/project-state docs mention the expanded local order
+    operations coverage and its production/manual QA limits.
+  - Focused validation passes and the round is committed once.
+- Verification:
+  - `cd sunflower-admin-web && npm run test -- src/test/order-management-page.test.tsx`:
+    passed, 7 order-management tests.
+  - `cd sunflower-admin-web && npm run lint`: passed.
+  - `cd sunflower-admin-web && npm run test`: passed, 23 tests.
+  - `cd sunflower-admin-web && npm run build`: passed.
+  - `node scripts/check_admin_web_behavior_wiring.js`: passed with 97 checks
+    across 16 files.
+  - `node scripts/check_admin_web_external_qa_preflight.js`: passed with 6
+    checks.
+- Change summary:
+  - Expanded `sunflower-admin-web/src/test/order-management-page.test.tsx` from
+    4 to 7 tests, adding operator-visible coverage for after-sale rejection,
+    check-in/check-out/no-show, and failed refund retry.
+  - Updated admin QA/readiness/project-state docs and this progress log with
+    the Round 27 local quality baseline.
+- Goal correction:
+  - Admin local operations evidence is stronger, but MVP completion remains
+    open. This round does not replace production or approved-staging admin
+    manual QA, dedicated account/SMS validation, live data restoration evidence,
+    or strict admin manual QA ledger completion.

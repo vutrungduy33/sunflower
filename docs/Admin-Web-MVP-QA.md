@@ -17,8 +17,8 @@ node scripts/check_admin_web_external_qa_preflight.js
 Current recorded baseline:
 
 - `npm run lint`: passed again in Round 25.
-- `npm run test`: passed again in Round 25, 20 tests.
-- `npm run build`: passed again in Round 25.
+- `npm run test`: passed again in Round 27, 23 tests.
+- `npm run build`: passed again in Round 27.
 - `node scripts/check_admin_web_behavior_wiring.js`: passed in Round 17 with
   97 key behavior wiring checks across 16 files.
 - `node scripts/check_admin_web_external_qa_preflight.js`: added in Round 22 to
@@ -27,7 +27,8 @@ Current recorded baseline:
   safety wording before production or approved-staging QA.
 
 The automated tests cover auth page behavior, protected shell routing, room
-management, price/inventory management, order list/detail/actions, and price
+management, price/inventory management, order list/detail/actions, after-sale
+approval/rejection, failed refund retry, check-in, check-out, no-show, and price
 batch utility logic. The behavior wiring guard checks route, service endpoint,
 page action, and mutation-refetch wiring. These checks do not prove production
 admin account, SMS, browser, or live data safety.
