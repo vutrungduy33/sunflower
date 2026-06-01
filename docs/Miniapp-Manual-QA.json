@@ -8,7 +8,7 @@
     "committedAppId": "touristappid",
     "defaultApiBaseUrl": "http://47.113.223.248",
     "expectedProductionApiBaseUrl": "https://<api-domain>",
-    "notes": "Use a local uncommitted real AppID and HTTPS legal request domain for preview/real-device validation."
+    "notes": "Use ignored local sunflower-miniapp/project.private.config.json for real AppID preview/real-device validation, and use an HTTPS legal request domain."
   },
   "checks": [
     {
@@ -31,7 +31,7 @@
       "status": "pending",
       "requiredForMvp": true,
       "evidence": "Not recorded in repo.",
-      "nextAction": "Run preview with local AppID and verify git diff does not include the real AppID."
+      "nextAction": "Copy project.private.config.example.json to ignored project.private.config.json, set the real AppID locally, run preview, and verify git diff does not include the real AppID."
     },
     {
       "id": "MINIAPP-WX-LOGIN",

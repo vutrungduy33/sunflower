@@ -19,5 +19,8 @@
 deploy-bundle.tgz
 .secrets/
 
+# WeChat DevTools personal overrides; keep real AppID out of Git.
+sunflower-miniapp/project.private.config.json
+
 # Java build
 **/target/

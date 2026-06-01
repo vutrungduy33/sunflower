@@ -11,6 +11,7 @@ Run from the repository root:
 ```bash
 node scripts/check_miniapp_mvp_smoke.js
 node scripts/check_miniapp_behavior_wiring.js
+node scripts/check_miniapp_external_qa_preflight.js
 bash scripts/check_miniapp_project_config.sh
 bash scripts/check_mvp_subpage_nav.sh
 ```
@@ -21,6 +22,9 @@ Current recorded baseline:
   audit with the expected bare HTTP API warning.
 - `node scripts/check_miniapp_behavior_wiring.js`: passed in Round 16 with 69
   key behavior wiring checks across 14 files.
+- `node scripts/check_miniapp_external_qa_preflight.js`: added in Round 21 to
+  check AppID/private-config boundaries and external QA readiness without
+  printing private AppID values.
 - `bash scripts/check_miniapp_project_config.sh`: passed in the 2026-06-02
   closeout audit.
 - `bash scripts/check_mvp_subpage_nav.sh`: passed in the 2026-06-02 closeout
@@ -58,7 +62,11 @@ Current result:
 ## 3. Preview / Real-Device Rules
 
 - Keep committed `sunflower-miniapp/project.config.json` at `touristappid`.
-- Use a local uncommitted real AppID for preview or real-device validation.
+- Use a local uncommitted real AppID for preview or real-device validation by
+  copying `sunflower-miniapp/project.private.config.example.json` to
+  `sunflower-miniapp/project.private.config.json` and replacing only the local
+  placeholder. WeChat DevTools gives this private file higher priority than
+  `project.config.json`, and the file is ignored by Git.
 - Override API base only with an HTTPS legal WeChat request domain:
 
 ```js
@@ -128,6 +136,8 @@ Resilience:
     `https://developers.weixin.qq.com/miniprogram/dev/api/payment/wx.requestPayment.html`.
   - WeChat Pay Mini Program requestPayment guide:
     `https://pay.wechatpay.cn/doc/v3/merchant/4012791898`.
+  - WeChat DevTools project configuration documentation:
+    `https://developers.weixin.qq.com/miniprogram/dev/devtools/projectconfig.html`.
 - Selected approach: JSON manual QA ledger plus Node checker, matching the
   project evidence-ledger pattern and avoiding a new device automation
   dependency before real AppID/domain/payment credentials are available.

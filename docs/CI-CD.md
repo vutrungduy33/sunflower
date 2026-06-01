@@ -20,7 +20,10 @@ PR 门禁 workflow 已移除。仓库当前不再强制：
 补充说明：
 
 - `sunflower-miniapp/project.config.json` 在仓库中必须固定使用占位值 `touristappid`，避免把真实微信小程序 `appid` 提交入库。
-- 若本地联调需要真实小程序身份，请只在本地工作区临时替换 `project.config.json`，提交前恢复为 `touristappid`。
+- 若本地联调需要真实小程序身份，请复制
+  `sunflower-miniapp/project.private.config.example.json` 为被 Git 忽略的
+  `sunflower-miniapp/project.private.config.json`，只在该私有配置中填写真实
+  AppID；不要修改已提交的 `project.config.json`。
 - 推送到 `main` 仍会触发 `deploy-backend.yml` 自动部署。
 
 ---

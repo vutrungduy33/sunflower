@@ -115,7 +115,7 @@
 │  ├─ pages/                       # 页面集合
 │  ├─ utils/
 │  ├─ project.config.json
-│  └─ project.private.config.json
+│  └─ project.private.config.example.json
 ├─ sunflower-backend/             # Spring Boot 后端工程
 ├─ docker-compose.yml             # 本地/单机联调
 ├─ docker-compose.backend.yml     # ECS-2 backend/mysql 部署

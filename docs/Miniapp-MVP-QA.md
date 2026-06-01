@@ -11,6 +11,7 @@ Run from the repository root:
 ```bash
 node scripts/check_miniapp_mvp_smoke.js
 node scripts/check_miniapp_behavior_wiring.js
+node scripts/check_miniapp_external_qa_preflight.js
 bash scripts/check_miniapp_project_config.sh
 bash scripts/check_mvp_subpage_nav.sh
 ```
@@ -25,6 +26,8 @@ The smoke script checks:
 - `project.config.json` keeps the committed placeholder `touristappid`.
 - `DEFAULT_API_BASE_URL` is present; non-HTTPS values are reported as a warning
   because they are only acceptable for local/devtools validation.
+- `project.private.config.json` is ignored/untracked and safe to use for local
+  real AppID preview without changing committed project configuration.
 
 The behavior wiring script checks:
 
@@ -52,8 +55,10 @@ node scripts/check_miniapp_manual_qa.js --strict
 
 1. Open `/Users/chenyao/dev/miniapp/sunflower/sunflower-miniapp`.
 2. Keep `project.config.json` committed as `touristappid`.
-3. For real login/phone/payment validation, use a local uncommitted real AppID
-   and restore `touristappid` before committing.
+3. For real login/phone/payment validation, copy
+   `project.private.config.example.json` to `project.private.config.json` and
+   put the real AppID only in that ignored local file. WeChat DevTools gives
+   `project.private.config.json` higher priority than `project.config.json`.
 4. In develop/trial, use the login page API switcher or:
 
 ```js
@@ -119,6 +124,8 @@ Production acceptance:
 - The committed default API base is currently a bare HTTP IP for DevTools
   validation and must be replaced or overridden by HTTPS before production
   preview/release.
+- `project.private.config.json` is intentionally ignored. Do not commit a real
+  AppID or local private DevTools settings.
 - `node scripts/check_miniapp_manual_qa.js --strict` currently fails by design
   until preview/real-device, payment, refund, and error-state evidence is
   recorded or explicitly waived.

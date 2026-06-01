@@ -205,7 +205,7 @@ Ledger update reminder:
 - Area: miniapp
 - Requirement: WeChat preview or real-device login obtains backend token and stores profile state without devtools-only bypasses.
 - Current evidence: Not recorded in repo. Detailed miniapp QA ledger exists at docs/Miniapp-Manual-QA.json.
-- Next action: Run WeChat DevTools preview or real device with real AppID and legal domain, then record pass/fail summary in docs/Miniapp-Manual-QA.json.
+- Next action: Run WeChat DevTools preview or real device with real AppID from ignored project.private.config.json and legal domain, then record pass/fail summary in docs/Miniapp-Manual-QA.json.
 
 Suggested sanitized evidence entry:
 
@@ -294,7 +294,7 @@ Ledger update reminder:
 - Requirement: Real preview/real-device run uses a local uncommitted real AppID while the committed project.config.json remains touristappid.
 - Related APIs/capabilities: `wx.login`
 - Current evidence: Not recorded in repo.
-- Next action: Run preview with local AppID and verify git diff does not include the real AppID.
+- Next action: Copy project.private.config.example.json to ignored project.private.config.json, set the real AppID locally, run preview, and verify git diff does not include the real AppID.
 
 Suggested sanitized evidence entry:
 

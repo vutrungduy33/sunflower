@@ -48,6 +48,11 @@ Current snapshot after 2026-06-02 Round 20 production read-only audit:
   with 69 key behavior wiring checks across 14 files.
 - Miniapp `bash scripts/check_miniapp_project_config.sh`: passed.
 - Miniapp `bash scripts/check_mvp_subpage_nav.sh`: passed.
+- Miniapp external QA preflight
+  `node scripts/check_miniapp_external_qa_preflight.js`: added in Round 21 to
+  verify committed AppID placeholder, ignored/untracked private DevTools
+  config, safe private-config example, API base override support, and required
+  manual QA ledger IDs before preview/real-device evidence collection.
 - Production `http://47.113.223.248/api/health`: returned 200 in Round 5.
 - Production `http://47.113.223.248/api/content/home`: returned 200 in Round 5.
 - Production `http://47.113.223.248/healthz`: returned 200 in Round 5.
@@ -139,6 +144,9 @@ Current snapshot after 2026-06-02 Round 20 production read-only audit:
 
 - Miniapp real-device validation for WeChat login, phone binding, and payment is
   not yet documented as passed.
+- Real WeChat AppID must stay in ignored local
+  `sunflower-miniapp/project.private.config.json`; committed
+  `sunflower-miniapp/project.config.json` must remain `touristappid`.
 - Miniapp default API base is still bare HTTP IP for devtools validation; final
   production requires HTTPS legal WeChat request domain.
 - Backend container observed binding public `0.0.0.0:8080`; security group should
@@ -160,6 +168,8 @@ Current snapshot after 2026-06-02 Round 20 production read-only audit:
   `scripts/check_production_readonly_audit.sh`.
 - Deploy config static check: `scripts/check_deploy_config.sh`.
 - Admin web behavior wiring check: `scripts/check_admin_web_behavior_wiring.js`.
+- Miniapp external QA preflight:
+  `scripts/check_miniapp_external_qa_preflight.js`.
 
 ## Current Dirty Worktree Note
 

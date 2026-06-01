@@ -32,7 +32,10 @@
 
 1. 微信开发者工具打开目录：`/Users/chenyao/dev/miniapp/sunflower/sunflower-miniapp`
 2. 仓库默认使用 `touristappid`，可直接以游客模式打开并浏览页面
-3. 若需调试微信登录等依赖真实小程序身份的能力，请在本地把 `project.config.json` 的 `appid` 改为你自己的小程序 AppID，提交前恢复为 `touristappid`
+3. 若需调试微信登录等依赖真实小程序身份的能力，请复制
+   `project.private.config.example.json` 为本地未跟踪的
+   `project.private.config.json`，只在私有配置里填写真实 AppID；不要修改
+   已提交的 `project.config.json`
 4. 首次进入默认为 MVP 首页，可从底部导航体验主流程
 
 ## 5. 联调约定
@@ -54,6 +57,7 @@
 ```bash
 node scripts/check_miniapp_mvp_smoke.js
 node scripts/check_miniapp_behavior_wiring.js
+node scripts/check_miniapp_external_qa_preflight.js
 bash scripts/check_miniapp_project_config.sh
 bash scripts/check_mvp_subpage_nav.sh
 node scripts/check_miniapp_manual_qa.js

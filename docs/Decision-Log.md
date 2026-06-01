@@ -185,3 +185,15 @@ Append durable decisions here. Keep entries short and include provenance.
   making normal local regression contact production by default.
 - Provenance: `scripts/check_production_readonly_audit.sh`,
   `docs/Production-Smoke.md`, `docs/MVP-Readiness.md`.
+
+## 2026-06-02: Keep WeChat AppID in Ignored Private Config
+
+- Decision: Do not track `sunflower-miniapp/project.private.config.json`; keep
+  real WeChat AppID overrides only in that ignored local file and keep committed
+  `project.config.json` at `touristappid`.
+- Rationale: WeChat DevTools supports private project configuration with higher
+  priority than `project.config.json`, which lets operators run preview/real
+  device QA without risking a real AppID commit.
+- Provenance: WeChat DevTools project configuration documentation,
+  `sunflower-miniapp/project.private.config.example.json`,
+  `scripts/check_miniapp_external_qa_preflight.js`.

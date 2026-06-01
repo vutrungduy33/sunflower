@@ -1077,3 +1077,82 @@
     and phone binding, real payment/refund, admin production manual QA, current
     branch deployment, or Alibaba Cloud security-group restriction for backend
     `8080`.
+
+## Round 21: Miniapp External QA Preflight
+
+- Date: 2026-06-02
+- Status: completed.
+- Focus: reduce the risk of leaking a real WeChat AppID during preview or
+  real-device QA by moving personal DevTools configuration to an ignored private
+  file pattern and adding a machine-checkable miniapp external QA preflight.
+- Start evidence:
+  - `git status --short --untracked-files=all`: clean after Round 20 commit.
+  - `sunflower-miniapp/project.config.json` is correctly committed with
+    `touristappid`.
+  - `sunflower-miniapp/project.private.config.json` is currently tracked even
+    though WeChat DevTools treats it as personal/local configuration.
+  - Miniapp manual QA remains pending because real AppID, legal HTTPS request
+    domain, phone binding, payment, and refund evidence is not recorded.
+- Open-source reference check:
+  - Task classification: common mobile/app external QA secret-hygiene preflight
+    around local project configuration.
+  - Sources checked:
+    - WeChat official project configuration documentation:
+      `https://developers.weixin.qq.com/miniprogram/dev/devtools/projectconfig.html`.
+    - Existing project scripts and docs:
+      `scripts/check_miniapp_project_config.sh`,
+      `scripts/check_miniapp_mvp_smoke.js`,
+      `docs/Miniapp-Manual-QA.md`, `docs/Miniapp-MVP-QA.md`, and
+      `sunflower-miniapp/README.md`.
+  - Selected approach: follow WeChat DevTools' `project.private.config.json`
+    pattern for personal AppID overrides, keep that file ignored/untracked, and
+    add a repo-local Node.js preflight that validates the safe boundaries without
+    printing private AppID values.
+  - License/compatibility: official documentation referenced; no external code
+    copied.
+  - Reused/adapted: existing project-local smoke/checker style and evidence
+    ledger model.
+  - Rejected options: editing committed `project.config.json` for real AppID,
+    storing real AppID in docs, or adding device automation before HTTPS domain
+    and credentials are available.
+- Risks:
+  - This preflight improves handoff and secret hygiene, but it still cannot
+    prove WeChat login, phone authorization, payment/refund, or legal request
+    domain behavior. Those require external execution and sanitized evidence.
+- Acceptance criteria:
+  - `sunflower-miniapp/project.private.config.json` is ignored and no longer
+    tracked by Git.
+  - A safe private-config example exists for local operators.
+  - A new preflight verifies placeholder committed AppID, ignored/untracked
+    private config, safe template, runtime API override support, and required
+    miniapp manual QA ledger entries.
+  - Miniapp automated checks include the new preflight.
+  - Miniapp docs explain using private config instead of editing committed
+    `project.config.json`.
+  - Focused verification passes and the round is committed once.
+- Verification:
+  - `node --check scripts/check_miniapp_external_qa_preflight.js`: passed.
+  - `node scripts/check_miniapp_external_qa_preflight.js`: passed with 6 checks
+    and the expected warning that local `project.private.config.json` is absent
+    until an operator creates it for real preview QA.
+  - `node scripts/check_miniapp_mvp_smoke.js`: passed with the expected bare
+    HTTP API warning.
+  - `node scripts/check_miniapp_manual_qa.js`: passed in non-strict mode and
+    still reports 12 pending required external QA checks.
+  - `node scripts/check_mvp_external_evidence_template.js`: passed.
+  - `RUN_BACKEND=0 RUN_ADMIN=0 RUN_EVIDENCE=0 RUN_DEPLOY_CONFIG=0 scripts/check_mvp_regression.sh`:
+    passed miniapp checks with backend, admin, evidence, deploy config, and
+    production checks skipped for this focused run.
+- Change summary:
+  - Stopped tracking `sunflower-miniapp/project.private.config.json` and added
+    it to `.gitignore`.
+  - Added `sunflower-miniapp/project.private.config.example.json`.
+  - Added `scripts/check_miniapp_external_qa_preflight.js`.
+  - Wired the preflight into aggregate miniapp regression.
+  - Updated miniapp QA, readiness, launch evidence, context, CI/CD, README,
+    project-state, and decision docs.
+- Goal correction:
+  - Miniapp external QA is safer and more repeatable for the next human
+    preview/real-device pass, but the MVP goal remains open. This round did not
+    execute real WeChat login, phone authorization, legal HTTPS request-domain
+    validation, real payment/refund, or admin production QA.

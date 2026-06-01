@@ -56,7 +56,7 @@
       "status": "pending",
       "requiredForMvp": true,
       "evidence": "Not recorded in repo. Detailed miniapp QA ledger exists at docs/Miniapp-Manual-QA.json.",
-      "nextAction": "Run WeChat DevTools preview or real device with real AppID and legal domain, then record pass/fail summary in docs/Miniapp-Manual-QA.json."
+      "nextAction": "Run WeChat DevTools preview or real device with real AppID from ignored project.private.config.json and legal domain, then record pass/fail summary in docs/Miniapp-Manual-QA.json."
     },
     {
       "id": "WECHAT-PHONE",
