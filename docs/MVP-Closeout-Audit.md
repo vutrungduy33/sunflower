@@ -28,6 +28,9 @@ Production smoke:
 
 - `RUN_INTERNAL=1 scripts/check_production_smoke.sh`: passed with 7 checks and
   1 known backend-bind warning.
+- `RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh`: passed read-only
+  checks with 3 passes and 2 warnings; this does not prove security group
+  restriction.
 - `http://47.113.223.248/api/health`: 200.
 - `http://47.113.223.248/api/content/home`: 200.
 - `http://47.113.223.248/healthz`: 200.
@@ -63,7 +66,9 @@ Workflow and docs:
 - HTTPS legal request domain for miniapp production is not proven.
 - Backend `8080` hardening is not proven. ECS-2 still shows Docker binding
   `0.0.0.0:8080->8080/tcp`; security group/firewall must restrict direct
-  backend access to ECS-1.
+  backend access to ECS-1. The read-only 8080 check confirms local public probe
+  unavailable and ECS-1 private upstream works, but local firewall output did
+  not prove restriction.
 - Current branch `codex/s18-payment-hardening` has not been pushed/merged to
   `main`, so current repository commits have not triggered production deploy.
 - Admin web production manual QA with a real admin account is not recorded as

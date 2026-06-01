@@ -62,6 +62,7 @@ Production smoke:
 
 ```bash
 RUN_INTERNAL=1 scripts/check_production_smoke.sh
+RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh
 ```
 
 Launch evidence:

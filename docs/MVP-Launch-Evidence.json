@@ -109,8 +109,8 @@
       "requirement": "Direct public access to backend port 8080 is restricted to ECS-1 by security group or host firewall, or explicitly accepted by the user as a launch risk.",
       "status": "pending",
       "requiredForMvp": true,
-      "evidence": "ECS-2 Docker still reports backend bound to 0.0.0.0:8080; public probe is not directly usable from the local network but does not prove restriction.",
-      "nextAction": "Confirm Alibaba Cloud security group/firewall policy before launch; modifying it requires user approval."
+      "evidence": "RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh passed read-only checks: public 8080 was not directly usable from this network, ECS-1 private upstream works, and ECS-2 backend is healthy. ECS-2 still shows docker-proxy listening on 0.0.0.0:8080, and local firewall output did not prove restriction.",
+      "nextAction": "Record Alibaba Cloud security group evidence in docs/Backend-8080-Security.md or get explicit user waiver before marking this entry passed or waived. Modifying security group/firewall requires user approval."
     },
     {
       "id": "CURRENT-BRANCH-DEPLOYED",

@@ -32,7 +32,7 @@ verified, and documented enough for handoff:
 | WeChat pay/refund | Backend has WeChat payment/refund gateway, callbacks, records, retry, and mock only when explicitly configured; miniapp payment QA ledger now exists. | Needs production evidence | Verify small real payment/refund with merchant config and callback domain, then record sanitized evidence. |
 | Admin operations path | Core pages and tests exist for auth, room, price/inventory, and order management; manual QA ledger now exists. | Partially verified | Run `node scripts/check_admin_web_manual_qa.js --strict` against deployed admin web after recording safe evidence. |
 | Deployment | Scripted production smoke returned 7 passes and 1 known backend-bind warning; public `/api/health`, `/api/content/home`, `/healthz`, admin web HTML, and ECS internal health passed. | Partially verified | Push/dispatch deploy only after confirming branch/production intent. |
-| Security / compliance | Secrets are local/ECS-owned; `.secrets/` ignored. Known issue: backend `8080` observed publicly bound. | Needs hardening | Restrict backend port to ECS-1 and complete HTTPS/WeChat domain setup. |
+| Security / compliance | Secrets are local/ECS-owned; `.secrets/` ignored. `RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh` shows public 8080 not directly usable from this network, but ECS-2 still listens on `0.0.0.0:8080` and firewall/security-group restriction is not proven. | Needs hardening | Record Alibaba Cloud security group evidence or explicit user waiver; complete HTTPS/WeChat domain setup. |
 
 Detailed launch evidence is tracked in `docs/MVP-Launch-Evidence.md` and
 `docs/MVP-Launch-Evidence.json`. Final MVP completion requires the strict
@@ -44,6 +44,9 @@ Miniapp manual QA is tracked separately in `docs/Miniapp-Manual-QA.md` and
 
 Admin-web manual QA is tracked separately in `docs/Admin-Web-MVP-QA.md` and
 `docs/Admin-Web-Manual-QA.json`.
+
+Backend `8080` hardening evidence is tracked separately in
+`docs/Backend-8080-Security.md`.
 
 ## 3. Final Verification Commands
 
@@ -82,6 +85,7 @@ After an approved production deploy:
 
 ```bash
 RUN_INTERNAL=1 scripts/check_production_smoke.sh
+RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh
 ```
 
 Latest production smoke notes live in `docs/Production-Smoke.md`.
@@ -147,6 +151,8 @@ Production:
   because miniapp preview/real-device/payment evidence remains pending.
 - `node scripts/check_admin_web_manual_qa.js --strict` currently fails by
   design because admin production/staging manual QA evidence remains pending.
+- `RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh` improves evidence but
+  does not prove Alibaba Cloud security group restriction.
 
 ## 6. Next Rounds
 

@@ -406,3 +406,45 @@
     complete. Real preview/device credentials, HTTPS legal domain,
     payment/refund approval, and safe QA data or explicit user waivers are still
     required before final MVP completion.
+
+## Round 10: Backend 8080 Read-Only Security Evidence
+
+- Date: 2026-06-02
+- Status: completed, hardening remains pending.
+- Focus: make backend `8080` exposure evidence repeatable without modifying
+  production firewall, security group, Docker, or deployment configuration.
+- Start evidence:
+  - `git status --short --untracked-files=all`: clean after Round 9 commit.
+  - Production smoke already showed ECS-2 backend listening on
+    `0.0.0.0:8080`, but the public probe was not direct proof of Alibaba Cloud
+    security group restriction.
+- Change summary:
+  - Added `scripts/check_backend_8080_exposure.sh`.
+  - Added `docs/Backend-8080-Security.md`.
+  - Updated launch evidence, readiness, context, project-state, closeout, and
+    decision docs with the read-only evidence path.
+- Open-source reference check:
+  - Task classification: common production port exposure and launch security
+    evidence tracking.
+  - Sources checked: existing production smoke/deploy docs/scripts, Docker
+    Compose port publishing reference, and Ubuntu UFW reference.
+  - Selected approach: read-only Bash script using curl, ssh, Docker, `ss`,
+    `ufw`, and `iptables`; no new dependency and no production mutation.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: existing SSH/curl pattern from
+    `scripts/check_production_smoke.sh`.
+  - Rejected options: automatically modifying Alibaba Cloud security groups,
+    rewriting Docker bind host, or treating a single failed public curl as proof
+    of restriction.
+- Acceptance criteria:
+  - `bash -n scripts/check_backend_8080_exposure.sh`: passed.
+  - `scripts/check_backend_8080_exposure.sh`: passed with 1 check and 1 warning
+    because internal SSH inspection was intentionally skipped.
+  - `RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh`: passed with 3
+    checks and 2 warnings.
+  - `node scripts/check_mvp_launch_evidence.js`: passed with
+    `BACKEND-8080-HARDENING` still pending.
+- Goal correction:
+  - This round improves evidence but does not complete backend hardening. Final
+    MVP still needs Alibaba Cloud security group/firewall evidence or explicit
+    user acceptance of the direct-backend-port risk.

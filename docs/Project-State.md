@@ -47,6 +47,12 @@ Current snapshot after 2026-06-02 final local audit:
 - Production `http://47.113.223.248/`: returned 200 admin web HTML in Round 5.
 - Production `RUN_INTERNAL=1 scripts/check_production_smoke.sh`: passed on
   2026-06-02 with 7 checks and 1 known backend-bind warning.
+- Backend 8080 read-only security check
+  `RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh`: passed on
+  2026-06-02 with 3 checks and 2 warnings. It confirms public 8080 is not
+  directly usable from this local network and ECS-1 private upstream works, but
+  does not prove security-group restriction because ECS-2 still listens on
+  `0.0.0.0:8080`.
 - Launch evidence `node scripts/check_mvp_launch_evidence.js`: passed on
   2026-06-02.
 - Launch evidence `node scripts/check_mvp_launch_evidence.js --strict`: expected
@@ -84,6 +90,7 @@ Current snapshot after 2026-06-02 final local audit:
 - Miniapp QA tracker: `docs/Miniapp-MVP-QA.md`.
 - Miniapp manual QA tracker: `docs/Miniapp-Manual-QA.md`.
 - Backend/API QA tracker: `docs/Backend-MVP-QA.md`.
+- Backend 8080 security tracker: `docs/Backend-8080-Security.md`.
 - Admin web QA tracker: `docs/Admin-Web-MVP-QA.md`.
 - Production smoke tracker: `docs/Production-Smoke.md`.
 - Launch evidence tracker: `docs/MVP-Launch-Evidence.md`.

@@ -21,6 +21,7 @@ node scripts/check_miniapp_manual_qa.js
 node scripts/check_miniapp_manual_qa.js --strict
 node scripts/check_admin_web_manual_qa.js
 node scripts/check_admin_web_manual_qa.js --strict
+RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh
 ```
 
 Use the first command during normal rounds to print the current evidence status.
@@ -63,6 +64,7 @@ The remaining launch evidence is concentrated in these areas:
 - Admin web production manual QA with a real admin account. Detailed admin QA
   ledger: `docs/Admin-Web-MVP-QA.md`.
 - Backend `8080` direct-access restriction or explicit user risk acceptance.
+  Detailed security evidence: `docs/Backend-8080-Security.md`.
 - Approved deployment of current branch code through GitHub Actions, or explicit
   user decision that deployment is out of MVP closeout scope.
 

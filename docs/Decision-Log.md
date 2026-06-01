@@ -111,3 +111,13 @@ Append durable decisions here. Keep entries short and include provenance.
   booking, payment/refund, and resilience evidence without committing secrets or
   personal/payment data.
 - Provenance: `docs/Miniapp-Manual-QA.md`, `docs/MVP-Launch-Evidence.md`.
+
+## 2026-06-02: Track Backend 8080 Restriction Separately
+
+- Decision: Use `scripts/check_backend_8080_exposure.sh` and
+  `docs/Backend-8080-Security.md` for read-only backend port exposure evidence.
+- Rationale: A failed public curl does not prove Alibaba Cloud security group
+  restriction while ECS-2 still listens on `0.0.0.0:8080`; launch readiness
+  needs security-group/firewall evidence or explicit risk acceptance.
+- Provenance: `docs/Backend-8080-Security.md`,
+  `docs/MVP-Launch-Evidence.md`.
