@@ -28,9 +28,12 @@
 
 ## Recent Validation Snapshot
 
-Current snapshot after 2026-06-02 Round 27 admin order operations test expansion:
+Current snapshot after 2026-06-02 Round 28 backend order ownership boundary
+test expansion:
 
-- Backend `mvn -B test`: passed, 56 tests.
+- Backend `mvn -B test`: passed again in Round 28, 57 tests. Round 28 added
+  public order ownership isolation coverage for current-user list/detail/pay
+  preparation/pay confirmation/cancel/reschedule/refund actions.
 - Aggregate local regression `scripts/check_mvp_regression.sh`: passed on
   2026-06-02 with backend/admin/miniapp/evidence checks enabled and production
   checks skipped by default.

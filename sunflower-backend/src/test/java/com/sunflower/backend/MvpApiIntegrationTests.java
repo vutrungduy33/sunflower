@@ -1590,6 +1590,75 @@ class MvpApiIntegrationTests {
     }
 
     @Test
+    void shouldIsolateAllCurrentUserOrderActionsAcrossDifferentMockLoginCodes() throws Exception {
+        String ownerToken = loginAndGetToken("owner_order_action_code");
+        JsonNode ownerOrder = createOrder(
+            ownerToken,
+            buildCreateOrderPayload(
+                "room-lake-101",
+                "2026-02-12",
+                "2026-02-13",
+                "订单归属住客",
+                "13800000021",
+                "跨用户动作隔离"
+            )
+        );
+        String ownerOrderId = ownerOrder.path("id").asText();
+
+        String otherToken = loginAndGetToken("other_order_action_code");
+
+        MvcResult otherListResult = mockMvc
+            .perform(get("/api/orders").header("Authorization", bearerToken(otherToken)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andReturn();
+        JsonNode otherListBody = objectMapper.readTree(otherListResult.getResponse().getContentAsString());
+        for (JsonNode orderNode : otherListBody.path("data")) {
+            assertTrue(
+                !ownerOrderId.equals(orderNode.path("id").asText()),
+                "订单列表不应泄露其他用户订单: " + ownerOrderId
+            );
+        }
+
+        assertOtherUserOrderActionNotFound(get("/api/orders/{id}", ownerOrderId), otherToken);
+        assertOtherUserOrderActionNotFound(post("/api/orders/{id}/pay", ownerOrderId), otherToken);
+        assertOtherUserOrderActionNotFound(post("/api/orders/{id}/pay/confirm", ownerOrderId), otherToken);
+        assertOtherUserOrderActionNotFound(
+            post("/api/orders/{id}/cancel", ownerOrderId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"reason\":\"越权取消\"}"),
+            otherToken
+        );
+        assertOtherUserOrderActionNotFound(
+            post("/api/orders/{id}/reschedule", ownerOrderId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    "{"
+                        + "\"checkInDate\":\"2026-02-13\","
+                        + "\"checkOutDate\":\"2026-02-14\","
+                        + "\"reason\":\"越权改期\""
+                        + "}"
+                ),
+            otherToken
+        );
+        assertOtherUserOrderActionNotFound(
+            post("/api/orders/{id}/refund", ownerOrderId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"reason\":\"越权退款\"}"),
+            otherToken
+        );
+
+        mockMvc
+            .perform(get("/api/orders/{id}", ownerOrderId).header("Authorization", bearerToken(ownerToken)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(0))
+            .andExpect(jsonPath("$.data.id").value(ownerOrderId))
+            .andExpect(jsonPath("$.data.status").value("PENDING_PAYMENT"))
+            .andExpect(jsonPath("$.data.bookingStatus").value("PENDING_PAYMENT"))
+            .andExpect(jsonPath("$.data.paymentStatus").value("UNPAID"));
+    }
+
+    @Test
     void shouldRejectCreateOrderWhenInventoryInsufficient() throws Exception {
         LocalDate stayDate = LocalDate.parse("2026-02-13");
         setInventory("room-lake-101", stayDate, 3, 0, 3);
@@ -1823,6 +1892,17 @@ class MvpApiIntegrationTests {
                 )
                 .andReturn();
         });
+    }
+
+    private void assertOtherUserOrderActionNotFound(
+        org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder requestBuilder,
+        String token
+    ) throws Exception {
+        mockMvc
+            .perform(requestBuilder.header("Authorization", bearerToken(token)))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.code").value(40400))
+            .andExpect(jsonPath("$.message").value("订单不存在"));
     }
 
     private void setInventory(String roomId, LocalDate date, int totalStock, int availableStock, int lockedStock) {

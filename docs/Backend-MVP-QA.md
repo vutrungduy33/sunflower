@@ -11,10 +11,10 @@ Run from the repository root:
 cd sunflower-backend && mvn -B test
 ```
 
-Latest Round 4 result:
+Latest Round 28 result:
 
 - `mvn -B test`: passed.
-- Tests run: 56.
+- Tests run: 57.
 - Failures: 0.
 - Errors: 0.
 - Skipped: 0.
@@ -24,6 +24,8 @@ The test suite currently covers:
 - Spring Boot application context startup.
 - Flyway migration validation against H2 test profile.
 - MVP public API integration paths in `MvpApiIntegrationTests`.
+- Public order ownership isolation across current-user list/detail/pay
+  preparation/pay confirmation/cancel/reschedule/refund actions.
 - Admin auth integration paths in `AdminAuthIntegrationTests`.
 - WeChat auth/access-token/phone-number client behavior.
 - Tencent SMS sender behavior.

@@ -1598,3 +1598,70 @@
     open. This round does not replace production or approved-staging admin
     manual QA, dedicated account/SMS validation, live data restoration evidence,
     or strict admin manual QA ledger completion.
+
+## Round 28: Backend Order Ownership Boundary Tests
+
+- Date: 2026-06-02
+- Status: completed and committed.
+- Focus: strengthen backend MVP evidence for the public miniapp order ownership
+  boundary before real-device, payment, or production QA.
+- Start evidence:
+  - `git status --short --untracked-files=all`: clean after Round 27 commit.
+  - `MvpApiIntegrationTests` already covered public order create/cancel/detail,
+    payment preparation/confirmation, reschedule, refund, after-sale approval
+    and rejection, refund callbacks, admin operations, and one cross-user
+    detail isolation check.
+  - The remaining backend local evidence gap was that cross-user isolation was
+    not asserted for all public order actions that can expose data or mutate
+    state.
+- Open-source reference check:
+  - Task classification: common, security-sensitive API integration testing for
+    authenticated ownership boundaries.
+  - Sources checked:
+    - Spring Framework MockMvc reference:
+      `https://docs.spring.io/spring-framework/reference/testing/mockmvc.html`.
+    - Spring Boot testing reference for Spring Boot application tests:
+      `https://docs.spring.io/spring-boot/docs/2.7.18/reference/html/features.html#features.testing`.
+    - Existing project integration tests and services:
+      `sunflower-backend/src/test/java/com/sunflower/backend/MvpApiIntegrationTests.java`,
+      `OrderController`, `OrderService`, and `OrderPaymentService`.
+  - Selected approach: extend the existing Spring Boot + MockMvc integration
+    suite with a focused cross-user order action isolation test, reusing current
+    login/order helpers and expected API error semantics.
+  - License/compatibility: official documentation referenced; no external code
+    copied.
+  - Reused/adapted: existing project MockMvc helper style and backend API
+    contract semantics.
+  - Rejected options: adding a new API test framework, copying third-party
+    security tests, or changing API responses/contracts.
+- Risks:
+  - This proves local test-profile ownership behavior. It does not prove
+    production auth token configuration, real WeChat identity, HTTPS callback
+    delivery, real payment/refund, or deployed current-branch behavior.
+- Acceptance criteria:
+  - Cross-user token cannot see another user's order in `GET /api/orders`.
+  - Cross-user token receives the existing `40400 订单不存在` contract for
+    `GET /api/orders/{id}`, `POST /api/orders/{id}/pay`,
+    `POST /api/orders/{id}/pay/confirm`, `POST /api/orders/{id}/cancel`,
+    `POST /api/orders/{id}/reschedule`, and `POST /api/orders/{id}/refund`.
+  - Owner token can still retrieve the order after all rejected cross-user
+    attempts, proving no unauthorized mutation occurred.
+  - Focused and full backend validation pass and the round is committed once.
+- Verification:
+  - `cd sunflower-backend && mvn -B -Dtest=MvpApiIntegrationTests test`:
+    passed, 36 tests.
+  - `cd sunflower-backend && mvn -B test`: passed, 57 tests, 0 failures, 0
+    errors, 0 skipped.
+- Change summary:
+  - Added
+    `shouldIsolateAllCurrentUserOrderActionsAcrossDifferentMockLoginCodes` to
+    `MvpApiIntegrationTests`.
+  - Added a small helper for asserting the existing cross-user order not-found
+    contract.
+  - Updated backend QA/project-state/progress docs with the Round 28 baseline.
+- Goal correction:
+  - Backend local API ownership evidence is stronger, but MVP completion remains
+    open. This round does not replace the 33 unresolved external closeout items:
+    miniapp real-device/WeChat evidence, real payment/refund, admin production
+    or approved-staging manual QA, backend `8080` hardening proof, and
+    current-branch deployment evidence.
