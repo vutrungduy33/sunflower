@@ -1,0 +1,147 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-06-02",
+  "summary": "Manual WeChat DevTools preview / real-device QA ledger for sunflower-miniapp MVP user path. Keep AppID, tokens, phone numbers, payment payloads, screenshots with personal data, and merchant credentials out of Git.",
+  "statusValues": ["passed", "pending", "blocked", "waived"],
+  "environment": {
+    "projectRoot": "sunflower-miniapp",
+    "committedAppId": "touristappid",
+    "defaultApiBaseUrl": "http://47.113.223.248",
+    "expectedProductionApiBaseUrl": "https://<api-domain>",
+    "notes": "Use a local uncommitted real AppID and HTTPS legal request domain for preview/real-device validation."
+  },
+  "checks": [
+    {
+      "id": "MINIAPP-DOMAIN-HTTPS",
+      "area": "domain",
+      "route": "global api base",
+      "requirement": "Preview/release API requests use an HTTPS domain that is configured as a legal WeChat request domain and has a valid certificate.",
+      "relatedApis": ["/api/health", "/api/content/home"],
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Not recorded in repo. Default API base remains bare HTTP IP for DevTools/local validation only.",
+      "nextAction": "Set SUNFLOWER_API_BASE_URL to the HTTPS API domain in a local preview build and record domain/date/certificate result without secrets."
+    },
+    {
+      "id": "MINIAPP-APPID-PREVIEW",
+      "area": "environment",
+      "route": "project.config.json",
+      "requirement": "Real preview/real-device run uses a local uncommitted real AppID while the committed project.config.json remains touristappid.",
+      "relatedApis": ["wx.login"],
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Not recorded in repo.",
+      "nextAction": "Run preview with local AppID and verify git diff does not include the real AppID."
+    },
+    {
+      "id": "MINIAPP-WX-LOGIN",
+      "area": "auth",
+      "route": "pages/mvp/login/index",
+      "requirement": "wx.login obtains a code, backend /api/auth/wechat/login returns token/profile, token is stored, and /api/users/me can restore profile state.",
+      "relatedApis": ["wx.login", "/api/auth/wechat/login", "/api/users/me"],
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Not recorded in repo.",
+      "nextAction": "Run login in develop/trial preview or real device and record sanitized result, envVersion, and token/profile success summary."
+    },
+    {
+      "id": "MINIAPP-PHONE-BIND",
+      "area": "auth",
+      "route": "pages/mvp/order-create/index",
+      "requirement": "getPhoneNumber returns a phone authorization code, /api/auth/bind-phone succeeds, and the order form receives the bound phone.",
+      "relatedApis": ["getPhoneNumber", "/api/auth/bind-phone"],
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Not recorded in repo.",
+      "nextAction": "Run phone binding on preview/real device and record masked phone suffix or non-secret success summary only."
+    },
+    {
+      "id": "MINIAPP-HOME-CONTENT",
+      "area": "browse",
+      "route": "pages/mvp/home/index",
+      "requirement": "Home loads banners, services, featured rooms, member benefits, and uses the configured API base.",
+      "relatedApis": ["/api/content/home"],
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Automated smoke covers files/syntax only; preview or real-device content load is not recorded.",
+      "nextAction": "Open home in preview/real device and record sanitized content-load result."
+    },
+    {
+      "id": "MINIAPP-ROOM-BROWSE",
+      "area": "browse",
+      "route": "pages/mvp/booking/index pages/mvp/room-detail/index",
+      "requirement": "User can browse rooms, filter by keyword/date, open room detail, view calendar/pricing/rules, and navigate to order creation.",
+      "relatedApis": ["/api/rooms", "/api/rooms/{roomId}", "/api/rooms/{roomId}/calendar"],
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Not recorded in repo.",
+      "nextAction": "Run booking/room-detail flow and record room alias/date range and sanitized result."
+    },
+    {
+      "id": "MINIAPP-ORDER-CREATE",
+      "area": "booking",
+      "route": "pages/mvp/order-create/index",
+      "requirement": "Order create blocks invalid/unbound-phone submission, accepts valid guest data after phone binding, creates an order, and navigates to pay or order list.",
+      "relatedApis": ["/api/orders"],
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Not recorded in repo.",
+      "nextAction": "Run with QA room/date and record sanitized order alias/id suffix only."
+    },
+    {
+      "id": "MINIAPP-MOCK-PAYMENT",
+      "area": "payment",
+      "route": "pages/mvp/order-create/index pages/mvp/order-list/index",
+      "requirement": "When backend explicitly returns MOCK_WECHAT_PAY, payment flow confirms through /api/orders/{orderId}/pay/confirm and order list refreshes.",
+      "relatedApis": ["/api/orders/{orderId}/pay", "/api/orders/{orderId}/pay/confirm"],
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Code path exists in utils/mvp/payment.js, but preview/manual result is not recorded.",
+      "nextAction": "Run in approved dev/test environment if mock mode is enabled and record sanitized result."
+    },
+    {
+      "id": "MINIAPP-REAL-PAYMENT",
+      "area": "payment",
+      "route": "pages/mvp/order-create/index pages/mvp/order-list/index",
+      "requirement": "In production payment mode, wx.requestPayment is invoked, one low-value payment succeeds, backend confirm/status update is visible, and cancel/failure feedback is understandable.",
+      "relatedApis": ["wx.requestPayment", "/api/orders/{orderId}/pay", "/api/orders/{orderId}/pay/confirm"],
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Not recorded in repo.",
+      "nextAction": "Requires explicit user approval before real payment. Record non-secret transaction evidence only."
+    },
+    {
+      "id": "MINIAPP-ORDER-LIST-ACTIONS",
+      "area": "orders",
+      "route": "pages/mvp/order-list/index",
+      "requirement": "Order list loads, filters supported statuses, can cancel an unpaid order, submit reschedule request for eligible order, and submit refund request for eligible order.",
+      "relatedApis": ["/api/orders", "/api/orders/{orderId}/cancel", "/api/orders/{orderId}/reschedule", "/api/orders/{orderId}/refund"],
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Not recorded in repo.",
+      "nextAction": "Use QA orders and record sanitized action outcomes; waive unsafe production mutations only with explicit user approval."
+    },
+    {
+      "id": "MINIAPP-REFUND",
+      "area": "payment",
+      "route": "pages/mvp/order-list/index",
+      "requirement": "Refund request or real refund path is validated with merchant/backend status update, or explicitly waived when no safe payment/refund data exists.",
+      "relatedApis": ["/api/orders/{orderId}/refund", "/api/payments/wechat/refunds/notify"],
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Not recorded in repo.",
+      "nextAction": "Requires explicit user approval before real refund. Record non-secret result or waiver."
+    },
+    {
+      "id": "MINIAPP-ERROR-STATES",
+      "area": "resilience",
+      "route": "pages/mvp/login/index pages/mvp/order-create/index pages/mvp/order-list/index",
+      "requirement": "Expired token, network/API failure, payment cancel/failure, invalid form data, and denied phone authorization show understandable feedback and recovery path.",
+      "relatedApis": ["/api/users/me", "/api/orders", "wx.requestPayment", "getPhoneNumber"],
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Not recorded in repo.",
+      "nextAction": "Record sanitized examples from preview/real-device QA."
+    }
+  ]
+}

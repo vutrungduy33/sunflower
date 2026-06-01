@@ -52,6 +52,16 @@ Current snapshot after 2026-06-02 final local audit:
 - Launch evidence `node scripts/check_mvp_launch_evidence.js --strict`: expected
   non-zero on 2026-06-02 because 9 required external evidence entries remain
   pending.
+- Miniapp manual QA `node scripts/check_miniapp_manual_qa.js`: passed on
+  2026-06-02.
+- Miniapp manual QA `node scripts/check_miniapp_manual_qa.js --strict`:
+  expected non-zero on 2026-06-02 because 12 required miniapp manual QA checks
+  remain pending.
+- Miniapp Round 9 recheck `node scripts/check_miniapp_mvp_smoke.js`: passed
+  with expected bare HTTP API warning.
+- Miniapp Round 9 recheck `bash scripts/check_miniapp_project_config.sh`:
+  passed.
+- Miniapp Round 9 recheck `bash scripts/check_mvp_subpage_nav.sh`: passed.
 - Admin manual QA `node scripts/check_admin_web_manual_qa.js`: passed on
   2026-06-02.
 - Admin manual QA `node scripts/check_admin_web_manual_qa.js --strict`:
@@ -72,6 +82,7 @@ Current snapshot after 2026-06-02 final local audit:
   refreshed before handoff.
 - Canonical MVP readiness tracker: `docs/MVP-Readiness.md`.
 - Miniapp QA tracker: `docs/Miniapp-MVP-QA.md`.
+- Miniapp manual QA tracker: `docs/Miniapp-Manual-QA.md`.
 - Backend/API QA tracker: `docs/Backend-MVP-QA.md`.
 - Admin web QA tracker: `docs/Admin-Web-MVP-QA.md`.
 - Production smoke tracker: `docs/Production-Smoke.md`.

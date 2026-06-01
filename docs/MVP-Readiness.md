@@ -28,8 +28,8 @@ verified, and documented enough for handoff:
 | Backend local quality | Final audit `mvn -B test`: passed, 56 tests. | Ready locally | Keep green after future backend changes. |
 | Admin web local quality | Final audit `npm run lint`, `npm run test` (20 tests), `npm run build`: passed. | Ready locally | Keep green after future admin changes. |
 | Miniapp syntax/smoke | Final audit `node scripts/check_miniapp_mvp_smoke.js` plus existing miniapp guards passed. | Partially verified | Real-device login/phone/payment evidence still required. |
-| Miniapp real user path | Code supports real API, WeChat login, phone binding, `wx.requestPayment`, order and after-sale flows. | Needs real-device evidence | Verify in WeChat DevTools/preview with legal HTTPS request domain. |
-| WeChat pay/refund | Backend has WeChat payment/refund gateway, callbacks, records, retry, and mock only when explicitly configured. | Needs production evidence | Verify small real payment/refund with merchant config and callback domain. |
+| Miniapp real user path | Code supports real API, WeChat login, phone binding, `wx.requestPayment`, order and after-sale flows; manual QA ledger now exists. | Needs real-device evidence | Run `node scripts/check_miniapp_manual_qa.js --strict` after recording preview/real-device evidence. |
+| WeChat pay/refund | Backend has WeChat payment/refund gateway, callbacks, records, retry, and mock only when explicitly configured; miniapp payment QA ledger now exists. | Needs production evidence | Verify small real payment/refund with merchant config and callback domain, then record sanitized evidence. |
 | Admin operations path | Core pages and tests exist for auth, room, price/inventory, and order management; manual QA ledger now exists. | Partially verified | Run `node scripts/check_admin_web_manual_qa.js --strict` against deployed admin web after recording safe evidence. |
 | Deployment | Scripted production smoke returned 7 passes and 1 known backend-bind warning; public `/api/health`, `/api/content/home`, `/healthz`, admin web HTML, and ECS internal health passed. | Partially verified | Push/dispatch deploy only after confirming branch/production intent. |
 | Security / compliance | Secrets are local/ECS-owned; `.secrets/` ignored. Known issue: backend `8080` observed publicly bound. | Needs hardening | Restrict backend port to ECS-1 and complete HTTPS/WeChat domain setup. |
@@ -38,6 +38,9 @@ Detailed launch evidence is tracked in `docs/MVP-Launch-Evidence.md` and
 `docs/MVP-Launch-Evidence.json`. Final MVP completion requires the strict
 evidence check to pass, or for missing external evidence to be explicitly
 waived by the user.
+
+Miniapp manual QA is tracked separately in `docs/Miniapp-Manual-QA.md` and
+`docs/Miniapp-Manual-QA.json`.
 
 Admin-web manual QA is tracked separately in `docs/Admin-Web-MVP-QA.md` and
 `docs/Admin-Web-Manual-QA.json`.
@@ -48,6 +51,7 @@ Run before declaring the MVP goal complete:
 
 ```bash
 node scripts/check_mvp_launch_evidence.js --strict
+node scripts/check_miniapp_manual_qa.js --strict
 node scripts/check_admin_web_manual_qa.js --strict
 ```
 
@@ -103,6 +107,10 @@ Miniapp:
 - Submit reschedule request.
 - Submit refund request and observe status feedback.
 
+Detailed checklist and evidence rules:
+
+- `docs/Miniapp-Manual-QA.md`
+
 Admin web:
 
 - Activate an allowlisted admin account through SMS.
@@ -135,6 +143,8 @@ Production:
   deployment requires explicit branch/production confirmation.
 - `node scripts/check_mvp_launch_evidence.js --strict` currently fails by
   design because required external evidence remains pending.
+- `node scripts/check_miniapp_manual_qa.js --strict` currently fails by design
+  because miniapp preview/real-device/payment evidence remains pending.
 - `node scripts/check_admin_web_manual_qa.js --strict` currently fails by
   design because admin production/staging manual QA evidence remains pending.
 

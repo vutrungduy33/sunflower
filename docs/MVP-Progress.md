@@ -355,3 +355,54 @@
   - Admin-web manual QA is now ready to execute and record, but it is not
     complete. A real admin account and safe QA data or explicit user waivers are
     still required before final MVP completion.
+
+## Round 9: Miniapp Manual QA Ledger
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: make WeChat preview/real-device miniapp QA executable and
+  machine-checkable without storing AppID, phone, token, order, or payment
+  secrets.
+- Start evidence:
+  - `git status --short --untracked-files=all`: clean after Round 8 commit.
+  - Launch evidence had miniapp and payment entries pending, but no dedicated
+    sub-ledger existed for domain, AppID preview, login, phone binding, booking,
+    payment, refund, order actions, and error states.
+- Change summary:
+  - Added `docs/Miniapp-Manual-QA.json`.
+  - Added `docs/Miniapp-Manual-QA.md`.
+  - Added `scripts/check_miniapp_manual_qa.js`.
+  - Updated miniapp QA, launch evidence, readiness, context, project-state,
+    closeout, and decision docs to reference the miniapp manual QA ledger.
+- Open-source reference check:
+  - Task classification: common miniapp preview/real-device, auth, request
+    domain, payment, refund, and release-readiness evidence tracking.
+  - Sources checked: existing miniapp docs/code; WeChat Mini Program network,
+    `wx.login`, phone-number, and `wx.requestPayment` docs; WeChat Pay miniapp
+    requestPayment guide.
+  - Selected approach: JSON manual QA ledger plus Node checker, no new device
+    automation dependency until real AppID, HTTPS domain, merchant credentials,
+    and safe QA data are available.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: existing local evidence-ledger checker style and project
+    miniapp route/API surface.
+  - Rejected options: committing real AppID/payment payloads/screenshots,
+    adding device automation prematurely, or treating syntax smoke as proof of
+    real WeChat behavior.
+- Acceptance criteria:
+  - `node --check scripts/check_miniapp_manual_qa.js`: passed.
+  - `node scripts/check_miniapp_manual_qa.js`: passed and listed unresolved
+    required miniapp QA checks.
+  - `node scripts/check_miniapp_manual_qa.js --strict`: expected non-zero
+    because 12 required miniapp manual QA checks remain pending.
+  - `node scripts/check_mvp_launch_evidence.js`: passed with miniapp/payment
+    entries still pending and pointing to the miniapp QA ledger.
+  - `node scripts/check_miniapp_mvp_smoke.js`: passed with the expected bare
+    HTTP API warning.
+  - `bash scripts/check_miniapp_project_config.sh`: passed.
+  - `bash scripts/check_mvp_subpage_nav.sh`: passed.
+- Goal correction:
+  - Miniapp manual QA is now ready to execute and record, but it is not
+    complete. Real preview/device credentials, HTTPS legal domain,
+    payment/refund approval, and safe QA data or explicit user waivers are still
+    required before final MVP completion.

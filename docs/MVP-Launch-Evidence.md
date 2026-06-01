@@ -9,6 +9,7 @@
 Structured source:
 
 - `docs/MVP-Launch-Evidence.json`
+- Miniapp sub-ledger: `docs/Miniapp-Manual-QA.json`
 - Admin web sub-ledger: `docs/Admin-Web-Manual-QA.json`
 
 Check commands:
@@ -16,6 +17,8 @@ Check commands:
 ```bash
 node scripts/check_mvp_launch_evidence.js
 node scripts/check_mvp_launch_evidence.js --strict
+node scripts/check_miniapp_manual_qa.js
+node scripts/check_miniapp_manual_qa.js --strict
 node scripts/check_admin_web_manual_qa.js
 node scripts/check_admin_web_manual_qa.js --strict
 ```
@@ -50,9 +53,12 @@ The MVP goal is therefore still open.
 The remaining launch evidence is concentrated in these areas:
 
 - WeChat HTTPS legal request domain and certificate readiness.
-- WeChat preview or real-device login.
-- Phone authorization and backend phone binding.
-- Miniapp booking path through order creation and order center.
+- WeChat preview or real-device login. Detailed miniapp QA ledger:
+  `docs/Miniapp-Manual-QA.md`.
+- Phone authorization and backend phone binding. Detailed miniapp QA ledger:
+  `docs/Miniapp-Manual-QA.md`.
+- Miniapp booking path through order creation and order center. Detailed miniapp
+  QA ledger: `docs/Miniapp-Manual-QA.md`.
 - One low-value real payment and one refund/refund request validation.
 - Admin web production manual QA with a real admin account. Detailed admin QA
   ledger: `docs/Admin-Web-MVP-QA.md`.

@@ -100,3 +100,14 @@ Append durable decisions here. Keep entries short and include provenance.
   real account, SMS, live API, room/pricing/order operation, and error-state
   evidence without committing secrets or customer data.
 - Provenance: `docs/Admin-Web-MVP-QA.md`, `docs/MVP-Launch-Evidence.md`.
+
+## 2026-06-02: Track Miniapp Manual QA Separately
+
+- Decision: Use `docs/Miniapp-Manual-QA.json` plus
+  `scripts/check_miniapp_manual_qa.js` as the WeChat preview/real-device miniapp
+  QA evidence ledger.
+- Rationale: Miniapp syntax smoke proves file wiring only; MVP launch still
+  needs legal HTTPS domain, real AppID preview, WeChat login, phone binding,
+  booking, payment/refund, and resilience evidence without committing secrets or
+  personal/payment data.
+- Provenance: `docs/Miniapp-Manual-QA.md`, `docs/MVP-Launch-Evidence.md`.

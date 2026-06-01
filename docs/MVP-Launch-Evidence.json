@@ -46,8 +46,8 @@
       "requirement": "Miniapp production API uses an HTTPS legal request domain configured in the WeChat backend, with valid certificate and ICP/domain eligibility.",
       "status": "pending",
       "requiredForMvp": true,
-      "evidence": "Not recorded in repo. Current default API base remains bare HTTP IP for DevTools validation only.",
-      "nextAction": "Configure and verify HTTPS API domain, then record domain, verification date, and non-secret evidence summary."
+      "evidence": "Not recorded in repo. Current default API base remains bare HTTP IP for DevTools validation only. Detailed miniapp QA ledger exists at docs/Miniapp-Manual-QA.json.",
+      "nextAction": "Configure and verify HTTPS API domain, then record domain, verification date, and non-secret evidence summary in docs/Miniapp-Manual-QA.json."
     },
     {
       "id": "WECHAT-PREVIEW-LOGIN",
@@ -55,8 +55,8 @@
       "requirement": "WeChat preview or real-device login obtains backend token and stores profile state without devtools-only bypasses.",
       "status": "pending",
       "requiredForMvp": true,
-      "evidence": "Not recorded in repo.",
-      "nextAction": "Run WeChat DevTools preview or real device with real AppID and legal domain, then record pass/fail summary."
+      "evidence": "Not recorded in repo. Detailed miniapp QA ledger exists at docs/Miniapp-Manual-QA.json.",
+      "nextAction": "Run WeChat DevTools preview or real device with real AppID and legal domain, then record pass/fail summary in docs/Miniapp-Manual-QA.json."
     },
     {
       "id": "WECHAT-PHONE",
@@ -64,8 +64,8 @@
       "requirement": "Phone authorization and backend phone binding succeed in preview or real-device flow.",
       "status": "pending",
       "requiredForMvp": true,
-      "evidence": "Not recorded in repo.",
-      "nextAction": "Run getPhoneNumber flow and record non-secret evidence."
+      "evidence": "Not recorded in repo. Detailed miniapp QA ledger exists at docs/Miniapp-Manual-QA.json.",
+      "nextAction": "Run getPhoneNumber flow and record non-secret evidence in docs/Miniapp-Manual-QA.json."
     },
     {
       "id": "MINIAPP-BOOKING-PATH",
@@ -73,8 +73,8 @@
       "requirement": "User can browse home/rooms/calendar, create an order, and see it in the order center in preview or real-device flow.",
       "status": "pending",
       "requiredForMvp": true,
-      "evidence": "Automated smoke covers file registration and syntax only; user-path manual evidence is not recorded.",
-      "nextAction": "Execute the Miniapp MVP QA booking checklist and record the result."
+      "evidence": "Automated smoke covers file registration and syntax only. Dedicated miniapp manual QA ledger exists at docs/Miniapp-Manual-QA.json, but user-path manual evidence is not recorded.",
+      "nextAction": "Run node scripts/check_miniapp_manual_qa.js, execute pending booking checks, then require node scripts/check_miniapp_manual_qa.js --strict before marking this entry passed or waived."
     },
     {
       "id": "WECHAT-REAL-PAYMENT",
@@ -82,8 +82,8 @@
       "requirement": "One low-value real WeChat payment completes with merchant configuration, backend confirmation, and order status update.",
       "status": "pending",
       "requiredForMvp": true,
-      "evidence": "Not recorded in repo.",
-      "nextAction": "After user approval, run a low-value payment and record only non-secret transaction evidence."
+      "evidence": "Not recorded in repo. Detailed miniapp/payment QA ledger exists at docs/Miniapp-Manual-QA.json.",
+      "nextAction": "After user approval, run a low-value payment and record only non-secret transaction evidence in docs/Miniapp-Manual-QA.json."
     },
     {
       "id": "WECHAT-REAL-REFUND",
@@ -91,8 +91,8 @@
       "requirement": "One real refund or refund request path is validated with merchant configuration and backend status update.",
       "status": "pending",
       "requiredForMvp": true,
-      "evidence": "Not recorded in repo.",
-      "nextAction": "After user approval, run refund validation and record only non-secret evidence."
+      "evidence": "Not recorded in repo. Detailed miniapp/payment QA ledger exists at docs/Miniapp-Manual-QA.json.",
+      "nextAction": "After user approval, run refund validation and record only non-secret evidence in docs/Miniapp-Manual-QA.json."
     },
     {
       "id": "ADMIN-PROD-QA",

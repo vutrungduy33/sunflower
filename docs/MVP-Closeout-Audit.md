@@ -46,6 +46,7 @@ Workflow and docs:
   - `docs/MVP-Readiness.md`
   - `docs/MVP-Progress.md`
   - `docs/Miniapp-MVP-QA.md`
+  - `docs/Miniapp-Manual-QA.md`
   - `docs/Backend-MVP-QA.md`
   - `docs/Admin-Web-MVP-QA.md`
   - `docs/Production-Smoke.md`
@@ -55,6 +56,8 @@ Workflow and docs:
 
 - WeChat real-device or preview validation for login, phone authorization, and
   payment is not recorded as passed.
+- `node scripts/check_miniapp_manual_qa.js --strict` currently fails because 12
+  required miniapp manual QA checks remain pending.
 - Low-value real WeChat payment and refund with merchant credentials is not
   recorded as passed.
 - HTTPS legal request domain for miniapp production is not proven.
@@ -87,7 +90,9 @@ Do not call the MVP complete until:
 6. Current code is deployed through the approved GitHub Actions path, or the
    user explicitly decides deployment is out of scope for MVP closeout.
 7. `node scripts/check_mvp_launch_evidence.js --strict` passes.
-8. `node scripts/check_admin_web_manual_qa.js --strict` passes or pending admin
+8. `node scripts/check_miniapp_manual_qa.js --strict` passes or pending miniapp
+   checks are explicitly waived by the user.
+9. `node scripts/check_admin_web_manual_qa.js --strict` passes or pending admin
    checks are explicitly waived by the user.
 
 ## 5. Recommended Next Goal Prompt

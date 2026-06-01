@@ -25,6 +25,18 @@ The smoke script checks:
 - `DEFAULT_API_BASE_URL` is present; non-HTTPS values are reported as a warning
   because they are only acceptable for local/devtools validation.
 
+Manual preview/real-device evidence is tracked in:
+
+- `docs/Miniapp-Manual-QA.md`
+- `docs/Miniapp-Manual-QA.json`
+
+Check commands:
+
+```bash
+node scripts/check_miniapp_manual_qa.js
+node scripts/check_miniapp_manual_qa.js --strict
+```
+
 ## 2. WeChat DevTools Setup
 
 1. Open `/Users/chenyao/dev/miniapp/sunflower/sunflower-miniapp`.
@@ -80,6 +92,8 @@ Production acceptance:
   before launch.
 - Record screenshots or logs externally; do not commit secrets or raw payment
   payloads.
+- Record pass/fail/waiver status in `docs/Miniapp-Manual-QA.json` using
+  sanitized evidence only.
 
 ## 4. Known Limits
 
@@ -91,3 +105,6 @@ Production acceptance:
 - The committed default API base is currently a bare HTTP IP for DevTools
   validation and must be replaced or overridden by HTTPS before production
   preview/release.
+- `node scripts/check_miniapp_manual_qa.js --strict` currently fails by design
+  until preview/real-device, payment, refund, and error-state evidence is
+  recorded or explicitly waived.

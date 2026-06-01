@@ -18,7 +18,7 @@
 | Backend API / contracts | `docs/API.md`, `docs/API-Schemas.md`, `docs/Backend-MVP-QA.md`, `sunflower-backend/src/main/java/**`, backend tests |
 | Database / persistence | `docs/DB-Design.md`, `docs/DataDictionary.md`, Flyway migrations, seed SQL |
 | Admin web | `docs/Web-Admin-Plan.md`, `docs/Admin-Web-MVP-QA.md`, `sunflower-admin-web/src/**`, admin web tests |
-| Miniapp | `docs/Miniapp-Frontend-MVP.md`, `docs/Miniapp-MVP-QA.md`, `sunflower-miniapp/pages/mvp/**`, `sunflower-miniapp/utils/mvp/**` |
+| Miniapp | `docs/Miniapp-Frontend-MVP.md`, `docs/Miniapp-MVP-QA.md`, `docs/Miniapp-Manual-QA.md`, `sunflower-miniapp/pages/mvp/**`, `sunflower-miniapp/utils/mvp/**` |
 | MVP hardening | `docs/MVP-Readiness.md`, `docs/MVP-Launch-Evidence.md`, `docs/MVP-Progress.md`, `docs/MVP-Closeout-Audit.md`, `docs/Project-State.md`, task-relevant app docs |
 | Process / decisions | `docs/Decision-Log.md`, then only relevant linked docs |
 | Historical diagnosis | `docs/archive/**` only when explicitly needed |
@@ -69,6 +69,13 @@ Launch evidence:
 ```bash
 node scripts/check_mvp_launch_evidence.js
 node scripts/check_mvp_launch_evidence.js --strict
+```
+
+Miniapp manual QA evidence:
+
+```bash
+node scripts/check_miniapp_manual_qa.js
+node scripts/check_miniapp_manual_qa.js --strict
 ```
 
 Admin manual QA evidence:
