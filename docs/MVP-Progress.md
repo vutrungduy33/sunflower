@@ -198,3 +198,33 @@
   - Run a final full local regression across backend/admin/miniapp, produce a
     final MVP closeout audit, and stop for human approval before any production
     push/deploy.
+
+## Final Local Audit: Full Regression and Completion Check
+
+- Date: 2026-06-02
+- Status: completed locally, goal remains open.
+- Focus: prove current local automated quality and identify remaining external
+  launch blockers.
+- Change summary:
+  - Added `docs/MVP-Closeout-Audit.md`.
+  - Updated readiness/context/index/project-state docs to point to the closeout
+    audit.
+- Verification:
+  - `cd sunflower-backend && mvn -B test`: passed, 56 tests.
+  - `cd sunflower-admin-web && npm run lint`: passed.
+  - `cd sunflower-admin-web && npm run test`: passed, 20 tests.
+  - `cd sunflower-admin-web && npm run build`: passed.
+  - `node scripts/check_miniapp_mvp_smoke.js`: passed with expected HTTP API
+    base warning.
+  - `bash scripts/check_miniapp_project_config.sh`: passed.
+  - `bash scripts/check_mvp_subpage_nav.sh`: passed.
+- Open-source reference check:
+  - Task classification: verification and audit documentation.
+  - Sources checked: not applicable; no external code or common feature
+    implementation copied.
+  - License/compatibility: no external code copied.
+- Goal correction:
+  - Do not mark the overall goal complete yet. The repository has strong local
+    and production smoke evidence, but lacks real WeChat preview/device,
+    payment/refund, HTTPS domain, admin production manual QA, and backend 8080
+    hardening evidence.

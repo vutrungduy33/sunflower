@@ -25,9 +25,9 @@ verified, and documented enough for handoff:
 
 | Area | Evidence | Status | Next action |
 | --- | --- | --- | --- |
-| Backend local quality | Round 4 `mvn -B test`: passed, 56 tests. | Ready locally | Rerun before final MVP closeout if more backend changes land. |
-| Admin web local quality | Round 1 `npm run lint`, `npm run test` (20 tests), `npm run build`: passed. | Ready locally | Keep green after future admin changes. |
-| Miniapp syntax/smoke | Round 3 `node scripts/check_miniapp_mvp_smoke.js` plus existing miniapp guards. | Partially verified | Real-device login/phone/payment evidence still required. |
+| Backend local quality | Final audit `mvn -B test`: passed, 56 tests. | Ready locally | Keep green after future backend changes. |
+| Admin web local quality | Final audit `npm run lint`, `npm run test` (20 tests), `npm run build`: passed. | Ready locally | Keep green after future admin changes. |
+| Miniapp syntax/smoke | Final audit `node scripts/check_miniapp_mvp_smoke.js` plus existing miniapp guards passed. | Partially verified | Real-device login/phone/payment evidence still required. |
 | Miniapp real user path | Code supports real API, WeChat login, phone binding, `wx.requestPayment`, order and after-sale flows. | Needs real-device evidence | Verify in WeChat DevTools/preview with legal HTTPS request domain. |
 | WeChat pay/refund | Backend has WeChat payment/refund gateway, callbacks, records, retry, and mock only when explicitly configured. | Needs production evidence | Verify small real payment/refund with merchant config and callback domain. |
 | Admin operations path | Core pages and tests exist for auth, room, price/inventory, and order management. | Partially verified | Run manual QA against deployed admin web. |
@@ -124,3 +124,9 @@ Production:
 2. Harden admin operational manual QA against a running backend or production.
 3. Run full backend/admin/miniapp verification and production smoke after an
    approved deploy.
+
+## 7. Closeout Audit
+
+Current completion audit:
+
+- `docs/MVP-Closeout-Audit.md`

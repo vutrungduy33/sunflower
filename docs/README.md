@@ -47,6 +47,7 @@
 - `docs/Project-State.md`：当前项目事实、验证状态与风险快照
 - `docs/MVP-Readiness.md`：MVP 上线可用性清单、验证矩阵与阻塞项
 - `docs/MVP-Progress.md`：当前 MVP 推进轮次记录
+- `docs/MVP-Closeout-Audit.md`：MVP 完成度审计与剩余外部验证缺口
 - `docs/Decision-Log.md`：长期架构/流程/部署决策记录
 - `docs/Architecture.md`：当前系统架构、部署拓扑与运行组件说明
 - `docs/PRD.md`：需求规格与开发计划（范围、优先级、里程碑）
@@ -81,6 +82,7 @@
 │  ├─ Project-State.md
 │  ├─ MVP-Readiness.md
 │  ├─ MVP-Progress.md
+│  ├─ MVP-Closeout-Audit.md
 │  ├─ Decision-Log.md
 │  ├─ Architecture.md
 │  ├─ PRD.md

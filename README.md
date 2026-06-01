@@ -26,6 +26,7 @@
 - `/Users/chenyao/dev/miniapp/sunflower/docs/Project-State.md`：当前项目事实、验证状态与风险快照
 - `/Users/chenyao/dev/miniapp/sunflower/docs/MVP-Readiness.md`：MVP 上线可用性清单、验证矩阵与阻塞项
 - `/Users/chenyao/dev/miniapp/sunflower/docs/MVP-Progress.md`：当前 MVP 推进轮次记录
+- `/Users/chenyao/dev/miniapp/sunflower/docs/MVP-Closeout-Audit.md`：MVP 完成度审计与剩余外部验证缺口
 - `/Users/chenyao/dev/miniapp/sunflower/docs/Decision-Log.md`：长期架构/流程/部署决策记录
 - `/Users/chenyao/dev/miniapp/sunflower/docs/Architecture.md`：当前系统架构与部署拓扑
 - `/Users/chenyao/dev/miniapp/sunflower/docs/PRD.md`：需求规格与开发计划
