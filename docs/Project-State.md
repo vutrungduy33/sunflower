@@ -104,6 +104,14 @@ regression recheck:
   still listens on `0.0.0.0:8080`.
 - Launch evidence `node scripts/check_mvp_launch_evidence.js`: passed on
   2026-06-02.
+- Launch evidence ledger `docs/MVP-Launch-Evidence.json`: refreshed in Round
+  35 so the passed automated baseline entries and deployment/8080 pending
+  entries reference Round 32/Round 34 evidence instead of older 56-test or
+  05:59 smoke summaries. No pending external evidence was marked passed.
+- MVP next Codex goal prompt `docs/MVP-Next-Goal-Prompt.md`: refined in Round
+  35 with startup context, per-round execution loop, approval lanes, hard
+  safety boundaries, exact completion commands, and stop/manual-intervention
+  conditions.
 - Launch evidence `node scripts/check_mvp_launch_evidence.js --strict`: expected
   non-zero on 2026-06-02 because 9 required external evidence entries remain
   pending.

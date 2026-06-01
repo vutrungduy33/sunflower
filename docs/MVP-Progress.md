@@ -2109,3 +2109,73 @@
     open. The next deployment-related progress requires explicit user approval
     for push/merge/workflow dispatch, or an explicit user decision that current
     branch deployment evidence is out of scope for MVP closeout.
+
+## Round 35: Launch Evidence Ledger Refresh
+
+- Date: 2026-06-02
+- Status: completed and committed.
+- Focus: refresh stale launch-evidence text so the machine-readable ledger and
+  generated external evidence template point to the current Round 32/Round 34
+  baseline, then refine the maintained Codex next-goal prompt for continuing
+  MVP closeout without changing any pending external evidence status.
+- Start evidence:
+  - `git status --short --branch --untracked-files=all`: clean on
+    `codex/s18-payment-hardening` after Round 34 commit.
+  - `docs/MVP-Launch-Evidence.json` still described `AUTO-BACKEND` as 56 tests,
+    `PROD-SMOKE` as the older 05:59 audit, and backend `8080` hardening as an
+    older read-only check.
+  - Round 32 proved the production-enabled aggregate baseline and Round 34
+    refreshed current-branch deployment preflight.
+- Open-source reference check:
+  - Task classification: repository-specific ledger and generated evidence
+    template maintenance.
+  - Sources checked: not applicable; this round did not implement a common
+    feature, reusable infrastructure, or external-code-dependent design.
+  - Selected approach: update only the relevant JSON evidence fields, preserve
+    current statuses, regenerate `docs/MVP-External-Evidence-Template.md`, and
+    rerun ledger/template guards.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: existing ledger schema and
+    `scripts/generate_mvp_external_evidence_template.js`.
+  - Rejected options: marking pending evidence as passed from automated checks,
+    editing strict checker thresholds, or treating read-only preflight as
+    current-branch deployment proof.
+- Risks:
+  - This improves handoff accuracy but does not collect WeChat/domain/payment/
+    refund/admin/security-group/deployment evidence.
+  - The regenerated template remains a capture aid, not validation proof.
+  - `CURRENT-BRANCH-DEPLOYED` and `BACKEND-8080-HARDENING` remain pending.
+- Acceptance criteria:
+  - Passed automated launch ledger entries reference current 57-test/admin/
+    miniapp/production read-only evidence.
+  - Pending launch ledger entries keep `status: pending` while their evidence
+    text reflects the latest Round 32/Round 34 facts.
+  - External evidence template is regenerated from the refreshed ledger.
+  - `docs/MVP-Next-Goal-Prompt.md` contains a more actionable finite goal with
+    startup context, per-round loop, approval lanes, completion conditions, and
+    stop conditions.
+  - Non-strict launch/closeout guards still pass and report the same unresolved
+    counts.
+  - The round is committed once.
+- Verification:
+  - `node scripts/generate_mvp_external_evidence_template.js`: regenerated
+    `docs/MVP-External-Evidence-Template.md` with 33 unresolved required items.
+  - `node scripts/check_mvp_launch_evidence.js`: passed non-strict and reported
+    9 unresolved required launch evidence entries.
+  - `node scripts/check_mvp_external_evidence_template.js`: passed.
+  - `node scripts/check_mvp_external_approval_packet.js`: passed.
+  - `node scripts/check_mvp_handoff_packet.js`: passed.
+- Change summary:
+  - Updated `docs/MVP-Launch-Evidence.json` evidence text for `AUTO-BACKEND`,
+    `AUTO-ADMIN-WEB`, `AUTO-MINIAPP`, `PROD-SMOKE`,
+    `BACKEND-8080-HARDENING`, and `CURRENT-BRANCH-DEPLOYED`.
+  - Regenerated `docs/MVP-External-Evidence-Template.md`.
+  - Refined `docs/MVP-Next-Goal-Prompt.md` with a detailed finite Codex goal
+    covering context startup, round closure, approval lanes, hard safety
+    boundaries, exact completion commands, and manual stop conditions.
+  - Updated `docs/Project-State.md` and this progress log.
+- Goal correction:
+  - Evidence records are now more trustworthy for the next operator, but MVP
+    completion remains open. The next meaningful closeout work still requires
+    selecting one approval lane from `docs/MVP-External-Approval-Packet.md` and
+    collecting real external evidence or an explicit user waiver.

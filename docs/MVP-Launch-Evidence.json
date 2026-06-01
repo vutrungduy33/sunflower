@@ -2,7 +2,12 @@
   "schemaVersion": 1,
   "updatedAt": "2026-06-02",
   "summary": "Launch evidence ledger for the active MVP hardening goal. Keep external evidence compact and do not store secrets or raw payment payloads.",
-  "statusValues": ["passed", "pending", "blocked", "waived"],
+  "statusValues": [
+    "passed",
+    "pending",
+    "blocked",
+    "waived"
+  ],
   "entries": [
     {
       "id": "AUTO-BACKEND",
@@ -10,8 +15,8 @@
       "requirement": "Backend automated test suite remains green.",
       "status": "passed",
       "requiredForMvp": true,
-      "evidence": "cd sunflower-backend && mvn -B test passed with 56 tests in the 2026-06-02 closeout audit.",
-      "nextAction": "Re-run after backend changes."
+      "evidence": "RUN_PRODUCTION=1 scripts/check_mvp_regression.sh passed in Round 32. Backend mvn -B test passed with 57 tests on 2026-06-02.",
+      "nextAction": "Re-run after backend changes or before final closeout."
     },
     {
       "id": "AUTO-ADMIN-WEB",
@@ -19,8 +24,8 @@
       "requirement": "Admin web lint, tests, and production build remain green.",
       "status": "passed",
       "requiredForMvp": true,
-      "evidence": "cd sunflower-admin-web && npm run lint && npm run test && npm run build passed in the 2026-06-02 closeout audit. Round 17 node scripts/check_admin_web_behavior_wiring.js passed with 97 key behavior wiring checks across 16 files.",
-      "nextAction": "Re-run after admin-web changes."
+      "evidence": "RUN_PRODUCTION=1 scripts/check_mvp_regression.sh passed in Round 32. Admin web npm run lint, npm run test, and npm run build passed; 23 Vitest tests passed. Round 17 node scripts/check_admin_web_behavior_wiring.js passed with 97 key behavior wiring checks across 16 files.",
+      "nextAction": "Re-run after admin-web changes or before final closeout."
     },
     {
       "id": "AUTO-MINIAPP",
@@ -28,8 +33,8 @@
       "requirement": "Miniapp smoke checks and key JavaScript syntax checks pass.",
       "status": "passed",
       "requiredForMvp": true,
-      "evidence": "node scripts/check_miniapp_mvp_smoke.js, bash scripts/check_miniapp_project_config.sh, and bash scripts/check_mvp_subpage_nav.sh passed in the 2026-06-02 closeout audit. Round 16 node scripts/check_miniapp_behavior_wiring.js passed with 69 key behavior wiring checks across 14 files.",
-      "nextAction": "Re-run after miniapp changes."
+      "evidence": "RUN_PRODUCTION=1 scripts/check_mvp_regression.sh passed in Round 32. Miniapp smoke, behavior wiring, user-flow replay, external preflight, project config, and subpage nav checks passed. The run still warned that the default API base is bare HTTP for local/devtools validation and local project.private.config.json is absent.",
+      "nextAction": "Re-run after miniapp changes or before final closeout; real preview/device evidence remains separate."
     },
     {
       "id": "PROD-SMOKE",
@@ -37,7 +42,7 @@
       "requirement": "Production public and internal smoke checks pass.",
       "status": "passed",
       "requiredForMvp": true,
-      "evidence": "scripts/check_production_readonly_audit.sh passed on 2026-06-02 05:59 Asia/Shanghai. It ran deploy config static checks, RUN_INTERNAL=1 scripts/check_production_smoke.sh with 7 checks and 1 known backend-bind warning, and RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh with 3 checks and 2 warnings.",
+      "evidence": "RUN_PRODUCTION=1 scripts/check_mvp_regression.sh passed in Round 32. Production public/ECS internal smoke passed with 7 checks and 1 known backend-bind warning, and backend 8080 read-only exposure checks passed with 3 checks and 2 warnings. No push, deploy, Nginx reload, ECS/firewall/security-group change, or production configuration mutation was performed.",
       "nextAction": "Re-run after approved deploy or production config change."
     },
     {
@@ -109,7 +114,7 @@
       "requirement": "Direct public access to backend port 8080 is restricted to ECS-1 by security group or host firewall, or explicitly accepted by the user as a launch risk.",
       "status": "pending",
       "requiredForMvp": true,
-      "evidence": "scripts/check_production_readonly_audit.sh re-ran RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh on 2026-06-02 05:59 Asia/Shanghai: public 8080 was not directly usable from this network, ECS-1 private upstream works, and ECS-2 backend is healthy. ECS-2 still shows docker-proxy listening on 0.0.0.0:8080, and local firewall output did not prove restriction.",
+      "evidence": "Round 32 backend 8080 read-only checks passed: public 8080 was not directly usable from this network, ECS-1 private upstream works, and ECS-2 backend is healthy. ECS-2 still shows docker-proxy listening on 0.0.0.0:8080, and local firewall output did not prove restriction. Alibaba Cloud security group evidence or explicit waiver is still required.",
       "nextAction": "Record Alibaba Cloud security group evidence in docs/Backend-8080-Security.md or get explicit user waiver before marking this entry passed or waived. Modifying security group/firewall requires user approval."
     },
     {
@@ -118,8 +123,8 @@
       "requirement": "Current committed MVP branch code has been deployed through the approved GitHub Actions path, or deployment is explicitly declared out of scope by the user.",
       "status": "pending",
       "requiredForMvp": true,
-      "evidence": "Current branch codex/s18-payment-hardening has not been pushed or merged to main; no deployment was triggered by the latest MVP commits.",
-      "nextAction": "Run node scripts/check_deployment_approval_preflight.js, then ask for approval before push/merge/workflow_dispatch."
+      "evidence": "Round 34 node scripts/check_deployment_approval_preflight.js passed on branch codex/s18-payment-hardening at HEAD e2653d04d542, compared with origin/main 5a37a6788c21. Changed files since base: 142. Predicted push-to-main deploy target: all. No push, merge, workflow_dispatch, or deployment was performed, so current branch deployment remains unproven.",
+      "nextAction": "Ask for explicit approval before push/merge/workflow_dispatch, or record an explicit user decision that current-branch deployment evidence is out of scope."
     }
   ]
 }

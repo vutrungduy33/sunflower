@@ -67,7 +67,7 @@ Ledger update reminder:
 - Status now: `pending`
 - Area: security
 - Requirement: Direct public access to backend port 8080 is restricted to ECS-1 by security group or host firewall, or explicitly accepted by the user as a launch risk.
-- Current evidence: scripts/check_production_readonly_audit.sh re-ran RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh on 2026-06-02 05:59 Asia/Shanghai: public 8080 was not directly usable from this network, ECS-1 private upstream works, and ECS-2 backend is healthy. ECS-2 still shows docker-proxy listening on 0.0.0.0:8080, and local firewall output did not prove restriction.
+- Current evidence: Round 32 backend 8080 read-only checks passed: public 8080 was not directly usable from this network, ECS-1 private upstream works, and ECS-2 backend is healthy. ECS-2 still shows docker-proxy listening on 0.0.0.0:8080, and local firewall output did not prove restriction. Alibaba Cloud security group evidence or explicit waiver is still required.
 - Next action: Record Alibaba Cloud security group evidence in docs/Backend-8080-Security.md or get explicit user waiver before marking this entry passed or waived. Modifying security group/firewall requires user approval.
 
 Suggested sanitized evidence entry:
@@ -95,8 +95,8 @@ Ledger update reminder:
 - Status now: `pending`
 - Area: deployment
 - Requirement: Current committed MVP branch code has been deployed through the approved GitHub Actions path, or deployment is explicitly declared out of scope by the user.
-- Current evidence: Current branch codex/s18-payment-hardening has not been pushed or merged to main; no deployment was triggered by the latest MVP commits.
-- Next action: Run node scripts/check_deployment_approval_preflight.js, then ask for approval before push/merge/workflow_dispatch.
+- Current evidence: Round 34 node scripts/check_deployment_approval_preflight.js passed on branch codex/s18-payment-hardening at HEAD e2653d04d542, compared with origin/main 5a37a6788c21. Changed files since base: 142. Predicted push-to-main deploy target: all. No push, merge, workflow_dispatch, or deployment was performed, so current branch deployment remains unproven.
+- Next action: Ask for explicit approval before push/merge/workflow_dispatch, or record an explicit user decision that current-branch deployment evidence is out of scope.
 
 Suggested sanitized evidence entry:
 
