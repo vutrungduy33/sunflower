@@ -10,6 +10,7 @@ Run from the repository root:
 
 ```bash
 node scripts/check_miniapp_mvp_smoke.js
+node scripts/check_miniapp_behavior_wiring.js
 bash scripts/check_miniapp_project_config.sh
 bash scripts/check_mvp_subpage_nav.sh
 ```
@@ -18,14 +19,16 @@ Current recorded baseline:
 
 - `node scripts/check_miniapp_mvp_smoke.js`: passed in the 2026-06-02 closeout
   audit with the expected bare HTTP API warning.
+- `node scripts/check_miniapp_behavior_wiring.js`: passed in Round 16 with 69
+  key behavior wiring checks across 14 files.
 - `bash scripts/check_miniapp_project_config.sh`: passed in the 2026-06-02
   closeout audit.
 - `bash scripts/check_mvp_subpage_nav.sh`: passed in the 2026-06-02 closeout
   audit.
 
-These checks prove project wiring and JavaScript syntax only. They do not prove
-real WeChat login, phone authorization, legal request domain, payment, refund,
-or device preview behavior.
+These checks prove project wiring, JavaScript syntax, and key static behavior
+bindings only. They do not prove real WeChat login, phone authorization, legal
+request domain, payment, refund, or device preview behavior.
 
 ## 2. Manual QA Ledger
 

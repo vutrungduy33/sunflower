@@ -53,6 +53,7 @@
 
 ```bash
 node scripts/check_miniapp_mvp_smoke.js
+node scripts/check_miniapp_behavior_wiring.js
 bash scripts/check_miniapp_project_config.sh
 bash scripts/check_mvp_subpage_nav.sh
 node scripts/check_miniapp_manual_qa.js
@@ -60,6 +61,8 @@ node scripts/check_miniapp_manual_qa.js
 
 `node scripts/check_miniapp_manual_qa.js --strict` 仅用于最终 MVP 收口；在
 真实 AppID、HTTPS 合法 request 域名、登录、手机号、支付、退款等外部证据补齐前会保持非零退出。
+
+`node scripts/check_miniapp_behavior_wiring.js` 是静态接线守卫，用于检查登录、绑手机、房型浏览、下单、支付、取消、改期、退款等关键页面事件是否连到对应 API/支付工具；它不替代微信真机/预览验证。
 
 交接入口：
 

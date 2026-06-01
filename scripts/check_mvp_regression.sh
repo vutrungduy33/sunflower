@@ -64,6 +64,7 @@ run_miniapp_checks() {
   (
     cd "$ROOT_DIR"
     node scripts/check_miniapp_mvp_smoke.js
+    node scripts/check_miniapp_behavior_wiring.js
     bash scripts/check_miniapp_project_config.sh
     bash scripts/check_mvp_subpage_nav.sh
   )

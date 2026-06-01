@@ -130,3 +130,15 @@ Append durable decisions here. Keep entries short and include provenance.
   replayable from one command while keeping production smoke opt-in and manual
   evidence strictness explicit.
 - Provenance: `scripts/check_mvp_regression.sh`, `docs/MVP-Readiness.md`.
+
+## 2026-06-02: Add Miniapp Behavior Wiring Guard
+
+- Decision: Use `scripts/check_miniapp_behavior_wiring.js` as a static guard
+  for MVP miniapp page-to-API/payment/event wiring, and include it in aggregate
+  miniapp regression.
+- Rationale: Page registration and syntax checks can pass while important
+  buttons, calendars, phone authorization, payment, or after-sale actions drift
+  away from their handlers; a lightweight static guard catches that class of
+  regression without adding a miniapp test framework.
+- Provenance: `scripts/check_miniapp_behavior_wiring.js`,
+  `docs/Miniapp-MVP-QA.md`.

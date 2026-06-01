@@ -737,3 +737,73 @@
   - This makes future MVP closeout harder to fake and safer to audit, but does
     not complete the external evidence itself. The goal remains open until the
     pending external evidence is recorded or explicitly waived.
+
+## Round 16: Miniapp Behavior Wiring Guard
+
+- Date: 2026-06-02
+- Status: completed.
+- Focus: add a repeatable local guard that checks whether the MVP miniapp pages
+  are wired to the key API, payment, navigation, and WXML event handlers used by
+  the real user path.
+- Start evidence:
+  - `git status --short --untracked-files=all`: clean after Round 15 commit.
+  - Existing `scripts/check_miniapp_mvp_smoke.js` verifies page registration,
+    JavaScript syntax, and utility exports, but does not assert that buttons and
+    page methods are connected to login, phone binding, order creation, payment,
+    cancellation, reschedule, or refund behavior.
+  - Manual WeChat preview/device QA remains pending and cannot be replaced by a
+    local static guard.
+- Open-source reference check:
+  - Task classification: common static regression guard for UI behavior wiring,
+    but highly repository-specific because WeChat miniapp WXML events and local
+    page method names are the contract.
+  - Sources checked: existing repository miniapp pages and utility scripts:
+    `sunflower-miniapp/pages/mvp/**`, `sunflower-miniapp/utils/mvp/api.js`,
+    `sunflower-miniapp/utils/mvp/payment.js`, and
+    `scripts/check_miniapp_mvp_smoke.js`.
+  - Selected approach: add a thin Node.js static checker over explicit local
+    wiring invariants and wire it into the aggregate MVP regression.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: existing local script style and known MVP user-path method
+    names.
+  - Rejected options: adding a third-party miniapp test framework or copying
+    generic UI test code that would not understand this project's WXML/page
+    contract.
+- Risks:
+  - Static wiring checks can catch disconnected page methods and missing event
+    bindings, but they cannot prove WeChat login, phone authorization,
+    `wx.requestPayment`, HTTPS request-domain compliance, or real backend
+    state transitions.
+- Acceptance criteria:
+  - New checker covers home, login, booking, room detail, order create, order
+    list, API utility, and payment utility wiring.
+  - `scripts/check_mvp_regression.sh` runs the new checker as part of miniapp
+    checks.
+  - Miniapp QA/readiness/project-state docs identify the new guard and its
+    limits.
+  - Focused verification passes and the round is committed once.
+- Verification:
+  - `node --check scripts/check_miniapp_behavior_wiring.js`: passed.
+  - `node scripts/check_miniapp_behavior_wiring.js`: passed with 69 key
+    behavior wiring checks across 14 files.
+  - `node --check sunflower-miniapp/pages/mvp/booking/index.js`: passed.
+  - `node scripts/check_miniapp_mvp_smoke.js`: passed with expected bare HTTP
+    API warning.
+  - `node scripts/check_mvp_launch_evidence.js`: passed with 9 required
+    external evidence entries still pending.
+  - `RUN_BACKEND=0 RUN_ADMIN=0 scripts/check_mvp_regression.sh`: passed
+    miniapp, evidence, and deploy-config checks with backend, admin, and
+    production checks skipped for this focused run.
+- Change summary:
+  - Added `scripts/check_miniapp_behavior_wiring.js`.
+  - Wired the new checker into `scripts/check_mvp_regression.sh`.
+  - Updated miniapp QA, readiness, launch evidence, project-state,
+    context-index, component README, and decision docs.
+  - Fixed `pages/mvp/booking/index.js` so confirming a changed stay date range
+    refreshes room search results instead of leaving stale availability data.
+- Goal correction:
+  - The local miniapp evidence is stronger and catches disconnected behavior
+    wiring, but it still does not prove WeChat preview/real-device behavior,
+    legal HTTPS request domain, real payment/refund, admin production QA,
+    backend `8080` hardening, or deployment of the current branch. The overall
+    MVP goal remains open.

@@ -58,6 +58,7 @@ Miniapp syntax smoke:
 ```bash
 cd sunflower-miniapp
 node ../scripts/check_miniapp_mvp_smoke.js
+node ../scripts/check_miniapp_behavior_wiring.js
 node --check utils/mvp/api.js
 node --check utils/mvp/payment.js
 node --check pages/mvp/home/index.js

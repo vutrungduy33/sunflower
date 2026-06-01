@@ -80,6 +80,8 @@ Page({
       stayNights,
       dateCalendarVisible: false,
       dateRangeValue: [value[0], value[1]],
+    }, () => {
+      this.loadRooms();
     });
   },
 

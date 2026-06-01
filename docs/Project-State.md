@@ -42,6 +42,8 @@ Current snapshot after 2026-06-02 final local audit:
 - Miniapp `node scripts/check_miniapp_mvp_smoke.js`: passed with the
   expected warning that the default API base is bare HTTP and only suitable for
   local/devtools validation.
+- Miniapp `node scripts/check_miniapp_behavior_wiring.js`: passed in Round 16
+  with 69 key behavior wiring checks across 14 files.
 - Miniapp `bash scripts/check_miniapp_project_config.sh`: passed.
 - Miniapp `bash scripts/check_mvp_subpage_nav.sh`: passed.
 - Production `http://47.113.223.248/api/health`: returned 200 in Round 5.
@@ -85,6 +87,11 @@ Current snapshot after 2026-06-02 final local audit:
   on 2026-06-02; it parses the active deployment workflow, renders backend/web
   compose files with example env files, and checks deployment shell syntax
   without pushing or deploying.
+- Miniapp behavior wiring guard `scripts/check_miniapp_behavior_wiring.js`: added
+  on 2026-06-02 and included in aggregate miniapp regression. It statically
+  checks login, phone binding, room browsing, order creation, payment, cancel,
+  reschedule, refund, navigation, and WXML event bindings; it does not replace
+  WeChat preview/real-device QA.
 - External validation runbook `docs/MVP-External-Validation-Runbook.md`: added
   on 2026-06-02 with coverage checked by
   `scripts/check_mvp_external_runbook.js`.

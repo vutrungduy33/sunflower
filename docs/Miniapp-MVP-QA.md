@@ -10,6 +10,7 @@ Run from the repository root:
 
 ```bash
 node scripts/check_miniapp_mvp_smoke.js
+node scripts/check_miniapp_behavior_wiring.js
 bash scripts/check_miniapp_project_config.sh
 bash scripts/check_mvp_subpage_nav.sh
 ```
@@ -24,6 +25,16 @@ The smoke script checks:
 - `project.config.json` keeps the committed placeholder `touristappid`.
 - `DEFAULT_API_BASE_URL` is present; non-HTTPS values are reported as a warning
   because they are only acceptable for local/devtools validation.
+
+The behavior wiring script checks:
+
+- Login, profile, home content, room browsing, order creation, payment, cancel,
+  reschedule, and refund page methods are wired to the expected API/payment
+  utility calls.
+- WXML buttons, inputs, calendars, phone authorization, avatar selection, and
+  status filters are bound to the expected page handlers.
+- Booking date changes trigger a refreshed room search instead of leaving stale
+  room results after the selected stay dates change.
 
 Manual preview/real-device evidence is tracked in:
 
@@ -102,6 +113,9 @@ Production acceptance:
   real-device/preview execution.
 - `node --check` validates syntax only; it does not execute WeChat page
   lifecycles.
+- `node scripts/check_miniapp_behavior_wiring.js` is a static wiring guard; it
+  cannot prove runtime WeChat API behavior, backend persistence, or payment
+  settlement.
 - The committed default API base is currently a bare HTTP IP for DevTools
   validation and must be replaced or overridden by HTTPS before production
   preview/release.

@@ -27,7 +27,7 @@ verified, and documented enough for handoff:
 | --- | --- | --- | --- |
 | Backend local quality | Final audit `mvn -B test`: passed, 56 tests. | Ready locally | Keep green after future backend changes. |
 | Admin web local quality | Final audit `npm run lint`, `npm run test` (20 tests), `npm run build`: passed. | Ready locally | Keep green after future admin changes. |
-| Miniapp syntax/smoke | Final audit `node scripts/check_miniapp_mvp_smoke.js` plus existing miniapp guards passed. | Partially verified | Real-device login/phone/payment evidence still required. |
+| Miniapp syntax/smoke | Final audit `node scripts/check_miniapp_mvp_smoke.js` plus existing miniapp guards passed. Round 16 `node scripts/check_miniapp_behavior_wiring.js` passed 69 key behavior wiring checks across 14 files. | Partially verified | Real-device login/phone/payment evidence still required. |
 | Miniapp real user path | Code supports real API, WeChat login, phone binding, `wx.requestPayment`, order and after-sale flows; manual QA ledger now exists. | Needs real-device evidence | Run `node scripts/check_miniapp_manual_qa.js --strict` after recording preview/real-device evidence. |
 | WeChat pay/refund | Backend has WeChat payment/refund gateway, callbacks, records, retry, and mock only when explicitly configured; miniapp payment QA ledger now exists. | Needs production evidence | Verify small real payment/refund with merchant config and callback domain, then record sanitized evidence. |
 | Admin operations path | Core pages and tests exist for auth, room, price/inventory, and order management; manual QA ledger now exists. | Partially verified | Run `node scripts/check_admin_web_manual_qa.js --strict` against deployed admin web after recording safe evidence. |
@@ -80,6 +80,7 @@ cd sunflower-admin-web && npm run lint && npm run test && npm run build
 ```bash
 cd sunflower-miniapp
 node ../scripts/check_miniapp_mvp_smoke.js
+node ../scripts/check_miniapp_behavior_wiring.js
 bash ../scripts/check_miniapp_project_config.sh
 bash ../scripts/check_mvp_subpage_nav.sh
 node --check utils/mvp/api.js

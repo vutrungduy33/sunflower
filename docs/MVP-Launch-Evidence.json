@@ -28,7 +28,7 @@
       "requirement": "Miniapp smoke checks and key JavaScript syntax checks pass.",
       "status": "passed",
       "requiredForMvp": true,
-      "evidence": "node scripts/check_miniapp_mvp_smoke.js, bash scripts/check_miniapp_project_config.sh, and bash scripts/check_mvp_subpage_nav.sh passed in the 2026-06-02 closeout audit.",
+      "evidence": "node scripts/check_miniapp_mvp_smoke.js, bash scripts/check_miniapp_project_config.sh, and bash scripts/check_mvp_subpage_nav.sh passed in the 2026-06-02 closeout audit. Round 16 node scripts/check_miniapp_behavior_wiring.js passed with 69 key behavior wiring checks across 14 files.",
       "nextAction": "Re-run after miniapp changes."
     },
     {
