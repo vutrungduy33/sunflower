@@ -1,0 +1,156 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-06-02",
+  "summary": "Manual production/staging QA ledger for sunflower-admin-web MVP operations. Keep secrets, phone numbers, SMS codes, raw screenshots, and real payment/order payloads out of Git.",
+  "statusValues": ["passed", "pending", "blocked", "waived"],
+  "environment": {
+    "targetName": "production-or-approved-staging",
+    "adminEntryUrl": "http://47.113.223.248/",
+    "apiEntryUrl": "http://47.113.223.248/api",
+    "notes": "Replace with HTTPS/domain evidence when the production domain is ready. Do not commit account credentials."
+  },
+  "checks": [
+    {
+      "id": "ADMIN-AUTH-LOGIN",
+      "area": "auth",
+      "route": "/login",
+      "requirement": "Dedicated QA admin can login with password, reach the protected workspace, refresh the browser, recover the session through /api/admin/account/me, and logout cleanly.",
+      "relatedApis": ["/api/admin/auth/login", "/api/admin/account/me", "/api/admin/auth/logout"],
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Not recorded in repo.",
+      "nextAction": "Run with a dedicated non-production-impact admin account and record date, environment, account role label, and sanitized result."
+    },
+    {
+      "id": "ADMIN-AUTH-ACTIVATE",
+      "area": "auth",
+      "route": "/activate",
+      "requirement": "Allowlisted admin account can request SMS code and complete first activation without committing the phone number or SMS code.",
+      "relatedApis": ["/api/admin/auth/sms-code", "/api/admin/auth/activate"],
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Not recorded in repo.",
+      "nextAction": "Use allowlisted QA phone/account, then record masked phone suffix and sanitized success/failure summary only."
+    },
+    {
+      "id": "ADMIN-AUTH-RESET-CHANGE",
+      "area": "auth",
+      "route": "/reset-password /account/password",
+      "requirement": "Password reset and in-session password change work for a dedicated QA account, and the old session/password cannot continue unintentionally.",
+      "relatedApis": ["/api/admin/auth/reset-password", "/api/admin/account/change-password"],
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Not recorded in repo.",
+      "nextAction": "Run only on a dedicated QA account; restore final credentials outside Git."
+    },
+    {
+      "id": "ADMIN-WORKSPACE-HEALTH",
+      "area": "workspace",
+      "route": "/",
+      "requirement": "Workspace loads protected shell, account header, business overview cards, backend health, and report summary without console/runtime errors.",
+      "relatedApis": ["/api/health", "/api/admin/reports/summary"],
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Not recorded in repo.",
+      "nextAction": "Record sanitized browser/runtime result and API status summary."
+    },
+    {
+      "id": "ADMIN-ROOM-LIST-EDIT",
+      "area": "rooms",
+      "route": "/rooms",
+      "requirement": "Room list loads, keyword/status filtering works, and a test room can be created or edited with reversible field changes.",
+      "relatedApis": ["/api/admin/rooms", "/api/admin/rooms/{roomId}"],
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Not recorded in repo.",
+      "nextAction": "Use a clearly named QA room or an approved existing room; record before/after summary without raw customer data."
+    },
+    {
+      "id": "ADMIN-ROOM-SHELF",
+      "area": "rooms",
+      "route": "/rooms",
+      "requirement": "Room shelf status can be toggled active/inactive and restored to the original state.",
+      "relatedApis": ["/api/admin/rooms/{roomId}"],
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Not recorded in repo.",
+      "nextAction": "Run on QA room or approved room only; record the restored final status."
+    },
+    {
+      "id": "ADMIN-PRICING-CALENDAR",
+      "area": "pricing",
+      "route": "/pricing",
+      "requirement": "Pricing page loads rooms and calendar for an approved room/date range.",
+      "relatedApis": ["/api/admin/rooms", "/api/rooms/{roomId}/calendar"],
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Not recorded in repo.",
+      "nextAction": "Record room alias, date range, and sanitized calendar load result."
+    },
+    {
+      "id": "ADMIN-PRICING-BATCH",
+      "area": "pricing",
+      "route": "/pricing",
+      "requirement": "Batch price and inventory update succeeds for approved QA dates and can be restored or accepted as intended.",
+      "relatedApis": ["/api/admin/room-prices", "/api/admin/room-inventory"],
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Not recorded in repo.",
+      "nextAction": "Use future QA dates to avoid live customer impact; record sanitized updated counts and restoration decision."
+    },
+    {
+      "id": "ADMIN-ORDER-LIST-DETAIL",
+      "area": "orders",
+      "route": "/orders",
+      "requirement": "Order list, status filter, keyword filter, check-in date range filter, and detail drawer work against current backend data.",
+      "relatedApis": ["/api/admin/orders", "/api/admin/orders/{orderId}"],
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Not recorded in repo.",
+      "nextAction": "Record sanitized order id suffix or QA order alias, filter conditions, and result."
+    },
+    {
+      "id": "ADMIN-ORDER-OPS",
+      "area": "orders",
+      "route": "/orders",
+      "requirement": "Check-in, check-out, no-show, reschedule, and direct refund actions are validated with approved QA orders or explicitly waived when no safe data exists.",
+      "relatedApis": [
+        "/api/admin/orders/{orderId}/check-in",
+        "/api/admin/orders/{orderId}/check-out",
+        "/api/admin/orders/{orderId}/no-show",
+        "/api/admin/orders/{orderId}/reschedule",
+        "/api/admin/orders/{orderId}/refund"
+      ],
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Not recorded in repo.",
+      "nextAction": "Use only approved QA orders; otherwise record user waiver for unsafe production mutations."
+    },
+    {
+      "id": "ADMIN-AFTER-SALE",
+      "area": "orders",
+      "route": "/orders",
+      "requirement": "After-sale approve/reject and failed refund retry controls are validated when matching QA data exists, or explicitly waived if no safe data exists.",
+      "relatedApis": [
+        "/api/admin/orders/{orderId}/after-sale/{requestId}/approve",
+        "/api/admin/orders/{orderId}/after-sale/{requestId}/reject",
+        "/api/admin/orders/{orderId}/refunds/{refundId}/retry"
+      ],
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Not recorded in repo.",
+      "nextAction": "Run against QA after-sale/refund data or record explicit waiver with reason."
+    },
+    {
+      "id": "ADMIN-ERROR-STATES",
+      "area": "resilience",
+      "route": "/login /rooms /pricing /orders",
+      "requirement": "Unauthorized session, backend error, empty state, and invalid form feedback are understandable and do not trap the operator.",
+      "relatedApis": ["/api/admin/account/me", "/api/admin/rooms", "/api/admin/orders"],
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Not recorded in repo.",
+      "nextAction": "Record sanitized examples of redirect/error/empty/form feedback behavior."
+    }
+  ]
+}

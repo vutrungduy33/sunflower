@@ -100,8 +100,8 @@
       "requirement": "A real admin account can complete activation/login/password/account, room/price/inventory, order operations, and summary checks against production or approved staging.",
       "status": "pending",
       "requiredForMvp": true,
-      "evidence": "Local automated admin tests passed; production manual QA with real account is not recorded.",
-      "nextAction": "Run admin manual QA and record non-secret evidence summary."
+      "evidence": "Local automated admin tests passed. Dedicated admin manual QA ledger exists at docs/Admin-Web-Manual-QA.json, but production/staging manual QA with a real account is not recorded.",
+      "nextAction": "Run node scripts/check_admin_web_manual_qa.js, execute pending checks with non-secret evidence, then require node scripts/check_admin_web_manual_qa.js --strict before marking this entry passed or waived."
     },
     {
       "id": "BACKEND-8080-HARDENING",

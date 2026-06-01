@@ -30,7 +30,7 @@ verified, and documented enough for handoff:
 | Miniapp syntax/smoke | Final audit `node scripts/check_miniapp_mvp_smoke.js` plus existing miniapp guards passed. | Partially verified | Real-device login/phone/payment evidence still required. |
 | Miniapp real user path | Code supports real API, WeChat login, phone binding, `wx.requestPayment`, order and after-sale flows. | Needs real-device evidence | Verify in WeChat DevTools/preview with legal HTTPS request domain. |
 | WeChat pay/refund | Backend has WeChat payment/refund gateway, callbacks, records, retry, and mock only when explicitly configured. | Needs production evidence | Verify small real payment/refund with merchant config and callback domain. |
-| Admin operations path | Core pages and tests exist for auth, room, price/inventory, and order management. | Partially verified | Run manual QA against deployed admin web. |
+| Admin operations path | Core pages and tests exist for auth, room, price/inventory, and order management; manual QA ledger now exists. | Partially verified | Run `node scripts/check_admin_web_manual_qa.js --strict` against deployed admin web after recording safe evidence. |
 | Deployment | Scripted production smoke returned 7 passes and 1 known backend-bind warning; public `/api/health`, `/api/content/home`, `/healthz`, admin web HTML, and ECS internal health passed. | Partially verified | Push/dispatch deploy only after confirming branch/production intent. |
 | Security / compliance | Secrets are local/ECS-owned; `.secrets/` ignored. Known issue: backend `8080` observed publicly bound. | Needs hardening | Restrict backend port to ECS-1 and complete HTTPS/WeChat domain setup. |
 
@@ -39,12 +39,16 @@ Detailed launch evidence is tracked in `docs/MVP-Launch-Evidence.md` and
 evidence check to pass, or for missing external evidence to be explicitly
 waived by the user.
 
+Admin-web manual QA is tracked separately in `docs/Admin-Web-MVP-QA.md` and
+`docs/Admin-Web-Manual-QA.json`.
+
 ## 3. Final Verification Commands
 
 Run before declaring the MVP goal complete:
 
 ```bash
 node scripts/check_mvp_launch_evidence.js --strict
+node scripts/check_admin_web_manual_qa.js --strict
 ```
 
 ```bash
@@ -110,6 +114,10 @@ Admin web:
 - Open order detail and perform allowed operational actions.
 - Retry a failed/abnormal refund record if test data exists.
 
+Detailed checklist and evidence rules:
+
+- `docs/Admin-Web-MVP-QA.md`
+
 Production:
 
 - Confirm ECS-1 host Nginx and admin-web health.
@@ -127,6 +135,8 @@ Production:
   deployment requires explicit branch/production confirmation.
 - `node scripts/check_mvp_launch_evidence.js --strict` currently fails by
   design because required external evidence remains pending.
+- `node scripts/check_admin_web_manual_qa.js --strict` currently fails by
+  design because admin production/staging manual QA evidence remains pending.
 
 ## 6. Next Rounds
 

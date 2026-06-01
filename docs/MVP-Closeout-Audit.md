@@ -47,6 +47,7 @@ Workflow and docs:
   - `docs/MVP-Progress.md`
   - `docs/Miniapp-MVP-QA.md`
   - `docs/Backend-MVP-QA.md`
+  - `docs/Admin-Web-MVP-QA.md`
   - `docs/Production-Smoke.md`
   - `docs/MVP-Launch-Evidence.md`
 
@@ -64,6 +65,8 @@ Workflow and docs:
   `main`, so current repository commits have not triggered production deploy.
 - Admin web production manual QA with a real admin account is not recorded as
   passed in this repository.
+- `node scripts/check_admin_web_manual_qa.js --strict` currently fails because
+  12 required admin manual QA checks remain pending.
 - `node scripts/check_mvp_launch_evidence.js --strict` currently fails because
   9 required launch evidence entries remain pending.
 
@@ -84,6 +87,8 @@ Do not call the MVP complete until:
 6. Current code is deployed through the approved GitHub Actions path, or the
    user explicitly decides deployment is out of scope for MVP closeout.
 7. `node scripts/check_mvp_launch_evidence.js --strict` passes.
+8. `node scripts/check_admin_web_manual_qa.js --strict` passes or pending admin
+   checks are explicitly waived by the user.
 
 ## 5. Recommended Next Goal Prompt
 

@@ -309,3 +309,49 @@
   - The new checker makes the remaining scope explicit; it does not complete the
     MVP. Next work should gather or explicitly waive the pending external
     evidence items before any final completion claim.
+
+## Round 8: Admin-Web Manual QA Ledger
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: make admin-web production/staging manual QA executable and
+  machine-checkable without storing credentials or customer data.
+- Start evidence:
+  - `git status --short --untracked-files=all`: clean after Round 7 commit.
+  - Launch evidence had `ADMIN-PROD-QA` pending, but no dedicated admin QA
+    sub-ledger existed for auth, room, pricing, order, after-sale, and
+    resilience checks.
+- Change summary:
+  - Added `docs/Admin-Web-Manual-QA.json`.
+  - Added `docs/Admin-Web-MVP-QA.md`.
+  - Added `scripts/check_admin_web_manual_qa.js`.
+  - Updated launch evidence, readiness, context, project-state, closeout, and
+    decision docs to reference the admin QA ledger.
+- Open-source reference check:
+  - Task classification: common admin dashboard QA and release-readiness
+    checklist.
+  - Sources checked: existing admin routes/services/tests; Playwright auth and
+    best-practice docs; Testing Library guiding principles.
+  - Selected approach: JSON manual QA ledger plus Node checker, no new browser
+    automation dependency until safe production/staging credentials and QA data
+    are available.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: existing local evidence-ledger checker style and project
+    admin route/API surface.
+  - Rejected options: committing Playwright auth storage, storing real
+    screenshots/order payloads, or treating mocked Vitest coverage as proof of
+    live admin operations.
+- Acceptance criteria:
+  - `node --check scripts/check_admin_web_manual_qa.js`: passed.
+  - `node scripts/check_admin_web_manual_qa.js`: passed and listed unresolved
+    required admin QA checks.
+  - `node scripts/check_admin_web_manual_qa.js --strict`: expected non-zero
+    because 12 required admin manual QA checks remain pending.
+  - `node scripts/check_mvp_launch_evidence.js`: passed with
+    `ADMIN-PROD-QA` still pending and pointing to the admin QA ledger.
+  - `cd sunflower-admin-web && npm run lint`: passed.
+  - `cd sunflower-admin-web && npm run test`: passed, 20 tests.
+- Goal correction:
+  - Admin-web manual QA is now ready to execute and record, but it is not
+    complete. A real admin account and safe QA data or explicit user waivers are
+    still required before final MVP completion.

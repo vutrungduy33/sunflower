@@ -34,6 +34,8 @@ Current snapshot after 2026-06-02 final local audit:
 - Admin web `npm run lint`: passed.
 - Admin web `npm run test`: passed, 20 tests.
 - Admin web `npm run build`: passed.
+- Admin web Round 8 recheck `npm run lint`: passed.
+- Admin web Round 8 recheck `npm run test`: passed, 20 tests.
 - Miniapp `node scripts/check_miniapp_mvp_smoke.js`: passed with the
   expected warning that the default API base is bare HTTP and only suitable for
   local/devtools validation.
@@ -50,6 +52,11 @@ Current snapshot after 2026-06-02 final local audit:
 - Launch evidence `node scripts/check_mvp_launch_evidence.js --strict`: expected
   non-zero on 2026-06-02 because 9 required external evidence entries remain
   pending.
+- Admin manual QA `node scripts/check_admin_web_manual_qa.js`: passed on
+  2026-06-02.
+- Admin manual QA `node scripts/check_admin_web_manual_qa.js --strict`:
+  expected non-zero on 2026-06-02 because 12 required admin manual QA checks
+  remain pending.
 - ECS-1 Nginx active; `sunflower-admin-web` healthy on `127.0.0.1:18080`.
 - ECS-2 `sunflower-backend` and `sunflower-mysql` healthy.
 
@@ -66,6 +73,7 @@ Current snapshot after 2026-06-02 final local audit:
 - Canonical MVP readiness tracker: `docs/MVP-Readiness.md`.
 - Miniapp QA tracker: `docs/Miniapp-MVP-QA.md`.
 - Backend/API QA tracker: `docs/Backend-MVP-QA.md`.
+- Admin web QA tracker: `docs/Admin-Web-MVP-QA.md`.
 - Production smoke tracker: `docs/Production-Smoke.md`.
 - Launch evidence tracker: `docs/MVP-Launch-Evidence.md`.
 - MVP closeout audit: `docs/MVP-Closeout-Audit.md`.

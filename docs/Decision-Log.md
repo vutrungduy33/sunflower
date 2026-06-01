@@ -90,3 +90,13 @@ Append durable decisions here. Keep entries short and include provenance.
   WeChat real-device, payment/refund, HTTPS domain, admin production QA, port
   hardening, or current-branch deployment readiness.
 - Provenance: `docs/MVP-Launch-Evidence.md`, `docs/MVP-Closeout-Audit.md`.
+
+## 2026-06-02: Track Admin-Web Manual QA Separately
+
+- Decision: Use `docs/Admin-Web-Manual-QA.json` plus
+  `scripts/check_admin_web_manual_qa.js` as the admin production/staging manual
+  QA evidence ledger.
+- Rationale: Admin unit tests prove local behavior, but MVP handoff still needs
+  real account, SMS, live API, room/pricing/order operation, and error-state
+  evidence without committing secrets or customer data.
+- Provenance: `docs/Admin-Web-MVP-QA.md`, `docs/MVP-Launch-Evidence.md`.
