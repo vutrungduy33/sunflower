@@ -45,6 +45,11 @@ Current snapshot after 2026-06-02 final local audit:
 - Production `http://47.113.223.248/`: returned 200 admin web HTML in Round 5.
 - Production `RUN_INTERNAL=1 scripts/check_production_smoke.sh`: passed on
   2026-06-02 with 7 checks and 1 known backend-bind warning.
+- Launch evidence `node scripts/check_mvp_launch_evidence.js`: passed on
+  2026-06-02.
+- Launch evidence `node scripts/check_mvp_launch_evidence.js --strict`: expected
+  non-zero on 2026-06-02 because 9 required external evidence entries remain
+  pending.
 - ECS-1 Nginx active; `sunflower-admin-web` healthy on `127.0.0.1:18080`.
 - ECS-2 `sunflower-backend` and `sunflower-mysql` healthy.
 
@@ -62,6 +67,7 @@ Current snapshot after 2026-06-02 final local audit:
 - Miniapp QA tracker: `docs/Miniapp-MVP-QA.md`.
 - Backend/API QA tracker: `docs/Backend-MVP-QA.md`.
 - Production smoke tracker: `docs/Production-Smoke.md`.
+- Launch evidence tracker: `docs/MVP-Launch-Evidence.md`.
 - MVP closeout audit: `docs/MVP-Closeout-Audit.md`.
 
 ## Current Dirty Worktree Note

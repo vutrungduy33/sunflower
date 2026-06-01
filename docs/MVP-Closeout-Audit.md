@@ -48,6 +48,7 @@ Workflow and docs:
   - `docs/Miniapp-MVP-QA.md`
   - `docs/Backend-MVP-QA.md`
   - `docs/Production-Smoke.md`
+  - `docs/MVP-Launch-Evidence.md`
 
 ## 3. Requirements Still Not Proven
 
@@ -63,6 +64,8 @@ Workflow and docs:
   `main`, so current repository commits have not triggered production deploy.
 - Admin web production manual QA with a real admin account is not recorded as
   passed in this repository.
+- `node scripts/check_mvp_launch_evidence.js --strict` currently fails because
+  9 required launch evidence entries remain pending.
 
 ## 4. Goal Status
 
@@ -80,6 +83,7 @@ Do not call the MVP complete until:
    documented risk by the user.
 6. Current code is deployed through the approved GitHub Actions path, or the
    user explicitly decides deployment is out of scope for MVP closeout.
+7. `node scripts/check_mvp_launch_evidence.js --strict` passes.
 
 ## 5. Recommended Next Goal Prompt
 

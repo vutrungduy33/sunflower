@@ -265,3 +265,47 @@
     blockers: WeChat real-device/payment/refund, HTTPS legal request domain,
     admin production manual QA, backend port hardening, and approved deployment
     of the current branch remain unresolved.
+
+## Round 7: MVP Launch Evidence Ledger
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: make external launch evidence machine-checkable so final MVP closeout
+  cannot accidentally treat local automation as proof of WeChat/payment/domain
+  readiness.
+- Start evidence:
+  - `git status --short --untracked-files=all`: clean after Round 6 commit.
+  - `docs/MVP-Closeout-Audit.md` listed remaining external blockers, but there
+    was no structured checker for passed, pending, blocked, or waived evidence.
+- Change summary:
+  - Added `docs/MVP-Launch-Evidence.json` as the structured launch evidence
+    ledger.
+  - Added `docs/MVP-Launch-Evidence.md` as the human-readable evidence entry.
+  - Added `scripts/check_mvp_launch_evidence.js` for normal and strict evidence
+    checks.
+  - Updated readiness, context, project-state, closeout, and decision docs to
+    reference the ledger.
+- Open-source reference check:
+  - Task classification: common release-readiness and external evidence
+    tracking for a WeChat/payment MVP.
+  - Sources checked: existing project docs/scripts; WeChat Pay merchant docs for
+    mini program payment flow and requestPayment; WeChat Mini Program network
+    documentation for HTTPS/legal-domain constraints.
+  - Selected approach: local JSON ledger plus small Node.js checker using no
+    new dependency.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: project-local smoke/checker style and documented external
+    verification requirements.
+  - Rejected options: adding a third-party release checklist dependency,
+    committing screenshots/payment payloads, or marking local smoke as launch
+    evidence for real WeChat/payment flows.
+- Acceptance criteria:
+  - `node --check scripts/check_mvp_launch_evidence.js`: passed.
+  - `node scripts/check_mvp_launch_evidence.js`: passed and listed unresolved
+    required evidence.
+  - `node scripts/check_mvp_launch_evidence.js --strict`: expected non-zero
+    because 9 required external evidence entries remain pending.
+- Goal correction:
+  - The new checker makes the remaining scope explicit; it does not complete the
+    MVP. Next work should gather or explicitly waive the pending external
+    evidence items before any final completion claim.

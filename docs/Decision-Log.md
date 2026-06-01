@@ -80,3 +80,13 @@ Append durable decisions here. Keep entries short and include provenance.
 - Rationale: Public curl checks and ECS internal SSH checks should be replayable
   without copying long command sequences between docs.
 - Provenance: `scripts/check_production_smoke.sh`, `docs/Production-Smoke.md`.
+
+## 2026-06-02: Track MVP Launch Evidence Explicitly
+
+- Decision: Use `docs/MVP-Launch-Evidence.json` plus
+  `scripts/check_mvp_launch_evidence.js` to separate proven MVP evidence from
+  pending external validation.
+- Rationale: Local tests and production health checks are not enough to prove
+  WeChat real-device, payment/refund, HTTPS domain, admin production QA, port
+  hardening, or current-branch deployment readiness.
+- Provenance: `docs/MVP-Launch-Evidence.md`, `docs/MVP-Closeout-Audit.md`.

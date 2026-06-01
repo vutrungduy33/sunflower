@@ -34,9 +34,18 @@ verified, and documented enough for handoff:
 | Deployment | Scripted production smoke returned 7 passes and 1 known backend-bind warning; public `/api/health`, `/api/content/home`, `/healthz`, admin web HTML, and ECS internal health passed. | Partially verified | Push/dispatch deploy only after confirming branch/production intent. |
 | Security / compliance | Secrets are local/ECS-owned; `.secrets/` ignored. Known issue: backend `8080` observed publicly bound. | Needs hardening | Restrict backend port to ECS-1 and complete HTTPS/WeChat domain setup. |
 
+Detailed launch evidence is tracked in `docs/MVP-Launch-Evidence.md` and
+`docs/MVP-Launch-Evidence.json`. Final MVP completion requires the strict
+evidence check to pass, or for missing external evidence to be explicitly
+waived by the user.
+
 ## 3. Final Verification Commands
 
 Run before declaring the MVP goal complete:
+
+```bash
+node scripts/check_mvp_launch_evidence.js --strict
+```
 
 ```bash
 cd sunflower-backend && mvn -B test
@@ -116,6 +125,8 @@ Production:
 - Backend `8080` public exposure needs security-group hardening evidence.
 - Push-triggered deployment from the current MVP branch has not been performed;
   deployment requires explicit branch/production confirmation.
+- `node scripts/check_mvp_launch_evidence.js --strict` currently fails by
+  design because required external evidence remains pending.
 
 ## 6. Next Rounds
 

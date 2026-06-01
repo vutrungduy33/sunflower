@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-06-02",
+  "summary": "Launch evidence ledger for the active MVP hardening goal. Keep external evidence compact and do not store secrets or raw payment payloads.",
+  "statusValues": ["passed", "pending", "blocked", "waived"],
+  "entries": [
+    {
+      "id": "AUTO-BACKEND",
+      "area": "backend",
+      "requirement": "Backend automated test suite remains green.",
+      "status": "passed",
+      "requiredForMvp": true,
+      "evidence": "cd sunflower-backend && mvn -B test passed with 56 tests in the 2026-06-02 closeout audit.",
+      "nextAction": "Re-run after backend changes."
+    },
+    {
+      "id": "AUTO-ADMIN-WEB",
+      "area": "admin-web",
+      "requirement": "Admin web lint, tests, and production build remain green.",
+      "status": "passed",
+      "requiredForMvp": true,
+      "evidence": "cd sunflower-admin-web && npm run lint && npm run test && npm run build passed in the 2026-06-02 closeout audit.",
+      "nextAction": "Re-run after admin-web changes."
+    },
+    {
+      "id": "AUTO-MINIAPP",
+      "area": "miniapp",
+      "requirement": "Miniapp smoke checks and key JavaScript syntax checks pass.",
+      "status": "passed",
+      "requiredForMvp": true,
+      "evidence": "node scripts/check_miniapp_mvp_smoke.js, bash scripts/check_miniapp_project_config.sh, and bash scripts/check_mvp_subpage_nav.sh passed in the 2026-06-02 closeout audit.",
+      "nextAction": "Re-run after miniapp changes."
+    },
+    {
+      "id": "PROD-SMOKE",
+      "area": "deployment",
+      "requirement": "Production public and internal smoke checks pass.",
+      "status": "passed",
+      "requiredForMvp": true,
+      "evidence": "RUN_INTERNAL=1 scripts/check_production_smoke.sh passed with 7 checks and 1 known backend-bind warning on 2026-06-02.",
+      "nextAction": "Re-run after approved deploy or production config change."
+    },
+    {
+      "id": "WECHAT-DOMAIN",
+      "area": "miniapp",
+      "requirement": "Miniapp production API uses an HTTPS legal request domain configured in the WeChat backend, with valid certificate and ICP/domain eligibility.",
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Not recorded in repo. Current default API base remains bare HTTP IP for DevTools validation only.",
+      "nextAction": "Configure and verify HTTPS API domain, then record domain, verification date, and non-secret evidence summary."
+    },
+    {
+      "id": "WECHAT-PREVIEW-LOGIN",
+      "area": "miniapp",
+      "requirement": "WeChat preview or real-device login obtains backend token and stores profile state without devtools-only bypasses.",
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Not recorded in repo.",
+      "nextAction": "Run WeChat DevTools preview or real device with real AppID and legal domain, then record pass/fail summary."
+    },
+    {
+      "id": "WECHAT-PHONE",
+      "area": "miniapp",
+      "requirement": "Phone authorization and backend phone binding succeed in preview or real-device flow.",
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Not recorded in repo.",
+      "nextAction": "Run getPhoneNumber flow and record non-secret evidence."
+    },
+    {
+      "id": "MINIAPP-BOOKING-PATH",
+      "area": "miniapp",
+      "requirement": "User can browse home/rooms/calendar, create an order, and see it in the order center in preview or real-device flow.",
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Automated smoke covers file registration and syntax only; user-path manual evidence is not recorded.",
+      "nextAction": "Execute the Miniapp MVP QA booking checklist and record the result."
+    },
+    {
+      "id": "WECHAT-REAL-PAYMENT",
+      "area": "payment",
+      "requirement": "One low-value real WeChat payment completes with merchant configuration, backend confirmation, and order status update.",
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Not recorded in repo.",
+      "nextAction": "After user approval, run a low-value payment and record only non-secret transaction evidence."
+    },
+    {
+      "id": "WECHAT-REAL-REFUND",
+      "area": "payment",
+      "requirement": "One real refund or refund request path is validated with merchant configuration and backend status update.",
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Not recorded in repo.",
+      "nextAction": "After user approval, run refund validation and record only non-secret evidence."
+    },
+    {
+      "id": "ADMIN-PROD-QA",
+      "area": "admin-web",
+      "requirement": "A real admin account can complete activation/login/password/account, room/price/inventory, order operations, and summary checks against production or approved staging.",
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Local automated admin tests passed; production manual QA with real account is not recorded.",
+      "nextAction": "Run admin manual QA and record non-secret evidence summary."
+    },
+    {
+      "id": "BACKEND-8080-HARDENING",
+      "area": "security",
+      "requirement": "Direct public access to backend port 8080 is restricted to ECS-1 by security group or host firewall, or explicitly accepted by the user as a launch risk.",
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "ECS-2 Docker still reports backend bound to 0.0.0.0:8080; public probe is not directly usable from the local network but does not prove restriction.",
+      "nextAction": "Confirm Alibaba Cloud security group/firewall policy before launch; modifying it requires user approval."
+    },
+    {
+      "id": "CURRENT-BRANCH-DEPLOYED",
+      "area": "deployment",
+      "requirement": "Current committed MVP branch code has been deployed through the approved GitHub Actions path, or deployment is explicitly declared out of scope by the user.",
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Current branch codex/s18-payment-hardening has not been pushed or merged to main; no deployment was triggered by the latest MVP commits.",
+      "nextAction": "Ask for approval before push/merge/workflow_dispatch."
+    }
+  ]
+}
