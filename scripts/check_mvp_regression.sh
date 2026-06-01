@@ -6,6 +6,7 @@ RUN_BACKEND="${RUN_BACKEND:-1}"
 RUN_ADMIN="${RUN_ADMIN:-1}"
 RUN_MINIAPP="${RUN_MINIAPP:-1}"
 RUN_EVIDENCE="${RUN_EVIDENCE:-1}"
+RUN_DEPLOY_CONFIG="${RUN_DEPLOY_CONFIG:-1}"
 RUN_PRODUCTION="${RUN_PRODUCTION:-0}"
 
 pass_count=0
@@ -77,6 +78,13 @@ run_evidence_checks() {
   )
 }
 
+run_deploy_config_checks() {
+  (
+    cd "$ROOT_DIR"
+    scripts/check_deploy_config.sh
+  )
+}
+
 run_production_checks() {
   (
     cd "$ROOT_DIR"
@@ -110,6 +118,12 @@ main() {
     run_step "MVP evidence ledger checks" run_evidence_checks
   else
     log WARN "evidence checks skipped"
+  fi
+
+  if [ "$(normalize_bool "$RUN_DEPLOY_CONFIG")" = "1" ]; then
+    run_step "deploy config static checks" run_deploy_config_checks
+  else
+    log WARN "deploy config checks skipped"
   fi
 
   if [ "$(normalize_bool "$RUN_PRODUCTION")" = "1" ]; then

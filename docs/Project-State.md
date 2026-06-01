@@ -81,6 +81,10 @@ Current snapshot after 2026-06-02 final local audit:
 - Component README handoff refresh completed on 2026-06-02 for
   `sunflower-miniapp/README.md`, `sunflower-admin-web/README.md`, and
   `sunflower-backend/README.md`.
+- Deploy config static check `scripts/check_deploy_config.sh`: added and passed
+  on 2026-06-02; it parses the active deployment workflow, renders backend/web
+  compose files with example env files, and checks deployment shell syntax
+  without pushing or deploying.
 
 ## Known MVP Risks
 
@@ -100,6 +104,7 @@ Current snapshot after 2026-06-02 final local audit:
 - Launch evidence tracker: `docs/MVP-Launch-Evidence.md`.
 - MVP closeout audit: `docs/MVP-Closeout-Audit.md`.
 - Aggregate MVP regression script: `scripts/check_mvp_regression.sh`.
+- Deploy config static check: `scripts/check_deploy_config.sh`.
 
 ## Current Dirty Worktree Note
 

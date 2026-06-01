@@ -89,11 +89,17 @@ node --check pages/mvp/order-list/index.js
 After an approved production deploy:
 
 ```bash
+scripts/check_deploy_config.sh
 RUN_INTERNAL=1 scripts/check_production_smoke.sh
 RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh
 ```
 
 Latest production smoke notes live in `docs/Production-Smoke.md`.
+
+`scripts/check_deploy_config.sh` is a local static deployability check for the
+GitHub Actions workflow, production compose rendering, and deployment shell
+syntax. It does not push, deploy, SSH to ECS, reload Nginx, or prove that the
+current branch is live.
 
 The aggregate local regression script intentionally runs manual evidence checks
 in non-strict mode; strict evidence commands still need to pass separately

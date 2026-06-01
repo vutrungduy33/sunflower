@@ -548,3 +548,64 @@
     launch evidence. Real WeChat preview/device validation, HTTPS request
     domain, payment/refund evidence, admin production QA, backend `8080`
     security-group evidence, and approved deploy evidence remain open.
+
+## Round 13: Deploy Config Static Check
+
+- Date: 2026-06-02
+- Status: completed.
+- Focus: make local deployability checks repeatable without pushing, deploying,
+  SSHing to ECS, reloading Nginx, or touching production secrets.
+- Start evidence:
+  - `git status --short --untracked-files=all`: clean after Round 12 commit.
+  - `docs/CI-CD.md` listed workflow YAML parsing, compose rendering, and
+    deployment shell syntax commands, but those checks were not exposed as one
+    reusable script or included in aggregate MVP regression.
+  - The deployment workflow remains the only active GitHub Actions workflow and
+    production deploy still requires explicit user approval.
+- Open-source reference check:
+  - Task classification: common CI/CD configuration validation.
+  - Sources checked:
+    - GitHub Actions workflow syntax documentation for workflow YAML structure.
+    - Docker Compose `config` command reference for rendering/validating compose
+      configuration.
+    - Bash invocation/noexec documentation for syntax-only shell checks.
+    - Existing project docs/scripts: `docs/CI-CD.md`,
+      `.github/workflows/deploy-backend.yml`, `docker-compose.backend.yml`,
+      `docker-compose.web.yml`, and deployment shell scripts.
+  - Selected approach: add a thin Bash wrapper over official/project-native
+    static checks and wire it into `scripts/check_mvp_regression.sh`.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: existing local commands already documented in `docs/CI-CD.md`.
+  - Rejected options: triggering GitHub Actions, SSHing to ECS, mutating
+    security groups/firewalls, or adding a new CI validation dependency.
+- Risks:
+  - Static deploy config checks prove syntax/renderability only. They do not
+    prove current branch deployment, runner health, ECS credentials, domain
+    certificates, or runtime production correctness.
+- Acceptance criteria:
+  - `scripts/check_deploy_config.sh` checks the deployment workflow YAML,
+    backend/web compose rendering with example env files, and deployment shell
+    syntax.
+  - `scripts/check_mvp_regression.sh` includes deploy config checks by default
+    while keeping production smoke opt-in.
+  - Readiness, context, project-state, and progress docs identify the new
+    deploy config evidence path.
+- Verification:
+  - `bash -n scripts/check_deploy_config.sh scripts/check_mvp_regression.sh`:
+    passed.
+  - `scripts/check_deploy_config.sh`: passed; workflow YAML parsed, backend/web
+    compose config rendered, deployment shell syntax checked.
+  - `RUN_BACKEND=0 RUN_ADMIN=0 RUN_MINIAPP=0 RUN_EVIDENCE=0 scripts/check_mvp_regression.sh`:
+    passed deploy-config checks with production checks skipped.
+  - `git diff --check`: passed.
+- Change summary:
+  - Added `scripts/check_deploy_config.sh`.
+  - Wired deploy config checks into `scripts/check_mvp_regression.sh` via
+    `RUN_DEPLOY_CONFIG`, enabled by default.
+  - Updated `docs/MVP-Readiness.md`, `docs/Context-Index.md`, and
+    `docs/Project-State.md`.
+- Goal correction:
+  - Local deployability evidence is stronger, but final MVP still needs approved
+    deployment evidence or waiver, production smoke as appropriate, HTTPS/domain
+    proof, real WeChat/payment/admin QA evidence, and backend `8080`
+    security-group evidence or accepted risk.
