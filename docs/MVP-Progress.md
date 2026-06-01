@@ -879,3 +879,68 @@
     admin account, SMS, live data mutation safety, or browser runtime QA. The
     overall MVP goal remains open until external evidence is recorded or
     explicitly waived.
+
+## Round 18: MVP Closeout Readiness Guard
+
+- Date: 2026-06-02
+- Status: completed.
+- Focus: add a single machine-checkable closeout guard that summarizes whether
+  the MVP goal can be declared complete, without rerunning heavy tests or
+  mutating production.
+- Start evidence:
+  - `git status --short --untracked-files=all`: clean after Round 17 commit.
+  - Existing checkers validate launch evidence, miniapp manual QA, admin manual
+    QA, deploy config, miniapp wiring, and admin wiring separately.
+  - `docs/MVP-Closeout-Audit.md` explains the completion conditions, but there
+    is not yet one script that evaluates all closeout ledgers together and
+    fails in strict mode when any required external evidence remains pending.
+- Open-source reference check:
+  - Task classification: common release-readiness / go-live closeout guard.
+  - Sources checked: existing repository evidence ledgers and checker scripts:
+    `docs/MVP-Launch-Evidence.json`, `docs/Miniapp-Manual-QA.json`,
+    `docs/Admin-Web-Manual-QA.json`, `scripts/check_mvp_launch_evidence.js`,
+    `scripts/check_miniapp_manual_qa.js`,
+    `scripts/check_admin_web_manual_qa.js`, and
+    `docs/MVP-Closeout-Audit.md`.
+  - Selected approach: add a small project-local Node.js closeout checker that
+    reads the existing ledgers, reports unresolved required evidence by area,
+    and only exits non-zero when `--strict` is requested.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: existing project-local JSON ledger/status model and checker
+    style.
+  - Rejected options: adding a third-party release checklist service, making the
+    aggregate regression fail by default while external evidence is intentionally
+    pending, or copying a generic release gate that does not understand this
+    MVP's WeChat/payment/admin/deployment evidence model.
+- Risks:
+  - The guard is a readiness decision aid, not proof of screenshots, payment
+    settlement, WeChat backend configuration, security-group console state, or
+    production deployment. It depends on the existing evidence ledgers being
+    updated honestly.
+- Acceptance criteria:
+  - New checker summarizes required launch, miniapp manual QA, and admin manual
+    QA status.
+  - Non-strict mode exits zero and prints unresolved blockers for normal
+    handoff.
+  - Strict mode exits non-zero while current external evidence remains pending.
+  - Readiness/context/project-state/closeout docs include the new final closeout
+    guard and its limits.
+  - Focused verification passes and the round is committed once.
+- Verification:
+  - `node --check scripts/check_mvp_closeout_readiness.js`: passed.
+  - `node scripts/check_mvp_closeout_readiness.js`: passed and summarized 33
+    unresolved required closeout items.
+  - `node scripts/check_mvp_closeout_readiness.js --strict`: expected non-zero;
+    failed with 33 unresolved required items across launch, miniapp manual QA,
+    and admin-web manual QA ledgers.
+- Change summary:
+  - Added `scripts/check_mvp_closeout_readiness.js`.
+  - Wired the non-strict closeout readiness summary into
+    `scripts/check_mvp_regression.sh` evidence checks.
+  - Updated readiness, closeout audit, context index, project-state, and
+    decision docs.
+- Goal correction:
+  - The final completion boundary is now harder to misread: the MVP can only be
+    declared complete when the strict closeout readiness guard passes. The
+    overall MVP goal remains open because current external evidence is still
+    pending.

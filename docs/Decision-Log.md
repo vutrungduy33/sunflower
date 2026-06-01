@@ -153,3 +153,14 @@ Append durable decisions here. Keep entries short and include provenance.
   before handoff without adding browser credentials or a new e2e dependency.
 - Provenance: `scripts/check_admin_web_behavior_wiring.js`,
   `docs/Admin-Web-MVP-QA.md`.
+
+## 2026-06-02: Add MVP Closeout Readiness Guard
+
+- Decision: Use `scripts/check_mvp_closeout_readiness.js` as the final aggregate
+  closeout readiness guard over launch evidence, miniapp manual QA, and admin-web
+  manual QA ledgers.
+- Rationale: Individual evidence checkers are useful, but final goal completion
+  needs one machine-checkable summary that prevents declaring MVP complete while
+  required external evidence is still pending.
+- Provenance: `scripts/check_mvp_closeout_readiness.js`,
+  `docs/MVP-Closeout-Audit.md`, `docs/MVP-Readiness.md`.

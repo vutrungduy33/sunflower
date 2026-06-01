@@ -56,6 +56,8 @@ Workflow and docs:
   - `docs/Admin-Web-MVP-QA.md`
   - `docs/Production-Smoke.md`
   - `docs/MVP-Launch-Evidence.md`
+- `node scripts/check_mvp_closeout_readiness.js` now summarizes launch,
+  miniapp manual QA, and admin-web manual QA closeout status in one place.
 
 ## 3. Requirements Still Not Proven
 
@@ -79,6 +81,9 @@ Workflow and docs:
   12 required admin manual QA checks remain pending.
 - `node scripts/check_mvp_launch_evidence.js --strict` currently fails because
   9 required launch evidence entries remain pending.
+- `node scripts/check_mvp_closeout_readiness.js --strict` currently fails
+  because 33 required closeout items remain unresolved across launch, miniapp
+  manual QA, and admin-web manual QA ledgers.
 
 ## 4. Goal Status
 
@@ -101,6 +106,8 @@ Do not call the MVP complete until:
    checks are explicitly waived by the user.
 9. `node scripts/check_admin_web_manual_qa.js --strict` passes or pending admin
    checks are explicitly waived by the user.
+10. `node scripts/check_mvp_closeout_readiness.js --strict` passes as the final
+    aggregate completion guard.
 
 ## 5. Recommended Next Goal Prompt
 

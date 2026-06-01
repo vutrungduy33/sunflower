@@ -65,6 +65,11 @@ Current snapshot after 2026-06-02 final local audit:
 - Launch evidence `node scripts/check_mvp_launch_evidence.js --strict`: expected
   non-zero on 2026-06-02 because 9 required external evidence entries remain
   pending.
+- MVP closeout readiness `node scripts/check_mvp_closeout_readiness.js`: passed
+  in Round 18 and summarized 33 unresolved required closeout items.
+- MVP closeout readiness `node scripts/check_mvp_closeout_readiness.js --strict`:
+  expected non-zero in Round 18 because required launch, miniapp manual QA, and
+  admin-web manual QA evidence remains pending.
 - Miniapp manual QA `node scripts/check_miniapp_manual_qa.js`: passed on
   2026-06-02.
 - Miniapp manual QA `node scripts/check_miniapp_manual_qa.js --strict`:
@@ -105,6 +110,10 @@ Current snapshot after 2026-06-02 final local audit:
 - Evidence quality guard added on 2026-06-02: launch, miniapp manual QA, and
   admin manual QA checkers now reject `passed`/`waived` entries whose evidence
   still looks unresolved or too short for handoff.
+- MVP closeout readiness guard `scripts/check_mvp_closeout_readiness.js`: added
+  on 2026-06-02 and included in aggregate evidence regression. Non-strict mode
+  summarizes unresolved closeout evidence; strict mode is the final aggregate
+  completion guard.
 
 ## Known MVP Risks
 
@@ -124,6 +133,7 @@ Current snapshot after 2026-06-02 final local audit:
 - Launch evidence tracker: `docs/MVP-Launch-Evidence.md`.
 - External validation runbook: `docs/MVP-External-Validation-Runbook.md`.
 - MVP closeout audit: `docs/MVP-Closeout-Audit.md`.
+- MVP closeout readiness guard: `scripts/check_mvp_closeout_readiness.js`.
 - Aggregate MVP regression script: `scripts/check_mvp_regression.sh`.
 - Deploy config static check: `scripts/check_deploy_config.sh`.
 - Admin web behavior wiring check: `scripts/check_admin_web_behavior_wiring.js`.

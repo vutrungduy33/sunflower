@@ -62,6 +62,8 @@ RUN_PRODUCTION=1 scripts/check_mvp_regression.sh
 
 ```bash
 node scripts/check_mvp_external_runbook.js
+node scripts/check_mvp_closeout_readiness.js
+node scripts/check_mvp_closeout_readiness.js --strict
 node scripts/check_mvp_launch_evidence.js --strict
 node scripts/check_miniapp_manual_qa.js --strict
 node scripts/check_admin_web_manual_qa.js --strict
@@ -113,6 +115,12 @@ current branch is live.
 The aggregate local regression script intentionally runs manual evidence checks
 in non-strict mode; strict evidence commands still need to pass separately
 before MVP completion.
+
+`node scripts/check_mvp_closeout_readiness.js` is the final closeout readiness
+summary over launch, miniapp manual QA, and admin-web manual QA ledgers. Its
+non-strict mode is safe for daily handoff and exits zero while listing pending
+external evidence. Its `--strict` mode must pass before the MVP goal can be
+declared complete.
 
 When HTTPS/domain is ready, also verify:
 
@@ -171,6 +179,9 @@ Production:
   deployment requires explicit branch/production confirmation.
 - `node scripts/check_mvp_launch_evidence.js --strict` currently fails by
   design because required external evidence remains pending.
+- `node scripts/check_mvp_closeout_readiness.js --strict` currently fails by
+  design because required launch, miniapp manual QA, and admin-web manual QA
+  evidence remains pending.
 - `node scripts/check_miniapp_manual_qa.js --strict` currently fails by design
   because miniapp preview/real-device/payment evidence remains pending.
 - `node scripts/check_admin_web_manual_qa.js --strict` currently fails by
