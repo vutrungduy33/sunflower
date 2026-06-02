@@ -2377,3 +2377,74 @@
     open. The next deployment-related progress requires explicit approval for
     push/merge/workflow dispatch or an explicit user decision that current
     branch deployment evidence is out of scope.
+
+## Round 39: Production-Enabled Aggregate Regression Refresh
+
+- Date: 2026-06-02
+- Status: completed and committed.
+- Focus: refresh the full automated and production read-only MVP baseline on
+  current branch HEAD before attempting any external evidence lane, without
+  pushing, deploying, reloading Nginx, mutating ECS/firewall/security-group
+  state, real payment/refund, or production data changes.
+- Start evidence:
+  - `git status --short --branch --untracked-files=all`: clean on
+    `codex/s18-payment-hardening` after Round 38 commit.
+  - Pre-commit HEAD for the regression: `255558f001e9`.
+  - The latest aggregate production-enabled baseline in state docs still pointed
+    mostly to Round 32, with later targeted Round 36/37/38 refreshes.
+- Open-source reference check:
+  - Task classification: repository-specific verification and durable evidence
+    maintenance.
+  - Sources checked: not applicable; this round did not implement a common
+    feature, reusable infrastructure, or external-code-dependent design.
+  - Selected approach: run the existing aggregate MVP regression with
+    `RUN_PRODUCTION=1`, then update evidence docs from the current output while
+    preserving pending external/manual evidence statuses.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: existing `scripts/check_mvp_regression.sh`,
+    evidence ledgers, and readiness/closeout documentation.
+  - Rejected options: running strict closeout as a completion claim, pushing to
+    `main`, invoking `workflow_dispatch`, mutating production, or marking
+    external evidence complete from automated checks.
+- Risks:
+  - The aggregate evidence checks are intentionally non-strict; 33 required
+    external/manual evidence items remain unresolved.
+  - Production checks are read-only and do not prove current branch deployment.
+  - Backend `8080` hardening remains unresolved because ECS-2 still listens on
+    `0.0.0.0:8080` and local firewall output did not prove restriction.
+- Acceptance criteria:
+  - `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh` passes on current branch
+    pre-commit HEAD.
+  - State/readiness/production/closeout/evidence docs reflect the current
+    Round 39 automated and production read-only baseline.
+  - Launch evidence pending entries remain pending unless real external
+    evidence or explicit waiver exists.
+  - The round is committed once.
+- Verification:
+  - `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: passed with 6 enabled
+    steps.
+    - Backend tests: passed, 57 tests, 0 failures, 0 errors, 0 skipped.
+    - Admin web lint/test/build: passed; Vitest passed 23 tests across 5 files.
+    - Admin behavior wiring: passed with 97 checks; admin external QA preflight
+      passed with 6 checks.
+    - Miniapp smoke, behavior wiring, user-flow replay, external preflight,
+      project config, and subpage nav: passed. Expected warnings remain for
+      bare HTTP default API base and absent local `project.private.config.json`.
+    - Evidence/runbook/manual-ledger non-strict checks: passed while reporting
+      33 unresolved required closeout items.
+    - Deploy config static checks: passed.
+    - Production smoke and backend `8080` read-only checks: passed; production
+      smoke reported 7 passes/1 backend-bind warning, backend `8080` exposure
+      reported 3 passes/2 warnings.
+- Change summary:
+  - Updated `docs/MVP-Launch-Evidence.json` and regenerated
+    `docs/MVP-External-Evidence-Template.md`.
+  - Updated `docs/Project-State.md`, `docs/MVP-Readiness.md`,
+    `docs/Production-Smoke.md`, `docs/Backend-8080-Security.md`,
+    `docs/MVP-Closeout-Audit.md`, and this progress log.
+- Goal correction:
+  - The automated and production read-only baseline is current again, but the
+    MVP is not complete. The next meaningful progress must collect real
+    external evidence or explicit waivers for one approval lane, such as
+    `MINIAPP-PREVIEW-DOMAIN`, `ADMIN-PROD-QA`, `BACKEND-8080-HARDENING`, or
+    `CURRENT-BRANCH-DEPLOYED`.

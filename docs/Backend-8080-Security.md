@@ -24,9 +24,9 @@ Modes:
 
 ## 2. Current Result
 
-Latest direct read-only result from
-`RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh` at 2026-06-02 08:49
-Asia/Shanghai on HEAD `9c9d242`:
+Latest direct read-only result from the backend `8080` step inside
+`RUN_PRODUCTION=1 scripts/check_mvp_regression.sh` at 2026-06-02 08:58
+Asia/Shanghai on pre-commit HEAD `255558f001e9`:
 
 - Public `http://47.120.42.15:8080/api/health` was not directly usable from the
   local network.
@@ -50,6 +50,9 @@ Previous aggregate result:
 
 - `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh` also ran this check at
   2026-06-02 07:33 Asia/Shanghai with the same 3 pass / 2 warning shape.
+- `RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh` also ran this check
+  directly at 2026-06-02 08:49 Asia/Shanghai on HEAD `9c9d242` with the same 3
+  pass / 2 warning shape.
 
 ## 3. Required Launch Evidence
 

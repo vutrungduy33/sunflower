@@ -28,7 +28,7 @@
 
 ## Recent Validation Snapshot
 
-Current snapshot after 2026-06-02 Round 32 production-enabled aggregate MVP
+Current snapshot after 2026-06-02 Round 39 production-enabled aggregate MVP
 regression recheck:
 
 - `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: passed in Round 32 with
@@ -36,9 +36,15 @@ regression recheck:
   external preflight checks, miniapp smoke/wiring/replay/external-preflight
   checks, MVP evidence ledger checks, deploy config static checks, and
   production smoke/backend `8080` read-only checks.
+- `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: passed again in Round 39
+  at pre-commit HEAD `255558f001e9` on 2026-06-02 08:58 Asia/Shanghai with the
+  same 6 enabled steps. It did not push, deploy, reload Nginx, or change
+  ECS/firewall/security-group state.
 - Backend `mvn -B test`: passed again in Round 32, 57 tests. Round 28 added
   public order ownership isolation coverage for current-user list/detail/pay
   preparation/pay confirmation/cancel/reschedule/refund actions.
+- Backend `mvn -B test`: passed again inside Round 39, 57 tests, 0 failures, 0
+  errors, 0 skipped.
 - Aggregate local regression `scripts/check_mvp_regression.sh`: passed in Round
   29 with 5 enabled steps and production checks skipped by default. Round 32
   reran the aggregate regression with `RUN_PRODUCTION=1` and included
@@ -53,6 +59,10 @@ regression recheck:
 - Production smoke and backend `8080` read-only checks: passed again in Round
   32 through `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`. The checks did
   not push, deploy, reload Nginx, or change ECS/firewall/security-group state.
+- Production smoke and backend `8080` read-only checks: passed again in Round
+  39 through `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh` with 7
+  production smoke passes/1 backend-bind warning and backend `8080` exposure 3
+  passes/2 warnings.
 - Admin web `npm run lint`: passed again in Round 36 at 2026-06-02 08:46
   Asia/Shanghai.
 - Admin web `npm run test`: passed again in Round 36 at 2026-06-02 08:46
@@ -61,6 +71,9 @@ regression recheck:
   retry.
 - Admin web `npm run build`: passed again in Round 36 at 2026-06-02 08:46
   Asia/Shanghai.
+- Admin web lint/test/build passed again inside Round 39; Vitest passed 23
+  tests across 5 files, behavior wiring passed 97 checks, and admin external QA
+  preflight passed 6 checks.
 - Older goal notes that mention an admin-web `_refundId` lint failure or 3
   failing/timed-out admin tests are stale. Round 36 direct admin-web reruns and
   Round 32 aggregate regression prove current admin-web lint/test/build is
@@ -90,6 +103,10 @@ regression recheck:
   verify committed AppID placeholder, ignored/untracked private DevTools
   config, safe private-config example, API base override support, and required
   manual QA ledger IDs before preview/real-device evidence collection.
+- Miniapp smoke, behavior wiring, user-flow replay, external preflight, project
+  config, and subpage navigation checks passed again inside Round 39. The
+  expected warnings remain: default API base is bare HTTP for local/devtools
+  validation only, and local `project.private.config.json` is absent.
 - Production `http://47.113.223.248/api/health`: returned 200 in Round 5.
 - Production `http://47.113.223.248/api/content/home`: returned 200 in Round 5.
 - Production `http://47.113.223.248/healthz`: returned 200 in Round 5.
@@ -98,6 +115,9 @@ regression recheck:
   passed on 2026-06-02 07:33 Asia/Shanghai. They ran production public/ECS
   internal smoke and backend `8080` exposure inspection without pushing,
   deploying, reloading Nginx, or changing ECS/firewall/security-group state.
+- Production checks under `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`:
+  passed again on 2026-06-02 08:58 Asia/Shanghai at pre-commit HEAD
+  `255558f001e9` with the same no-mutation boundary.
 - Production `RUN_INTERNAL=1 scripts/check_production_smoke.sh`: passed on
   2026-06-02 07:33 Asia/Shanghai with 7 checks and 1 known backend-bind
   warning.
@@ -107,6 +127,9 @@ regression recheck:
   and 2 warnings. It confirms public 8080 is not directly usable from this local
   network and ECS-1 private upstream works, but does not prove security-group
   restriction because ECS-2 still listens on `0.0.0.0:8080`.
+- Backend 8080 read-only security check passed again inside Round 39 with the
+  same 3 pass/2 warning shape; Alibaba Cloud security-group evidence or an
+  explicit waiver is still required for closeout.
 - Launch evidence `node scripts/check_mvp_launch_evidence.js`: passed on
   2026-06-02.
 - Launch evidence ledger `docs/MVP-Launch-Evidence.json`: refreshed in Round
@@ -117,6 +140,10 @@ regression recheck:
   Round 37 for `BACKEND-8080-HARDENING` with current read-only backend `8080`
   evidence. The entry remains `pending`; no security-group/firewall mutation was
   performed.
+- Launch evidence ledger `docs/MVP-Launch-Evidence.json`: refreshed again in
+  Round 39 for automated baseline, production smoke, and backend `8080`
+  evidence at pre-commit HEAD `255558f001e9`. Pending external evidence entries
+  remain pending.
 - MVP next Codex goal prompt `docs/MVP-Next-Goal-Prompt.md`: refined in Round
   35 with startup context, per-round execution loop, approval lanes, hard
   safety boundaries, exact completion commands, and stop/manual-intervention

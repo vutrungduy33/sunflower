@@ -25,14 +25,14 @@ verified, and documented enough for handoff:
 
 | Area | Evidence | Status | Next action |
 | --- | --- | --- | --- |
-| Backend local quality | Round 32 `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh` reran `mvn -B test`: passed, 57 tests. Round 28 added public order ownership isolation across current-user list/detail/pay preparation/pay confirmation/cancel/reschedule/refund actions. | Ready locally | Keep green after future backend changes. |
-| Admin web local quality | Round 36 directly reran `npm run lint`, `npm run test` (23 tests across 5 files), and `npm run build`: passed. Round 32 also reran admin behavior wiring and external QA preflight checks: passed. Round 27 order tests cover check-in, check-out, no-show, after-sale rejection, and failed refund retry. | Ready locally | Keep green after future admin changes. |
-| Miniapp syntax/smoke | Round 32 reran miniapp smoke, behavior wiring, user-flow replay, external preflight, project config, and subpage nav checks: passed. The run still warns that the default API base is bare HTTP for local/devtools validation and local `project.private.config.json` is absent. | Partially verified | Real-device login/phone/payment evidence still required. |
+| Backend local quality | Round 39 `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh` reran `mvn -B test`: passed, 57 tests, 0 failures/errors/skips. Round 28 added public order ownership isolation across current-user list/detail/pay preparation/pay confirmation/cancel/reschedule/refund actions. | Ready locally | Keep green after future backend changes. |
+| Admin web local quality | Round 39 reran `npm run lint`, `npm run test` (23 tests across 5 files), `npm run build`, admin behavior wiring (97 checks), and admin external QA preflight (6 checks): passed. Round 27 order tests cover check-in, check-out, no-show, after-sale rejection, and failed refund retry. | Ready locally | Keep green after future admin changes. |
+| Miniapp syntax/smoke | Round 39 reran miniapp smoke, behavior wiring, user-flow replay, external preflight, project config, and subpage nav checks: passed. The run still warns that the default API base is bare HTTP for local/devtools validation and local `project.private.config.json` is absent. | Partially verified | Real-device login/phone/payment evidence still required. |
 | Miniapp real user path | Code supports real API, WeChat login, phone binding, `wx.requestPayment`, order and after-sale flows; manual QA ledger now exists. | Needs real-device evidence | Run `node scripts/check_miniapp_manual_qa.js --strict` after recording preview/real-device evidence. |
 | WeChat pay/refund | Backend has WeChat payment/refund gateway, callbacks, records, retry, and mock only when explicitly configured; miniapp payment QA ledger now exists. | Needs production evidence | Verify small real payment/refund with merchant config and callback domain, then record sanitized evidence. |
 | Admin operations path | Core pages and tests exist for auth, room, price/inventory, and order management; manual QA ledger now exists. | Partially verified | Run `node scripts/check_admin_web_manual_qa.js --strict` against deployed admin web after recording safe evidence. |
-| Deployment | Round 32 `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh` passed deploy config static checks plus production public/ECS internal smoke and backend `8080` read-only checks. Public `/api/health`, `/api/content/home`, `/healthz`, admin web HTML, ECS internal health, and deploy config static checks passed. No push/deploy was performed. | Partially verified | Push/dispatch deploy only after confirming branch/production intent. |
-| Security / compliance | Secrets are local/ECS-owned; `.secrets/` ignored. Round 37 backend `8080` read-only checks show public 8080 not directly usable from this network, ECS-1 private upstream works, and ECS-2 backend health is present, but ECS-2 still listens on `0.0.0.0:8080` and firewall/security-group restriction is not proven. | Needs hardening | Record Alibaba Cloud security group evidence or explicit user waiver; complete HTTPS/WeChat domain setup. |
+| Deployment | Round 39 `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh` passed deploy config static checks plus production public/ECS internal smoke and backend `8080` read-only checks. Public `/api/health`, `/api/content/home`, `/healthz`, admin web HTML, ECS internal health, and deploy config static checks passed. No push/deploy was performed. | Partially verified | Push/dispatch deploy only after confirming branch/production intent. |
+| Security / compliance | Secrets are local/ECS-owned; `.secrets/` ignored. Round 39 backend `8080` read-only checks show public 8080 not directly usable from this network, ECS-1 private upstream works, and ECS-2 backend health is present, but ECS-2 still listens on `0.0.0.0:8080` and firewall/security-group restriction is not proven. | Needs hardening | Record Alibaba Cloud security group evidence or explicit user waiver; complete HTTPS/WeChat domain setup. |
 
 Detailed launch evidence is tracked in `docs/MVP-Launch-Evidence.md` and
 `docs/MVP-Launch-Evidence.json`. Final MVP completion requires the strict
@@ -41,9 +41,10 @@ waived by the user.
 
 Latest aggregate regression:
 
-- `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: passed in Round 32 with
-  backend, admin-web, miniapp, non-strict evidence, deploy config static
-  checks, and production read-only checks enabled.
+- `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: passed in Round 39 at
+  pre-commit HEAD `255558f001e9` with backend, admin-web, miniapp, non-strict
+  evidence, deploy config static checks, and production read-only checks
+  enabled.
 - The aggregate evidence checks remain non-strict and reported 33 unresolved
   required closeout items.
 
@@ -55,9 +56,9 @@ Latest production/deployment read-only evidence:
   push/merge to `main` was predicted to trigger deployment target `all`, and
   impact counts were backend 38, admin-web 5, ingress 1.
 - Production checks inside `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`:
-  passed in Round 32 with production public/ECS internal smoke and backend
+  passed in Round 39 with production public/ECS internal smoke and backend
   `8080` exposure read-only checks enabled.
-- Backend `8080` hardening remains unresolved after the Round 37 direct
+- Backend `8080` hardening remains unresolved after the Round 39 direct
   read-only check because ECS-2 still listens on `0.0.0.0:8080` and local
   firewall output did not prove restriction.
 
