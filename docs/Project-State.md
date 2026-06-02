@@ -28,7 +28,8 @@
 
 ## Recent Validation Snapshot
 
-Current snapshot after 2026-06-02 Round 56 automatic progress boundary audit:
+Current snapshot after 2026-06-02 Round 57 MVP readiness snapshot
+reconciliation:
 
 - `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: passed in Round 32 with
   6 enabled steps: backend tests, admin-web lint/test/build, admin behavior and
@@ -81,6 +82,11 @@ Current snapshot after 2026-06-02 Round 56 automatic progress boundary audit:
   new automated code regressions. No further local-only refresh work can satisfy
   the remaining termination criteria without user-approved evidence, waivers, or
   deployment action.
+- Round 57 reconciled `docs/MVP-Readiness.md` so its headline readiness matrix
+  now points to the latest Round 53 default aggregate regression, Round 55
+  deployment approval preflight, and Round 56 strict closeout boundary audit
+  instead of presenting older Round 47/Round 49 entries as the newest local and
+  deployment facts. No evidence ledger status or production state changed.
 - Round 50 audited the original goal termination criteria against current
   evidence in `docs/MVP-Closeout-Audit.md`. Result: the active MVP goal remains
   incomplete because strict external/manual evidence still has 33 unresolved
