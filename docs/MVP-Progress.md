@@ -3,6 +3,74 @@
 > Compact round-by-round progress for the current MVP hardening goal. Keep this
 > file factual and update it at the end of each committed round.
 
+## Round 52: Aggregate Regression Termination Audit Wiring
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: wire the Round 51 termination audit guard into the aggregate MVP
+  regression evidence step so standard regression runs protect the original
+  goal-completion boundary automatically.
+- Start evidence:
+  - `git status --short --branch --untracked-files=all`: local `main` is ahead
+    of `origin/main` by 55 commits and has no tracked worktree changes.
+  - HEAD is `ee7fa74` (`Add MVP termination audit guard`).
+  - `scripts/check_mvp_regression.sh` already runs non-strict evidence,
+    closeout, and handoff checks, but it does not yet run
+    `node scripts/check_mvp_termination_audit.js`.
+- Open-source reference check:
+  - Task classification: repository-specific verification orchestration.
+  - Sources checked: not needed; this is a narrow edit to the local aggregate
+    regression script and docs, not common feature, reusable UI, auth, payment,
+    deployment implementation, or infrastructure code.
+  - Selected approach: extend the existing `run_evidence_checks` block in
+    `scripts/check_mvp_regression.sh` with the termination audit guard.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: existing aggregate regression script structure.
+  - Rejected options: changing strict completion semantics, marking evidence
+    complete, running production checks, pushing, dispatching, or deploying.
+- Risks:
+  - The aggregate regression remains non-strict for evidence by design; adding
+    the termination audit guard must not imply the unresolved 33 external/manual
+    items are completed.
+  - A focused validation should run only the evidence slice first to avoid
+    unnecessary broad regression churn for this small script edit.
+- Acceptance criteria:
+  - `scripts/check_mvp_regression.sh` runs
+    `node scripts/check_mvp_termination_audit.js` when `RUN_EVIDENCE=1`.
+  - A focused aggregate evidence-only command passes and shows the new guard in
+    the evidence step.
+  - `docs/Project-State.md` and progress docs record the durable wiring.
+  - `git diff --check` passes.
+  - The round is committed once.
+- Change summary:
+  - Added `node scripts/check_mvp_termination_audit.js` to the
+    `run_evidence_checks` block in `scripts/check_mvp_regression.sh`.
+  - Updated `docs/Project-State.md` so the aggregate regression entry records
+    that the non-strict evidence step includes the termination audit guard.
+  - No evidence statuses, strict completion semantics, product code, deployment
+    workflow, production state, ECS state, payment/refund state, or live QA data
+    changed.
+- Verification:
+  - `RUN_BACKEND=0 RUN_ADMIN=0 RUN_MINIAPP=0 RUN_DEPLOY_CONFIG=0 RUN_PRODUCTION=0 RUN_EVIDENCE=1 scripts/check_mvp_regression.sh`:
+    passed 1 enabled evidence step. The output included
+    `[termination-audit] PASS`, 13 launch required entries with 9 pending, 12
+    miniapp manual QA pending checks, 12 admin-web manual QA pending checks, and
+    33 unresolved required closeout items.
+  - `bash -n scripts/check_mvp_regression.sh`: passed, with the expected local
+    shell locale warning.
+  - `node --check scripts/check_mvp_termination_audit.js`: passed.
+  - `node scripts/check_mvp_termination_audit.js`: passed.
+  - `node scripts/check_mvp_next_approval_request.js`: passed.
+  - `node scripts/check_mvp_handoff_packet.js`: passed.
+  - `git diff --check`: passed.
+- Goal correction:
+  - The active goal remains incomplete. Aggregate regression now protects the
+    completion-boundary audit, but final completion still requires external
+    evidence or explicit waivers plus strict closeout success.
+- Next recommended round:
+  - Move to an approval/evidence lane instead of adding more local-only guards,
+    unless the user wants another specific handoff automation.
+
 ## Round 51: Termination Audit Guard
 
 - Date: 2026-06-02

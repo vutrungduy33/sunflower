@@ -28,7 +28,8 @@
 
 ## Recent Validation Snapshot
 
-Current snapshot after 2026-06-02 Round 51 termination audit guard:
+Current snapshot after 2026-06-02 Round 52 aggregate regression termination
+audit wiring:
 
 - `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: passed in Round 32 with
   6 enabled steps: backend tests, admin-web lint/test/build, admin behavior and
@@ -58,6 +59,11 @@ Current snapshot after 2026-06-02 Round 51 termination audit guard:
   in `docs/MVP-Closeout-Audit.md`. The guard is documentation-only; it does not
   change evidence status, prove external/manual QA, push, dispatch, deploy, or
   mutate production.
+- Round 52 wired `scripts/check_mvp_termination_audit.js` into
+  `scripts/check_mvp_regression.sh` under the non-strict evidence step so
+  aggregate regression runs also protect the original goal-completion boundary.
+  The aggregate evidence step remains non-strict and still reports 33
+  unresolved required external/manual closeout items.
 - Backend `mvn -B test`: passed again in Round 32, 57 tests. Round 28 added
   public order ownership isolation coverage for current-user list/detail/pay
   preparation/pay confirmation/cancel/reschedule/refund actions.
@@ -373,7 +379,8 @@ Current snapshot after 2026-06-02 Round 51 termination audit guard:
 - MVP termination audit guard: `scripts/check_mvp_termination_audit.js`.
 - MVP closeout readiness guard: `scripts/check_mvp_closeout_readiness.js`.
 - MVP handoff packet guard: `scripts/check_mvp_handoff_packet.js`.
-- Aggregate MVP regression script: `scripts/check_mvp_regression.sh`.
+- Aggregate MVP regression script: `scripts/check_mvp_regression.sh`, including
+  the non-strict termination audit guard in its evidence step.
 - Production read-only audit script:
   `scripts/check_production_readonly_audit.sh`.
 - Deployment approval preflight:
