@@ -308,6 +308,71 @@
     GitHub network access to `github.com:443`, disk space, and workspace
     permissions before retrying backend-only nonprod/mock lane.
 
+## Round 77: Production-Lane Run Result Capture
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: capture the actual result of push-triggered GitHub Actions run
+  `26800134363` after the timeout guard and distinguish infrastructure
+  recovery from remaining payment configuration blockers.
+- Start evidence:
+  - Local `main` and `origin/main` are aligned at `e797423`.
+  - Run `26800134363` was created by the push of Round 76 commits and uses the
+    production lane because push-to-main always resolves to production.
+  - The previous manual nonprod/mock run `26799773234` failed at ECS-2 checkout
+    before bundle sync or deploy.
+- Open-source reference check:
+  - Task classification: repository-specific deployment result capture.
+  - Sources checked: no new external implementation needed; the run result was
+    read through GitHub CLI and the existing workflow/run documentation context
+    from Rounds 75-76 still applies.
+  - License/compatibility: no external code copied.
+  - Selected approach: record the authoritative GitHub Actions run state and
+    keep evidence status pending because the run failed before backend deploy.
+  - Rejected options: treating successful build/artifact/load as production
+    deployment, or weakening payment validation to make production lane pass.
+- Risks:
+  - The run is production-lane and still cannot pass without real payment
+    configuration or an explicit nonprod/mock lane.
+  - Successful checkout/artifact/load is useful infrastructure evidence but is
+    not post-deploy smoke evidence.
+- Acceptance criteria:
+  - Query run `26800134363` and identify the first failing step.
+  - Record whether ECS-2 checkout/network recovered.
+  - Update project state/progress without marking MVP evidence passed.
+  - Run focused documentation/evidence guards and commit once.
+- Change summary:
+  - Recorded that `detect-targets`, backend image build/artifact, admin-web
+    image build/artifact, ECS-2 checkout, bundle sync, artifact download,
+    docker load, and backend image availability check succeeded in run
+    `26800134363`.
+  - Recorded that `Deploy backend host locally` failed during production
+    validation because `WECHAT_PAY_MCH_ID` is missing.
+  - Kept current-branch deployment, production smoke, and real payment/refund
+    evidence pending.
+- Verification:
+  - `gh run view 26800134363`: completed `failure`; first failed job was
+    `deploy-backend-host`, first failed step was `Deploy backend host locally`.
+  - Sanitized failed-step log summary: production lane called
+    `scripts/execute_runner_deploy.sh` with `DEPLOY_TARGET=all` and
+    `DEPLOYMENT_LANE=production`; validation failed because
+    `WECHAT_PAY_MCH_ID` is missing.
+  - `node scripts/check_mvp_handoff_packet.js`,
+    `node scripts/check_mvp_next_approval_request.js`,
+    `node scripts/check_mvp_external_approval_packet.js`, and
+    `node scripts/check_mvp_closeout_readiness.js`: passed in non-strict mode;
+    closeout still reports 32 unresolved required items.
+  - `git diff --check`: passed.
+- Goal correction:
+  - The active MVP goal remains incomplete. This round proves the deployment
+    runner can now pass checkout/artifact/docker-load for a production-lane run,
+    but backend deployment is still blocked by missing real WeChat Pay config.
+- Next recommended round:
+  - Either provision real ECS-2 WeChat Pay production variables/key files and
+    rerun production lane, or explicitly rerun backend-only
+    `deployment_lane=nonprod-mock-payment` for reduced-scope backend deploy
+    validation while keeping real payment/refund evidence pending.
+
 ## Round 72: Nonprod Mock Deployment Approval Snapshot
 
 - Date: 2026-06-02

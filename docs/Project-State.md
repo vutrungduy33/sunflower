@@ -96,6 +96,14 @@
   termination followed by a `github.com:443` connection timeout. Bundle sync,
   artifact download, image load, local backend deploy, and web deploy did not
   run, so current-branch deployment and smoke remain pending.
+- Round 77 observed the push-triggered production-lane run `26800134363` for
+  HEAD `e797423f1f86`: backend/admin-web image build and artifact packaging
+  succeeded; ECS-2 checkout, bundle sync, backend artifact download, docker
+  load, and image availability check all succeeded. The backend deploy then
+  failed in production validation because `WECHAT_PAY_MCH_ID` is missing. Web
+  deploy was skipped because backend deploy failed. This proves the previous
+  ECS-2 checkout/network blocker cleared for that run, but current-branch
+  production deployment and smoke still remain pending.
 - Round 60 pushed `98e68e0dd478` to `main` and triggered GitHub Actions run
   `26796051853`; backend/admin-web images built, but ECS-2 checkout stalled
   before deployment completed.
