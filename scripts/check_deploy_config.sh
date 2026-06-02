@@ -53,6 +53,7 @@ check_shell_syntax() {
     scripts/reload_host_nginx.sh
     scripts/sync_deploy_bundle.sh
     scripts/execute_runner_deploy.sh
+    scripts/test_execute_runner_deploy_release_env.sh
     scripts/start_backend_with_mvp_seed.sh
     scripts/start_admin_web.sh
     scripts/check_production_smoke.sh
@@ -74,6 +75,12 @@ check_node_syntax() {
   log PASS "deployment Node.js script syntax checked"
 }
 
+check_runner_deploy_release_metadata() {
+  log INFO "checking runner deploy release metadata failure behavior"
+  bash "$ROOT_DIR/scripts/test_execute_runner_deploy_release_env.sh"
+  log PASS "runner deploy release metadata failure behavior checked"
+}
+
 main() {
   require_command ruby
   require_command docker
@@ -83,6 +90,7 @@ main() {
   check_workflow_yaml
   check_compose_rendering
   check_shell_syntax
+  check_runner_deploy_release_metadata
   check_node_syntax
 
   log INFO "deploy config checks completed"

@@ -133,6 +133,15 @@ deployment run:
   deploy. Current-branch deployment remains pending. Do not weaken
   `WECHAT_PAY_MOCK_ENABLED=false` production payment validation without an
   explicit non-production/mock-payment deployment decision.
+- Round 61 fixed the deployment metadata consistency gap exposed by run
+  `26796607775`: `scripts/execute_runner_deploy.sh` now writes
+  `.release.env.pending` and `.deploy-source-sha.pending`, uses the pending
+  release env for the active deploy attempt, and only promotes those files to
+  formal `.release.env`/`.deploy-source-sha` after validation and deployment
+  succeed. Failed validation/deploy attempts preserve the previous committed
+  release metadata and clean pending files. `scripts/check_deploy_config.sh`
+  now runs `scripts/test_execute_runner_deploy_release_env.sh` to guard this
+  behavior.
 - Round 50 audited the original goal termination criteria against current
   evidence in `docs/MVP-Closeout-Audit.md`. Result: the active MVP goal remains
   incomplete because strict external/manual evidence still has 33 unresolved

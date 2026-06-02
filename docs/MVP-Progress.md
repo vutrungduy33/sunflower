@@ -5,6 +5,101 @@
 > This active file keeps only recent rounds; older rounds are archived in
 > `docs/archive/mvp-progress/MVP-Progress-Rounds-1-47.md`.
 
+## Round 61: Atomic Release Metadata Guard
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: prevent failed self-hosted runner deployments from overwriting the
+  committed `.release.env`/`.deploy-source-sha` metadata before validation and
+  deployment succeed.
+- Start evidence:
+  - Local `main` was clean and ahead of `origin/main` by 1 commit
+    (`4e2d62b`), which documents the Round 60 payment-config deployment
+    blocker.
+  - Round 60 follow-up run `26796607775` failed during
+    `validate_prod_env.sh` because `WECHAT_PAY_MCH_ID` is missing, but ECS-2
+    `.release.env` had already been overwritten to the new backend image tag.
+    That made release metadata look newer than the actually running backend
+    container.
+- Open-source reference check:
+  - Task classification: common CI/CD deployment reliability and release
+    metadata consistency.
+  - Sources checked:
+    - GitHub Actions deployment workflow docs:
+      `https://docs.github.com/actions/using-workflows/workflow-syntax-for-github-actions`.
+    - The Twelve-Factor App config/release separation:
+      `https://12factor.net/config`.
+    - Existing repository scripts:
+      `scripts/execute_runner_deploy.sh`, `scripts/deploy_lib.sh`,
+      `scripts/deploy_prod.sh`, and `scripts/check_deploy_config.sh`.
+  - Selected approach: write candidate release metadata to pending files,
+    point the current deployment process at the pending release env, and only
+    atomically move pending files to `.release.env`/`.deploy-source-sha` after
+    validation and deployment complete successfully.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: repository-native shell scripts and existing deploy config
+    checker.
+  - Rejected options: weakening `validate_prod_env.sh`, treating
+    `.release.env` as merely desired-state metadata, or adding a new deployment
+    dependency.
+- Risks:
+  - `deploy_prod.sh` and service scripts must still see the candidate image
+    during the deploy attempt, even though the committed `.release.env` remains
+    untouched until success.
+  - Failed validation/deploy attempts must clean pending files and preserve
+    prior release metadata.
+- Acceptance criteria:
+  - `scripts/execute_runner_deploy.sh` writes `.release.env.pending` and
+    `.deploy-source-sha.pending`, exports `RELEASE_ENV_FILE` to the pending
+    release env for the current process, and moves pending files into place
+    only after successful validation and deployment.
+  - A focused regression script proves failed validation preserves old
+    `.release.env` and `.deploy-source-sha` and removes pending files.
+  - `scripts/check_deploy_config.sh` includes the focused regression.
+  - Deployment docs and project state explain that `.release.env` is committed
+    release metadata, not pre-validation desired state.
+  - Focused deployment checks pass and the round is committed once.
+- Change summary:
+  - Updated `scripts/execute_runner_deploy.sh` to generate pending release
+    metadata, use it for the active deploy attempt, clean it on failure, and
+    atomically promote it after success.
+  - Added `scripts/test_execute_runner_deploy_release_env.sh` to simulate a
+    failed validation and prove old release metadata is preserved.
+  - Wired the focused regression into `scripts/check_deploy_config.sh`.
+  - Updated deployment docs and project-state memory.
+- Verification:
+  - `bash -n scripts/deploy_lib.sh scripts/validate_prod_env.sh
+    scripts/deploy_backend.sh scripts/deploy_admin_web.sh
+    scripts/bootstrap_prod.sh scripts/deploy_prod.sh
+    scripts/reload_host_nginx.sh scripts/sync_deploy_bundle.sh
+    scripts/execute_runner_deploy.sh
+    scripts/test_execute_runner_deploy_release_env.sh
+    scripts/start_backend_with_mvp_seed.sh scripts/start_admin_web.sh
+    scripts/check_deploy_config.sh`: passed.
+  - `bash scripts/test_execute_runner_deploy_release_env.sh`: passed; failed
+    validation preserved old `.release.env` and `.deploy-source-sha` and
+    cleaned pending files.
+  - `scripts/check_deploy_config.sh`: passed, including workflow YAML parse,
+    backend/web compose rendering, deployment shell syntax, runner release
+    metadata regression, and deployment Node.js syntax.
+  - `node scripts/check_mvp_launch_evidence.js`: passed in non-strict mode
+    with 13 required launch entries, 5 passed, and 8 pending.
+  - `node scripts/check_mvp_closeout_readiness.js`: passed in non-strict mode
+    with 32 unresolved required closeout items.
+  - `node scripts/check_mvp_handoff_packet.js`,
+    `node scripts/check_mvp_next_approval_request.js`, and
+    `node scripts/check_mvp_external_approval_packet.js`: passed.
+  - `git diff --check`: passed.
+- Goal correction:
+  - The active MVP goal remains incomplete. This round improves deployment
+    evidence reliability, but `CURRENT-BRANCH-DEPLOYED` still requires a
+    successful deploy and post-deploy smoke after the payment configuration
+    lane is decided.
+- Next recommended round:
+  - Decide whether to provision real WeChat Pay production config on ECS-2 or
+    explicitly run a non-production/mock-payment deployment lane, then rerun
+    deployment and smoke.
+
 ## Round 60: Current Branch Deployment Attempt
 
 - Date: 2026-06-02

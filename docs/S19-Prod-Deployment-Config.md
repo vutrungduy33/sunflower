@@ -44,9 +44,12 @@ S19 之后，生产部署固定采用双 ECS + self-hosted runner 链路：
   - 不由 GitHub Actions 覆盖
   - backend 节点与 web 节点内容不同，但都必须显式声明 `DEPLOY_NODE_ROLE`
 - `.release.env`
-  - 每次发布自动覆盖
+  - 成功发布后自动覆盖
   - 仅保存镜像与发布元信息
   - 不保存业务 secret
+  - runner 部署过程中会先生成 `.release.env.pending`，校验与部署全部成功后
+    再原子替换正式 `.release.env`；失败时 pending 文件会清理，正式
+    `.release.env` 保持上一次成功发布的值
 
 `.release.env` 当前字段：
 

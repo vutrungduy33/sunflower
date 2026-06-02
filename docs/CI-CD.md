@@ -69,12 +69,12 @@ PR 门禁 workflow 已移除。仓库当前不再强制：
    - 若手动传入历史 `image_tag`，则跳过镜像构建与 artifact 生成，直接走既有 GHCR fallback。
 3. `deploy-backend-host`
    - 运行在 `self-hosted + ecs-backend`。
-   - 本机 checkout deployment bundle、同步到 `$BACKEND_DEPLOY_PATH`、下载 backend artifact、`docker load`，然后写 `.release.env` 并部署 backend。
+   - 本机 checkout deployment bundle、同步到 `$BACKEND_DEPLOY_PATH`、下载 backend artifact、`docker load`，然后生成 pending release metadata，校验并部署 backend；只有部署成功后才把 pending 元数据原子切换为正式 `.release.env`。
    - `bootstrap` 时仅 backend host 执行 seed 导入。
 4. `deploy-web-host`
    - 运行在 `self-hosted + ecs-web`。
    - 仅在 backend host 成功或被跳过后执行。
-   - 本机 checkout deployment bundle、同步到 `$WEB_DEPLOY_PATH`、下载 admin-web artifact、`docker load`，然后部署 admin-web。
+   - 本机 checkout deployment bundle、同步到 `$WEB_DEPLOY_PATH`、下载 admin-web artifact、`docker load`，然后生成 pending release metadata，校验并部署 admin-web；只有部署成功后才把 pending 元数据原子切换为正式 `.release.env`。
    - `target=all / nginx / bootstrap` 时最后再刷新宿主机 Nginx。
 
 提效策略：
@@ -156,6 +156,10 @@ deploy path 必填：
 
 - `.env.prod.example` 与 `.env.prod.web.example` 只用于本地渲染校验与运维对照，不应直接作为线上密钥文件使用。
 - deploy 脚本运行时会固定加载各自 `$DEPLOY_PATH/.release.env`；即使 `.env.prod` 中残留样板 release metadata，也不会覆盖当次发布镜像信息。
+- runner deploy 会先写 `$DEPLOY_PATH/.release.env.pending` 与
+  `$DEPLOY_PATH/.deploy-source-sha.pending` 供本次部署使用；若校验或部署失败，
+  pending 文件会被清理，正式 `.release.env` 和 `.deploy-source-sha` 保持旧值。
+  只有部署成功后才会原子替换正式 release metadata。
 - 若需要回滚 backend/admin-web，优先通过 `workflow_dispatch + image_tag=<历史 sha>` 完成，而不是在 ECS 上手工改 compose 文件。
 - `node scripts/check_deployment_approval_preflight.js` 只读分析当前分支相对
   `origin/main`/`main` 的部署影响面和人工审批边界，不会 push、触发

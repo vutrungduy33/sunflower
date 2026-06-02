@@ -18,6 +18,8 @@ sanitize_plain() {
 main() {
   local target_path
   local role
+  local pending_release_env_file=".release.env.pending"
+  local pending_source_sha_file=".deploy-source-sha.pending"
 
   cd "$(project_root)"
 
@@ -35,6 +37,7 @@ main() {
 
   mkdir -p "$target_path"
   cd "$target_path"
+  trap 'rm -f .release.env.pending .deploy-source-sha.pending' EXIT
 
   case "$role" in
     backend)
@@ -47,15 +50,16 @@ main() {
   esac
   [ -f scripts/validate_prod_env.sh ] || fail "$PREFIX" "deploy scripts missing after bundle sync"
 
-  printf '%s\n' "$SOURCE_SHA" > .deploy-source-sha
-  : > .release.env
-  printf '%s\n' "BACKEND_IMAGE=$BACKEND_IMAGE" >> .release.env
-  printf '%s\n' "ADMIN_WEB_IMAGE=$ADMIN_WEB_IMAGE" >> .release.env
-  printf '%s\n' "SOURCE_SHA=$SOURCE_SHA" >> .release.env
-  printf '%s\n' "DEPLOY_TARGET=$DEPLOY_TARGET" >> .release.env
-  printf '%s\n' "RUN_SEED=$RUN_SEED" >> .release.env
+  printf '%s\n' "$SOURCE_SHA" > "$pending_source_sha_file"
+  : > "$pending_release_env_file"
+  printf '%s\n' "BACKEND_IMAGE=$BACKEND_IMAGE" >> "$pending_release_env_file"
+  printf '%s\n' "ADMIN_WEB_IMAGE=$ADMIN_WEB_IMAGE" >> "$pending_release_env_file"
+  printf '%s\n' "SOURCE_SHA=$SOURCE_SHA" >> "$pending_release_env_file"
+  printf '%s\n' "DEPLOY_TARGET=$DEPLOY_TARGET" >> "$pending_release_env_file"
+  printf '%s\n' "RUN_SEED=$RUN_SEED" >> "$pending_release_env_file"
 
   export DEPLOY_NODE_ROLE="$role"
+  export RELEASE_ENV_FILE="$pending_release_env_file"
   chmod +x scripts/*.sh
   ./scripts/validate_prod_env.sh
 
@@ -64,6 +68,9 @@ main() {
   else
     ./scripts/deploy_prod.sh "$DEPLOY_TARGET"
   fi
+
+  mv "$pending_release_env_file" .release.env
+  mv "$pending_source_sha_file" .deploy-source-sha
 }
 
 main "$@"
