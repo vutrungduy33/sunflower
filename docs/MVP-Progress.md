@@ -5,6 +5,82 @@
 > This active file keeps only the latest operational rounds. Older rounds are
 > archived in `docs/archive/mvp-progress/`.
 
+## Round 72: Nonprod Mock Deployment Approval Snapshot
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: refresh the current deployment approval snapshot and make the
+  backend-only nonprod/mock-payment path the documented next deployment option
+  while real payment private key/config remains incomplete.
+- Start evidence:
+  - Local `main` was clean and ahead of `origin/main` by 12 commits at HEAD
+    `5a836f4704b7`.
+  - User confirmed real payment private key/config is not fully provisioned yet
+    and mock/bypass is acceptable if recorded.
+  - Push-to-main still uses the production lane and can trigger deployment.
+- Open-source reference check:
+  - Task classification: common CI/CD manual deployment-lane approval boundary.
+  - Sources checked: GitHub Actions official workflow syntax and
+    `workflow_dispatch` input documentation; GitHub Actions environments and
+    deployment protection documentation.
+  - License/compatibility: official documentation only; no external code
+    copied.
+  - Selected approach: keep the existing repository-native
+    `deployment_lane=nonprod-mock-payment` choice input, require local lane
+    matrix/config guards, and update approval docs rather than adding a new
+    deployment dependency or weakening production validation.
+  - Rejected options: pushing `main` to rely on production lane while payment
+    keys are missing, relaxing `scripts/validate_prod_env.sh`, or treating mock
+    payment as real payment/refund evidence.
+- Risks:
+  - This round does not push, dispatch GitHub Actions, deploy, or mutate ECS.
+  - A backend-only nonprod/mock-payment dispatch can prove only reduced-scope
+    backend deployability; it does not refresh admin-web/Nginx and does not
+    satisfy real payment/refund evidence.
+- Acceptance criteria:
+  - Run deployment approval preflight on a clean worktree and record current
+    branch, HEAD, base, changed-file count, predicted target, and impact counts.
+  - Run workflow lane matrix and nonprod mock-payment lane guards.
+  - Update approval/state/progress docs with the current deployment decision
+    boundary.
+  - Run packet/evidence/deploy guards and commit once.
+- Change summary:
+  - Refreshed `docs/MVP-Next-Approval-Request.md` deployment snapshot to
+    current HEAD `5a836f4704b7`, base `origin/main d0af634314d0`, 39 changed
+    files, predicted push-to-main target `all`, and backend/admin/ingress
+    impact counts of 4/3/3.
+  - Updated `docs/Project-State.md` so future operators see that production
+    lane remains blocked by incomplete real payment config and that the
+    available interim path is manual backend-only nonprod/mock-payment dispatch.
+  - Kept real payment/refund and current-branch deployment evidence pending.
+- Verification:
+  - `node scripts/check_deployment_approval_preflight.js`: passed with 4 checks
+    on clean local `main`; it did not push, dispatch, deploy, or mutate
+    production.
+  - `node scripts/check_workflow_dispatch_lane_matrix.js`: passed with 12
+    matrix checks.
+  - `bash scripts/check_nonprod_mock_payment_deploy_lane.sh`: passed for
+    `.env.nonprod-mock.example`.
+  - `node scripts/check_mvp_handoff_packet.js`,
+    `node scripts/check_mvp_next_approval_request.js`, and
+    `node scripts/check_mvp_external_approval_packet.js`: passed.
+  - `node scripts/check_mvp_closeout_readiness.js`: passed in non-strict mode
+    with 32 unresolved required closeout items.
+  - `scripts/check_deploy_config.sh`: passed, including workflow YAML, compose
+    rendering, shell syntax, nonprod lane, runner metadata guard, workflow lane
+    matrix, and Node.js syntax.
+  - `git diff --check`: passed.
+- Goal correction:
+  - The active MVP goal remains incomplete. This round improves deploy
+    handoff/approval readiness but does not prove current branch deployment,
+    real payment/refund, HTTPS WeChat domain, or manual QA.
+- Next recommended round:
+  - With explicit user approval, manually dispatch
+    `target=auto` or `target=backend` plus
+    `deployment_lane=nonprod-mock-payment`, then record backend-only mock
+    deploy smoke as reduced-scope evidence. Do not mark production payment or
+    full current-branch deployment passed from that alone.
+
 ## Round 71: Current HEAD Default Regression Refresh
 
 - Date: 2026-06-02

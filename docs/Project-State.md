@@ -69,6 +69,12 @@
 
 ## Deployment State
 
+- Latest deployment approval preflight: Round 72
+  `node scripts/check_deployment_approval_preflight.js` passed on clean local
+  `main` HEAD `5a836f4704b7`, base `origin/main d0af634314d0`, 39 changed
+  files, predicted push-to-main target `all`, and backend/admin/ingress impact
+  counts of 4/3/3. No push, workflow dispatch, deploy, or ECS mutation was
+  performed.
 - Round 60 pushed `98e68e0dd478` to `main` and triggered GitHub Actions run
   `26796051853`; backend/admin-web images built, but ECS-2 checkout stalled
   before deployment completed.
@@ -89,6 +95,11 @@
   dispatch behavior.
 - Round 69 updated handoff and approval packets so operators see the backend-only
   nonprod/mock-payment lane and its reduced-scope evidence boundary.
+- With real payment private key/config still incomplete, the recommended
+  deploy-validation path is explicit manual `workflow_dispatch` using
+  `deployment_lane=nonprod-mock-payment` and `target=auto` or `target=backend`.
+  Plain `push main` uses the production lane and is expected to hit the payment
+  config blocker before backend recreation.
 
 ## Known MVP Risks
 

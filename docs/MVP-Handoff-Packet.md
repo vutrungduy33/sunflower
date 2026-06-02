@@ -15,9 +15,12 @@ the user explicitly waives the remaining external evidence.
 
 ## 2. Proven Baseline
 
-- Round 47 `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh` passed on
-  current local `main` HEAD `8d9b11d` with all 6 enabled steps:
-  backend/admin-web/miniapp/evidence/deploy-config/production read-only checks.
+- Round 71 `scripts/check_mvp_regression.sh` passed on local `main` HEAD
+  `2af1ed43dfc9` with the default 5 non-production steps:
+  backend/admin-web/miniapp/evidence/deploy-config checks. Production checks
+  were skipped by default.
+- Round 47 `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh` remains the
+  latest aggregate regression that also included production read-only checks.
 - Backend local tests have passed with 57 tests.
 - Admin web lint, unit tests, build, behavior wiring, and external QA preflight
   have passed. The latest aggregate admin-web baseline was Round 47 with
@@ -41,6 +44,10 @@ the user explicitly waives the remaining external evidence.
   `main` and default `workflow_dispatch` remain production-lane. This nonprod
   lane can support approved MVP operator validation, but it is not real
   payment/refund evidence and does not refresh admin-web or Nginx.
+- Round 72 deployment approval preflight passed on clean local `main` HEAD
+  `5a836f4704b7`; push-to-main still predicts target `all`, so the recommended
+  interim path while real payment private key/config is incomplete is explicit
+  manual backend-only nonprod/mock-payment dispatch after approval.
 - Round 58 backend `8080` hardening passed after ECS-2 backend host port was
   rebound to private IP `172.25.121.83`.
 - Latest strict closeout shape confirms the goal is still incomplete:
@@ -70,12 +77,13 @@ node scripts/check_mvp_external_approval_packet.js
 ```
 
 Do not rerun the full aggregate baseline unless code, deployment state, or
-production state changed; Round 47 already refreshed it on current local
-`main`. Before the `CURRENT-BRANCH-DEPLOYED` lane, rerun:
+production state changed; Round 71 refreshed the current local default
+baseline. Before the `CURRENT-BRANCH-DEPLOYED` lane, rerun:
 
 ```bash
 node scripts/check_deployment_approval_preflight.js
 node scripts/check_workflow_dispatch_lane_matrix.js
+bash scripts/check_nonprod_mock_payment_deploy_lane.sh
 ```
 
 Use this read-only production audit only when the user expects production

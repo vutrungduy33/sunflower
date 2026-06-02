@@ -1,6 +1,6 @@
 # MVP Next Approval Request
 
-> Current as of 2026-06-02 Round 55. This is the visible next-step approval
+> Current as of 2026-06-02 Round 72. This is the visible next-step approval
 > request for MVP closeout. It is not proof that the MVP is complete.
 
 ## 1. Purpose
@@ -34,17 +34,18 @@ Unresolved required items: 32
 
 ## 2. Latest Analysis
 
-- Round 55 goal: refresh the current local `main` deployment approval preflight
-  snapshot after the Round 54 origin/main freshness audit and the Round 54
-  documentation commit.
+- Round 72 goal: refresh the current local `main` deployment approval preflight
+  snapshot after the Round 71 current-HEAD regression refresh and the user
+  clarification that real payment private key/config is not fully provisioned.
 - Evidence ids touched: no status changes; this document only organizes the
   approval path for all unresolved ids listed in section 5 and updates the
   `CURRENT-BRANCH-DEPLOYED` preflight boundary.
-- Open-source reference check: not needed. This is repository-specific evidence
-  and approval documentation, not common feature code or reusable
-  infrastructure. The deployment preflight used the existing repository-native
-  script.
-- Risk: this document does not reduce the pending evidence count by itself.
+- Open-source reference check: GitHub Actions official workflow syntax and
+  deployment documentation were used as reference; no external code was copied.
+  The selected approach keeps the existing repository-native
+  `deployment_lane` workflow input and local guard scripts.
+- Risk: this document does not reduce the pending evidence count by itself and
+  does not authorize push, workflow dispatch, or deployment.
 - Acceptance: the request names approval lanes, safety boundaries, exact user
   reply fields, validation commands, strict unresolved counts, and the current
   deployment approval boundary without triggering deployment or production
@@ -58,11 +59,14 @@ Recommended first choices:
 
 1. `MINIAPP-PREVIEW-DOMAIN`: provide or confirm real AppID private config,
    legal HTTPS request domain, and allowed preview/real-device QA scope.
-2. `CURRENT-BRANCH-DEPLOYED`: approve push/merge/workflow dispatch and
-   post-deploy read-only audit if the current branch should become live.
-   If there is still no production merchant config, the safer deploy choice is
-   manual backend-only `deployment_lane=nonprod-mock-payment` with
-   `target=auto` or `target=backend`; this is not real payment/refund evidence.
+2. `CURRENT-BRANCH-DEPLOYED`: approve workflow dispatch and post-deploy
+   read-only audit if the current branch should be validated in cloud. Because
+   the real payment private key/config is not fully provisioned yet, the
+   recommended interim deploy choice is manual backend-only
+   `deployment_lane=nonprod-mock-payment` with `target=auto` or
+   `target=backend`; this is reduced-scope evidence and is not real
+   payment/refund evidence. Avoid plain `push main` until the production-lane
+   payment blocker is intentionally accepted or fixed.
 3. `ADMIN-PROD-QA`: provide a dedicated QA admin account and approved QA data
    scope for production or approved-staging manual checks.
 
@@ -108,33 +112,37 @@ Latest clean read-only deployment approval preflight before an approved deploy:
 
 - Command: `node scripts/check_deployment_approval_preflight.js`
 - Branch: local `main`
-- HEAD checked: `75987946b73b`
-- Base: `origin/main` at `89f93d704719`
-- Changed files since base: 146
+- HEAD checked: `5a836f4704b7`
+- Base: `origin/main` at `d0af634314d0`
+- Changed files since base: 39
 - Predicted push-to-main deploy target: `all`
-- Impact counts: backend 38 files, admin-web 5 files, ingress 1 file
+- Impact counts: backend 4 files, admin-web 3 files, ingress 3 files
 - Result: passed 4 checks
 - Actions taken: no push, no merge, no `workflow_dispatch`, no deploy, no ECS
   mutation
 - Important boundary: the branch is `main`; pushing these deployment-relevant
-  local commits can trigger production deployment.
+  local commits can trigger production deployment. Production lane is expected
+  to remain blocked until real payment private key/config is provisioned or the
+  operator explicitly accepts that production deploy will fail before backend
+  recreation.
 
 Rerun `node scripts/check_deployment_approval_preflight.js` after any new commit
 and before asking the user to approve `CURRENT-BRANCH-DEPLOYED`.
 
-This snapshot was taken before the Round 55 documentation commit itself, so
+This snapshot was taken before the Round 72 documentation commit itself, so
 rerun the preflight immediately before any approved deployment action.
 
 Current deploy-lane options:
 
 - Production lane: push to `main` or default `workflow_dispatch`; still blocked
-  until real ECS-2 WeChat Pay config is provisioned.
+  until real ECS-2 WeChat Pay config/private key is provisioned.
 - Backend-only nonprod/mock-payment lane: manual `workflow_dispatch` with
   `deployment_lane=nonprod-mock-payment` and `target=auto` or `target=backend`;
   validates `.env.nonprod-mock.example`, does not refresh admin-web/Nginx, and
   does not prove real payment/refund.
 - Local guard before asking for nonprod dispatch approval:
-  `node scripts/check_workflow_dispatch_lane_matrix.js`.
+  `node scripts/check_workflow_dispatch_lane_matrix.js` and
+  `bash scripts/check_nonprod_mock_payment_deploy_lane.sh`.
 
 ## 7. Evidence Rules
 
