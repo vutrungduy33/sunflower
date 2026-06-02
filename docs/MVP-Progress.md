@@ -5,6 +5,71 @@
 > This active file keeps only the latest operational rounds. Older rounds are
 > archived in `docs/archive/mvp-progress/`.
 
+## Round 64: Current HEAD Regression and Deploy Impact Refresh
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: refresh the current local `main` automated MVP baseline and
+  deployment approval impact after the four local commits that are ahead of
+  `origin/main`, without pushing or deploying.
+- Start evidence:
+  - Local `main` was clean and ahead of `origin/main` by 4 commits.
+  - Current HEAD before edits was `4a3f630f30eb`.
+  - `origin/main` was `d0af634314d0`.
+  - `docs/MVP-Readiness.md`, `docs/Production-Smoke.md`, and
+    `docs/MVP-Launch-Evidence.json` still pointed several headline automated
+    or deployment-preflight facts at older Round 47/Round 53/Round 49
+    snapshots.
+- Open-source reference check:
+  - Task classification: repository-specific validation and documentation
+    refresh.
+  - Sources checked: not needed; no common engineering feature, reusable UI,
+    auth/payment/deployment implementation, or OSS pattern was being built.
+- Risks:
+  - Default regression does not prove production deployment, real WeChat
+    domain, real payment/refund, or manual admin/miniapp QA.
+  - Deployment preflight predicted `all`; pushing local `main` would trigger
+    deployment-relevant workflow paths and still needs the payment lane
+    decision before the current-branch deployment evidence can pass.
+- Acceptance criteria:
+  - Rerun default aggregate MVP regression on current local HEAD.
+  - Rerun read-only deployment approval preflight on a clean worktree.
+  - Update readiness/state/production/evidence docs with the current facts.
+  - Keep unresolved external/manual evidence pending.
+  - Run focused evidence/doc checks and commit once.
+- Change summary:
+  - Refreshed current automated baseline documentation to current local
+    `main` HEAD `4a3f630f30eb`.
+  - Refreshed deployment approval preflight documentation: comparison base
+    `origin/main d0af634314d0`, 28 changed files, predicted push-to-main
+    deploy target `all`, and backend/admin/ingress impact counts of 1 file
+    each.
+  - Kept `CURRENT-BRANCH-DEPLOYED`, WeChat domain, real payment/refund, and
+    manual QA evidence pending.
+- Verification:
+  - `scripts/check_mvp_regression.sh`: passed with 5 enabled default steps.
+    Backend `mvn -B test` passed with 57 tests, 0 failures, 0 errors, 0
+    skipped. Admin-web lint, 24 Vitest tests across 5 files, production build,
+    behavior wiring (97 checks), and external QA preflight (6 checks) passed.
+    Miniapp smoke, behavior wiring (69 checks), user-flow replay (3
+    scenarios), payment-flow replay (5 scenarios), external preflight, appid
+    guard, and subpage nav guard passed. Evidence checks and deploy config
+    static checks passed. Production checks were skipped by default.
+  - `node scripts/check_deployment_approval_preflight.js`: passed with 4
+    checks. Current branch `main`, HEAD `4a3f630f30eb`, comparison base
+    `origin/main d0af634314d0`, changed files since base 28, predicted
+    push-to-main deploy target `all`, backend-impact files 1, admin-web-impact
+    files 1, ingress-impact files 1, and worktree clean. It did not push,
+    dispatch, deploy, or mutate production.
+- Goal correction:
+  - The active MVP goal remains incomplete. This round proves the current
+    local automated baseline, but does not prove external/manual QA, real
+    payment/refund, HTTPS WeChat legal domain, or current-branch deployment.
+- Next recommended round:
+  - Decide the deployment/payment lane before pushing: provision real ECS-2
+    WeChat Pay production config and rerun strict payment readiness, or choose
+    an explicit non-production/mock-payment deployment with risk acceptance.
+
 ## Round 63: Active Documentation Compaction
 
 - Date: 2026-06-02

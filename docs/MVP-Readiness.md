@@ -25,9 +25,9 @@ verified, and documented enough for handoff:
 
 | Area | Evidence | Status | Next action |
 | --- | --- | --- | --- |
-| Backend local quality | Round 53 default aggregate regression reran `mvn -B test`: passed, 57 tests, 0 failures/errors/skips. Round 28 added public order ownership isolation across current-user list/detail/pay preparation/pay confirmation/cancel/reschedule/refund actions. | Ready locally | Keep green after future backend changes. |
-| Admin web local quality | Round 53 default aggregate regression reran `npm run lint`, `npm run test` (24 tests across 5 files), and `npm run build`: passed. Behavior wiring passed 97 checks and admin external QA preflight passed 6 checks. Order tests cover check-in, check-out, no-show, after-sale rejection, failed refund retry, and invalid check-in date-range feedback/query blocking. | Ready locally | Keep green after future admin changes. |
-| Miniapp syntax/smoke | Round 53 default aggregate regression reran miniapp smoke, behavior wiring, user-flow replay, payment-flow replay, external preflight, project config, and subpage nav checks: passed. The run still warns that the default API base is bare HTTP for local/devtools validation and local `project.private.config.json` is absent. | Partially verified | Real-device login/phone/payment evidence still required. |
+| Backend local quality | Round 64 default aggregate regression reran `mvn -B test` on local `main` HEAD `4a3f630f30eb`: passed, 57 tests, 0 failures/errors/skips. Round 28 added public order ownership isolation across current-user list/detail/pay preparation/pay confirmation/cancel/reschedule/refund actions. | Ready locally | Keep green after future backend changes. |
+| Admin web local quality | Round 64 default aggregate regression reran `npm run lint`, `npm run test` (24 tests across 5 files), and `npm run build`: passed. Behavior wiring passed 97 checks and admin external QA preflight passed 6 checks. Order tests cover check-in, check-out, no-show, after-sale rejection, failed refund retry, and invalid check-in date-range feedback/query blocking. | Ready locally | Keep green after future admin changes. |
+| Miniapp syntax/smoke | Round 64 default aggregate regression reran miniapp smoke, behavior wiring, user-flow replay, payment-flow replay, external preflight, project config, and subpage nav checks: passed. The run still warns that the default API base is bare HTTP for local/devtools validation and local `project.private.config.json` is absent. | Partially verified | Real-device login/phone/payment evidence still required. |
 | Miniapp real user path | Code supports real API, WeChat login, phone binding, `wx.requestPayment`, order and after-sale flows; manual QA ledger now exists. | Needs real-device evidence | Run `node scripts/check_miniapp_manual_qa.js --strict` after recording preview/real-device evidence. |
 | WeChat pay/refund | Backend has WeChat payment/refund gateway, callbacks, records, retry, and mock only when explicitly configured; miniapp payment QA ledger now exists. | Needs production evidence | Verify small real payment/refund with merchant config and callback domain, then record sanitized evidence. |
 | Admin operations path | Core pages and tests exist for auth, room, price/inventory, and order management; manual QA ledger now exists. | Partially verified | Run `node scripts/check_admin_web_manual_qa.js --strict` against deployed admin web after recording safe evidence. |
@@ -41,33 +41,40 @@ waived by the user.
 
 Latest aggregate regression:
 
-- `scripts/check_mvp_regression.sh`: passed in Round 53 with the default 5
-  non-production steps: backend tests, admin-web lint/test/build plus
-  behavior/external preflight, miniapp smoke/wiring/replay/external preflight,
+- `scripts/check_mvp_regression.sh`: passed in Round 64 on local `main` HEAD
+  `4a3f630f30eb` with the default 5 non-production steps: backend tests
+  (57 tests), admin-web lint/test/build plus behavior/external preflight,
+  miniapp smoke/wiring/user-flow replay/payment-flow replay/external preflight,
   non-strict evidence checks including the termination audit guard, and deploy
-  config static checks.
+  config static checks. Production checks were skipped by default.
 - `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: last passed in Round 47
   on local `main` HEAD `8d9b11d` with backend, admin-web, miniapp,
   non-strict evidence, deploy config static checks, and production read-only
   checks enabled.
-- The aggregate evidence checks remain non-strict and still report 33
-  unresolved required closeout items.
+- The aggregate evidence checks remain non-strict and report 32 unresolved
+  required closeout items.
 
 Latest direct admin-web automated evidence:
 
-- `cd sunflower-admin-web && npm run lint`: passed in Round 53.
-- `cd sunflower-admin-web && npm run test`: passed in Round 53, 24 tests across
+- `cd sunflower-admin-web && npm run lint`: passed in Round 64.
+- `cd sunflower-admin-web && npm run test`: passed in Round 64, 24 tests across
   5 files.
-- `cd sunflower-admin-web && npm run build`: passed in Round 53.
-- `node scripts/check_admin_web_behavior_wiring.js`: passed in Round 53 with
+- `cd sunflower-admin-web && npm run build`: passed in Round 64.
+- `node scripts/check_admin_web_behavior_wiring.js`: passed in Round 64 with
   97 checks across 16 files.
-- `node scripts/check_admin_web_external_qa_preflight.js`: passed in Round 53
+- `node scripts/check_admin_web_external_qa_preflight.js`: passed in Round 64
   with 6 checks.
 - The earlier resumed-goal notes about `_refundId` or 3 failing/timed-out admin
   tests are stale and did not reproduce on the current worktree.
 
 Latest production/deployment evidence:
 
+- Round 64 deployment approval preflight passed on local `main` HEAD
+  `4a3f630f30eb` with comparison base `origin/main d0af634314d0`. Changed files
+  since base were 28, path rules predicted push-to-main deploy target `all`,
+  and impact counts were backend 1 file, admin-web 1 file, and ingress 1 file.
+  The worktree was clean. The preflight did not push, dispatch, deploy, or
+  mutate production.
 - Round 60 pushed current commit `98e68e0dd478` and triggered GitHub Actions
   run `26796051853`. The build phase succeeded for backend and admin-web.
   ECS-2 runner `ecs-2-backend` was re-registered after its old registration

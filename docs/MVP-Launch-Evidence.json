@@ -15,7 +15,7 @@
       "requirement": "Backend automated test suite remains green.",
       "status": "passed",
       "requiredForMvp": true,
-      "evidence": "Round 47 RUN_PRODUCTION=1 scripts/check_mvp_regression.sh passed on current local main HEAD 8d9b11d. Backend mvn -B test passed with 57 tests, 0 failures, 0 errors, 0 skipped.",
+      "evidence": "Round 64 scripts/check_mvp_regression.sh passed on current local main HEAD 4a3f630f30eb. Backend mvn -B test passed with 57 tests, 0 failures, 0 errors, 0 skipped. Production checks were skipped by default.",
       "nextAction": "Re-run after backend changes or before final closeout."
     },
     {
@@ -24,7 +24,7 @@
       "requirement": "Admin web lint, tests, and production build remain green.",
       "status": "passed",
       "requiredForMvp": true,
-      "evidence": "Round 47 RUN_PRODUCTION=1 scripts/check_mvp_regression.sh passed on current local main HEAD 8d9b11d. Admin web npm run lint passed, npm run test passed with 24 Vitest tests across 5 files, npm run build passed, behavior wiring passed 97 checks, and admin external QA preflight passed 6 checks.",
+      "evidence": "Round 64 scripts/check_mvp_regression.sh passed on current local main HEAD 4a3f630f30eb. Admin web npm run lint passed, npm run test passed with 24 Vitest tests across 5 files, npm run build passed, behavior wiring passed 97 checks, and admin external QA preflight passed 6 checks. Production checks were skipped by default.",
       "nextAction": "Re-run after admin-web changes or before final closeout."
     },
     {
@@ -33,7 +33,7 @@
       "requirement": "Miniapp smoke checks and key JavaScript syntax checks pass.",
       "status": "passed",
       "requiredForMvp": true,
-      "evidence": "Round 47 RUN_PRODUCTION=1 scripts/check_mvp_regression.sh passed on current local main HEAD 8d9b11d. Miniapp smoke, behavior wiring, user-flow replay, payment-flow replay, external preflight, project config, and subpage nav checks passed. The run still warned that the default API base is bare HTTP for local/devtools validation and local project.private.config.json is absent.",
+      "evidence": "Round 64 scripts/check_mvp_regression.sh passed on current local main HEAD 4a3f630f30eb. Miniapp smoke, behavior wiring, user-flow replay, payment-flow replay, external preflight, project config, and subpage nav checks passed. The run still warned that the default API base is bare HTTP for local/devtools validation and local project.private.config.json is absent. Production checks were skipped by default.",
       "nextAction": "Re-run after miniapp changes or before final closeout; real preview/device evidence remains separate."
     },
     {
@@ -123,7 +123,7 @@
       "requirement": "Current committed MVP branch code has been deployed through the approved GitHub Actions path, or deployment is explicitly declared out of scope by the user.",
       "status": "pending",
       "requiredForMvp": true,
-      "evidence": "Round 60 attempted the approved push-to-main deployment for commit 98e68e0dd478 through GitHub Actions run 26796051853. detect-targets, build-admin-web, and build-backend succeeded, and ECS-2 self-hosted runner ecs-2-backend was re-registered after GitHub reported its old registration deleted. That deploy attempt stalled in actions/checkout and was cancelled. Follow-up commits 9e8c087 and d0af634 were pushed to main, triggering run 26796607775 at HEAD d0af634314d0. This run passed detect-targets and build-backend, skipped admin-web as backend-only, and deploy-backend-host successfully checked out the bundle, synchronized files, downloaded and loaded the backend image artifact, and confirmed image availability. It then failed in Deploy backend host locally at production env validation because WECHAT_PAY_MCH_ID is missing. ECS-2 .release.env references image d0af634314d01180fe061959beadc93c51a9e33e, but the backend container was not recreated from that image, so current branch deployment remains unproven. Round 62 added a read-only ECS-2 payment config preflight and confirmed 8 sanitized real-payment config issues remain: missing merchant id, merchant serial, private key path, public key id, public key path, API v3 key, and invalid payment/refund notify URLs.",
+      "evidence": "Round 60 attempted the approved push-to-main deployment for commit 98e68e0dd478 through GitHub Actions run 26796051853. detect-targets, build-admin-web, and build-backend succeeded, and ECS-2 self-hosted runner ecs-2-backend was re-registered after GitHub reported its old registration deleted. That deploy attempt stalled in actions/checkout and was cancelled. Follow-up commits 9e8c087 and d0af634 were pushed to main, triggering run 26796607775 at HEAD d0af634314d0. This run passed detect-targets and build-backend, skipped admin-web as backend-only, and deploy-backend-host successfully checked out the bundle, synchronized files, downloaded and loaded the backend image artifact, and confirmed image availability. It then failed in Deploy backend host locally at production env validation because WECHAT_PAY_MCH_ID is missing. ECS-2 .release.env references image d0af634314d01180fe061959beadc93c51a9e33e, but the backend container was not recreated from that image, so current branch deployment remains unproven. Round 62 added a read-only ECS-2 payment config preflight and confirmed 8 sanitized real-payment config issues remain: missing merchant id, merchant serial, private key path, public key id, public key path, API v3 key, and invalid payment/refund notify URLs. Round 64 deployment approval preflight passed on local main HEAD 4a3f630f30eb with comparison base origin/main d0af634314d0, 28 changed files, predicted push-to-main deploy target all, and backend/admin-web/ingress impact counts of 1 file each. No push, workflow dispatch, deployment, or production mutation was performed.",
       "nextAction": "Before any further push, merge, or workflow_dispatch, confirm user approval remains valid for triggering deployment. Then decide the payment configuration lane: provision real ECS-2 WeChat Pay production variables/key files for WECHAT_PAY_MOCK_ENABLED=false, or explicitly switch to a non-production/mock-payment deployment with risk acceptance. Run RUN_INTERNAL=1 ENFORCE_PAYMENT_CONFIG=1 scripts/check_backend_payment_config_readiness.sh before triggering deployment; rerun the GitHub Actions deployment for current main and record post-deploy smoke before marking this passed."
     }
   ]

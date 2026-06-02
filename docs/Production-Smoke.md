@@ -111,13 +111,13 @@ Previous read-only production result:
 Latest deployment approval preflight:
 
 - `node scripts/check_deployment_approval_preflight.js`: passed 4 checks in
-  Round 49.
+  Round 64.
 - Current branch: local `main`.
-- Current branch HEAD: `a072612b94a6`.
-- Comparison base: `origin/main` at `89f93d704719`.
-- Changed files since base: 145.
+- Current branch HEAD: `4a3f630f30eb`.
+- Comparison base: `origin/main` at `d0af634314d0`.
+- Changed files since base: 28.
 - Predicted push-to-main deploy target from workflow path rules: `all`.
-- Impact counts: backend 38 files, admin-web 5 files, ingress 1 file.
+- Impact counts: backend 1 file, admin-web 1 file, ingress 1 file.
 - Worktree was clean for the preflight run. The current branch is `main`, so
   pushing deployment-relevant changes can trigger production deployment. No
   deployment, push, workflow dispatch, or production configuration change was
@@ -132,7 +132,7 @@ Latest deployment approval preflight:
   - `push` to `main` for deployment-relevant paths
 - Current branch during latest deployment preflight:
   `main`
-- Current branch HEAD during latest deployment preflight: `a072612b94a6`
+- Current branch HEAD during latest deployment preflight: `4a3f630f30eb`
 - Deployment action taken in this round: none
 - `gh auth status`: authenticated as `vutrungduy33` with `repo` and `workflow`
   scopes.
@@ -205,9 +205,10 @@ Latest Round 46 production read-only audit reconfirmed the same health shape:
 
 - HTTPS/domain validation is not proven in this smoke. Miniapp production still
   requires a legal HTTPS request domain.
-- Current `main` commit `d0af634314d0` is pushed, but deployment is not proven
-  because GitHub Actions run `26796607775` failed production env validation
-  before recreating the backend container.
+- Current local `main` commit `4a3f630f30eb` is not pushed or deployed.
+  `origin/main` remains at `d0af634314d0`, and that pushed commit is not proven
+  deployed because GitHub Actions run `26796607775` failed production env
+  validation before recreating the backend container.
 - ECS-2 self-hosted runner checkout/artifact download recovered in run
   `26796607775`; the active blocker is missing/undocumented real WeChat Pay
   production configuration on ECS-2 while `WECHAT_PAY_MOCK_ENABLED=false`.

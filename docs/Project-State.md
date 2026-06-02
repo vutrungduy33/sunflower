@@ -28,8 +28,30 @@
 
 ## Recent Validation Snapshot
 
-Current snapshot after 2026-06-02 Round 60 deployment attempt and follow-up
-deployment run:
+Current snapshot after 2026-06-02 Round 64 local regression and deployment
+approval preflight refresh:
+
+- `scripts/check_mvp_regression.sh`: passed in Round 64 on current local
+  `main` HEAD `4a3f630f30eb` with the default 5 enabled non-production steps.
+  Backend `mvn -B test` passed with 57 tests, 0 failures, 0 errors, and 0
+  skipped. Admin-web `npm run lint`, `npm run test` (24 Vitest tests across 5
+  files), `npm run build`, behavior wiring (97 checks), and external QA
+  preflight (6 checks) passed. Miniapp smoke, behavior wiring (69 checks),
+  user-flow replay (3 scenarios), payment-flow replay (5 scenarios), external
+  preflight, appid guard, and subpage nav guard passed. Non-strict evidence
+  checks and deploy config static checks passed. Production checks were skipped
+  by default; no push, deploy, workflow dispatch, Nginx reload, ECS mutation,
+  firewall/security-group mutation, payment/refund action, or live QA data
+  mutation was performed.
+- Deployment approval preflight
+  `node scripts/check_deployment_approval_preflight.js`: passed again in Round
+  64 on clean local `main` HEAD `4a3f630f30eb`. Comparison base was
+  `origin/main` at `d0af634314d0`, changed files since base were 28, path
+  rules predicted a push-to-main deploy target `all`, and impact counts were
+  backend 1 file, admin-web 1 file, and ingress 1 file. No push,
+  `workflow_dispatch`, deployment, Nginx reload, ECS mutation,
+  firewall/security-group mutation, payment/refund action, or live QA data
+  mutation was performed.
 
 - `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: passed in Round 32 with
   6 enabled steps: backend tests, admin-web lint/test/build, admin behavior and
@@ -489,8 +511,9 @@ deployment run:
   `sunflower-miniapp/project.config.json` must remain `touristappid`.
 - Miniapp default API base is still bare HTTP IP for devtools validation; final
   production requires HTTPS legal WeChat request domain.
-- Backend container observed binding public `0.0.0.0:8080`; security group should
-  restrict direct backend access to ECS-1 where possible.
+- Backend `8080` has been hardened by binding the published backend port to
+  ECS-2 private IP `172.25.121.83`; keep this private bind through future
+  redeploys and rerun the exposure check after deployment/network changes.
 - Canonical current-entry docs: `docs/Context-Index.md`,
   `docs/Project-State.md`, `docs/MVP-Readiness.md`,
   `docs/MVP-Handoff-Packet.md`, `docs/Architecture.md`, `docs/CI-CD.md`,
