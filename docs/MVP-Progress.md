@@ -154,7 +154,7 @@
 ## Round 75: Push and Nonprod Mock Dispatch Attempt
 
 - Date: 2026-06-02
-- Status: in progress
+- Status: completed
 - Focus: move the current committed `main` branch to GitHub and attempt the
   explicitly approved backend-only nonprod/mock-payment workflow dispatch so
   current-branch deployability can be tested without real payment credentials.
@@ -196,6 +196,42 @@
     guards pass.
   - Record the actual run result or blocker in project state/progress and
     commit once more.
+- Change summary:
+  - Committed this pre-action plan as `025f60d`.
+  - Pushed local `main` to `origin/main`, moving remote `main` from
+    `d0af634314d0` to `025f60d0ce84`.
+  - Executed
+    `CONFIRM_NONPROD_MOCK_DISPATCH=1 scripts/dispatch_nonprod_mock_payment_deploy.sh --execute`.
+  - Recorded the actual GitHub Actions outcomes without changing evidence
+    statuses or treating mock payment as real payment/refund evidence.
+- Verification and external run results:
+  - `node scripts/check_deployment_approval_preflight.js`: passed before push
+    on clean `main` HEAD `025f60d0ce84`; predicted push-to-main target `all`.
+  - `node scripts/check_nonprod_dispatch_readiness.js`: passed before dispatch
+    with 6 checks.
+  - `scripts/dispatch_nonprod_mock_payment_deploy.sh --dry-run`: passed before
+    execution and printed the fixed nonprod/mock command.
+  - `git push origin main`: succeeded, updating `origin/main` to
+    `025f60d0ce84`.
+  - Push-triggered workflow run `26799767476`: completed as `cancelled` after
+    successful `detect-targets`; `build-admin-web`, `build-backend`,
+    `deploy-backend-host`, and `deploy-web-host` were cancelled.
+  - Manual workflow run `26799773234`:
+    `event=workflow_dispatch`, `headSha=025f60d0ce84`, and
+    `deployment_lane=nonprod-mock-payment` via the dispatch helper. During the
+    local observation window, `detect-targets` passed, `build-backend` passed,
+    `build-admin-web` was skipped, and `deploy-backend-host` was still
+    `in_progress` at `Checkout backend deployment bundle source`.
+- Goal correction:
+  - The active MVP goal remains incomplete. This round proves current commits
+    were pushed and the backend image build/artifact path works for the
+    explicit nonprod/mock lane, but it does not prove backend deployment,
+    post-deploy smoke, real payment/refund, HTTPS domain, or manual QA.
+- Next recommended round:
+  - Re-check GitHub Actions run `26799773234`. If it completed successfully,
+    run/read the appropriate smoke checks and record sanitized reduced-scope
+    evidence. If it remains hung or fails in ECS-2 checkout, investigate the
+    self-hosted runner checkout/network state before retrying deployment.
 
 ## Round 72: Nonprod Mock Deployment Approval Snapshot
 

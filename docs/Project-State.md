@@ -69,12 +69,22 @@
 
 ## Deployment State
 
-- Latest deployment approval preflight: Round 72
+- Latest deployment approval preflight: Round 75
   `node scripts/check_deployment_approval_preflight.js` passed on clean local
-  `main` HEAD `5a836f4704b7`, base `origin/main d0af634314d0`, 39 changed
-  files, predicted push-to-main target `all`, and backend/admin/ingress impact
-  counts of 4/3/3. No push, workflow dispatch, deploy, or ECS mutation was
-  performed.
+  `main` HEAD `025f60d0ce84`, base `origin/main d0af634314d0` before push, 41
+  changed files, predicted push-to-main target `all`, and backend/admin/ingress
+  impact counts of 4/3/3.
+- Round 75 pushed local `main` HEAD `025f60d0ce84` to `origin/main`. The
+  push-triggered production-lane GitHub Actions run `26799767476` was
+  cancelled after `detect-targets`; backend/admin builds and deploy jobs were
+  cancelled, so no successful production deploy evidence was created.
+- Round 75 then triggered explicit manual backend-only
+  `deployment_lane=nonprod-mock-payment` workflow run `26799773234` for HEAD
+  `025f60d0ce84`. `detect-targets` and `build-backend` passed, `build-admin-web`
+  was skipped as expected, and `deploy-backend-host` reached ECS-2 but remained
+  in progress at `Checkout backend deployment bundle source` during the local
+  observation window. Current-branch deployment evidence therefore remains
+  pending until the run completes and post-deploy smoke is recorded.
 - Round 60 pushed `98e68e0dd478` to `main` and triggered GitHub Actions run
   `26796051853`; backend/admin-web images built, but ECS-2 checkout stalled
   before deployment completed.
