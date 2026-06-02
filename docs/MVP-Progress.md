@@ -3,6 +3,81 @@
 > Compact round-by-round progress for the current MVP hardening goal. Keep this
 > file factual and update it at the end of each committed round.
 
+## Round 44: Miniapp Payment Flow Replay
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: strengthen repeatable local miniapp payment/order validation by adding
+  a payment-flow replay that covers mock payment, real `wx.requestPayment`
+  success, cancel, failure, and backend confirmation-pending outcomes.
+- Start evidence:
+  - `git status --short --untracked-files=all`: clean after Round 43 commit
+    `8627304`.
+  - Existing `scripts/check_miniapp_user_flow_replay.js` covers home login,
+    phone binding, order creation, order list actions, refund, and reschedule,
+    but stubs `payOrderByFlow` as success and does not directly exercise
+    `sunflower-miniapp/utils/mvp/payment.js`.
+  - `scripts/check_miniapp_behavior_wiring.js` statically confirms
+    `payment.js` calls `wx.requestPayment`, `postPayOrder`, and
+    `postConfirmPayOrder`, but static checks cannot prove the result handling.
+- Open-source reference check:
+  - Task classification: common WeChat miniapp login/phone/payment flow
+    validation.
+  - Sources checked: WeChat Mini Program official API references for
+    `wx.login`, `getPhoneNumber`, and `wx.requestPayment`; WeChat Pay miniapp
+    payment flow documentation.
+  - Selected approach: keep existing page/API behavior intact and add a
+    repo-local Node.js replay for `payOrderByFlow`, matching official flow
+    shape: backend prepares payment parameters, real mode invokes
+    `wx.requestPayment`, and the app confirms/refreshes backend order state.
+  - License/compatibility: official documentation only; no external code
+    copied.
+  - Reused/adapted: existing local replay/checker patterns from
+    `scripts/check_miniapp_user_flow_replay.js`.
+  - Rejected options: adding a new miniapp test framework, simulating real
+    merchant settlement, changing payment API contracts, or marking real
+    payment evidence passed without approval.
+- Risks:
+  - The new replay improves local regression evidence but still cannot prove
+    real WeChat AppID, legal HTTPS domain, merchant credentials, callback
+    delivery, settlement, or refund execution.
+- Acceptance criteria:
+  - A new payment-flow replay script passes and is included in the miniapp
+    validation command set.
+  - `docs/Miniapp-MVP-QA.md`, `docs/Context-Index.md`, and
+    `docs/Project-State.md` mention the new replay and its non-production
+    boundary.
+  - Focused miniapp checks pass.
+  - The round is committed once.
+- Change summary:
+  - Added `scripts/check_miniapp_payment_flow_replay.js`, a Node.js replay for
+    `sunflower-miniapp/utils/mvp/payment.js`.
+  - Wired the new replay into `scripts/check_mvp_regression.sh` miniapp checks.
+  - Updated miniapp QA/readiness/context/handoff docs so the payment-flow replay
+    is part of the repeatable local miniapp validation set.
+  - No miniapp page behavior, backend API contract, production configuration, or
+    real payment state was changed.
+- Verification:
+  - `node scripts/check_miniapp_payment_flow_replay.js`: passed, 5 replay
+    scenarios.
+  - `node scripts/check_miniapp_user_flow_replay.js`: passed, 3 replay
+    scenarios.
+  - `node scripts/check_miniapp_behavior_wiring.js`: passed, 69 checks across
+    14 files.
+  - `RUN_BACKEND=0 RUN_ADMIN=0 RUN_EVIDENCE=0 RUN_DEPLOY_CONFIG=0 RUN_PRODUCTION=0 scripts/check_mvp_regression.sh`:
+    passed the miniapp step. Expected warnings remained for bare HTTP default
+    API base, absent local `project.private.config.json`, and shell locale.
+- Goal correction:
+  - This round strengthens local miniapp payment/order regression evidence, but
+    does not satisfy real-device preview, legal HTTPS request domain, merchant
+    payment/refund, or callback evidence. Those remain pending external
+    evidence items.
+- Next recommended round:
+  - Continue miniapp user-path hardening with either error-state replay
+    coverage for expired token/network failure/denied phone authorization, or
+    stop for user approval if the next lane should be real
+    `MINIAPP-PREVIEW-DOMAIN` evidence.
+
 ## Round 43: MVP Readiness Documentation Reconciliation
 
 - Date: 2026-06-02

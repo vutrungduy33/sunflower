@@ -70,6 +70,7 @@ cd sunflower-miniapp
 node ../scripts/check_miniapp_mvp_smoke.js
 node ../scripts/check_miniapp_behavior_wiring.js
 node ../scripts/check_miniapp_user_flow_replay.js
+node ../scripts/check_miniapp_payment_flow_replay.js
 node ../scripts/check_miniapp_external_qa_preflight.js
 node --check utils/mvp/api.js
 node --check utils/mvp/payment.js

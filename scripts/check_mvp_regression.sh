@@ -69,6 +69,7 @@ run_miniapp_checks() {
     node scripts/check_miniapp_mvp_smoke.js
     node scripts/check_miniapp_behavior_wiring.js
     node scripts/check_miniapp_user_flow_replay.js
+    node scripts/check_miniapp_payment_flow_replay.js
     node scripts/check_miniapp_external_qa_preflight.js
     bash scripts/check_miniapp_project_config.sh
     bash scripts/check_mvp_subpage_nav.sh

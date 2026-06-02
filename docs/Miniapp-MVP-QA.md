@@ -12,6 +12,7 @@ Run from the repository root:
 node scripts/check_miniapp_mvp_smoke.js
 node scripts/check_miniapp_behavior_wiring.js
 node scripts/check_miniapp_user_flow_replay.js
+node scripts/check_miniapp_payment_flow_replay.js
 node scripts/check_miniapp_external_qa_preflight.js
 bash scripts/check_miniapp_project_config.sh
 bash scripts/check_mvp_subpage_nav.sh
@@ -51,6 +52,23 @@ The user-flow replay script checks:
 - Order list loads and filters orders, invokes payment, cancels unpaid orders,
   submits refund requests, submits same-night reschedule requests, tracks
   payment/refund/reschedule events, and shows success feedback.
+
+The payment-flow replay script checks:
+
+- Explicit mock payment mode bypasses `wx.requestPayment` and still confirms the
+  backend order state.
+- Real payment mode passes backend payment parameters into `wx.requestPayment`.
+- Real payment success confirms backend order state.
+- Payment cancel/failure returns user-facing page states without confirming the
+  backend order.
+- Backend confirmation failure returns a confirming state so the page can send
+  the user back to the order list for later refresh.
+
+Latest local result:
+
+- `node scripts/check_miniapp_payment_flow_replay.js`: passed in Round 44 with
+  5 replay scenarios: mock payment, real payment success, real payment cancel,
+  real payment failure, and backend confirmation-pending.
 
 Manual preview/real-device evidence is tracked in:
 

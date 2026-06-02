@@ -102,6 +102,19 @@ reconciliation:
   to execute a Node.js-stubbed replay of home login/content/profile prompt,
   order creation, phone binding, payment success, order filtering, cancel,
   refund, and reschedule page-method flows before real-device QA.
+- Miniapp `node scripts/check_miniapp_payment_flow_replay.js`: added in Round
+  44 to replay `utils/mvp/payment.js` with stubbed miniapp payment APIs across
+  mock payment, real `wx.requestPayment` success, cancel, failure, and backend
+  confirmation-pending outcomes before real payment QA.
+- Miniapp `node scripts/check_miniapp_payment_flow_replay.js`: passed in Round
+  44 with 5 replay scenarios.
+- Miniapp-only aggregate regression
+  `RUN_BACKEND=0 RUN_ADMIN=0 RUN_EVIDENCE=0 RUN_DEPLOY_CONFIG=0 RUN_PRODUCTION=0 scripts/check_mvp_regression.sh`:
+  passed in Round 44. It included miniapp smoke, behavior wiring, user-flow
+  replay, payment-flow replay, external preflight, project config, and subpage
+  nav checks. Expected warnings remained: bare HTTP default API base for
+  local/devtools validation, absent local `project.private.config.json`, and
+  shell locale warnings.
 - Miniapp `bash scripts/check_miniapp_project_config.sh`: passed.
 - Miniapp `bash scripts/check_mvp_subpage_nav.sh`: passed.
 - Miniapp external QA preflight
