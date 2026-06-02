@@ -1,6 +1,6 @@
 # MVP Next Approval Request
 
-> Current as of 2026-06-02 Round 48. This is the visible next-step approval
+> Current as of 2026-06-02 Round 49. This is the visible next-step approval
 > request for MVP closeout. It is not proof that the MVP is complete.
 
 ## 1. Purpose
@@ -31,13 +31,15 @@ Unresolved required items: 33
 
 ## 2. Latest Analysis
 
-- Round 48 goal: reconcile strict closeout audit results with the active
-  approval request.
+- Round 49 goal: refresh the current local `main` deployment approval preflight
+  snapshot after the Round 48 strict closeout audit.
 - Evidence ids touched: no status changes; this document only organizes the
-  approval path for all unresolved ids listed in section 5.
+  approval path for all unresolved ids listed in section 5 and updates the
+  `CURRENT-BRANCH-DEPLOYED` preflight boundary.
 - Open-source reference check: not needed. This is repository-specific evidence
   and approval documentation, not common feature code or reusable
-  infrastructure.
+  infrastructure. The deployment preflight used the existing repository-native
+  script.
 - Risk: this document does not reduce the pending evidence count by itself.
 - Acceptance: the request names approval lanes, safety boundaries, exact user
   reply fields, validation commands, strict unresolved counts, and the current
@@ -100,7 +102,7 @@ Latest clean read-only deployment approval preflight before an approved deploy:
 
 - Command: `node scripts/check_deployment_approval_preflight.js`
 - Branch: local `main`
-- HEAD checked: `758729091785`
+- HEAD checked: `a072612b94a6`
 - Base: `origin/main` at `89f93d704719`
 - Changed files since base: 145
 - Predicted push-to-main deploy target: `all`
@@ -114,8 +116,8 @@ Latest clean read-only deployment approval preflight before an approved deploy:
 Rerun `node scripts/check_deployment_approval_preflight.js` after any new commit
 and before asking the user to approve `CURRENT-BRANCH-DEPLOYED`.
 
-Since this snapshot was taken before the Round 47/Round 48 documentation
-commits, rerun the preflight immediately before any approved deployment action.
+This snapshot was taken before the Round 49 documentation commit itself, so
+rerun the preflight immediately before any approved deployment action.
 
 ## 7. Evidence Rules
 

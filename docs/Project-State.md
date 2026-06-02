@@ -28,8 +28,8 @@
 
 ## Recent Validation Snapshot
 
-Current snapshot after 2026-06-02 Round 48 strict closeout audit
-reconciliation:
+Current snapshot after 2026-06-02 Round 49 deployment approval preflight
+refresh:
 
 - `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: passed in Round 32 with
   6 enabled steps: backend tests, admin-web lint/test/build, admin behavior and
@@ -68,6 +68,15 @@ reconciliation:
   `node scripts/check_deployment_approval_preflight.js`: passed again in Round
   46 against current local `main` at HEAD `758729091785`, after temporarily
   stashing the in-progress Round 46 progress-doc edit so the required clean
+  worktree check could run. Comparison base was `origin/main` at
+  `89f93d704719`, changed files since base were 145, path rules predicted a
+  push-to-main deploy target `all`, and impact counts were backend 38 files,
+  admin-web 5 files, and ingress 1 file. No push, merge, workflow_dispatch,
+  deployment, Nginx reload, or ECS mutation was performed.
+- Deployment approval preflight
+  `node scripts/check_deployment_approval_preflight.js`: passed again in Round
+  49 against current local `main` at HEAD `a072612b94a6`, after temporarily
+  stashing the in-progress Round 49 progress-doc edit so the required clean
   worktree check could run. Comparison base was `origin/main` at
   `89f93d704719`, changed files since base were 145, path rules predicted a
   push-to-main deploy target `all`, and impact counts were backend 38 files,
@@ -285,7 +294,7 @@ reconciliation:
   does not mutate production and does not prove current-branch deployment.
 - Deployment approval preflight
   `node scripts/check_deployment_approval_preflight.js`: added in Round 23 and
-  rerun most recently in Round 41 to summarize current branch cleanliness,
+  rerun most recently in Round 49 to summarize current branch cleanliness,
   branch/base refs, changed-file deployment impact, workflow trigger shape, and
   the approval boundary before any push/merge/workflow_dispatch. It does not
   deploy or prove current branch code is live.

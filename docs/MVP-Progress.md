@@ -3,6 +3,84 @@
 > Compact round-by-round progress for the current MVP hardening goal. Keep this
 > file factual and update it at the end of each committed round.
 
+## Round 49: Current Deployment Approval Preflight Snapshot
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: refresh the read-only deployment approval preflight snapshot for the
+  current local `main` after the Round 48 strict closeout audit, without
+  pushing, dispatching, deploying, or changing production state.
+- Start evidence:
+  - `git status --short --branch --untracked-files=all`: local `main` is ahead
+    of `origin/main` by 52 commits and has no tracked worktree changes.
+  - HEAD is `a072612b94a6` (`Reconcile strict closeout audit state`).
+  - `docs/MVP-Next-Approval-Request.md`,
+    `docs/Production-Smoke.md`, and
+    `docs/MVP-Launch-Evidence.json` still reference the Round 46 deployment
+    approval preflight at HEAD `758729091785`, before the Round 47/Round 48
+    evidence and closeout documentation commits.
+- Open-source reference check:
+  - Task classification: CI/CD deployment approval evidence refresh.
+  - Sources checked: existing repository-native deployment preflight and the
+    earlier Round 46 reference basis remain applicable; no new framework,
+    workflow, dependency, or reusable implementation is being added.
+  - Selected approach: reuse `node scripts/check_deployment_approval_preflight.js`
+    as the authoritative local, read-only pre-deploy approval check.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: existing deployment workflow/path-rule inspection and
+    current evidence ledger wording.
+  - Rejected options: pushing `main`, running `workflow_dispatch`, mutating ECS,
+    or marking `CURRENT-BRANCH-DEPLOYED` passed without an approved deployment
+    and post-deploy smoke.
+- Risks:
+  - The preflight must run with a clean worktree, so this in-progress progress
+    entry will be temporarily stashed before the check and restored afterward.
+  - Passing preflight only describes what would happen if the user approves a
+    deployment action; it does not prove the current local branch is deployed.
+- Acceptance criteria:
+  - `node scripts/check_deployment_approval_preflight.js` passes on current
+    local `main` after temporarily clearing this progress-doc edit.
+  - Approval, production-smoke, launch-evidence, and project-state docs record
+    the refreshed HEAD/base/impact snapshot while keeping
+    `CURRENT-BRANCH-DEPLOYED` pending.
+  - Focused documentation/evidence checkers and `git diff --check` pass.
+  - The round is committed once.
+- Change summary:
+  - Refreshed the deployment approval preflight snapshot on current local
+    `main` HEAD `a072612b94a6`.
+  - Updated the next approval request, production smoke deployment-preflight
+    section, launch evidence ledger, and project-state snapshot with the
+    current HEAD/base/impact facts.
+  - Kept `CURRENT-BRANCH-DEPLOYED` pending because no push, merge,
+    `workflow_dispatch`, deployment, post-deploy smoke, Nginx reload, ECS
+    mutation, firewall mutation, security-group mutation, or production
+    configuration change was performed.
+- Verification:
+  - `node scripts/check_deployment_approval_preflight.js`: passed 4 checks
+    after temporarily stashing this progress-doc edit. Current branch local
+    `main`, HEAD `a072612b94a6`, comparison base `origin/main` at
+    `89f93d704719`, changed files since base 145, predicted push-to-main deploy
+    target `all`, impact counts backend 38 files/admin-web 5 files/ingress 1
+    file.
+  - `node scripts/check_mvp_next_approval_request.js`: passed.
+  - `node scripts/check_mvp_handoff_packet.js`: passed.
+  - `node scripts/check_mvp_launch_evidence.js`: passed in non-strict mode with
+    13 required entries, 4 passed, 9 pending.
+  - `node scripts/check_mvp_closeout_readiness.js`: passed in non-strict mode
+    with 33 unresolved required closeout items.
+  - `git diff --check`: passed.
+- Goal correction:
+  - The active MVP goal is not complete. The refreshed preflight makes the
+    `CURRENT-BRANCH-DEPLOYED` approval boundary current, but deployment evidence
+    still requires explicit approval, an actual approved deployment path, and
+    post-deploy smoke or a waiver.
+- Next recommended round:
+  - Ask the user to choose one approval lane. If the user wants local `main`
+    deployed, request explicit `CURRENT-BRANCH-DEPLOYED` approval before any
+    push or workflow dispatch; otherwise continue with
+    `BACKEND-8080-HARDENING`, `MINIAPP-PREVIEW-DOMAIN`, or `ADMIN-PROD-QA`
+    evidence collection.
+
 ## Round 48: Strict Closeout Audit Reconciliation
 
 - Date: 2026-06-02
