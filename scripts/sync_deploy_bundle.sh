@@ -27,7 +27,7 @@ main() {
   rm -rf "$target_path/deploy/nginx" "$target_path/scripts"
 
   bundle_file="$(mktemp "${TMPDIR:-/tmp}/sunflower-deploy-bundle.XXXXXX.tar.gz")"
-  trap 'rm -f "$bundle_file"' EXIT
+  trap "rm -f '$bundle_file'" EXIT
   "$SCRIPT_DIR/package_deploy_bundle.sh" "$bundle_file"
   tar -C "$target_path" -xzf "$bundle_file"
 

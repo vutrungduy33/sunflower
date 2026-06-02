@@ -8,7 +8,7 @@
 ## Round 82: Artifact-Based Deployment Bundle
 
 - Date: 2026-06-02
-- Status: in progress
+- Status: completed
 - Focus: reduce ECS self-hosted runner dependency on repository checkout by
   packaging the deployment bundle on a GitHub-hosted runner and delivering it
   to ECS deploy jobs as a workflow artifact.
@@ -70,18 +70,29 @@
     compose rendering, shell syntax, nonprod env check, runner release metadata
     guard, workflow lane matrix, nonprod readiness, dispatch helper dry-run,
     and Node.js syntax.
-  - `node scripts/check_deployment_approval_preflight.js` was also exercised
-    during development and correctly failed only because the worktree was dirty;
-    rerun on a clean post-commit state before any deployment approval.
+  - `node scripts/check_deployment_approval_preflight.js`: passed after the
+    first commit on clean `main` HEAD `eef3bd7`; it predicted push-to-main
+    deploy target `all`.
+  - `git push origin main`: succeeded for `eef3bd7` and triggered workflow run
+    `26803729808`.
+  - GitHub Actions run `26803729808`: `detect-targets`, `package-deploy-bundle`,
+    `build-admin-web`, and `build-backend` passed. On ECS-2,
+    `Download backend deployment bundle artifact` and
+    `Extract backend deployment bundle` passed, proving the deploy job no
+    longer depends on ECS `actions/checkout` for bundle source.
+  - The same run failed in `Synchronize backend deployment bundle` because
+    `scripts/sync_deploy_bundle.sh` used an EXIT trap that referenced a local
+    variable after return under `set -u`. This round fixed the trap to expand
+    the temp path at trap definition time.
 - Goal correction:
   - The active MVP goal remains incomplete. This round reduces deployment
     checkout risk but does not prove current-branch deployment, HTTPS domain,
     production smoke, or manual QA evidence.
 - Next recommended round:
-  - After commit, run clean deployment approval preflight. If the user approves
-    a deployment-relevant push, push `main` and observe the new
-    `package-deploy-bundle` / artifact-download path before retrying
-    backend-only nonprod/mock deployment smoke.
+  - Commit and push the trap fix, then observe the next push-triggered run.
+    Expected result: backend sync advances past bundle synchronization and
+    reaches image load / production-lane payment config validation. Keep real
+    payment/refund evidence pending.
 
 ## Round 73: Nonprod Dispatch Readiness Guard
 

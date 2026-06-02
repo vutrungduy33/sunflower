@@ -140,6 +140,14 @@
   consumed by ECS deploy jobs via workflow artifact download/extract. This
   reduces the intermittent ECS self-hosted `actions/checkout` dependency; ECS
   still needs GitHub artifact/API connectivity for deploy.
+- Round 82 push-triggered workflow run `26803729808` for HEAD `eef3bd7` proved
+  the new artifact path through `package-deploy-bundle`, backend/admin image
+  builds, and ECS-2 `Download backend deployment bundle artifact` plus
+  `Extract backend deployment bundle`. The run then failed in
+  `Synchronize backend deployment bundle` because
+  `scripts/sync_deploy_bundle.sh` had an EXIT trap referencing a local temp-file
+  variable under `set -u`; the follow-up fix expands the temp path when the
+  trap is installed.
 - Round 60 pushed `98e68e0dd478` to `main` and triggered GitHub Actions run
   `26796051853`; backend/admin-web images built, but ECS-2 checkout stalled
   before deployment completed.
