@@ -14,14 +14,14 @@
 
 | Task | Read |
 | --- | --- |
-| Architecture / deployment | `docs/Architecture.md`, `docs/CI-CD.md`, `docs/S19-Prod-Deployment-Config.md`, `docs/Production-Smoke.md`, compose files |
-| Backend API / contracts | `docs/API.md`, `docs/API-Schemas.md`, `docs/Backend-MVP-QA.md`, `sunflower-backend/src/main/java/**`, backend tests |
+| Architecture / deployment | `docs/Architecture.md`, `docs/CI-CD.md`, `docs/S19-Prod-Deployment-Config.md`, compose files, and deployment scripts. Load `docs/Production-Smoke.md` only for production-smoke evidence/history. |
+| Backend API / contracts | `docs/API.md`, `docs/API-Schemas.md`, `sunflower-backend/src/main/java/**`, backend tests. Load `docs/Backend-MVP-QA.md` only for QA checklist updates. |
 | Database / persistence | `docs/DB-Design.md`, `docs/DataDictionary.md`, Flyway migrations, seed SQL |
-| Admin web | `docs/Web-Admin-Plan.md`, `docs/Admin-Web-MVP-QA.md`, `sunflower-admin-web/src/**`, admin web tests |
-| Miniapp | `docs/Miniapp-Frontend-MVP.md`, `docs/Miniapp-MVP-QA.md`, `docs/Miniapp-Manual-QA.md`, `sunflower-miniapp/pages/mvp/**`, `sunflower-miniapp/utils/mvp/**` |
-| MVP hardening | Start with `docs/MVP-Handoff-Packet.md`, `docs/MVP-Readiness.md`, `docs/Project-State.md`, and the JSON ledgers (`docs/MVP-Launch-Evidence.json`, `docs/Miniapp-Manual-QA.json`, `docs/Admin-Web-Manual-QA.json`). Then load task-relevant docs such as `docs/MVP-Next-Approval-Request.md`, `docs/MVP-External-Approval-Packet.md`, `docs/MVP-Closeout-Audit.md`, or app QA docs only when needed. |
-| New Codex MVP goal | `docs/MVP-Next-Goal-Prompt.md`, `docs/MVP-Handoff-Packet.md`, `docs/MVP-Readiness.md`, `docs/Project-State.md`, and task-relevant approval/evidence docs |
-| Component handoff docs | `sunflower-miniapp/README.md`, `sunflower-admin-web/README.md`, `sunflower-backend/README.md`, plus the matching QA docs above |
+| Admin web | `sunflower-admin-web/src/**`, admin web tests, `docs/Web-Admin-Plan.md` only for architecture/scope, and `docs/Admin-Web-MVP-QA.md` only for QA checklist updates. |
+| Miniapp | `sunflower-miniapp/pages/mvp/**`, `sunflower-miniapp/utils/mvp/**`, `docs/Miniapp-Frontend-MVP.md` only for frontend handoff, and miniapp QA docs only for evidence updates. |
+| MVP hardening | Start with `docs/MVP-Handoff-Packet.md`, `docs/MVP-Readiness.md`, `docs/Project-State.md`, and the JSON ledgers (`docs/MVP-Launch-Evidence.json`, `docs/Miniapp-Manual-QA.json`, `docs/Admin-Web-Manual-QA.json`). Load approval packets, closeout audit, runbooks, or app QA docs only for the selected evidence lane. |
+| New Codex MVP goal | `docs/MVP-Next-Goal-Prompt.md`, `docs/MVP-Handoff-Packet.md`, `docs/MVP-Readiness.md`, `docs/Project-State.md`, and only task-relevant approval/evidence docs |
+| Component handoff docs | `sunflower-miniapp/README.md`, `sunflower-admin-web/README.md`, `sunflower-backend/README.md`, plus matching QA docs only when updating that component's QA scope |
 | Product background / early planning | `docs/PRD.md`, then `docs/archive/planning/**` only when the task needs historical IA, flows, prototype, analytics, code convention, or definition-of-done context |
 | Process / decisions | `docs/Decision-Log.md`, then only relevant linked docs |
 | Historical diagnosis | `docs/archive/**` only when explicitly needed |
@@ -42,6 +42,15 @@
   MVP closeout from the current baseline, including approval boundaries,
   per-round commit requirements, open-source reference-first rules, and final
   strict completion criteria.
+
+## Documentation Compaction Rule
+
+- Keep active docs small. Prefer updating `docs/Project-State.md` with compact
+  current facts and `docs/MVP-Progress.md` with only recent round summaries.
+- Do not create new status/runbook docs unless an existing canonical doc cannot
+  carry the information.
+- Historical planning, old stage material, and old round detail are cold
+  context under `docs/archive/` or git history.
 
 ## Current Verification Commands
 

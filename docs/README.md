@@ -40,6 +40,18 @@
 - `docs/Decision-Log.md`：长期架构/流程/部署决策记录。
 - `docs/archive/`：历史 Stage、早期规划与旧 MVP 轮次材料，非当前约束。
 
+按任务再加载：
+
+- 产品背景：`docs/PRD.md`
+- 数据库：`docs/DB-Design.md`、`docs/DataDictionary.md`
+- 组件/QA 交接：`docs/Web-Admin-Plan.md`、`docs/Miniapp-Frontend-MVP.md`、
+  `docs/*-MVP-QA.md`、`docs/*-Manual-QA.md`
+- 部署细节：`docs/S19-Prod-Deployment-Config.md`、
+  `docs/Production-Smoke.md`
+- 外部证据：`docs/MVP-External-Validation-Runbook.md`、
+  `docs/MVP-External-Approval-Packet.md`、
+  `docs/MVP-External-Evidence-Template.md`
+
 ## 5. 文件结构（概览）
 ```
 /Users/chenyao/dev/miniapp/sunflower
@@ -50,7 +62,7 @@
 │  ├─ Context-Index.md
 │  ├─ Project-State.md
 │  ├─ MVP-Readiness.md
-│  ├─ MVP-Progress.md              # 仅保留最新运营轮次
+│  ├─ MVP-Progress.md              # 仅保留最近运营轮次
 │  ├─ MVP-Handoff-Packet.md
 │  ├─ MVP-Next-Approval-Request.md
 │  ├─ MVP-Launch-Evidence.json
@@ -62,7 +74,7 @@
 │  ├─ API-Schemas.md
 │  ├─ CI-CD.md
 │  ├─ archive/
-│  ├─ archive/mvp-progress/        # 旧 MVP 轮次日志
+│  ├─ archive/mvp-progress/        # 旧 MVP 轮次日志；更多历史见 git
 │  ├─ archive/planning/            # 早期规划/流程/原型/规范文档
 │  └─ Web-Admin-Plan.md
 ├─ sunflower-admin-web/           # Web 管理后台工程
@@ -95,6 +107,14 @@
 - 当前 MVP 可用性、验证状态与上线阻塞项以 `docs/MVP-Readiness.md` 为准
 - Web 技术选型、环境约束与本地调试说明见：`docs/Web-Admin-Plan.md`
 
-## 7. 建议补齐（下一步）
+## 7. 文档维护规则
+
+- 默认只读 `Context-Index` 指向的热上下文，不扫描整个 `docs/`。
+- `Project-State` 写当前事实，不追加完整轮次日志。
+- `MVP-Progress` 只保留最近轮次；旧细节归档或依赖 git 历史。
+- 不新增状态类文档，除非现有核心文档无法承载。
+- 证据状态以 JSON ledgers 为准，不在说明文档里手工复制整份 ledger。
+
+## 8. 建议补齐（下一步）
 - 按实际改动运行对应测试，并同步更新相关 API、部署或用户文档
 - 维护 `docs/Architecture.md` 和 `docs/CI-CD.md`，确保部署拓扑、服务器角色与自动部署流程保持最新

@@ -319,3 +319,15 @@ Append durable decisions here. Keep entries short and include provenance.
   `scripts/check_mvp_handoff_packet.js`,
   `scripts/check_mvp_next_approval_request.js`,
   `scripts/check_mvp_external_approval_packet.js`.
+
+## 2026-06-02: Keep Project State as Snapshot, Not Ledger
+
+- Decision: Keep `docs/Project-State.md` as a compact current-state snapshot
+  and keep `docs/MVP-Progress.md` limited to recent operational rounds. Do not
+  add new status/runbook documents unless an existing canonical doc cannot
+  carry the information.
+- Rationale: The active docs had accumulated duplicated round evidence and
+  stale validation history. Smaller default context reduces drift while JSON
+  ledgers, guard scripts, archive files, and git history preserve traceability.
+- Provenance: `docs/Project-State.md`, `docs/MVP-Progress.md`,
+  `docs/Context-Index.md`, `docs/README.md`.
