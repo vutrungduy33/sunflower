@@ -64,7 +64,10 @@ The remaining launch evidence is concentrated in these areas:
 - Admin web production manual QA with a real admin account. Detailed admin QA
   ledger: `docs/Admin-Web-MVP-QA.md`.
 - Approved deployment of current branch code through GitHub Actions, or explicit
-  user decision that deployment is out of MVP closeout scope.
+  user decision that deployment is out of MVP closeout scope. Round 60 attempted
+  this for commit `98e68e0dd478`, but deployment remains pending because the
+  ECS-2 self-hosted runner stalled in `actions/checkout` while fetching from
+  GitHub after backend/admin-web image builds succeeded.
 
 Backend `8080` hardening passed in Round 58; detailed security evidence lives in
 `docs/Backend-8080-Security.md`.

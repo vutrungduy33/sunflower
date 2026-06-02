@@ -42,8 +42,8 @@
       "requirement": "Production public and internal smoke checks pass.",
       "status": "passed",
       "requiredForMvp": true,
-      "evidence": "Round 47 RUN_PRODUCTION=1 scripts/check_mvp_regression.sh passed on current local main HEAD 8d9b11d. Deploy config static checks passed, production public/ECS internal smoke passed with 7 checks and 1 known backend-bind warning, and backend 8080 read-only exposure checks passed with 3 checks and 2 warnings. No push, deploy, workflow_dispatch, Nginx reload, ECS/firewall/security-group change, or production configuration mutation was performed.",
-      "nextAction": "Re-run after approved deploy or production config change."
+      "evidence": "Round 58/Round 60 production health remains partially proven after backend 8080 private binding: ECS-2 docker/ss shows backend bound to 172.25.121.83:8080 and private health returns UP, but the Round 60 current-branch deployment run did not complete because ECS-2 checkout to GitHub stalled. Full post-deploy production smoke for current main has not yet passed.",
+      "nextAction": "After a successful current-main deployment, rerun scripts/check_production_readonly_audit.sh and RUN_INTERNAL=1 ENFORCE_RESTRICTED=1 scripts/check_backend_8080_exposure.sh."
     },
     {
       "id": "WECHAT-DOMAIN",
@@ -123,8 +123,8 @@
       "requirement": "Current committed MVP branch code has been deployed through the approved GitHub Actions path, or deployment is explicitly declared out of scope by the user.",
       "status": "pending",
       "requiredForMvp": true,
-      "evidence": "Round 49 node scripts/check_deployment_approval_preflight.js passed on current local main at HEAD a072612b94a6 after temporarily stashing the in-progress progress-doc edit so the required clean-worktree check could run. Comparison base was origin/main at 89f93d704719. Changed files since base: 145. Predicted push-to-main deploy target: all. Impact counts: backend 38, admin-web 5, ingress 1. The branch is main, so pushing deployment-relevant commits can trigger production deployment. No push, merge, workflow_dispatch, or deployment was performed, so current branch deployment remains unproven.",
-      "nextAction": "Ask for explicit approval before push/merge/workflow_dispatch, or record an explicit user decision that current-branch deployment evidence is out of scope."
+      "evidence": "Round 60 attempted the approved push-to-main deployment for commit 98e68e0dd478 through GitHub Actions run 26796051853. detect-targets, build-admin-web, and build-backend succeeded, and ECS-2 self-hosted runner ecs-2-backend was re-registered after GitHub reported its old registration deleted. The deploy-backend-host job then remained stuck in actions/checkout fetching 98e68e0 on ECS-2; an ECS-2 curl probe to https://github.com/vutrungduy33/sunflower timed out after 12 seconds, and ECS-2 .release.env still pointed at older image tag f9185fe257cee1b40850ea35c820afd7fdb82946. The run completed with conclusion `cancelled`; checkout was cancelled after the ECS-2 fetch stall, deploy steps were skipped, and current branch deployment remains unproven.",
+      "nextAction": "Restore reliable ECS-2 outbound access to GitHub/actions checkout or adjust the deployment bundle path to avoid ECS-2 GitHub checkout, then rerun the GitHub Actions deployment for current main and record post-deploy smoke before marking this passed."
     }
   ]
 }

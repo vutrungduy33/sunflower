@@ -1,8 +1,8 @@
 # Production Smoke
 
-> Latest run: 2026-06-02 Round 46. This records observed production
-> health for the MVP hardening goal. It does not mean a new deployment was
-> triggered.
+> Latest deployment attempt: 2026-06-02 Round 60. This records observed
+> deployment/smoke facts for the MVP hardening goal. It does not prove current
+> `main` is deployed until the workflow and post-deploy smoke complete.
 
 ## 0. Repeatable Script
 
@@ -23,10 +23,26 @@ internal smoke, and backend `8080` exposure inspection. It uses the ignored loca
 SSH key at `.secrets/aliyun_mba_codex.pem` for ECS checks. It does not push,
 deploy, reload Nginx, or change ECS/firewall/security-group state.
 
+Latest deployment attempt:
+
+- GitHub Actions run `26796051853` was triggered by push to `main` at commit
+  `98e68e0dd478`.
+- `detect-targets`, `build-admin-web`, and `build-backend` completed
+  successfully.
+- ECS-2 self-hosted runner `ecs-2-backend` had a deleted GitHub registration;
+  it was re-registered and became online/busy with labels
+  `self-hosted,Linux,X64,ecs-backend`.
+- The deployment then stalled in `Checkout backend deployment bundle source`
+  while ECS-2 fetched `98e68e0` from GitHub. A 12-second ECS-2 curl probe to
+  `https://github.com/vutrungduy33/sunflower` timed out.
+- ECS-2 `.release.env` still pointed at older image tag
+  `f9185fe257cee1b40850ea35c820afd7fdb82946`; therefore current commit
+  deployment is not proven and `CURRENT-BRANCH-DEPLOYED` remains pending.
+
 Latest read-only production result:
 
-- `scripts/check_production_readonly_audit.sh`: passed in Round 46 on current
-  local `main` at HEAD `758729091785`.
+- `scripts/check_production_readonly_audit.sh`: last full wrapper pass was in
+  Round 46 on local `main` at HEAD `758729091785`.
 - Deploy config static checks passed.
 - Production public/ECS internal smoke passed with 7 checks and 1 warning:
   ECS-2 backend still listens on `0.0.0.0:8080`.
@@ -108,9 +124,8 @@ curl -fsS http://47.120.42.15:8080/api/health
 Observed result:
 
 - Not directly usable from this local network during the scripted smoke.
-- This is useful, but it does not by itself prove the port is properly
-  restricted, because ECS-2 still shows the backend container bound to
-  `0.0.0.0:8080`.
+- Round 58 hardened backend `8080`; ECS-2 now shows the backend host port bound
+  to `172.25.121.83:8080`, not `0.0.0.0:8080`.
 
 ## 3. ECS Internal Smoke
 
@@ -126,11 +141,10 @@ ECS-1 web/ingress host `47.113.223.248`:
 ECS-2 backend/data host `47.120.42.15`:
 
 - Hostname: `iZf8z1jk7at5emkxytu7d2Z`
-- `sunflower-backend`: `Up About an hour (healthy)`,
-  `0.0.0.0:8080->8080/tcp`
+- `sunflower-backend`: healthy, bound to `172.25.121.83:8080->8080/tcp`
 - `sunflower-mysql`: `Up About an hour (healthy)`,
   `127.0.0.1:3306->3306/tcp`
-- `curl http://127.0.0.1:8080/api/health`: 200, backend status `UP`
+- `curl http://172.25.121.83:8080/api/health`: 200, backend status `UP`
 - `ss -ltnp`: confirms MySQL local-only and backend listening on all interfaces
   through docker-proxy.
 
@@ -140,23 +154,24 @@ Latest Round 46 production read-only audit reconfirmed the same health shape:
 - ECS-2 backend/MySQL/local health smoke passed.
 - Public direct backend `8080` probe was not directly usable from this local
   network.
-- ECS-2 still reports Docker proxy listening on `0.0.0.0:8080`, and local
-  firewall output did not prove the restriction.
+- Round 58 later changed ECS-2 backend binding to private IP
+  `172.25.121.83:8080`; backend `8080` hardening is now tracked in
+  `docs/Backend-8080-Security.md`.
 
 ## 4. Current Production Risks
 
 - HTTPS/domain validation is not proven in this smoke. Miniapp production still
   requires a legal HTTPS request domain.
-- Backend container is bound to `0.0.0.0:8080`; security group or host firewall
-  should restrict access to ECS-1.
-- Local `main` is ahead of `origin/main`; current committed MVP hardening work
-  has not been pushed and has not triggered deployment. The latest approval
-  preflight predicts an `all` deployment target if local `main` is pushed.
+- Current `main` commit `98e68e0dd478` is pushed, but deployment is not proven
+  because the Round 60 Actions run stalled in ECS-2 checkout.
+- ECS-2 outbound connectivity to GitHub is currently unreliable enough to block
+  self-hosted runner checkout.
 - Real WeChat login, phone authorization, payment, refund, SMS, and callback
   delivery still require external-service production validation.
 
 ## 5. Next Deployment Decision
 
-Do not trigger production deployment automatically. To deploy the current local
-`main` state, first confirm production intent, then push `main` or manually run
-`workflow_dispatch` with an explicit target, followed by the read-only audit.
+To complete current-branch deployment evidence, first restore reliable ECS-2
+outbound access to GitHub/actions checkout or adjust the deployment bundle path
+so ECS-2 does not need to fetch from GitHub. Then rerun the GitHub Actions
+deployment and follow it with the read-only audit.

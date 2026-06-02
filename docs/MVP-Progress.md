@@ -5,6 +5,112 @@
 > This active file keeps only recent rounds; older rounds are archived in
 > `docs/archive/mvp-progress/MVP-Progress-Rounds-1-47.md`.
 
+## Round 60: Current Branch Deployment Attempt
+
+- Date: 2026-06-02
+- Status: completed with deployment blocker
+- Focus: verify the approved push-to-`main` deployment path for current commit
+  `98e68e0dd478` and collect enough evidence to decide whether
+  `CURRENT-BRANCH-DEPLOYED` can pass.
+- Start evidence:
+  - User had explicitly stated there is currently no production environment and
+    code merge/push is allowed.
+  - Round 59 pushed commit `98e68e0dd478` to `origin/main`, triggering GitHub
+    Actions run `26796051853` (`Deploy Services To ECS`).
+  - Local worktree started clean on `main...origin/main`.
+- Open-source reference check:
+  - Task classification: common CI/CD deployment evidence and self-hosted
+    runner recovery.
+  - Sources checked:
+    - GitHub Actions workflow syntax and runner/job status conventions:
+      `https://docs.github.com/actions/using-workflows/workflow-syntax-for-github-actions`.
+    - GitHub Actions self-hosted runner registration/removal conventions:
+      `https://docs.github.com/actions/hosting-your-own-runners/managing-self-hosted-runners`.
+    - Existing repository deployment workflow and scripts:
+      `.github/workflows/deploy-backend.yml`,
+      `scripts/execute_runner_deploy.sh`, `scripts/deploy_backend.sh`, and
+      `scripts/check_production_smoke.sh`.
+  - Selected approach: use `gh run`/`gh api` for workflow evidence, restore the
+    existing ECS-2 self-hosted runner registration, and patch repo deployment
+    checks to respect the new private backend bind host.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: repository-native deployment scripts and GitHub Actions
+    runner service layout already present on ECS hosts.
+  - Rejected options: marking `CURRENT-BRANCH-DEPLOYED` passed without a
+    completed workflow and smoke evidence, or committing runner tokens/secrets.
+- Risks:
+  - ECS-2's old `ecs-2-backend` runner registration had been deleted by GitHub;
+    the service could start locally but could not create a session until
+    reconfigured.
+  - After runner recovery, the deployment job still depends on ECS-2 outbound
+    GitHub connectivity for `actions/checkout`.
+  - Backend deploy and production-smoke scripts had stale `127.0.0.1:8080`
+    assumptions that no longer match private-IP binding.
+- Acceptance criteria:
+  - GitHub Actions run status is checked and recorded.
+  - ECS-2 runner state is restored or the blocker is documented with evidence.
+  - Deployment scripts no longer hard-code loopback backend health after private
+    binding.
+  - `CURRENT-BRANCH-DEPLOYED` remains pending unless current commit deployment
+    and post-deploy smoke are proven.
+  - Focused script/document guards pass and the round is committed once.
+- Change summary:
+  - Re-registered ECS-2 self-hosted runner `ecs-2-backend` after its old
+    registration had been deleted from GitHub. The runner became `online` and
+    accepted the queued `deploy-backend-host` job.
+  - Observed run `26796051853`: `detect-targets`, `build-admin-web`, and
+    `build-backend` succeeded; `deploy-backend-host` then remained stuck in
+    `Checkout backend deployment bundle source` while fetching commit
+    `98e68e0dd478` from GitHub on ECS-2.
+  - Confirmed ECS-2 outbound connectivity to GitHub was unhealthy in this
+    window: `curl -I -L https://github.com/vutrungduy33/sunflower` timed out
+    after 12 seconds.
+  - Confirmed ECS-2 `.release.env` still pointed at older image tag
+    `f9185fe257cee1b40850ea35c820afd7fdb82946`, so the current commit was not
+    proven deployed.
+  - Updated `scripts/deploy_backend.sh` so post-deploy HTTP health checks use
+    `BACKEND_BIND_HOST` when set, falling back to `127.0.0.1` only for
+    wildcard/empty binds.
+  - Updated `scripts/check_production_smoke.sh` so ECS-2 internal smoke checks
+    backend health through the configured private backend URL rather than
+    loopback.
+  - Updated launch evidence, readiness, production-smoke, architecture, and
+    project-state docs to keep `CURRENT-BRANCH-DEPLOYED` pending.
+- Verification:
+  - `gh run view 26796051853`: head SHA `98e68e0dd478`; build jobs succeeded;
+    deploy job reached ECS-2 only after runner re-registration and then stalled
+    in checkout.
+  - `gh api repos/vutrungduy33/sunflower/actions/runners`: showed
+    `ecs-2-backend` online and busy with labels
+    `self-hosted,Linux,X64,ecs-backend` after re-registration.
+  - ECS-2 read-only probe: backend remained healthy and bound to
+    `172.25.121.83:8080`; MySQL remained bound to `127.0.0.1:3306`.
+  - `gh run view 26796051853`: final conclusion `cancelled`; deploy-backend
+    checkout was cancelled, downstream deploy steps were skipped, and
+    deploy-web-host was cancelled.
+  - `bash -n scripts/deploy_backend.sh scripts/check_production_smoke.sh
+    scripts/check_production_readonly_audit.sh
+    scripts/check_backend_8080_exposure.sh`: passed.
+  - `scripts/check_deploy_config.sh`: passed.
+  - `node scripts/check_mvp_launch_evidence.js`: passed in non-strict mode
+    with 13 required launch entries, 5 passed, and 8 pending.
+  - `node scripts/check_mvp_closeout_readiness.js`: passed in non-strict mode
+    with 32 unresolved required closeout items.
+  - `node scripts/check_mvp_handoff_packet.js`,
+    `node scripts/check_mvp_next_approval_request.js`,
+    `node scripts/check_mvp_external_approval_packet.js`, and
+    `node scripts/check_mvp_termination_audit.js`: passed.
+  - `RUN_INTERNAL=1 ENFORCE_RESTRICTED=1 scripts/check_backend_8080_exposure.sh`:
+    passed with 5 passes and 0 warnings.
+  - `git diff --check`: passed.
+- Goal correction:
+  - The active MVP goal remains incomplete. Current branch deployment is not
+    proven; unresolved required closeout evidence remains 32 items.
+- Next recommended round:
+  - Restore reliable ECS-2 outbound access to GitHub/actions checkout or adjust
+    the deployment bundle path so ECS-2 does not need to fetch from GitHub, then
+    rerun deployment and post-deploy smoke.
+
 ## Round 58: Backend 8080 Hardening
 
 - Date: 2026-06-02

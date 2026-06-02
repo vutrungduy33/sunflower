@@ -28,7 +28,7 @@
 
 ## Recent Validation Snapshot
 
-Current snapshot after 2026-06-02 Round 59 documentation simplification:
+Current snapshot after 2026-06-02 Round 60 deployment attempt:
 
 - `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: passed in Round 32 with
   6 enabled steps: backend tests, admin-web lint/test/build, admin behavior and
@@ -101,16 +101,26 @@ Current snapshot after 2026-06-02 Round 59 documentation simplification:
   as domain context only; the concrete HTTPS API host, certificate, and WeChat
   legal request-domain configuration still need verification before
   `WECHAT-DOMAIN`/`MINIAPP-DOMAIN-HTTPS` can pass.
-- Round 59 started documentation simplification: `docs/MVP-Progress.md` now
-  keeps only recent Rounds 48-58, with older Rounds 1-47 moved to
+- Round 59 completed documentation simplification: `docs/MVP-Progress.md` now
+  keeps recent rounds, with older Rounds 1-47 moved to
   `docs/archive/mvp-progress/MVP-Progress-Rounds-1-47.md`; generated external
-  evidence template output is compact instead of repeating every ledger field;
-  `docs/MVP-External-Approval-Packet.md` is a short approval boundary packet
-  while `docs/MVP-Launch-Evidence.json`, `docs/Miniapp-Manual-QA.json`, and
-  `docs/Admin-Web-Manual-QA.json` remain the source-of-truth ledgers.
-  Root `README.md`, `docs/README.md`, and `docs/Context-Index.md` now point to
-  a smaller set of canonical entry docs instead of listing every historical or
-  task-specific file. No evidence status changed in this documentation cleanup.
+  evidence template output is compact; `docs/MVP-External-Approval-Packet.md`
+  is a short approval boundary packet; root `README.md`, `docs/README.md`, and
+  `docs/Context-Index.md` now point to a smaller set of canonical entry docs.
+  The JSON evidence ledgers remain the source of truth.
+- Round 60 attempted to prove `CURRENT-BRANCH-DEPLOYED` after the approved
+  push to `main` at commit `98e68e0dd478`. GitHub Actions run
+  `26796051853` built backend and admin-web images successfully. ECS-2
+  runner `ecs-2-backend` was initially inactive with a deleted GitHub
+  registration; it was re-registered with labels
+  `self-hosted,Linux,X64,ecs-backend` and accepted the queued deploy job. The
+  deploy then stalled in `actions/checkout` fetching `98e68e0` on ECS-2; a
+  12-second ECS-2 curl probe to `https://github.com/vutrungduy33/sunflower`
+  timed out, and ECS-2 `.release.env` still pointed at older image tag
+  `f9185fe257cee1b40850ea35c820afd7fdb82946`. The current branch is therefore
+  not proven deployed, and `CURRENT-BRANCH-DEPLOYED` remains pending. Round 60
+  also updated backend deploy/smoke scripts to use the private backend bind host
+  instead of hard-coded `127.0.0.1:8080` health checks.
 - Round 50 audited the original goal termination criteria against current
   evidence in `docs/MVP-Closeout-Audit.md`. Result: the active MVP goal remains
   incomplete because strict external/manual evidence still has 33 unresolved

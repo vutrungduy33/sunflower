@@ -152,14 +152,14 @@ run_internal_smoke() {
   backend_output="$(ssh_cmd "$BACKEND_HOST" "
     set -e
     docker ps --format '{{.Names}} {{.Status}} {{.Ports}}' | grep -E 'sunflower-(backend|mysql)'
-    curl -fsS http://127.0.0.1:8080/api/health
+    curl -fsS '${BACKEND_PRIVATE_BASE_URL%/}/api/health'
     ss -ltnp | grep -E ':(8080|3306)' || true
   ")" || fail "ECS-2 internal smoke failed"
 
   printf '%s\n' "$backend_output" | grep -Fq 'sunflower-backend' || fail "ECS-2 backend container not found"
   printf '%s\n' "$backend_output" | grep -Fq 'sunflower-mysql' || fail "ECS-2 mysql container not found"
-  printf '%s\n' "$backend_output" | grep -Fq '"status":"UP"' || fail "ECS-2 local backend health failed"
-  pass "ECS-2 backend/mysql/local health smoke"
+  printf '%s\n' "$backend_output" | grep -Fq '"status":"UP"' || fail "ECS-2 private backend health failed"
+  pass "ECS-2 backend/mysql/private health smoke"
 
   if printf '%s\n' "$backend_output" | grep -Fq '0.0.0.0:8080'; then
     warn "ECS-2 backend still listens on 0.0.0.0:8080; rely on security group/firewall restriction before launch"

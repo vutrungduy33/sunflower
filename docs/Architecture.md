@@ -87,7 +87,9 @@ Current observed status:
 
 - ECS-1: Alibaba Cloud Linux 3, Nginx active, `sunflower-admin-web` healthy on `127.0.0.1:18080`.
 - ECS-2: Ubuntu 22.04, `sunflower-backend` and `sunflower-mysql` healthy.
-- Backend container currently binds `0.0.0.0:8080`; security group should restrict this port to ECS-1 where possible.
+- Backend host port `8080` is bound to ECS-2 private IP
+  `172.25.121.83:8080`, preserving ECS-1 private upstream access while direct
+  public backend `8080` is not usable from the local probe network.
 
 ## 5. Deployment Pipeline
 

@@ -7,6 +7,17 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 PREFIX="deploy-backend"
 
+backend_health_host() {
+  case "${BACKEND_BIND_HOST:-127.0.0.1}" in
+    ""|"0.0.0.0"|"::")
+      printf '%s' "127.0.0.1"
+      ;;
+    *)
+      printf '%s' "$BACKEND_BIND_HOST"
+      ;;
+  esac
+}
+
 start_backend_service() {
   compose up -d mysql
   wait_service_healthy mysql "$PREFIX"
@@ -40,7 +51,7 @@ main() {
 
   log_info "$PREFIX" "Waiting backend healthy..."
   wait_service_healthy backend "$PREFIX"
-  wait_http_ready "http://127.0.0.1:${BACKEND_HOST_PORT}/api/health" "$PREFIX"
+  wait_http_ready "http://$(backend_health_host):${BACKEND_HOST_PORT}/api/health" "$PREFIX"
 
   log_info "$PREFIX" "Backend deployment completed."
 }

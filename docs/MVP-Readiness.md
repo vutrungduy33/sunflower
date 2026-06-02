@@ -31,7 +31,7 @@ verified, and documented enough for handoff:
 | Miniapp real user path | Code supports real API, WeChat login, phone binding, `wx.requestPayment`, order and after-sale flows; manual QA ledger now exists. | Needs real-device evidence | Run `node scripts/check_miniapp_manual_qa.js --strict` after recording preview/real-device evidence. |
 | WeChat pay/refund | Backend has WeChat payment/refund gateway, callbacks, records, retry, and mock only when explicitly configured; miniapp payment QA ledger now exists. | Needs production evidence | Verify small real payment/refund with merchant config and callback domain, then record sanitized evidence. |
 | Admin operations path | Core pages and tests exist for auth, room, price/inventory, and order management; manual QA ledger now exists. | Partially verified | Run `node scripts/check_admin_web_manual_qa.js --strict` against deployed admin web after recording safe evidence. |
-| Deployment | Round 47 `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh` passed deploy config static checks plus production public/ECS internal smoke and backend `8080` read-only checks on local `main` HEAD `8d9b11d`. Round 55 deployment approval preflight predicted local `main` HEAD `75987946b73b` push target `all` against `origin/main` `89f93d704719` with 146 changed files. No push/deploy was performed. | Partially verified | Push/dispatch deploy only after explicit production approval; local `main` push can trigger `all` deployment. |
+| Deployment | Round 60 pushed commit `98e68e0dd478` to `main` and triggered GitHub Actions run `26796051853`. `detect-targets`, `build-admin-web`, and `build-backend` succeeded. ECS-2 runner `ecs-2-backend` was re-registered after its old GitHub registration was deleted, but deploy then stalled in `actions/checkout` on ECS-2; ECS-2 curl to GitHub timed out after 12 seconds and `.release.env` still pointed at older image tag `f9185fe257cee1b40850ea35c820afd7fdb82946`. | Blocked on deployment runner/network | Restore ECS-2 outbound GitHub checkout or change the deployment bundle path, then rerun deployment and post-deploy smoke. |
 | Security / compliance | Secrets are local/ECS-owned; `.secrets/` ignored. Round 58 closed external backend `8080` by changing ECS-2 production `BACKEND_BIND_HOST` from `0.0.0.0` to `172.25.121.83`, recreating `sunflower-backend`, and verifying public 8080 is unusable while ECS-1 private upstream remains healthy. The user-provided miniapp备案 domain is `xiangrikui.cloud`, but HTTPS API host and WeChat legal request-domain configuration remain unverified. | Partially ready | Keep backend `8080` private after redeploys; complete HTTPS/WeChat domain setup. |
 
 Detailed launch evidence is tracked in `docs/MVP-Launch-Evidence.md` and
@@ -66,19 +66,14 @@ Latest direct admin-web automated evidence:
 - The earlier resumed-goal notes about `_refundId` or 3 failing/timed-out admin
   tests are stale and did not reproduce on the current worktree.
 
-Latest production/deployment read-only evidence:
+Latest production/deployment evidence:
 
-- `node scripts/check_deployment_approval_preflight.js`: passed in Round 55 on
-  local `main` at HEAD `75987946b73b`. Comparison base was `origin/main` at
-  `89f93d704719`, changed files since base were 146, push to `main` is
-  predicted to trigger deploy target `all`, and impact counts were backend 38,
-  admin-web 5, ingress 1. No push, merge, workflow dispatch, or deployment was
-  performed.
-- Production checks inside `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`:
-  passed in Round 47 with deploy config static checks, production public/ECS
-  internal smoke, and backend `8080` exposure read-only checks enabled. No
-  push, deploy, Nginx reload, ECS mutation, firewall mutation, or
-  security-group mutation was performed.
+- Round 60 pushed current commit `98e68e0dd478` and triggered GitHub Actions
+  run `26796051853`. The build phase succeeded for backend and admin-web.
+  ECS-2 runner `ecs-2-backend` was re-registered after its old registration
+  had been deleted by GitHub. The deploy phase then stalled in
+  `actions/checkout` on ECS-2, and an ECS-2 curl probe to GitHub timed out
+  after 12 seconds. Current branch deployment is therefore still unproven.
 - Backend `8080` hardening passed in Round 58. ECS-2 production
   `BACKEND_BIND_HOST` now binds the backend published port to
   `172.25.121.83`; `RUN_INTERNAL=1 ENFORCE_RESTRICTED=1
