@@ -451,6 +451,7 @@ jobs:
     steps:
       - name: Checkout backend deployment bundle source
         uses: actions/checkout@v4
+        timeout-minutes: 8
         with:
           ref: ${{ github.sha }}
           fetch-depth: 1
@@ -510,6 +511,7 @@ jobs:
           printf '%s' "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin
 
       - name: Deploy backend host locally
+        timeout-minutes: 20
         env:
           BACKEND_IMAGE: ${{ needs.detect-targets.outputs.backend_image }}
           ADMIN_WEB_IMAGE: ${{ needs.detect-targets.outputs.admin_web_image }}
@@ -550,6 +552,7 @@ jobs:
     steps:
       - name: Checkout web deployment bundle source
         uses: actions/checkout@v4
+        timeout-minutes: 8
         with:
           ref: ${{ github.sha }}
           fetch-depth: 1
@@ -609,6 +612,7 @@ jobs:
           printf '%s' "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin
 
       - name: Deploy web host locally
+        timeout-minutes: 20
         env:
           BACKEND_IMAGE: ${{ needs.detect-targets.outputs.backend_image }}
           ADMIN_WEB_IMAGE: ${{ needs.detect-targets.outputs.admin_web_image }}

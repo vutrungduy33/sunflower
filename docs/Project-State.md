@@ -85,6 +85,11 @@
   in progress at `Checkout backend deployment bundle source` during the local
   observation window. Current-branch deployment evidence therefore remains
   pending until the run completes and post-deploy smoke is recorded.
+- Round 76 observed run `26799773234` still in progress at the same ECS-2
+  checkout step and added finite workflow timeouts to self-hosted deploy
+  checkout steps (`8` minutes) and local deploy steps (`20` minutes). This makes
+  future runner stalls bounded and diagnosable; it does not by itself prove
+  deployment or fix the underlying ECS runner/network cause.
 - Round 60 pushed `98e68e0dd478` to `main` and triggered GitHub Actions run
   `26796051853`; backend/admin-web images built, but ECS-2 checkout stalled
   before deployment completed.

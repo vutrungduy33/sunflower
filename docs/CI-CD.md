@@ -72,11 +72,15 @@ PR 门禁 workflow 已移除。仓库当前不再强制：
 3. `deploy-backend-host`
    - 运行在 `self-hosted + ecs-backend`。
    - 本机 checkout deployment bundle、同步到 `$BACKEND_DEPLOY_PATH`、下载 backend artifact、`docker load`，然后生成 pending release metadata，校验并部署 backend；只有部署成功后才把 pending 元数据原子切换为正式 `.release.env`。
+   - self-hosted checkout 步骤设置 `timeout-minutes: 8`，本机部署步骤设置
+     `timeout-minutes: 20`，避免 runner checkout 或本机 deploy 无限挂起。
    - `bootstrap` 时仅 backend host 执行 seed 导入。
 4. `deploy-web-host`
    - 运行在 `self-hosted + ecs-web`。
    - 仅在 backend host 成功或被跳过后执行。
    - 本机 checkout deployment bundle、同步到 `$WEB_DEPLOY_PATH`、下载 admin-web artifact、`docker load`，然后生成 pending release metadata，校验并部署 admin-web；只有部署成功后才把 pending 元数据原子切换为正式 `.release.env`。
+   - self-hosted checkout 步骤设置 `timeout-minutes: 8`，本机部署步骤设置
+     `timeout-minutes: 20`。
    - `target=all / nginx / bootstrap` 时最后再刷新宿主机 Nginx。
 
 提效策略：
@@ -207,6 +211,10 @@ deploy path 必填：
   命令，不会触发 GitHub Actions；只有在审批后同时传入 `--execute` 且设置
   `CONFIRM_NONPROD_MOCK_DISPATCH=1` 才会执行。该 lane 仍不刷新
   admin-web/Nginx，也不是 real payment/refund evidence。
+- 若 self-hosted deploy job 卡在 `actions/checkout` 或 runner 本机步骤，
+  优先查看对应 ECS runner 工作目录下的 `_diag/Worker_*.log`，并确认 runner
+  进程、GitHub 网络连通性、磁盘空间和工作目录权限。workflow timeout 只负责
+  让挂起有界失败，不代表根因已修复。
 - 若需要回滚 backend/admin-web，优先通过 `workflow_dispatch + image_tag=<历史 sha>` 完成，而不是在 ECS 上手工改 compose 文件。
 - `node scripts/check_deployment_approval_preflight.js` 只读分析当前分支相对
   `origin/main`/`main` 的部署影响面和人工审批边界，不会 push、触发

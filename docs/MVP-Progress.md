@@ -233,6 +233,75 @@
     evidence. If it remains hung or fails in ECS-2 checkout, investigate the
     self-hosted runner checkout/network state before retrying deployment.
 
+## Round 76: Self-Hosted Deploy Timeout Guard
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: prevent ECS self-hosted deploy jobs from hanging indefinitely in
+  checkout/deploy steps so deployment failures become bounded, diagnosable, and
+  handoff-ready.
+- Start evidence:
+  - Local `main` is clean and ahead of `origin/main` by 1 commit
+    (`55ee305`) containing the Round 75 result record.
+  - GitHub Actions run `26799773234` is still `in_progress` with
+    `deploy-backend-host` stuck at `Checkout backend deployment bundle source`;
+    `detect-targets` and `build-backend` already passed.
+  - This repeats the class of ECS self-hosted runner checkout stall seen in the
+    earlier deployment attempt, so waiting alone is not a useful MVP-closing
+    action.
+- Open-source reference check:
+  - Task classification: common GitHub Actions self-hosted runner hardening and
+    workflow timeout behavior.
+  - Sources checked: GitHub Actions workflow syntax documentation for
+    `timeout-minutes` and GitHub self-hosted runner troubleshooting guidance
+    for inspecting runner diagnostic logs.
+  - License/compatibility: official documentation only; no external code
+    copied.
+  - Selected approach: add explicit timeout bounds to the self-hosted checkout
+    and local deploy steps in the existing workflow, preserving current
+    deployment semantics while making runner stalls fail with actionable
+    evidence.
+  - Rejected options: retrying the same dispatch indefinitely, weakening deploy
+    validation, or marking current-branch deployment passed from a stuck run.
+- Risks:
+  - The timeout guard does not fix the underlying ECS runner/network cause by
+    itself; it makes the failure bounded and easier to diagnose.
+  - Workflow changes on `main` can trigger production-lane path rules when
+    pushed, so another push should be recorded as deployment-relevant.
+- Acceptance criteria:
+  - Add finite timeouts to self-hosted checkout and deploy steps for backend and
+    web deploy jobs.
+  - Update CI/CD/state/progress docs with the current run status and diagnostic
+    boundary.
+  - Run workflow YAML parsing, deploy config checks, packet/closeout guards,
+    and commit once.
+- Change summary:
+  - Added `timeout-minutes: 8` to backend and web self-hosted deployment bundle
+    checkout steps.
+  - Added `timeout-minutes: 20` to backend and web local deploy steps.
+  - Updated `docs/CI-CD.md` and `docs/Project-State.md` with the bounded-hang
+    behavior and runner diagnostic boundary.
+- Verification:
+  - `scripts/check_deploy_config.sh`: passed, including workflow YAML parse,
+    compose rendering, shell syntax, nonprod env check, runner release metadata
+    guard, workflow lane matrix, nonprod readiness, helper dry-run, and Node.js
+    syntax.
+  - `node scripts/check_mvp_handoff_packet.js`,
+    `node scripts/check_mvp_next_approval_request.js`,
+    `node scripts/check_mvp_external_approval_packet.js`, and
+    `node scripts/check_mvp_closeout_readiness.js`: passed in non-strict mode;
+    closeout still reports 32 unresolved required items.
+  - `git diff --check`: passed.
+- Goal correction:
+  - The active MVP goal remains incomplete. This round does not deploy current
+    branch or collect smoke/manual QA evidence; it prevents future self-hosted
+    runner stalls from remaining unbounded.
+- Next recommended round:
+  - Push the timeout guard commit if deployment validation should continue,
+    then re-dispatch backend-only nonprod/mock lane. If checkout still fails,
+    inspect ECS runner `_diag/Worker_*.log`, runner process status, GitHub
+    network access, disk space, and workspace permissions before retrying.
+
 ## Round 72: Nonprod Mock Deployment Approval Snapshot
 
 - Date: 2026-06-02
