@@ -50,9 +50,10 @@ Latest aggregate regression:
 Latest production/deployment read-only evidence:
 
 - `node scripts/check_deployment_approval_preflight.js`: passed in Round 30.
-  Round 34 reran it: current branch was not `main`, worktree was clean, HEAD
-  was `e2653d04d542`, changed files since `origin/main` were 142, and future
-  push/merge to `main` was predicted to trigger deployment target `all`.
+  Round 38 reran it: current branch was not `main`, worktree was clean, HEAD
+  was `e48ccbdb982a`, changed files since `origin/main` were 142, future
+  push/merge to `main` was predicted to trigger deployment target `all`, and
+  impact counts were backend 38, admin-web 5, ingress 1.
 - Production checks inside `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`:
   passed in Round 32 with production public/ECS internal smoke and backend
   `8080` exposure read-only checks enabled.

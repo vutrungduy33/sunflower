@@ -2311,3 +2311,69 @@
     security-group evidence or explicit user waiver. Otherwise, choose another
     external evidence lane such as `MINIAPP-PREVIEW-DOMAIN`,
     `ADMIN-PROD-QA`, or `CURRENT-BRANCH-DEPLOYED`.
+
+## Round 38: Deployment Approval Preflight Refresh
+
+- Date: 2026-06-02
+- Status: completed and committed.
+- Focus: refresh the `CURRENT-BRANCH-DEPLOYED` approval lane for the current
+  HEAD after recent MVP evidence commits, without pushing, merging, running
+  `workflow_dispatch`, deploying, or changing production.
+- Start evidence:
+  - `git status --short --branch --untracked-files=all`: clean on
+    `codex/s18-payment-hardening` after Round 37 commit.
+  - Current HEAD before the check: `e48ccbd`.
+  - Deployment approval evidence in `docs/Production-Smoke.md`,
+    `docs/MVP-External-Approval-Packet.md`, `docs/MVP-Readiness.md`, and
+    `docs/Project-State.md` still referenced the older Round 34 HEAD
+    `e2653d04d542`.
+- Open-source reference check:
+  - Task classification: repository-specific deployment approval evidence
+    refresh using an existing script.
+  - Sources checked: not applicable; this round did not implement deployment
+    infrastructure or copy external code.
+  - Selected approach: rerun `node scripts/check_deployment_approval_preflight.js`
+    and update current-branch deployment evidence while keeping the ledger item
+    pending.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: existing deployment preflight script, launch evidence ledger
+    schema, external evidence template generator, and approval packet lane.
+  - Rejected options: pushing to `main`, merging, invoking `workflow_dispatch`,
+    or treating preflight as current-branch deployment proof.
+- Risks:
+  - The preflight proves workflow shape, current branch/base state, worktree
+    cleanliness, and predicted deployment impact only.
+  - The predicted target remains `all`; approved push/merge to `main` would
+    affect backend, admin-web, and ingress paths.
+  - `CURRENT-BRANCH-DEPLOYED` remains pending until an approved deploy happens
+    or the user explicitly declares it out of scope.
+- Acceptance criteria:
+  - Deployment approval preflight passes on current HEAD.
+  - Deployment-related docs and launch evidence reference current HEAD
+    `e48ccbdb982a` and keep no-deploy wording explicit.
+  - External evidence template regenerates from the refreshed ledger.
+  - Non-strict evidence guards still report the same unresolved counts.
+  - The round is committed once.
+- Verification:
+  - `node scripts/check_deployment_approval_preflight.js`: passed 5 checks.
+    - Current branch: `codex/s18-payment-hardening`.
+    - HEAD: `e48ccbdb982a`.
+    - Comparison base: `origin/main` at `5a37a6788c21`.
+    - Changed files since base: 142.
+    - Predicted push-to-main deploy target: `all`.
+    - Impact counts: backend 38 files, admin-web 5 files, ingress 1 file.
+    - Worktree clean; current branch is not `main`.
+  - `node scripts/generate_mvp_external_evidence_template.js`: regenerated
+    `docs/MVP-External-Evidence-Template.md` with 33 unresolved required items.
+- Change summary:
+  - Updated `docs/MVP-Launch-Evidence.json` evidence text for
+    `CURRENT-BRANCH-DEPLOYED` while keeping `status: pending`.
+  - Regenerated `docs/MVP-External-Evidence-Template.md`.
+  - Updated `docs/Production-Smoke.md`,
+    `docs/MVP-External-Approval-Packet.md`, `docs/MVP-Readiness.md`,
+    `docs/Project-State.md`, and this progress log with the Round 38 preflight.
+- Goal correction:
+  - The deployment approval boundary is current again, but MVP closeout remains
+    open. The next deployment-related progress requires explicit approval for
+    push/merge/workflow dispatch or an explicit user decision that current
+    branch deployment evidence is out of scope.

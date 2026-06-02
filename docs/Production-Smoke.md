@@ -37,9 +37,9 @@ Latest read-only production result:
 Latest deployment approval preflight:
 
 - `node scripts/check_deployment_approval_preflight.js`: passed 5 checks on
-  2026-06-02 07:44 Asia/Shanghai.
+  2026-06-02 08:52 Asia/Shanghai.
 - Current branch: `codex/s18-payment-hardening`.
-- Current branch HEAD: `e2653d04d542`.
+- Current branch HEAD: `e48ccbdb982a`.
 - Comparison base: `origin/main` at `5a37a6788c21`.
 - Changed files since base: 142.
 - Predicted push-to-main deploy target from workflow path rules: `all`.
@@ -56,7 +56,7 @@ Latest deployment approval preflight:
   - `push` to `main` for deployment-relevant paths
 - Current branch during latest deployment preflight:
   `codex/s18-payment-hardening`
-- Current branch HEAD during latest deployment preflight: `e2653d04d542`
+- Current branch HEAD during latest deployment preflight: `e48ccbdb982a`
 - Deployment action taken in this round: none
 - `gh auth status`: authenticated as `vutrungduy33` with `repo` and `workflow`
   scopes.
