@@ -34,6 +34,13 @@ the user explicitly waives the remaining external evidence.
   follow-up run `26796607775` for `d0af634314d0` passed checkout/artifact
   download/image load, then failed production env validation because
   `WECHAT_PAY_MCH_ID` is missing. Current-branch deployment remains pending.
+- Rounds 66-68 added an explicit backend-only non-production/mock-payment
+  deployment lane. Manual `workflow_dispatch` with
+  `deployment_lane=nonprod-mock-payment` and `target=auto` or `target=backend`
+  validates `.env.nonprod-mock.example` and deploys only ECS-2 backend. Push to
+  `main` and default `workflow_dispatch` remain production-lane. This nonprod
+  lane can support approved MVP operator validation, but it is not real
+  payment/refund evidence and does not refresh admin-web or Nginx.
 - Round 58 backend `8080` hardening passed after ECS-2 backend host port was
   rebound to private IP `172.25.121.83`.
 - Latest strict closeout shape confirms the goal is still incomplete:
@@ -68,6 +75,7 @@ production state changed; Round 47 already refreshed it on current local
 
 ```bash
 node scripts/check_deployment_approval_preflight.js
+node scripts/check_workflow_dispatch_lane_matrix.js
 ```
 
 Use this read-only production audit only when the user expects production
@@ -81,6 +89,10 @@ scripts/check_production_readonly_audit.sh
 
 - Do not push to `main`, merge to `main`, run `workflow_dispatch`, or trigger a
   production deploy without explicit user approval first.
+- If the user approves non-production backend validation instead of production,
+  use only `workflow_dispatch` with `deployment_lane=nonprod-mock-payment` and
+  `target=auto` or `target=backend`; record that it is backend-only,
+  mock-payment, and not real payment/refund evidence.
 - Do not run real payment or real refund validation without explicit user
   approval first.
 - Do not mutate Alibaba Cloud security-group/firewall rules without explicit
@@ -115,6 +127,9 @@ These entries are still unresolved in `docs/MVP-Launch-Evidence.json`:
   but ECS-2 checkout to GitHub stalled. Follow-up run `26796607775` for
   `d0af634314d0` reached ECS-2 image load and then failed because
   `WECHAT_PAY_MCH_ID` is missing, so this remains pending.
+  An approved backend-only nonprod/mock-payment dispatch can provide deployment
+  smoke evidence for that lane, but production current-branch deployment remains
+  unproven unless the user explicitly accepts the reduced scope.
 
 Latest strict launch evidence result after Round 58:
 
@@ -193,8 +208,13 @@ Round 48 strict admin-web manual QA result:
    passed.
 7. Before any approved deploy action, run
    `node scripts/check_deployment_approval_preflight.js`.
-8. After approved deploy, run `scripts/check_production_readonly_audit.sh`.
-9. Run final strict closeout:
+8. For backend-only nonprod/mock-payment deploy approval, also run
+   `node scripts/check_workflow_dispatch_lane_matrix.js` and
+   `bash scripts/check_nonprod_mock_payment_deploy_lane.sh`, then manually
+   dispatch `target=auto` or `target=backend` with
+   `deployment_lane=nonprod-mock-payment`.
+9. After approved deploy, run `scripts/check_production_readonly_audit.sh`.
+10. Run final strict closeout:
 
 ```bash
 node scripts/check_mvp_launch_evidence.js --strict

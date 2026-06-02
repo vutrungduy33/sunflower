@@ -49,7 +49,11 @@ approval preflight refresh:
   `scripts/check_workflow_dispatch_lane_matrix.js`, which is wired into
   `scripts/check_deploy_config.sh` and verifies production dispatch behavior,
   backend-only nonprod dispatch behavior, rejected nonprod web/nginx/all/bootstrap
-  targets, and push-event production behavior.
+  targets, and push-event production behavior. Round 69 updated
+  `docs/MVP-Handoff-Packet.md`, `docs/MVP-Next-Approval-Request.md`, and
+  `docs/MVP-External-Approval-Packet.md` so operators see the backend-only
+  nonprod/mock-payment dispatch option and its reduced-scope evidence boundary;
+  the packet checkers now require that wording and the related guard commands.
 - `scripts/check_mvp_regression.sh`: passed in Round 64 on current local
   `main` HEAD `4a3f630f30eb` with the default 5 enabled non-production steps.
   Backend `mvn -B test` passed with 57 tests, 0 failures, 0 errors, and 0

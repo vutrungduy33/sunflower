@@ -38,6 +38,8 @@ const requiredCommands = [
   'node scripts/check_mvp_external_approval_packet.js',
   'node scripts/check_mvp_next_approval_request.js',
   'node scripts/check_deployment_approval_preflight.js',
+  'node scripts/check_workflow_dispatch_lane_matrix.js',
+  'bash scripts/check_nonprod_mock_payment_deploy_lane.sh',
   'scripts/check_production_readonly_audit.sh',
 ];
 
@@ -50,6 +52,16 @@ const requiredSafetyText = [
   'project.private.config.json',
   'touristappid',
   'Do not commit',
+];
+
+const requiredNonprodDeployText = [
+  'deployment_lane=nonprod-mock-payment',
+  'target=auto',
+  'target=backend',
+  '.env.nonprod-mock.example',
+  'backend-only',
+  'not real payment/refund evidence',
+  'does not refresh admin-web or Nginx',
 ];
 
 function fail(message) {
@@ -118,12 +130,16 @@ function main() {
     requireIncludes(packet, text, 'safety boundary');
   }
 
+  for (const text of requiredNonprodDeployText) {
+    requireIncludes(packet, text, 'nonprod deploy boundary');
+  }
+
   requireMatches(packet, new RegExp(`${unresolved.length}\\s+unresolved\\s+required\\s+items`), 'unresolved count');
   requireIncludes(packet, 'The MVP goal is still open', 'open-goal statement');
   requireMatches(packet, /not\s+proof\s+that\s+the\s+MVP\s+is\s+complete/, 'non-completion statement');
 
   console.log(
-    `[mvp-handoff] PASS: handoff packet covers ${unresolved.length} unresolved required item(s), ${requiredCommands.length} commands, and ${requiredSafetyText.length} safety boundaries`,
+    `[mvp-handoff] PASS: handoff packet covers ${unresolved.length} unresolved required item(s), ${requiredCommands.length} commands, ${requiredSafetyText.length} safety boundaries, and ${requiredNonprodDeployText.length} nonprod deploy boundary item(s)`,
   );
 }
 

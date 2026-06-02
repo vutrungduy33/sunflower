@@ -43,8 +43,20 @@ const requiredCommands = [
   'node scripts/check_mvp_closeout_readiness.js --strict',
   'node scripts/check_mvp_handoff_packet.js',
   'node scripts/check_deployment_approval_preflight.js',
+  'node scripts/check_workflow_dispatch_lane_matrix.js',
+  'bash scripts/check_nonprod_mock_payment_deploy_lane.sh',
   'scripts/check_production_readonly_audit.sh',
   'RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh',
+];
+
+const requiredNonprodDeployText = [
+  'deployment_lane=nonprod-mock-payment',
+  'target=auto',
+  'target=backend',
+  '.env.nonprod-mock.example',
+  'deploys only ECS-2 backend',
+  'does not refresh admin-web or Nginx',
+  'not real payment/refund evidence',
 ];
 
 function fail(message) {
@@ -114,6 +126,10 @@ function main() {
     requireIncludes(packet, command, 'validation command');
   }
 
+  for (const text of requiredNonprodDeployText) {
+    requireIncludes(packet, text, 'nonprod deploy boundary');
+  }
+
   requireIncludes(packet, `Unresolved required items: ${expectedUnresolvedCount}`, 'unresolved count');
   requireIncludes(packet, 'Approval Request Template', 'approval template');
   requireIncludes(packet, 'Sensitive data that must stay out of Git', 'template sensitive-data field');
@@ -121,7 +137,7 @@ function main() {
   requireIncludes(packet, 'Until then, keep the goal open', 'open-goal reminder');
 
   console.log(
-    `[external-approval] PASS: approval packet covers ${requiredLanes.length} lane(s), ${expectedUnresolvedCount} unresolved item(s), ${requiredSafetyText.length} safety text item(s), and ${requiredCommands.length} command(s)`,
+    `[external-approval] PASS: approval packet covers ${requiredLanes.length} lane(s), ${expectedUnresolvedCount} unresolved item(s), ${requiredSafetyText.length} safety text item(s), ${requiredCommands.length} command(s), and ${requiredNonprodDeployText.length} nonprod deploy boundary item(s)`,
   );
 }
 

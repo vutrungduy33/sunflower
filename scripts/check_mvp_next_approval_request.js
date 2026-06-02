@@ -59,12 +59,24 @@ const requiredCommands = [
   'node scripts/check_mvp_next_approval_request.js',
   'node scripts/check_mvp_closeout_readiness.js',
   'node scripts/check_deployment_approval_preflight.js',
+  'node scripts/check_workflow_dispatch_lane_matrix.js',
+  'bash scripts/check_nonprod_mock_payment_deploy_lane.sh',
   'scripts/check_production_readonly_audit.sh',
   'node scripts/check_mvp_launch_evidence.js --strict',
   'node scripts/check_miniapp_manual_qa.js --strict',
   'node scripts/check_admin_web_manual_qa.js --strict',
   'node scripts/check_mvp_closeout_readiness.js --strict',
   'node scripts/check_mvp_handoff_packet.js',
+];
+
+const requiredNonprodDeployText = [
+  'deployment_lane=nonprod-mock-payment',
+  'target=auto',
+  'target=backend',
+  '.env.nonprod-mock.example',
+  'does not refresh admin-web/Nginx',
+  'does not prove real payment/refund',
+  'reduced-scope evidence',
 ];
 
 function fail(message) {
@@ -138,8 +150,12 @@ function main() {
     requireIncludes(request, command, 'validation command');
   }
 
+  for (const text of requiredNonprodDeployText) {
+    requireIncludes(request, text, 'nonprod deploy boundary');
+  }
+
   console.log(
-    `[next-approval] PASS: next approval request covers ${requiredLanes.length} lane(s), ${unresolved.length} unresolved item(s), ${requiredSafetyText.length} safety text item(s), and ${requiredCommands.length} command(s)`,
+    `[next-approval] PASS: next approval request covers ${requiredLanes.length} lane(s), ${unresolved.length} unresolved item(s), ${requiredSafetyText.length} safety text item(s), ${requiredCommands.length} command(s), and ${requiredNonprodDeployText.length} nonprod deploy boundary item(s)`,
   );
 }
 

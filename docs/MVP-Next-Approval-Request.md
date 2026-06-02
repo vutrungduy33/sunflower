@@ -60,6 +60,9 @@ Recommended first choices:
    legal HTTPS request domain, and allowed preview/real-device QA scope.
 2. `CURRENT-BRANCH-DEPLOYED`: approve push/merge/workflow dispatch and
    post-deploy read-only audit if the current branch should become live.
+   If there is still no production merchant config, the safer deploy choice is
+   manual backend-only `deployment_lane=nonprod-mock-payment` with
+   `target=auto` or `target=backend`; this is not real payment/refund evidence.
 3. `ADMIN-PROD-QA`: provide a dedicated QA admin account and approved QA data
    scope for production or approved-staging manual checks.
 
@@ -96,7 +99,7 @@ refund, and no live production data mutation.
 | `WECHAT-PAYMENT-REFUND` | `WECHAT-REAL-PAYMENT`, `WECHAT-REAL-REFUND`, `MINIAPP-MOCK-PAYMENT`, `MINIAPP-REAL-PAYMENT`, `MINIAPP-REFUND` | Low-value real payment, real refund, merchant/callback evidence, or itemized waiver |
 | `ADMIN-PROD-QA` | `ADMIN-PROD-QA`, `ADMIN-AUTH-LOGIN`, `ADMIN-AUTH-ACTIVATE`, `ADMIN-AUTH-RESET-CHANGE`, `ADMIN-WORKSPACE-HEALTH`, `ADMIN-ROOM-LIST-EDIT`, `ADMIN-ROOM-SHELF`, `ADMIN-PRICING-CALENDAR`, `ADMIN-PRICING-BATCH`, `ADMIN-ORDER-LIST-DETAIL`, `ADMIN-ORDER-OPS`, `ADMIN-AFTER-SALE`, `ADMIN-ERROR-STATES` | Dedicated QA admin account, approved QA data, rollback/restoration or final-state acceptance |
 | `BACKEND-8080-HARDENING` | Already passed in Round 58; revalidates `BACKEND-8080-HARDENING` after backend redeploys or network changes | Preserve private-IP binding, host firewall/security-group evidence if topology changes, or explicit waiver if exposure is reintroduced |
-| `CURRENT-BRANCH-DEPLOYED` | `CURRENT-BRANCH-DEPLOYED` | Push/merge/workflow dispatch/deploy approval, then post-deploy smoke |
+| `CURRENT-BRANCH-DEPLOYED` | `CURRENT-BRANCH-DEPLOYED` | Push/merge/workflow dispatch/deploy approval, then post-deploy smoke. Production lane requires real WeChat Pay config; backend-only nonprod/mock-payment dispatch uses `deployment_lane=nonprod-mock-payment` with `target=auto/backend` and must be recorded as reduced-scope evidence, not production payment readiness |
 | `EVIDENCE-WAIVER` | Any remaining unresolved id | Exact id, accepted risk, date, reason, and scope |
 
 ## 6. Current Deployment Preflight Snapshot
@@ -121,6 +124,17 @@ and before asking the user to approve `CURRENT-BRANCH-DEPLOYED`.
 
 This snapshot was taken before the Round 55 documentation commit itself, so
 rerun the preflight immediately before any approved deployment action.
+
+Current deploy-lane options:
+
+- Production lane: push to `main` or default `workflow_dispatch`; still blocked
+  until real ECS-2 WeChat Pay config is provisioned.
+- Backend-only nonprod/mock-payment lane: manual `workflow_dispatch` with
+  `deployment_lane=nonprod-mock-payment` and `target=auto` or `target=backend`;
+  validates `.env.nonprod-mock.example`, does not refresh admin-web/Nginx, and
+  does not prove real payment/refund.
+- Local guard before asking for nonprod dispatch approval:
+  `node scripts/check_workflow_dispatch_lane_matrix.js`.
 
 ## 7. Evidence Rules
 
@@ -156,6 +170,8 @@ Deployment approval preflight:
 
 ```bash
 node scripts/check_deployment_approval_preflight.js
+node scripts/check_workflow_dispatch_lane_matrix.js
+bash scripts/check_nonprod_mock_payment_deploy_lane.sh
 ```
 
 After approved production deploy:

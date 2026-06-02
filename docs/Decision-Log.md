@@ -303,3 +303,19 @@ Append durable decisions here. Keep entries short and include provenance.
   dependency.
 - Provenance: `scripts/check_workflow_dispatch_lane_matrix.js`,
   `scripts/check_deploy_config.sh`, `docs/CI-CD.md`.
+
+## 2026-06-02: Guard Nonprod Deploy Lane in Handoff Packets
+
+- Decision: Require the MVP handoff, next approval request, and external
+  approval packet to document the backend-only nonprod/mock-payment dispatch
+  lane, reduced-scope evidence boundary, `.env.nonprod-mock.example`, and
+  local guard commands.
+- Rationale: A deploy lane that is technically available but missing from the
+  handoff package can be misused or forgotten. Packet checkers now protect the
+  operator-facing boundary.
+- Provenance: `docs/MVP-Handoff-Packet.md`,
+  `docs/MVP-Next-Approval-Request.md`,
+  `docs/MVP-External-Approval-Packet.md`,
+  `scripts/check_mvp_handoff_packet.js`,
+  `scripts/check_mvp_next_approval_request.js`,
+  `scripts/check_mvp_external_approval_packet.js`.

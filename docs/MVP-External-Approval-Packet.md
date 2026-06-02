@@ -124,6 +124,23 @@ Unresolved ids:
 Boundary: before push/merge/workflow dispatch, run deployment preflight and
 report branch, commit, predicted target, and risk.
 
+Deploy-lane choices:
+
+- Production lane: push to `main` or default `workflow_dispatch`; requires real
+  production payment config before claiming production readiness.
+- Backend-only nonprod/mock-payment lane: manual `workflow_dispatch` with
+  `deployment_lane=nonprod-mock-payment` and `target=auto` or `target=backend`;
+  validates `.env.nonprod-mock.example`, deploys only ECS-2 backend, does not
+  refresh admin-web or Nginx, and is not real payment/refund evidence.
+
+Required preflight before asking for backend-only nonprod dispatch approval:
+
+```bash
+node scripts/check_deployment_approval_preflight.js
+node scripts/check_workflow_dispatch_lane_matrix.js
+bash scripts/check_nonprod_mock_payment_deploy_lane.sh
+```
+
 <!-- approval-lane:EVIDENCE-WAIVER -->
 ### EVIDENCE-WAIVER
 
@@ -139,6 +156,8 @@ node scripts/check_mvp_launch_evidence.js --strict
 node scripts/check_mvp_closeout_readiness.js --strict
 node scripts/check_mvp_handoff_packet.js
 node scripts/check_deployment_approval_preflight.js
+node scripts/check_workflow_dispatch_lane_matrix.js
+bash scripts/check_nonprod_mock_payment_deploy_lane.sh
 scripts/check_production_readonly_audit.sh
 ```
 

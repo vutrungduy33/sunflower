@@ -5,6 +5,74 @@
 > This active file keeps only the latest operational rounds. Older rounds are
 > archived in `docs/archive/mvp-progress/`.
 
+## Round 69: Nonprod Deploy Lane Handoff and Approval Coverage
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: make the backend-only non-production/mock-payment deployment lane
+  visible in the MVP handoff and approval packets, and guard that visibility
+  with the existing packet checkers.
+- Start evidence:
+  - Local `main` was clean and ahead of `origin/main` by 9 commits.
+  - Rounds 67-68 added and verified the manual
+    `deployment_lane=nonprod-mock-payment` backend-only workflow path.
+  - `docs/MVP-Handoff-Packet.md`, `docs/MVP-Next-Approval-Request.md`, and
+    `docs/MVP-External-Approval-Packet.md` still described only the older
+    generic push/workflow_dispatch production deployment boundary.
+- Open-source reference check:
+  - Task classification: repository-specific approval and handoff
+    documentation for an existing deployment lane.
+  - Sources checked: not needed beyond existing repository docs and checkers;
+    no common implementation, third-party dependency, or reusable external code
+    is being introduced.
+  - License/compatibility: no external code copied.
+  - Selected approach: update the active handoff and approval packets and add
+    checker assertions so future changes cannot silently omit the nonprod lane
+    risk boundary.
+  - Rejected options: adding another large runbook document, treating nonprod
+    deploy as production evidence, or weakening existing approval boundaries.
+- Risks:
+  - Documentation/checker updates do not push, dispatch, deploy, or prove
+    current-branch deployment.
+  - The nonprod lane can support operator validation, but it is not real
+    payment/refund evidence and does not refresh admin-web or Nginx.
+- Acceptance criteria:
+  - Update handoff/approval docs so operators can choose production deployment
+    or backend-only nonprod/mock-payment dispatch with correct risk wording.
+  - Require the packet checkers to mention the nonprod lane, backend-only target
+    boundary, `.env.nonprod-mock.example`, and workflow lane matrix guard.
+  - Run packet/evidence/deploy checks and commit once.
+- Change summary:
+  - Updated `docs/MVP-Handoff-Packet.md` with backend-only nonprod/mock-payment
+    dispatch behavior, required commands, and reduced-scope evidence wording.
+  - Updated `docs/MVP-Next-Approval-Request.md` and
+    `docs/MVP-External-Approval-Packet.md` so `CURRENT-BRANCH-DEPLOYED` approval
+    distinguishes production deployment from backend-only nonprod/mock-payment
+    dispatch.
+  - Strengthened `scripts/check_mvp_handoff_packet.js`,
+    `scripts/check_mvp_next_approval_request.js`, and
+    `scripts/check_mvp_external_approval_packet.js` to require the nonprod lane
+    boundary and guard commands.
+- Verification:
+  - `node scripts/check_mvp_handoff_packet.js`: passed with 32 unresolved
+    required items, 14 commands, 8 safety boundaries, and 7 nonprod deploy
+    boundary items covered.
+  - `node scripts/check_mvp_next_approval_request.js`: passed with 6 lanes, 32
+    unresolved items, 15 safety items, 12 commands, and 7 nonprod deploy
+    boundary items covered.
+  - `node scripts/check_mvp_external_approval_packet.js`: passed with 6 lanes,
+    32 unresolved items, 14 safety items, 10 commands, and 7 nonprod deploy
+    boundary items covered.
+- Goal correction:
+  - The active MVP goal remains incomplete. This round improves handoff and
+    approval readiness, but does not push, dispatch, deploy, prove current local
+    `main` is live, or collect external/manual QA, HTTPS domain, real payment,
+    or refund evidence.
+- Next recommended round:
+  - Run the updated packet/deploy checks together, then either request explicit
+    approval for backend-only nonprod dispatch or provision real payment config
+    for production-lane deployment.
+
 ## Round 68: Workflow Dispatch Lane Matrix Guard
 
 - Date: 2026-06-02
