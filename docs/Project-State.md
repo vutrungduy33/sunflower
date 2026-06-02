@@ -104,6 +104,14 @@
   deploy was skipped because backend deploy failed. This proves the previous
   ECS-2 checkout/network blocker cleared for that run, but current-branch
   production deployment and smoke still remain pending.
+- Round 78 triggered backend-only `deployment_lane=nonprod-mock-payment`
+  workflow run `26800396663` for HEAD `c714abdcfc59`. `detect-targets` and
+  `build-backend` passed, `build-admin-web` was skipped as expected, but
+  ECS-2 `deploy-backend-host` failed again during `actions/checkout` before
+  bundle sync, artifact download, docker load, or local deploy. The sanitized
+  error class was the same GitHub HTTPS fetch problem: TLS connection
+  termination followed by `github.com:443` connection timeouts. Current-branch
+  backend deploy and smoke remain pending.
 - Round 60 pushed `98e68e0dd478` to `main` and triggered GitHub Actions run
   `26796051853`; backend/admin-web images built, but ECS-2 checkout stalled
   before deployment completed.

@@ -376,7 +376,7 @@
 ## Round 78: Nonprod Mock Backend Deploy Retry
 
 - Date: 2026-06-02
-- Status: in progress
+- Status: completed
 - Focus: rerun the explicit backend-only nonprod/mock-payment deployment lane on
   current `main` after production-lane run `26800134363` proved ECS-2 checkout,
   bundle sync, artifact download, and docker load can succeed.
@@ -409,6 +409,38 @@
   - If deploy succeeds, run or record appropriate read-only backend smoke
     evidence; if it fails, record the first failing step and non-secret cause.
   - Update project state/progress and run focused guards before committing.
+- Change summary:
+  - Committed and pushed the pre-action Round 78 plan as `c714abd` so
+    workflow dispatch used the current remote `main`.
+  - Executed
+    `CONFIRM_NONPROD_MOCK_DISPATCH=1 scripts/dispatch_nonprod_mock_payment_deploy.sh --execute`.
+  - Observed workflow run `26800396663` through completion.
+- Verification and external run results:
+  - Pre-dispatch `node scripts/check_nonprod_dispatch_readiness.js`: passed
+    with 6 checks.
+  - Pre-dispatch `scripts/dispatch_nonprod_mock_payment_deploy.sh --dry-run`:
+    passed and printed the fixed backend-only nonprod/mock command.
+  - Run `26800396663`: completed `failure`.
+  - `detect-targets`: success.
+  - `build-backend`: success, including backend image build and artifact
+    upload.
+  - `build-admin-web`: skipped as expected for backend-only nonprod/mock lane.
+  - `deploy-backend-host`: failed at `Checkout backend deployment bundle
+    source`; bundle sync, artifact download, docker load, image availability
+    check, and local backend deploy were skipped.
+  - Sanitized failed-step log summary: ECS-2 `git fetch` over HTTPS to
+    `github.com` hit TLS connection termination and `github.com:443`
+    connection timeouts.
+- Goal correction:
+  - The active MVP goal remains incomplete. This round proves the guarded
+    nonprod/mock lane dispatches and builds backend artifacts, but ECS-2
+    GitHub network/checkout instability still blocks backend deployment and
+    post-deploy smoke.
+- Next recommended round:
+  - Fix or work around ECS-2 runner network access to GitHub before retrying:
+    inspect runner `_diag/Worker_*.log`, test `git ls-remote` and HTTPS access
+    to GitHub from ECS-2, check DNS/proxy/firewall/security-group/egress rules,
+    and only then re-dispatch backend-only nonprod/mock lane.
 
 ## Round 72: Nonprod Mock Deployment Approval Snapshot
 
