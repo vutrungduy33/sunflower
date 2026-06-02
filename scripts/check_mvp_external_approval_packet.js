@@ -46,6 +46,7 @@ const requiredCommands = [
   'node scripts/check_workflow_dispatch_lane_matrix.js',
   'bash scripts/check_nonprod_mock_payment_deploy_lane.sh',
   'node scripts/check_nonprod_dispatch_readiness.js',
+  'scripts/dispatch_nonprod_mock_payment_deploy.sh --dry-run',
   'scripts/check_production_readonly_audit.sh',
   'RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh',
 ];

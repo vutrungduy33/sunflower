@@ -161,6 +161,7 @@ deploy path 必填：
 - `bash scripts/check_nonprod_mock_payment_deploy_lane.sh`
 - `node scripts/check_workflow_dispatch_lane_matrix.js`
 - `node scripts/check_nonprod_dispatch_readiness.js`
+- `scripts/dispatch_nonprod_mock_payment_deploy.sh --dry-run`
 - `ruby -e 'require "yaml"; YAML.load_file(".github/workflows/deploy-backend.yml")'`
 - `docker compose -f docker-compose.backend.yml --env-file .env.prod.example config`
 - `docker compose -f docker-compose.web.yml --env-file .env.prod.web.example config`
@@ -199,6 +200,13 @@ deploy path 必填：
   证据边界、`CURRENT-BRANCH-DEPLOYED` 仍为 pending，并复用 lane matrix 与
   `.env.nonprod-mock.example` 检查。开发中的 `scripts/check_deploy_config.sh`
   会以 `ALLOW_DIRTY=1` 运行它；真正请求审批前应使用默认严格模式。
+- `scripts/dispatch_nonprod_mock_payment_deploy.sh --dry-run` 是
+  backend-only nonprod/mock-payment lane 的人工派发辅助入口。默认只运行
+  readiness guard 并打印固定的
+  `gh workflow run deploy-backend.yml --ref main -f target=backend -f run_seed=false -f deployment_lane=nonprod-mock-payment`
+  命令，不会触发 GitHub Actions；只有在审批后同时传入 `--execute` 且设置
+  `CONFIRM_NONPROD_MOCK_DISPATCH=1` 才会执行。该 lane 仍不刷新
+  admin-web/Nginx，也不是 real payment/refund evidence。
 - 若需要回滚 backend/admin-web，优先通过 `workflow_dispatch + image_tag=<历史 sha>` 完成，而不是在 ECS 上手工改 compose 文件。
 - `node scripts/check_deployment_approval_preflight.js` 只读分析当前分支相对
   `origin/main`/`main` 的部署影响面和人工审批边界，不会 push、触发

@@ -97,6 +97,11 @@
   `scripts/check_deploy_config.sh`, as the strict local preflight before asking
   for backend-only nonprod/mock-payment dispatch approval. It does not push,
   dispatch, deploy, or mutate ECS.
+- Round 74 added `scripts/dispatch_nonprod_mock_payment_deploy.sh` as the
+  default dry-run helper for the backend-only nonprod/mock-payment manual
+  dispatch path. It prints the fixed `gh workflow run` command after readiness
+  checks; actual dispatch requires `--execute` plus
+  `CONFIRM_NONPROD_MOCK_DISPATCH=1` and remains reduced-scope mock evidence.
 - Round 69 updated handoff and approval packets so operators see the backend-only
   nonprod/mock-payment lane and its reduced-scope evidence boundary.
 - With real payment private key/config still incomplete, the recommended

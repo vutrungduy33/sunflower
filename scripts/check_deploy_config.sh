@@ -60,6 +60,7 @@ check_shell_syntax() {
     scripts/check_backend_8080_exposure.sh
     scripts/check_backend_payment_config_readiness.sh
     scripts/check_nonprod_mock_payment_deploy_lane.sh
+    scripts/dispatch_nonprod_mock_payment_deploy.sh
     scripts/check_production_readonly_audit.sh
   )
 
@@ -97,6 +98,12 @@ check_nonprod_dispatch_readiness() {
   log PASS "non-production dispatch readiness checked"
 }
 
+check_nonprod_dispatch_helper() {
+  log INFO "checking non-production mock-payment dispatch helper dry-run"
+  ALLOW_DIRTY=1 "$ROOT_DIR/scripts/dispatch_nonprod_mock_payment_deploy.sh" --dry-run >/dev/null
+  log PASS "non-production mock-payment dispatch helper dry-run checked"
+}
+
 check_nonprod_mock_payment_lane() {
   log INFO "checking non-production mock-payment deploy lane example"
   bash "$ROOT_DIR/scripts/check_nonprod_mock_payment_deploy_lane.sh"
@@ -116,6 +123,7 @@ main() {
   check_runner_deploy_release_metadata
   check_workflow_dispatch_lane_matrix
   check_nonprod_dispatch_readiness
+  check_nonprod_dispatch_helper
   check_node_syntax
 
   log INFO "deploy config checks completed"

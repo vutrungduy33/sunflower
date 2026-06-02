@@ -62,6 +62,7 @@ const requiredCommands = [
   'node scripts/check_workflow_dispatch_lane_matrix.js',
   'bash scripts/check_nonprod_mock_payment_deploy_lane.sh',
   'node scripts/check_nonprod_dispatch_readiness.js',
+  'scripts/dispatch_nonprod_mock_payment_deploy.sh --dry-run',
   'scripts/check_production_readonly_audit.sh',
   'node scripts/check_mvp_launch_evidence.js --strict',
   'node scripts/check_miniapp_manual_qa.js --strict',

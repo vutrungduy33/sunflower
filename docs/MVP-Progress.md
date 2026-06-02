@@ -74,6 +74,83 @@
     strict clean-worktree mode. With explicit user approval, then manually
     dispatch `target=auto/backend` plus `deployment_lane=nonprod-mock-payment`.
 
+## Round 74: Nonprod Mock Dispatch Helper
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: add a default dry-run helper for the backend-only
+  nonprod/mock-payment workflow dispatch path so operators do not hand-compose
+  risky `gh workflow run` arguments while real payment private key/config is
+  incomplete.
+- Start evidence:
+  - Local `main` is clean and ahead of `origin/main` by 14 commits.
+  - Round 73 added a strict readiness guard, but the actual dispatch command
+    still has to be assembled manually.
+  - This round must not push, deploy, mutate ECS, or run real payment/refund.
+- Open-source reference check:
+  - Task classification: common CI/CD manual workflow dispatch helper.
+  - Sources checked: GitHub Docs manual workflow run guidance and GitHub CLI
+    `gh workflow run` manual.
+  - License/compatibility: official documentation only; no external code
+    copied.
+  - Selected approach: keep the repository-native GitHub Actions workflow and
+    add a small shell wrapper that defaults to dry-run, runs the existing
+    readiness guard first, hard-codes the nonprod/mock-payment lane, and
+    requires an explicit confirmation variable before executing.
+  - Rejected options: pushing `main` into the production lane while payment
+    config is incomplete, weakening production env validation, or introducing a
+    third-party deployment dispatcher.
+- Risks:
+  - A successful helper dry-run proves only local readiness and command shape;
+    it does not dispatch or prove cloud deployment.
+  - If executed after approval, the lane is backend-only and mock-payment; it
+    still cannot satisfy real payment/refund evidence or admin-web/Nginx
+    refresh evidence.
+- Acceptance criteria:
+  - Add a helper that defaults to dry-run and prints the exact `gh workflow run`
+    command for `deployment_lane=nonprod-mock-payment`.
+  - Reject unsupported targets and require an explicit environment
+    confirmation before real dispatch.
+  - Wire the helper into deployment config checks and operator-facing docs.
+  - Run focused validation and commit once.
+- Change summary:
+  - Added `scripts/dispatch_nonprod_mock_payment_deploy.sh`.
+  - The helper runs `scripts/check_nonprod_dispatch_readiness.js`, hard-codes
+    `deployment_lane=nonprod-mock-payment`, defaults to `target=backend`, and
+    rejects unsupported targets.
+  - Dry-run mode prints the exact `gh workflow run` command without triggering
+    GitHub Actions. Execute mode additionally requires `--execute` and
+    `CONFIRM_NONPROD_MOCK_DISPATCH=1`.
+  - Wired the helper into `scripts/check_deploy_config.sh`,
+    `docs/CI-CD.md`, `docs/Context-Index.md`, handoff/approval packets, and
+    packet guard scripts.
+- Verification:
+  - `bash -n scripts/dispatch_nonprod_mock_payment_deploy.sh
+    scripts/check_deploy_config.sh`: passed.
+  - `ALLOW_DIRTY=1 scripts/dispatch_nonprod_mock_payment_deploy.sh --dry-run`:
+    passed; it printed
+    `gh workflow run deploy-backend.yml --ref main -f target=backend -f run_seed=false -f deployment_lane=nonprod-mock-payment`
+    and did not trigger `workflow_dispatch`.
+  - `scripts/check_deploy_config.sh`: passed, including workflow YAML, compose
+    rendering, shell syntax, nonprod env check, runner release metadata guard,
+    workflow lane matrix, nonprod readiness, helper dry-run, and Node.js
+    syntax.
+  - `node scripts/check_mvp_handoff_packet.js`,
+    `node scripts/check_mvp_next_approval_request.js`,
+    `node scripts/check_mvp_external_approval_packet.js`, and
+    `node scripts/check_mvp_closeout_readiness.js`: passed in non-strict mode;
+    closeout still reports 32 unresolved required items.
+  - `git diff --check`: passed.
+- Goal correction:
+  - The active MVP goal remains incomplete. This round improves the approved
+    nonprod/mock-payment dispatch handoff but does not push, dispatch, deploy,
+    prove HTTPS domain, or collect real payment/refund/manual QA evidence.
+- Next recommended round:
+  - If approved for cloud validation, run the helper in strict clean mode and
+    execute only the backend-only nonprod/mock-payment dispatch; then capture
+    sanitized reduced-scope smoke evidence. Keep real payment/refund evidence
+    pending until real credentials and explicit approval exist.
+
 ## Round 72: Nonprod Mock Deployment Approval Snapshot
 
 - Date: 2026-06-02

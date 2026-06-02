@@ -143,7 +143,11 @@ Current deploy-lane options:
 - Local guard before asking for nonprod dispatch approval:
   `node scripts/check_workflow_dispatch_lane_matrix.js` and
   `bash scripts/check_nonprod_mock_payment_deploy_lane.sh`, or the aggregate
-  readiness guard `node scripts/check_nonprod_dispatch_readiness.js`.
+  readiness guard `node scripts/check_nonprod_dispatch_readiness.js`. To avoid
+  hand-composing the manual dispatch command, use
+  `scripts/dispatch_nonprod_mock_payment_deploy.sh --dry-run`; it prints the
+  fixed nonprod/mock-payment `gh workflow run` command and does not dispatch
+  unless `--execute` is combined with `CONFIRM_NONPROD_MOCK_DISPATCH=1`.
 
 ## 7. Evidence Rules
 
@@ -182,6 +186,7 @@ node scripts/check_deployment_approval_preflight.js
 node scripts/check_workflow_dispatch_lane_matrix.js
 bash scripts/check_nonprod_mock_payment_deploy_lane.sh
 node scripts/check_nonprod_dispatch_readiness.js
+scripts/dispatch_nonprod_mock_payment_deploy.sh --dry-run
 ```
 
 After approved production deploy:

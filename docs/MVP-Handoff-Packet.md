@@ -85,6 +85,7 @@ node scripts/check_deployment_approval_preflight.js
 node scripts/check_workflow_dispatch_lane_matrix.js
 bash scripts/check_nonprod_mock_payment_deploy_lane.sh
 node scripts/check_nonprod_dispatch_readiness.js
+scripts/dispatch_nonprod_mock_payment_deploy.sh --dry-run
 ```
 
 Use this read-only production audit only when the user expects production
@@ -219,8 +220,11 @@ Round 48 strict admin-web manual QA result:
    `node scripts/check_deployment_approval_preflight.js`.
 8. For backend-only nonprod/mock-payment deploy approval, also run
    `node scripts/check_workflow_dispatch_lane_matrix.js` and
-   `bash scripts/check_nonprod_mock_payment_deploy_lane.sh`, then manually
-   dispatch `target=auto` or `target=backend` with
+   `bash scripts/check_nonprod_mock_payment_deploy_lane.sh`, then run
+   `scripts/dispatch_nonprod_mock_payment_deploy.sh --dry-run` to print the
+   exact approved command. After explicit approval, execute only with
+   `CONFIRM_NONPROD_MOCK_DISPATCH=1` plus `--execute`; this dispatch must stay
+   `target=auto` or `target=backend` with
    `deployment_lane=nonprod-mock-payment`.
 9. After approved deploy, run `scripts/check_production_readonly_audit.sh`.
 10. Run final strict closeout:
