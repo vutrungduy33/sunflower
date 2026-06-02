@@ -156,6 +156,22 @@
   confirms the previous ECS checkout blocker is removed for the backend lane;
   current-branch deployment and smoke remain blocked by real payment config or
   by choosing the explicit nonprod/mock-payment lane.
+- Round 83 committed and pushed `b10bb7e`, then triggered explicit
+  backend-only `deployment_lane=nonprod-mock-payment` workflow run
+  `26804961943`. `detect-targets` and `package-deploy-bundle` passed, and
+  `build-admin-web` was skipped as expected. `build-backend` failed before ECS
+  deployment when the GitHub hosted runner timed out pulling Docker Hub image
+  `moby/buildkit:buildx-stable-1` during Docker Buildx setup. Backend image
+  build, ECS deploy, and smoke did not run, so current-branch deployment
+  remains pending.
+- If the GitHub Actions to ECS artifact/API path remains unstable, the current
+  no-new-paid-service fallback recommendation is to move deploy-time artifact
+  consumption to Alibaba Cloud-side resources: preferably Alibaba Cloud
+  Container Registry Personal Edition or an existing free registry quota for
+  images, with an ECS-local signed artifact directory as a simpler manual
+  backup. ECS would then pull/load artifacts inside the Alibaba Cloud network
+  and run the existing deploy scripts locally, reducing dependence on GitHub
+  artifact downloads during the cutover.
 - Round 60 pushed `98e68e0dd478` to `main` and triggered GitHub Actions run
   `26796051853`; backend/admin-web images built, but ECS-2 checkout stalled
   before deployment completed.
@@ -195,9 +211,10 @@
 
 - The active MVP goal is still open. Do not mark complete until strict closeout
   evidence passes or the user explicitly waives itemized blockers.
-- Current local `main` is aligned with `origin/main` at `d3f8c0a` after the
-  Round 81 push. Future deployment-relevant pushes to `main` can still trigger
-  the production lane unless a manual nonprod lane is explicitly selected.
+- Current local `main` is aligned with `origin/main` at `b10bb7e` after the
+  Round 83 plan push. Future deployment-relevant pushes to `main` can still
+  trigger the production lane unless a manual nonprod lane is explicitly
+  selected.
 - Real WeChat payment production config on ECS-2 remains incomplete. Strict
   payment readiness currently fails for missing/invalid merchant variables,
   key paths, API v3 key, and HTTPS notify URLs.
@@ -210,6 +227,11 @@
   service path is to keep image builds/artifacts on GitHub-hosted runners and
   change ECS deploy jobs so they consume workflow artifacts or a prepacked
   deployment bundle instead of running `actions/checkout` on ECS.
+- The artifact-based GitHub path still depends on GitHub artifact/API downloads
+  from ECS, and GitHub hosted builds can also fail on external registry access
+  such as Docker Hub BuildKit pulls. If this broader path remains unstable,
+  move release images/artifacts to Alibaba Cloud-side free resources before the
+  deploy cutover, then have ECS pull/load locally.
 - User confirmed in Round 71 that the real payment private key/config is not
   fully provisioned yet. It is acceptable to use the explicit mock/nonprod lane
   for interim validation, but this must remain recorded as mock evidence and

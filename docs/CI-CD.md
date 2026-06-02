@@ -236,3 +236,40 @@ deploy path 必填：
 - `node scripts/check_deployment_approval_preflight.js` 只读分析当前分支相对
   `origin/main`/`main` 的部署影响面和人工审批边界，不会 push、触发
   `workflow_dispatch` 或修改生产。
+
+## 6. 零新增付费服务的备用发布方案
+
+当前 artifact-based GitHub Actions 路径已经避免 ECS 在部署阶段执行
+`actions/checkout`，但 ECS self-hosted runner 仍需要访问 GitHub workflow
+artifact/API 下载部署包和镜像 artifact。若该链路继续不稳定，优先采用以下
+备用方案，不新增额外付费服务：
+
+1. 首选：Alibaba Cloud-side image pull
+   - 使用阿里云容器镜像服务个人版或账号内已有免费额度的镜像仓库作为镜像源。
+   - GitHub Actions 或人工构建步骤把 backend/admin-web 镜像推送到该仓库。
+   - ECS-1/ECS-2 使用阿里云同地域/内网仓库地址拉取镜像，再执行现有
+     `scripts/execute_runner_deploy.sh` / compose 切换。
+   - 部署时不再依赖 ECS 下载 GitHub workflow artifact；GitHub 仍可保留为代码
+     检查和触发入口。
+
+2. 备选：ECS-local artifact directory
+   - 在 ECS 部署目录下维护受权限控制的 release artifact 目录，存放签名或校验
+     过的 deployment bundle、`docker save` 镜像包和 release metadata。
+   - 发布步骤只在 ECS 本机 `docker load` 并执行现有校验/部署脚本。
+   - 该方式减少外部网络依赖，但需要人工或脚本安全投递 artifact，并记录
+     sha256、来源 commit、操作者和回滚点。
+
+3. 构建链路加固待办
+   - Round 83 workflow run `26804961943` 失败在 GitHub hosted runner
+     `docker/setup-buildx-action@v3` 拉取 Docker Hub
+     `moby/buildkit:buildx-stable-1` 超时，backend image 未构建，未进入 ECS
+     部署。
+   - 若继续使用 GitHub hosted runner 构建，应评估预拉/固定 BuildKit 镜像、
+     镜像加速、或把基础/BuildKit 镜像镜像到阿里云侧，避免每次构建依赖
+     Docker Hub 实时可用性。
+
+4. 选择边界
+   - 不引入新的付费部署 SaaS。
+   - 不弱化 production lane 的真实支付、HTTPS 域名、Nginx/8080 安全校验。
+   - mock/nonprod lane 仍只能作为 reduced-scope evidence，不能替代真实
+     WeChat Pay/refund launch evidence。

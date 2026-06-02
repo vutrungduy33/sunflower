@@ -5,10 +5,92 @@
 > This active file keeps only the latest operational rounds. Older rounds are
 > archived in `docs/archive/mvp-progress/`.
 
+## Round 84: No-New-Paid-Service Deploy Fallback Research
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: answer the user request for a replacement deployment approach if the
+  GitHub Actions to Alibaba Cloud ECS network path remains unstable, without
+  adding any extra paid service.
+- Start evidence:
+  - Local `main` and `origin/main` are aligned at `b10bb7e`.
+  - Round 82 already removed ECS self-hosted `actions/checkout` from the deploy
+    bundle path by using workflow artifacts.
+  - Round 83 nonprod/mock workflow dispatch run `26804961943` failed before
+    ECS deploy: backend image build reached GitHub hosted runner Docker Buildx
+    setup, then timed out pulling `moby/buildkit:buildx-stable-1` from Docker
+    Hub (`registry-1.docker.io`). The backend image was not built, so ECS
+    deploy and smoke did not run.
+- Open-source reference check:
+  - Task classification: common CI/CD deployment architecture and cloud
+    artifact delivery fallback.
+  - Sources checked: GitHub self-hosted runner network and workflow artifact
+    documentation, GitHub Actions `workflow_dispatch`/artifact behavior already
+    used by this repository, Alibaba Cloud Container Registry personal-edition
+    documentation, Alibaba Cloud ECS/ACR deployment patterns, and WeChat
+    miniapp HTTPS domain requirements for the related domain/certificate todo.
+  - License/compatibility: official documentation and repository-native
+    scripts only; no external code copied.
+  - Selected approach: keep GitHub Actions as the source verification/build
+    orchestrator where it is stable, but make the fallback deployment path
+    consume artifacts from Alibaba Cloud-side resources: push Docker images to
+    Alibaba Cloud Container Registry Personal Edition or save/load image
+    archives from an ECS-local artifact directory, and have ECS pull/deploy
+    over Alibaba Cloud network rather than downloading GitHub workflow
+    artifacts during the cutover.
+  - Rejected options: adding a paid deployment service, depending on direct
+    GitHub-hosted SSH into ECS, treating the current GitHub artifact path as
+    sufficient if artifact/API downloads also become unstable, or weakening real
+    payment/HTTPS launch requirements.
+- Risks:
+  - Alibaba Cloud Container Registry Personal Edition must be verified for the
+    account's free quota, region, namespace, credential model, and private
+    access behavior before implementation.
+  - If builds remain on GitHub hosted runners, external registry availability
+    can still affect image build unless base/BuildKit images are mirrored or a
+    pre-warmed builder path is used.
+  - A local/ECS build fallback avoids GitHub-to-ECS deployment transfer but
+    increases operational responsibility on the ECS host and still needs source
+    delivery or a signed source bundle.
+  - Any fallback deployment remains mock/nonprod until real WeChat Pay keys,
+    HTTPS domain, and smoke evidence are completed.
+- Acceptance criteria:
+  - Record the observed `26804961943` failure cause.
+  - Add a durable no-new-paid-service fallback recommendation to
+    `Project-State`, `CI-CD`, `Decision-Log`, `MVP-Readiness`, and the launch
+    evidence ledger.
+  - Run documentation/evidence validation and commit once.
+- Change summary:
+  - Recorded Round 83 workflow run `26804961943` as a GitHub hosted runner to
+    Docker Hub/BuildKit timeout before backend image build, with no ECS deploy
+    or smoke evidence.
+  - Added the no-new-paid-service fallback to `docs/CI-CD.md`: prefer Alibaba
+    Cloud-side image pull via ACR Personal Edition or existing free registry
+    quota, with an ECS-local signed artifact directory as a manual backup.
+  - Added the durable decision to `docs/Decision-Log.md`.
+  - Updated `docs/Project-State.md`, `docs/MVP-Readiness.md`, and
+    `docs/MVP-Launch-Evidence.json` so current-branch deployment remains
+    pending and the fallback is visible to the next operator.
+- Verification:
+  - `node scripts/check_mvp_launch_evidence.js`: passed; required evidence is
+    still 5 passed, 8 pending.
+  - `node scripts/check_mvp_handoff_packet.js`: passed.
+  - `node scripts/check_mvp_next_approval_request.js`: passed.
+  - `node scripts/check_mvp_external_approval_packet.js`: passed.
+  - `node scripts/check_mvp_closeout_readiness.js`: passed in non-strict mode
+    and still reports the expected 32 unresolved external/manual evidence
+    items.
+  - `git diff --check`: passed.
+- Next recommended round:
+  - Implement one concrete build/deploy hardening lane: either retry nonprod
+    mock dispatch after BuildKit/Docker Hub mitigation, or add an ACR/ECS-local
+    artifact fallback script path and validate it without treating mock payment
+    as production launch evidence.
+
 ## Round 83: Backend Nonprod Mock Deploy Smoke
 
 - Date: 2026-06-02
-- Status: in progress
+- Status: completed
 - Focus: use the explicit backend-only `deployment_lane=nonprod-mock-payment`
   workflow dispatch to collect reduced-scope cloud deployment evidence after
   the artifact-based deploy bundle path removed the ECS checkout blocker.
@@ -47,6 +129,29 @@
     smoke checks.
   - Update Project-State, launch evidence, and progress docs; run relevant
     evidence/deploy checks; commit once.
+- Execution and result:
+  - `node scripts/check_nonprod_dispatch_readiness.js`: passed on clean
+    `main` HEAD `b10bb7e`.
+  - `scripts/dispatch_nonprod_mock_payment_deploy.sh --dry-run`: passed and
+    printed the fixed backend-only nonprod/mock dispatch command.
+  - `CONFIRM_NONPROD_MOCK_DISPATCH=1
+    scripts/dispatch_nonprod_mock_payment_deploy.sh --execute`: dispatched
+    workflow run `26804961943` for HEAD `b10bb7e`.
+  - Run `26804961943`: `detect-targets` and `package-deploy-bundle` passed;
+    `build-admin-web` was skipped as expected for backend-only nonprod/mock.
+    `build-backend` failed at `Set up Docker Buildx` because the GitHub hosted
+    runner timed out pulling `moby/buildkit:buildx-stable-1` from Docker Hub
+    (`registry-1.docker.io`). Backend image build, ECS deploy, and smoke did
+    not run.
+- Completion note:
+  - The nonprod/mock deployment path remains unproven for HEAD `b10bb7e`.
+    This failure is a GitHub hosted runner to Docker Hub/registry availability
+    issue, not an ECS deploy-stage checkout or artifact-download result.
+- Next recommended round:
+  - Either rerun the same nonprod/mock dispatch if treated as transient, or
+    harden the build path by avoiding runtime BuildKit pulls from Docker Hub and
+    move deploy artifacts/images to an Alibaba Cloud-side free artifact source
+    if GitHub-to-ECS/artifact networking remains unreliable.
 
 ## Round 82: Artifact-Based Deployment Bundle
 

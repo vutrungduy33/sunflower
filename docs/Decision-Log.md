@@ -237,6 +237,23 @@ Append durable decisions here. Keep entries short and include provenance.
 - Provenance: `docs/Project-State.md`, `docs/MVP-Progress.md`, GitHub Actions
   artifact documentation.
 
+## 2026-06-02: Track Alibaba Cloud-Side Deploy Fallback
+
+- Decision: If the GitHub Actions to ECS workflow artifact/API path remains
+  unstable, the next no-new-paid-service fallback should move deploy-time
+  artifact consumption to Alibaba Cloud-side resources: prefer Alibaba Cloud
+  Container Registry Personal Edition or an ECS-local signed image/source
+  archive directory, then have ECS pull/load and deploy locally.
+- Rationale: The artifact-based GitHub workflow removed ECS repository
+  checkout, but ECS still depends on GitHub artifact/API connectivity during
+  deployment. Round 83 also showed a separate GitHub hosted runner dependency
+  on Docker Hub when Buildx tried to pull `moby/buildkit:buildx-stable-1`.
+  Keeping release artifacts in the Alibaba Cloud region reduces the critical
+  deploy cutover path to existing ECS plus Alibaba Cloud network and avoids a
+  new paid service.
+- Provenance: `docs/MVP-Progress.md`, `docs/CI-CD.md`,
+  `docs/Project-State.md`, workflow run `26804961943`.
+
 ## 2026-06-02: Add MVP Handoff Packet
 
 - Decision: Use `docs/MVP-Handoff-Packet.md` as the compact first-read handoff
