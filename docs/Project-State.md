@@ -28,7 +28,7 @@
 
 ## Recent Validation Snapshot
 
-Current snapshot after 2026-06-02 Round 50 goal termination criteria audit:
+Current snapshot after 2026-06-02 Round 51 termination audit guard:
 
 - `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: passed in Round 32 with
   6 enabled steps: backend tests, admin-web lint/test/build, admin behavior and
@@ -53,6 +53,11 @@ Current snapshot after 2026-06-02 Round 50 goal termination criteria audit:
   green from prior baselines, but real WeChat/domain/payment/refund/admin QA,
   backend `8080` hardening evidence, and current-branch deployment evidence
   remain approval/evidence gated.
+- Round 51 added `scripts/check_mvp_termination_audit.js` to guard the
+  user-goal termination criteria table and current incomplete-evidence boundary
+  in `docs/MVP-Closeout-Audit.md`. The guard is documentation-only; it does not
+  change evidence status, prove external/manual QA, push, dispatch, deploy, or
+  mutate production.
 - Backend `mvn -B test`: passed again in Round 32, 57 tests. Round 28 added
   public order ownership isolation coverage for current-user list/detail/pay
   preparation/pay confirmation/cancel/reschedule/refund actions.
@@ -365,6 +370,7 @@ Current snapshot after 2026-06-02 Round 50 goal termination criteria audit:
 - MVP handoff packet: `docs/MVP-Handoff-Packet.md`.
 - MVP next Codex goal prompt: `docs/MVP-Next-Goal-Prompt.md`.
 - MVP closeout audit: `docs/MVP-Closeout-Audit.md`.
+- MVP termination audit guard: `scripts/check_mvp_termination_audit.js`.
 - MVP closeout readiness guard: `scripts/check_mvp_closeout_readiness.js`.
 - MVP handoff packet guard: `scripts/check_mvp_handoff_packet.js`.
 - Aggregate MVP regression script: `scripts/check_mvp_regression.sh`.

@@ -3,6 +3,78 @@
 > Compact round-by-round progress for the current MVP hardening goal. Keep this
 > file factual and update it at the end of each committed round.
 
+## Round 51: Termination Audit Guard
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: make the Round 50 user-goal termination audit machine-checkable so
+  future handoff cannot silently drop an original completion criterion or
+  overstate incomplete external evidence.
+- Start evidence:
+  - `git status --short --branch --untracked-files=all`: local `main` is ahead
+    of `origin/main` by 54 commits and has no tracked worktree changes.
+  - HEAD is `9d5f095` (`Audit MVP termination criteria`).
+  - `docs/MVP-Closeout-Audit.md` contains the termination criteria table, but
+    no checker currently enforces that the table and "not complete" boundary
+    stay present.
+- Open-source reference check:
+  - Task classification: repository-specific documentation/evidence guard.
+  - Sources checked: not needed; this is a small local checker over existing
+    repository docs, not common feature, reusable UI, auth, payment, deployment,
+    or infrastructure implementation.
+  - Selected approach: follow existing local Node checker style (`fs`, `path`,
+    `fail()`, required text lists) and add a narrow
+    `scripts/check_mvp_termination_audit.js` guard.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: local checker patterns from existing MVP handoff/closeout
+    scripts.
+  - Rejected options: changing evidence statuses, adding broad regression
+    logic, pushing/deploying, or depending on external services.
+- Risks:
+  - A text guard can verify coverage and boundaries, but it does not prove the
+    external evidence itself. Strict evidence ledgers remain authoritative for
+    completion.
+  - The required text list should be narrow enough to avoid brittle prose lock
+    while still preventing the key audit from disappearing.
+- Acceptance criteria:
+  - `scripts/check_mvp_termination_audit.js` passes and fails if the closeout
+    audit drops any original termination criterion or current incomplete
+    evidence boundary.
+  - `docs/Context-Index.md` and `docs/MVP-Readiness.md` list the new guard in
+    relevant verification commands.
+  - `docs/Project-State.md` records the guard as a durable closeout tool.
+  - Focused MVP evidence/docs checks and `git diff --check` pass.
+  - The round is committed once.
+- Change summary:
+  - Added `scripts/check_mvp_termination_audit.js`, a lightweight Node guard for
+    `docs/MVP-Closeout-Audit.md` coverage of the six original goal termination
+    criteria and current incomplete-evidence boundary.
+  - Added the new guard to `docs/Context-Index.md` and
+    `docs/MVP-Readiness.md` verification command lists.
+  - Updated `docs/Project-State.md` with the Round 51 guard as a durable
+    closeout tool.
+  - No evidence statuses, product code, deployment workflow, production state,
+    ECS state, payment/refund state, or live QA data changed.
+- Verification:
+  - `node scripts/check_mvp_termination_audit.js`: passed.
+  - `node --check scripts/check_mvp_termination_audit.js`: passed.
+  - `node scripts/check_mvp_next_approval_request.js`: passed.
+  - `node scripts/check_mvp_handoff_packet.js`: passed.
+  - `node scripts/check_mvp_launch_evidence.js`: passed in non-strict mode with
+    13 required entries, 4 passed, 9 pending.
+  - `node scripts/check_mvp_closeout_readiness.js`: passed in non-strict mode
+    with 33 unresolved required closeout items.
+  - `git diff --check`: passed.
+- Goal correction:
+  - The active goal remains incomplete. This guard improves handoff reliability
+    but does not replace the pending external/manual evidence or final strict
+    closeout commands.
+- Next recommended round:
+  - Continue with one approval/evidence lane, preferably
+    `MINIAPP-PREVIEW-DOMAIN`, `ADMIN-PROD-QA`, `BACKEND-8080-HARDENING`, or
+    `CURRENT-BRANCH-DEPLOYED`, depending on what resources the user can safely
+    provide.
+
 ## Round 50: Goal Termination Criteria Audit
 
 - Date: 2026-06-02

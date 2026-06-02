@@ -117,6 +117,7 @@ node scripts/check_mvp_external_evidence_template.js
 node scripts/check_mvp_external_approval_packet.js
 node scripts/check_mvp_next_approval_request.js
 node scripts/check_mvp_handoff_packet.js
+node scripts/check_mvp_termination_audit.js
 node scripts/check_mvp_closeout_readiness.js
 node scripts/check_mvp_closeout_readiness.js --strict
 node scripts/check_mvp_launch_evidence.js --strict
@@ -203,6 +204,11 @@ ensures the template still covers every unresolved required evidence item.
 `docs/MVP-Handoff-Packet.md` still names every unresolved required launch,
 miniapp, and admin-web evidence item, plus the required approval boundaries and
 closeout commands.
+
+`node scripts/check_mvp_termination_audit.js` verifies
+`docs/MVP-Closeout-Audit.md` still maps the original user goal termination
+criteria to current evidence and explicitly keeps the goal incomplete while
+external/manual evidence remains pending.
 
 `node scripts/check_mvp_next_approval_request.js` verifies
 `docs/MVP-Next-Approval-Request.md` still names every unresolved evidence id,

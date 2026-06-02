@@ -99,6 +99,7 @@ node scripts/check_mvp_external_evidence_template.js
 node scripts/check_mvp_external_approval_packet.js
 node scripts/check_mvp_next_approval_request.js
 node scripts/check_mvp_handoff_packet.js
+node scripts/check_mvp_termination_audit.js
 node scripts/check_mvp_closeout_readiness.js
 node scripts/check_mvp_closeout_readiness.js --strict
 node scripts/check_mvp_launch_evidence.js
