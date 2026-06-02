@@ -90,6 +90,12 @@
   checkout steps (`8` minutes) and local deploy steps (`20` minutes). This makes
   future runner stalls bounded and diagnosable; it does not by itself prove
   deployment or fix the underlying ECS runner/network cause.
+- After that observation, run `26799773234` completed as `failure`: ECS-2
+  `deploy-backend-host` failed during `actions/checkout` while `git fetch` was
+  accessing GitHub over HTTPS. The sanitized error class was TLS connection
+  termination followed by a `github.com:443` connection timeout. Bundle sync,
+  artifact download, image load, local backend deploy, and web deploy did not
+  run, so current-branch deployment and smoke remain pending.
 - Round 60 pushed `98e68e0dd478` to `main` and triggered GitHub Actions run
   `26796051853`; backend/admin-web images built, but ECS-2 checkout stalled
   before deployment completed.

@@ -292,15 +292,21 @@
     `node scripts/check_mvp_closeout_readiness.js`: passed in non-strict mode;
     closeout still reports 32 unresolved required items.
   - `git diff --check`: passed.
+  - Post-observation update: GitHub Actions run `26799773234` later completed
+    as `failure`. The backend deploy job failed in `actions/checkout` while
+    `git fetch` accessed GitHub over HTTPS; the sanitized error class was TLS
+    connection termination followed by a `github.com:443` connection timeout.
+    Bundle sync, artifact download, image load, local deploy, and web deploy
+    did not run.
 - Goal correction:
   - The active MVP goal remains incomplete. This round does not deploy current
     branch or collect smoke/manual QA evidence; it prevents future self-hosted
     runner stalls from remaining unbounded.
 - Next recommended round:
   - Push the timeout guard commit if deployment validation should continue,
-    then re-dispatch backend-only nonprod/mock lane. If checkout still fails,
-    inspect ECS runner `_diag/Worker_*.log`, runner process status, GitHub
-    network access, disk space, and workspace permissions before retrying.
+    then inspect ECS runner `_diag/Worker_*.log`, runner process status,
+    GitHub network access to `github.com:443`, disk space, and workspace
+    permissions before retrying backend-only nonprod/mock lane.
 
 ## Round 72: Nonprod Mock Deployment Approval Snapshot
 
