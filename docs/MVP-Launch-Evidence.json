@@ -15,7 +15,7 @@
       "requirement": "Backend automated test suite remains green.",
       "status": "passed",
       "requiredForMvp": true,
-      "evidence": "Round 39 RUN_PRODUCTION=1 scripts/check_mvp_regression.sh passed at pre-commit HEAD 255558f001e9 on 2026-06-02 08:58 Asia/Shanghai. Backend mvn -B test passed with 57 tests, 0 failures, 0 errors, 0 skipped.",
+      "evidence": "Round 47 RUN_PRODUCTION=1 scripts/check_mvp_regression.sh passed on current local main HEAD 8d9b11d. Backend mvn -B test passed with 57 tests, 0 failures, 0 errors, 0 skipped.",
       "nextAction": "Re-run after backend changes or before final closeout."
     },
     {
@@ -24,7 +24,7 @@
       "requirement": "Admin web lint, tests, and production build remain green.",
       "status": "passed",
       "requiredForMvp": true,
-      "evidence": "Round 42 direct admin-web recheck passed on 2026-06-02 09:21-09:22 Asia/Shanghai using Node v20.20.1: npm run lint passed, npm run test passed with 23 Vitest tests across 5 files, and npm run build passed. Round 39 RUN_PRODUCTION=1 scripts/check_mvp_regression.sh also passed admin behavior wiring with 97 checks and admin external QA preflight with 6 checks at pre-commit HEAD 255558f001e9.",
+      "evidence": "Round 47 RUN_PRODUCTION=1 scripts/check_mvp_regression.sh passed on current local main HEAD 8d9b11d. Admin web npm run lint passed, npm run test passed with 24 Vitest tests across 5 files, npm run build passed, behavior wiring passed 97 checks, and admin external QA preflight passed 6 checks.",
       "nextAction": "Re-run after admin-web changes or before final closeout."
     },
     {
@@ -33,7 +33,7 @@
       "requirement": "Miniapp smoke checks and key JavaScript syntax checks pass.",
       "status": "passed",
       "requiredForMvp": true,
-      "evidence": "Round 39 RUN_PRODUCTION=1 scripts/check_mvp_regression.sh passed at pre-commit HEAD 255558f001e9 on 2026-06-02 08:58 Asia/Shanghai. Miniapp smoke, behavior wiring, user-flow replay, external preflight, project config, and subpage nav checks passed. The run still warned that the default API base is bare HTTP for local/devtools validation and local project.private.config.json is absent.",
+      "evidence": "Round 47 RUN_PRODUCTION=1 scripts/check_mvp_regression.sh passed on current local main HEAD 8d9b11d. Miniapp smoke, behavior wiring, user-flow replay, payment-flow replay, external preflight, project config, and subpage nav checks passed. The run still warned that the default API base is bare HTTP for local/devtools validation and local project.private.config.json is absent.",
       "nextAction": "Re-run after miniapp changes or before final closeout; real preview/device evidence remains separate."
     },
     {
@@ -42,7 +42,7 @@
       "requirement": "Production public and internal smoke checks pass.",
       "status": "passed",
       "requiredForMvp": true,
-      "evidence": "Round 46 scripts/check_production_readonly_audit.sh passed on current local main at HEAD 758729091785. Deploy config static checks passed, production public/ECS internal smoke passed with 7 checks and 1 known backend-bind warning, and backend 8080 read-only exposure checks passed with 3 checks and 2 warnings. No push, deploy, workflow_dispatch, Nginx reload, ECS/firewall/security-group change, or production configuration mutation was performed.",
+      "evidence": "Round 47 RUN_PRODUCTION=1 scripts/check_mvp_regression.sh passed on current local main HEAD 8d9b11d. Deploy config static checks passed, production public/ECS internal smoke passed with 7 checks and 1 known backend-bind warning, and backend 8080 read-only exposure checks passed with 3 checks and 2 warnings. No push, deploy, workflow_dispatch, Nginx reload, ECS/firewall/security-group change, or production configuration mutation was performed.",
       "nextAction": "Re-run after approved deploy or production config change."
     },
     {
@@ -114,7 +114,7 @@
       "requirement": "Direct public access to backend port 8080 is restricted to ECS-1 by security group or host firewall, or explicitly accepted by the user as a launch risk.",
       "status": "pending",
       "requiredForMvp": true,
-      "evidence": "Round 46 scripts/check_production_readonly_audit.sh passed on current local main at HEAD 758729091785. Backend 8080 read-only checks passed with 3 checks and 2 warnings: public 8080 was not directly usable from this network, ECS-1 private upstream works, and ECS-2 backend is healthy. ECS-2 still shows docker-proxy listening on 0.0.0.0:8080, and local firewall output did not prove restriction. Alibaba Cloud security group evidence or explicit waiver is still required.",
+      "evidence": "Round 47 RUN_PRODUCTION=1 scripts/check_mvp_regression.sh passed on current local main HEAD 8d9b11d. Backend 8080 read-only checks passed with 3 checks and 2 warnings: public 8080 was not directly usable from this network, ECS-1 private upstream works, and ECS-2 backend is healthy. ECS-2 still shows docker-proxy listening on 0.0.0.0:8080, and local firewall output did not prove restriction. Alibaba Cloud security group evidence or explicit waiver is still required.",
       "nextAction": "Record Alibaba Cloud security group evidence in docs/Backend-8080-Security.md or get explicit user waiver before marking this entry passed or waived. Modifying security group/firewall requires user approval."
     },
     {

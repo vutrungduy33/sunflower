@@ -25,14 +25,14 @@ verified, and documented enough for handoff:
 
 | Area | Evidence | Status | Next action |
 | --- | --- | --- | --- |
-| Backend local quality | Round 39 `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh` reran `mvn -B test`: passed, 57 tests, 0 failures/errors/skips. Round 28 added public order ownership isolation across current-user list/detail/pay preparation/pay confirmation/cancel/reschedule/refund actions. | Ready locally | Keep green after future backend changes. |
-| Admin web local quality | Round 45 directly reran `npm run lint`, `npm run test` (24 tests across 5 files), and `npm run build` on local `main` with Node `v20.20.1`: passed. Round 45 also passed admin behavior wiring (97 checks) and admin external QA preflight (6 checks). Order tests cover check-in, check-out, no-show, after-sale rejection, failed refund retry, and invalid check-in date-range feedback/query blocking. | Ready locally | Keep green after future admin changes. |
-| Miniapp syntax/smoke | Round 39 reran miniapp smoke, behavior wiring, user-flow replay, external preflight, project config, and subpage nav checks: passed. The run still warns that the default API base is bare HTTP for local/devtools validation and local `project.private.config.json` is absent. | Partially verified | Real-device login/phone/payment evidence still required. |
+| Backend local quality | Round 47 `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh` reran `mvn -B test` on current local `main` HEAD `8d9b11d`: passed, 57 tests, 0 failures/errors/skips. Round 28 added public order ownership isolation across current-user list/detail/pay preparation/pay confirmation/cancel/reschedule/refund actions. | Ready locally | Keep green after future backend changes. |
+| Admin web local quality | Round 47 aggregate regression reran `npm run lint`, `npm run test` (24 tests across 5 files), and `npm run build` on current local `main` HEAD `8d9b11d`: passed. Behavior wiring passed 97 checks and admin external QA preflight passed 6 checks. Order tests cover check-in, check-out, no-show, after-sale rejection, failed refund retry, and invalid check-in date-range feedback/query blocking. | Ready locally | Keep green after future admin changes. |
+| Miniapp syntax/smoke | Round 47 reran miniapp smoke, behavior wiring, user-flow replay, payment-flow replay, external preflight, project config, and subpage nav checks on current local `main` HEAD `8d9b11d`: passed. The run still warns that the default API base is bare HTTP for local/devtools validation and local `project.private.config.json` is absent. | Partially verified | Real-device login/phone/payment evidence still required. |
 | Miniapp real user path | Code supports real API, WeChat login, phone binding, `wx.requestPayment`, order and after-sale flows; manual QA ledger now exists. | Needs real-device evidence | Run `node scripts/check_miniapp_manual_qa.js --strict` after recording preview/real-device evidence. |
 | WeChat pay/refund | Backend has WeChat payment/refund gateway, callbacks, records, retry, and mock only when explicitly configured; miniapp payment QA ledger now exists. | Needs production evidence | Verify small real payment/refund with merchant config and callback domain, then record sanitized evidence. |
 | Admin operations path | Core pages and tests exist for auth, room, price/inventory, and order management; manual QA ledger now exists. | Partially verified | Run `node scripts/check_admin_web_manual_qa.js --strict` against deployed admin web after recording safe evidence. |
-| Deployment | Round 46 `node scripts/check_deployment_approval_preflight.js` passed on current local `main` at HEAD `758729091785`: comparison base `origin/main` at `89f93d704719`, 145 changed files since base, predicted push-to-main deploy target `all`, and impact counts backend 38/admin-web 5/ingress 1. Round 46 `scripts/check_production_readonly_audit.sh` also passed deploy config static checks plus production public/ECS internal smoke and backend `8080` read-only checks. No push/deploy was performed. | Partially verified | Push/dispatch deploy only after explicit production approval; local `main` push can trigger `all` deployment. |
-| Security / compliance | Secrets are local/ECS-owned; `.secrets/` ignored. Round 46 backend `8080` read-only checks show public 8080 not directly usable from this network, ECS-1 private upstream works, and ECS-2 backend health is present, but ECS-2 still listens on `0.0.0.0:8080` and firewall/security-group restriction is not proven. | Needs hardening | Record Alibaba Cloud security group evidence or explicit user waiver; complete HTTPS/WeChat domain setup. |
+| Deployment | Round 47 `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh` passed deploy config static checks plus production public/ECS internal smoke and backend `8080` read-only checks on current local `main` HEAD `8d9b11d`. Round 46 deployment preflight predicted local `main` push target `all`. No push/deploy was performed. | Partially verified | Push/dispatch deploy only after explicit production approval; local `main` push can trigger `all` deployment. |
+| Security / compliance | Secrets are local/ECS-owned; `.secrets/` ignored. Round 47 backend `8080` read-only checks show public 8080 not directly usable from this network, ECS-1 private upstream works, and ECS-2 backend health is present, but ECS-2 still listens on `0.0.0.0:8080` and firewall/security-group restriction is not proven. | Needs hardening | Record Alibaba Cloud security group evidence or explicit user waiver; complete HTTPS/WeChat domain setup. |
 
 Detailed launch evidence is tracked in `docs/MVP-Launch-Evidence.md` and
 `docs/MVP-Launch-Evidence.json`. Final MVP completion requires the strict
@@ -41,24 +41,24 @@ waived by the user.
 
 Latest aggregate regression:
 
-- `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: passed in Round 39 at
-  pre-commit HEAD `255558f001e9` with backend, admin-web, miniapp, non-strict
-  evidence, deploy config static checks, and production read-only checks
-  enabled.
+- `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: passed in Round 47 on
+  current local `main` HEAD `8d9b11d` with backend, admin-web, miniapp,
+  non-strict evidence, deploy config static checks, and production read-only
+  checks enabled.
 - The aggregate evidence checks remain non-strict and reported 33 unresolved
   required closeout items.
 
 Latest direct admin-web automated evidence:
 
-- `cd sunflower-admin-web && npm run lint`: passed in Round 45 on local `main`
-  using Node `v20.20.1`.
-- `cd sunflower-admin-web && npm run test`: passed in Round 45 on local `main`
-  using Node `v20.20.1`, 24 tests across 5 files.
-- `cd sunflower-admin-web && npm run build`: passed in Round 45 on local `main`
-  using Node `v20.20.1`.
-- `node scripts/check_admin_web_behavior_wiring.js`: passed in Round 45 with
+- `cd sunflower-admin-web && npm run lint`: passed in Round 47 on current local
+  `main` HEAD `8d9b11d`.
+- `cd sunflower-admin-web && npm run test`: passed in Round 47 on current local
+  `main` HEAD `8d9b11d`, 24 tests across 5 files.
+- `cd sunflower-admin-web && npm run build`: passed in Round 47 on current
+  local `main` HEAD `8d9b11d`.
+- `node scripts/check_admin_web_behavior_wiring.js`: passed in Round 47 with
   97 checks across 16 files.
-- `node scripts/check_admin_web_external_qa_preflight.js`: passed in Round 45
+- `node scripts/check_admin_web_external_qa_preflight.js`: passed in Round 47
   with 6 checks.
 - The earlier resumed-goal notes about `_refundId` or 3 failing/timed-out admin
   tests are stale and did not reproduce on the current worktree.
@@ -71,11 +71,12 @@ Latest production/deployment read-only evidence:
   `main` is predicted to trigger deploy target `all`, and impact counts were
   backend 38, admin-web 5, ingress 1. No push, merge, workflow dispatch, or
   deployment was performed.
-- `scripts/check_production_readonly_audit.sh`: passed in Round 46 with deploy
-  config static checks, production public/ECS internal smoke, and backend
-  `8080` exposure read-only checks enabled. No push, deploy, Nginx reload,
-  ECS mutation, firewall mutation, or security-group mutation was performed.
-- Backend `8080` hardening remains unresolved after the Round 46 direct
+- Production checks inside `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`:
+  passed in Round 47 with deploy config static checks, production public/ECS
+  internal smoke, and backend `8080` exposure read-only checks enabled. No
+  push, deploy, Nginx reload, ECS mutation, firewall mutation, or
+  security-group mutation was performed.
+- Backend `8080` hardening remains unresolved after the Round 47 direct
   read-only check because ECS-2 still listens on `0.0.0.0:8080` and local
   firewall output did not prove restriction.
 

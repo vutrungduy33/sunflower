@@ -3,6 +3,90 @@
 > Compact round-by-round progress for the current MVP hardening goal. Keep this
 > file factual and update it at the end of each committed round.
 
+## Round 47: Current HEAD Full Regression Baseline
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: run the full aggregate MVP regression, including read-only production
+  checks, against the current local `main` HEAD after Round 46 so the handoff
+  baseline is tied to the latest committed code.
+- Start evidence:
+  - `git status --short --branch --untracked-files=all`: local `main` is ahead
+    of `origin/main` by 50 commits and has no tracked worktree changes.
+  - HEAD is `8d9b11d` (`Refresh main deployment preflight evidence`).
+  - The latest full aggregate regression with production checks is still
+    recorded from Round 39 at pre-commit HEAD `255558f001e9`, before the later
+    documentation, miniapp payment replay, admin order guard, and deployment
+    preflight evidence commits.
+- Open-source reference check:
+  - Task classification: repository-specific verification/evidence refresh.
+  - Sources checked: not needed unless the regression exposes a defect that
+    requires implementing a common feature or infrastructure fix.
+  - Selected approach: reuse the repository-native aggregate regression command
+    `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: existing local validation scripts and evidence ledger
+    checks.
+  - Rejected options: pushing `main`, dispatching GitHub Actions, marking
+    external/manual evidence passed, or changing production configuration.
+- Risks:
+  - The run can take longer because it includes backend tests, admin build,
+    miniapp checks, evidence checks, deploy config checks, and read-only ECS
+    smoke.
+  - Passing production smoke proves current live health, but not that local
+    ahead commits are deployed.
+  - Strict closeout evidence remains expected to fail until manual/external
+    evidence is recorded or waived.
+- Acceptance criteria:
+  - `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh` passes on the current
+    local `main` HEAD.
+  - Any known warnings are recorded without overstating completion.
+  - `docs/Project-State.md`, `docs/MVP-Readiness.md`, and
+    `docs/MVP-Launch-Evidence.json` reflect the latest aggregate baseline.
+  - The round is committed once.
+- Change summary:
+  - Refreshed the full aggregate regression baseline on current local `main`
+    HEAD `8d9b11d`.
+  - Updated project-state, readiness, and launch evidence docs so automated
+    backend/admin/miniapp/deploy-production-readonly evidence points at Round
+    47 instead of older Round 39/Round 45 partial baselines.
+  - No product code, deployment workflow, ECS configuration, evidence status,
+    or manual QA status changed.
+- Verification:
+  - `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: completed all 6 enabled
+    steps successfully on current local `main` HEAD `8d9b11d`: backend tests,
+    admin-web lint/test/build plus behavior/external preflight, miniapp smoke
+    checks, MVP evidence ledger checks, deploy config static checks, and
+    production smoke/backend `8080` read-only checks.
+  - Backend: `mvn -B test` passed with 57 tests, 0 failures/errors/skips.
+  - Admin web: lint passed; Vitest passed 24 tests across 5 files; build
+    passed; behavior wiring passed 97 checks; external preflight passed 6
+    checks.
+  - Miniapp: smoke, behavior wiring, user-flow replay, payment-flow replay,
+    external preflight, project AppID guard, and MVP subpage nav guard passed.
+  - Evidence/handoff checks passed in non-strict mode and still reported 33
+    unresolved required closeout items.
+  - Deploy config static checks passed.
+  - Production read-only checks passed with the known warnings: production smoke
+    had 7 passes and 1 backend-bind warning; backend `8080` exposure inspection
+    had 3 passes and 2 warnings.
+  - No push, merge, workflow dispatch, deployment, Nginx reload, ECS mutation,
+    firewall mutation, security-group mutation, or production configuration
+    change was performed.
+  - Note: the compound shell wrapper exited non-zero after the successful
+    regression because it used zsh's read-only variable name `status` before
+    `git stash pop`; the stash was restored immediately afterward. The
+    regression output itself ended with `completed 6 enabled step(s)`.
+- Goal correction:
+  - This round strengthens the current automated/read-only baseline for handoff,
+    but does not satisfy real-device miniapp evidence, real payment/refund,
+    admin production manual QA, backend `8080` hardening proof, or current
+    branch deployment proof. The MVP goal remains open.
+- Next recommended round:
+  - Stop refreshing local baselines unless code changes again. Ask the user for
+    one explicit approval lane: `CURRENT-BRANCH-DEPLOYED`,
+    `BACKEND-8080-HARDENING`, `MINIAPP-PREVIEW-DOMAIN`, or `ADMIN-PROD-QA`.
+
 ## Round 46: Main Deployment Preflight And Read-Only Smoke Refresh
 
 - Date: 2026-06-02

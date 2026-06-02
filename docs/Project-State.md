@@ -28,8 +28,8 @@
 
 ## Recent Validation Snapshot
 
-Current snapshot after 2026-06-02 Round 46 main deployment preflight and
-read-only smoke refresh:
+Current snapshot after 2026-06-02 Round 47 current HEAD full regression
+baseline:
 
 - `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: passed in Round 32 with
   6 enabled steps: backend tests, admin-web lint/test/build, admin behavior and
@@ -40,10 +40,18 @@ read-only smoke refresh:
   at pre-commit HEAD `255558f001e9` on 2026-06-02 08:58 Asia/Shanghai with the
   same 6 enabled steps. It did not push, deploy, reload Nginx, or change
   ECS/firewall/security-group state.
+- `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: passed again in Round 47
+  on current local `main` HEAD `8d9b11d` with 6 enabled steps: backend tests,
+  admin-web lint/test/build plus behavior/external preflight, miniapp smoke
+  checks, MVP evidence ledger checks, deploy config static checks, and
+  production smoke/backend `8080` read-only checks. The command did not push,
+  deploy, reload Nginx, or change ECS/firewall/security-group state.
 - Backend `mvn -B test`: passed again in Round 32, 57 tests. Round 28 added
   public order ownership isolation coverage for current-user list/detail/pay
   preparation/pay confirmation/cancel/reschedule/refund actions.
 - Backend `mvn -B test`: passed again inside Round 39, 57 tests, 0 failures, 0
+  errors, 0 skipped.
+- Backend `mvn -B test`: passed again inside Round 47, 57 tests, 0 failures, 0
   errors, 0 skipped.
 - Aggregate local regression `scripts/check_mvp_regression.sh`: passed in Round
   29 with 5 enabled steps and production checks skipped by default. Round 32
@@ -101,10 +109,15 @@ read-only smoke refresh:
 - Admin web `npm run lint`, `npm run test`, and `npm run build`: passed again
   in Round 45 on local `main` using Node `v20.20.1`. Vitest passed 24 tests
   across 5 files.
+- Admin web `npm run lint`, `npm run test`, and `npm run build`: passed again
+  inside Round 47 on current local `main` HEAD `8d9b11d`. Vitest passed 24
+  tests across 5 files.
 - Admin web `node scripts/check_admin_web_behavior_wiring.js`: passed again in
   Round 45 with 97 checks across 16 files.
 - Admin web `node scripts/check_admin_web_external_qa_preflight.js`: passed
   again in Round 45 with 6 checks.
+- Admin web behavior wiring and external QA preflight passed again inside
+  Round 47 with 97 checks and 6 checks respectively.
 - Admin web lint/test/build passed again inside Round 39; Vitest passed 23
   tests across 5 files, behavior wiring passed 97 checks, and admin external QA
   preflight passed 6 checks.
@@ -143,6 +156,11 @@ read-only smoke refresh:
   nav checks. Expected warnings remained: bare HTTP default API base for
   local/devtools validation, absent local `project.private.config.json`, and
   shell locale warnings.
+- Miniapp smoke checks passed again inside Round 47, including smoke, behavior
+  wiring, user-flow replay, payment-flow replay, external preflight, project
+  config guard, and subpage navigation guard. Expected warnings remained:
+  default API base is bare HTTP for local/devtools validation only, local
+  `project.private.config.json` is absent, and shell locale warnings.
 - Miniapp `bash scripts/check_miniapp_project_config.sh`: passed.
 - Miniapp `bash scripts/check_mvp_subpage_nav.sh`: passed.
 - Miniapp external QA preflight
@@ -191,6 +209,10 @@ read-only smoke refresh:
   Round 39 for automated baseline, production smoke, and backend `8080`
   evidence at pre-commit HEAD `255558f001e9`. Pending external evidence entries
   remain pending.
+- Launch evidence ledger `docs/MVP-Launch-Evidence.json`: refreshed again in
+  Round 47 so automated backend/admin/miniapp and production smoke evidence
+  point to current local `main` HEAD `8d9b11d`. Pending external evidence
+  entries remain pending.
 - MVP next Codex goal prompt `docs/MVP-Next-Goal-Prompt.md`: refined again in
   Round 40 with the current Round 39 baseline, mandatory per-round commit loop,
   open-source-reference-first rule, approval lanes, hard safety boundaries,
