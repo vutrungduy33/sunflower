@@ -84,15 +84,25 @@
     `scripts/sync_deploy_bundle.sh` used an EXIT trap that referenced a local
     variable after return under `set -u`. This round fixed the trap to expand
     the temp path at trap definition time.
+  - `bash scripts/sync_deploy_bundle.sh <tmp>` smoke after the trap fix:
+    passed.
+  - `git push origin main` for follow-up commit `86b4cc2`: succeeded and
+    triggered workflow run `26803892859`.
+  - GitHub Actions run `26803892859`: `detect-targets`,
+    `package-deploy-bundle`, `build-admin-web`, and `build-backend` passed.
+    ECS-2 `deploy-backend-host` passed deployment bundle artifact
+    download/extract/sync, backend image artifact download/load, and backend
+    image availability. It then failed at production `Deploy backend host
+    locally` with sanitized validation error `WECHAT_PAY_MCH_ID is required`.
 - Goal correction:
   - The active MVP goal remains incomplete. This round reduces deployment
     checkout risk but does not prove current-branch deployment, HTTPS domain,
     production smoke, or manual QA evidence.
 - Next recommended round:
-  - Commit and push the trap fix, then observe the next push-triggered run.
-    Expected result: backend sync advances past bundle synchronization and
-    reaches image load / production-lane payment config validation. Keep real
-    payment/refund evidence pending.
+  - Choose the next deployment evidence lane: either provision real ECS-2
+    WeChat Pay production config and rerun production deploy, or explicitly
+    dispatch backend-only `deployment_lane=nonprod-mock-payment` and record it
+    as reduced-scope mock evidence. Keep real payment/refund evidence pending.
 
 ## Round 73: Nonprod Dispatch Readiness Guard
 

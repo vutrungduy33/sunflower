@@ -148,6 +148,14 @@
   `scripts/sync_deploy_bundle.sh` had an EXIT trap referencing a local temp-file
   variable under `set -u`; the follow-up fix expands the temp path when the
   trap is installed.
+- Follow-up run `26803892859` for HEAD `86b4cc2` proved the full new artifact
+  path through ECS-2: deployment bundle artifact download/extract/sync passed,
+  backend image artifact download/load passed, and backend image availability
+  passed. The run then failed at `Deploy backend host locally` in the production
+  env validation with sanitized error `WECHAT_PAY_MCH_ID is required`. This
+  confirms the previous ECS checkout blocker is removed for the backend lane;
+  current-branch deployment and smoke remain blocked by real payment config or
+  by choosing the explicit nonprod/mock-payment lane.
 - Round 60 pushed `98e68e0dd478` to `main` and triggered GitHub Actions run
   `26796051853`; backend/admin-web images built, but ECS-2 checkout stalled
   before deployment completed.
