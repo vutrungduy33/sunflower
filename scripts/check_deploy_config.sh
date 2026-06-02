@@ -75,6 +75,7 @@ check_node_syntax() {
   log INFO "checking deployment Node.js script syntax"
   node --check "$ROOT_DIR/scripts/check_deployment_approval_preflight.js"
   node --check "$ROOT_DIR/scripts/check_workflow_dispatch_lane_matrix.js"
+  node --check "$ROOT_DIR/scripts/check_nonprod_dispatch_readiness.js"
   log PASS "deployment Node.js script syntax checked"
 }
 
@@ -88,6 +89,12 @@ check_workflow_dispatch_lane_matrix() {
   log INFO "checking workflow dispatch deployment lane matrix"
   node "$ROOT_DIR/scripts/check_workflow_dispatch_lane_matrix.js"
   log PASS "workflow dispatch deployment lane matrix checked"
+}
+
+check_nonprod_dispatch_readiness() {
+  log INFO "checking non-production dispatch readiness"
+  ALLOW_DIRTY=1 node "$ROOT_DIR/scripts/check_nonprod_dispatch_readiness.js"
+  log PASS "non-production dispatch readiness checked"
 }
 
 check_nonprod_mock_payment_lane() {
@@ -108,6 +115,7 @@ main() {
   check_nonprod_mock_payment_lane
   check_runner_deploy_release_metadata
   check_workflow_dispatch_lane_matrix
+  check_nonprod_dispatch_readiness
   check_node_syntax
 
   log INFO "deploy config checks completed"

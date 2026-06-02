@@ -139,6 +139,7 @@ Required preflight before asking for backend-only nonprod dispatch approval:
 node scripts/check_deployment_approval_preflight.js
 node scripts/check_workflow_dispatch_lane_matrix.js
 bash scripts/check_nonprod_mock_payment_deploy_lane.sh
+node scripts/check_nonprod_dispatch_readiness.js
 ```
 
 <!-- approval-lane:EVIDENCE-WAIVER -->
@@ -158,6 +159,7 @@ node scripts/check_mvp_handoff_packet.js
 node scripts/check_deployment_approval_preflight.js
 node scripts/check_workflow_dispatch_lane_matrix.js
 bash scripts/check_nonprod_mock_payment_deploy_lane.sh
+node scripts/check_nonprod_dispatch_readiness.js
 scripts/check_production_readonly_audit.sh
 ```
 

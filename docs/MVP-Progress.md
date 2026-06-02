@@ -5,6 +5,75 @@
 > This active file keeps only the latest operational rounds. Older rounds are
 > archived in `docs/archive/mvp-progress/`.
 
+## Round 73: Nonprod Dispatch Readiness Guard
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: add a single local preflight that answers whether it is safe to ask
+  for backend-only nonprod/mock-payment manual dispatch approval while real
+  payment private key/config remains incomplete.
+- Start evidence:
+  - Local `main` was clean and ahead of `origin/main` by 13 commits.
+  - Round 72 refreshed approval docs, but operators still had to run several
+    separate commands to know whether the nonprod dispatch request was ready.
+  - No push, workflow dispatch, deployment, or ECS mutation was intended.
+- Open-source reference check:
+  - Task classification: common CI/CD manual deployment preflight and approval
+    boundary.
+  - Sources checked: GitHub Actions official workflow syntax,
+    `workflow_dispatch` input documentation, and GitHub Actions deployment
+    environments/protection documentation.
+  - License/compatibility: official documentation only; no external code
+    copied.
+  - Selected approach: add a repository-native Node.js guard that checks the
+    existing workflow lane, approval/handoff wording, evidence boundary, env
+    template shape, and existing deployment guards. This preserves the current
+    GitHub Actions design and avoids introducing a third-party runner or
+    weakening production validation.
+  - Rejected options: adding a new deployment dependency, using production lane
+    while payment keys are missing, or marking mock payment as production
+    payment evidence.
+- Risks:
+  - The guard proves local readiness to request/execute a backend-only nonprod
+    dispatch; it does not perform the dispatch or prove cloud deployment.
+  - During development, deploy config checks must allow a dirty worktree, while
+    the actual approval preflight must require a clean worktree.
+- Acceptance criteria:
+  - Add `scripts/check_nonprod_dispatch_readiness.js`.
+  - Require strict mode to run on clean local `main` before approval; allow
+    `ALLOW_DIRTY=1` only for static deploy config validation.
+  - Wire the guard into `scripts/check_deploy_config.sh`.
+  - Update deployment docs/state/progress and run focused checks.
+- Change summary:
+  - Added `scripts/check_nonprod_dispatch_readiness.js`.
+  - Wired it into `scripts/check_deploy_config.sh` with `ALLOW_DIRTY=1` for
+    in-progress static validation.
+  - Updated `docs/CI-CD.md`, `docs/Context-Index.md`, and
+    `docs/Project-State.md` with the new command and its boundary.
+  - Normalized approval wording so backend-only mock dispatch is consistently
+    described as not real payment/refund evidence.
+  - Updated handoff/approval packet guards so the new command remains listed
+    in operator-facing deployment approval flows.
+- Verification:
+  - `ALLOW_DIRTY=1 node scripts/check_nonprod_dispatch_readiness.js`: passed
+    during development with 6 checks.
+  - `node scripts/check_mvp_handoff_packet.js`,
+    `node scripts/check_mvp_next_approval_request.js`, and
+    `node scripts/check_mvp_external_approval_packet.js`: passed with the new
+    command coverage.
+  - `scripts/check_deploy_config.sh`: passed, including workflow YAML, compose
+    rendering, shell syntax, nonprod env check, runner release metadata guard,
+    workflow lane matrix, nonprod dispatch readiness, and Node.js syntax.
+  - `git diff --check`: passed.
+- Goal correction:
+  - The active MVP goal remains incomplete. This round improves deployment
+    approval readiness but does not dispatch GitHub Actions, deploy current
+    branch, prove HTTPS domain, or collect manual QA/payment/refund evidence.
+- Next recommended round:
+  - After commit, run `node scripts/check_nonprod_dispatch_readiness.js` in
+    strict clean-worktree mode. With explicit user approval, then manually
+    dispatch `target=auto/backend` plus `deployment_lane=nonprod-mock-payment`.
+
 ## Round 72: Nonprod Mock Deployment Approval Snapshot
 
 - Date: 2026-06-02

@@ -93,6 +93,10 @@
 - Round 68 added `scripts/check_workflow_dispatch_lane_matrix.js`, wired into
   `scripts/check_deploy_config.sh`, to guard production and nonprod lane
   dispatch behavior.
+- Round 73 added `scripts/check_nonprod_dispatch_readiness.js`, wired into
+  `scripts/check_deploy_config.sh`, as the strict local preflight before asking
+  for backend-only nonprod/mock-payment dispatch approval. It does not push,
+  dispatch, deploy, or mutate ECS.
 - Round 69 updated handoff and approval packets so operators see the backend-only
   nonprod/mock-payment lane and its reduced-scope evidence boundary.
 - With real payment private key/config still incomplete, the recommended

@@ -139,10 +139,11 @@ Current deploy-lane options:
 - Backend-only nonprod/mock-payment lane: manual `workflow_dispatch` with
   `deployment_lane=nonprod-mock-payment` and `target=auto` or `target=backend`;
   validates `.env.nonprod-mock.example`, does not refresh admin-web/Nginx, and
-  does not prove real payment/refund.
+  does not prove real payment/refund; it is not real payment/refund evidence.
 - Local guard before asking for nonprod dispatch approval:
   `node scripts/check_workflow_dispatch_lane_matrix.js` and
-  `bash scripts/check_nonprod_mock_payment_deploy_lane.sh`.
+  `bash scripts/check_nonprod_mock_payment_deploy_lane.sh`, or the aggregate
+  readiness guard `node scripts/check_nonprod_dispatch_readiness.js`.
 
 ## 7. Evidence Rules
 
@@ -180,6 +181,7 @@ Deployment approval preflight:
 node scripts/check_deployment_approval_preflight.js
 node scripts/check_workflow_dispatch_lane_matrix.js
 bash scripts/check_nonprod_mock_payment_deploy_lane.sh
+node scripts/check_nonprod_dispatch_readiness.js
 ```
 
 After approved production deploy:

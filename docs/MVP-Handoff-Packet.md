@@ -84,6 +84,7 @@ baseline. Before the `CURRENT-BRANCH-DEPLOYED` lane, rerun:
 node scripts/check_deployment_approval_preflight.js
 node scripts/check_workflow_dispatch_lane_matrix.js
 bash scripts/check_nonprod_mock_payment_deploy_lane.sh
+node scripts/check_nonprod_dispatch_readiness.js
 ```
 
 Use this read-only production audit only when the user expects production
