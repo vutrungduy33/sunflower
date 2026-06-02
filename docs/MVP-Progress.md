@@ -2448,3 +2448,57 @@
     external evidence or explicit waivers for one approval lane, such as
     `MINIAPP-PREVIEW-DOMAIN`, `ADMIN-PROD-QA`, `BACKEND-8080-HARDENING`, or
     `CURRENT-BRANCH-DEPLOYED`.
+
+## Round 40: Refined Finite Goal Prompt
+
+- Date: 2026-06-02
+- Status: completed and committed.
+- Focus: refresh the Codex goal prompt so the next run has a precise, finite,
+  approval-aware path from the current Round 39 baseline to MVP closeout.
+- Start evidence:
+  - `git status --short --branch --untracked-files=all`: clean on
+    `codex/s18-payment-hardening` after Round 39 commit.
+  - Current HEAD before edits: `08f2368`.
+  - `docs/MVP-Next-Goal-Prompt.md` existed, but the user requested a more
+    detailed prompt after committing the current round.
+- Open-source reference check:
+  - Task classification: repository-specific goal/documentation maintenance.
+  - Sources checked: not applicable; this round did not implement common
+    feature code, reusable infrastructure, or external-code-dependent design.
+  - Selected approach: consolidate the current baseline, per-round loop,
+    open-source-reference-first rule, approval lanes, safety boundaries,
+    strict completion commands, and manual-intervention rule into the canonical
+    prompt document.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: existing project memory docs, handoff packet, closeout
+    audit, and current evidence guard commands.
+  - Rejected options: changing production, pushing/deploying, or marking
+    external evidence complete from documentation edits.
+- Risks:
+  - This round does not reduce the 33 unresolved external/manual evidence items.
+  - The next meaningful progress still requires one approval lane to collect
+    real evidence or explicit waiver.
+- Acceptance criteria:
+  - `docs/MVP-Next-Goal-Prompt.md` contains a copy-ready finite goal prompt
+    with exact stop and completion criteria.
+  - `docs/Project-State.md` points future agents to the refreshed Round 40
+    prompt.
+  - Non-strict handoff/evidence guards still pass and keep unresolved items
+    visible.
+  - The round is committed once.
+- Verification:
+  - `node scripts/check_mvp_handoff_packet.js`: passed.
+  - `node scripts/check_mvp_launch_evidence.js`: passed non-strict and reported
+    9 unresolved required launch evidence entries.
+  - `node scripts/check_mvp_closeout_readiness.js`: passed non-strict and
+    reported 33 unresolved required closeout items.
+  - `git diff --check`: passed.
+- Change summary:
+  - Rewrote `docs/MVP-Next-Goal-Prompt.md` with the refined finite goal prompt.
+  - Updated `docs/Project-State.md` and this progress log.
+- Goal correction:
+  - Do not keep spending rounds only refreshing automated baselines while the
+    tree is unchanged. The next round should choose exactly one approval lane,
+    preferably `MINIAPP-PREVIEW-DOMAIN`, `BACKEND-8080-HARDENING`, or
+    `CURRENT-BRANCH-DEPLOYED`, and either collect sanitized evidence or stop
+    for explicit user approval.

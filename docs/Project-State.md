@@ -144,10 +144,10 @@ regression recheck:
   Round 39 for automated baseline, production smoke, and backend `8080`
   evidence at pre-commit HEAD `255558f001e9`. Pending external evidence entries
   remain pending.
-- MVP next Codex goal prompt `docs/MVP-Next-Goal-Prompt.md`: refined in Round
-  35 with startup context, per-round execution loop, approval lanes, hard
-  safety boundaries, exact completion commands, and stop/manual-intervention
-  conditions.
+- MVP next Codex goal prompt `docs/MVP-Next-Goal-Prompt.md`: refined again in
+  Round 40 with the current Round 39 baseline, mandatory per-round commit loop,
+  open-source-reference-first rule, approval lanes, hard safety boundaries,
+  exact strict completion commands, and stop/manual-intervention conditions.
 - Launch evidence `node scripts/check_mvp_launch_evidence.js --strict`: expected
   non-zero on 2026-06-02 because 9 required external evidence entries remain
   pending.

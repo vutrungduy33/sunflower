@@ -1,57 +1,65 @@
 # MVP Next Goal Prompt
 
-> Current as of 2026-06-02. Use this prompt to continue the MVP hardening goal
-> in a fresh Codex goal/thread. It is intentionally finite and keeps the current
-> approval boundaries explicit.
+> Current as of 2026-06-02. Use this prompt to continue the finite MVP
+> closeout goal in a fresh Codex goal/thread. It intentionally separates
+> automated work from approval-gated external evidence.
 
 ## Current Baseline
 
-- Local and production read-only baseline is green as of Round 32:
-  `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh` passed with backend 57
-  tests, admin-web lint/test/build, miniapp smoke/wiring/replay checks,
-  evidence non-strict checks, deploy config static checks, and production
-  smoke/backend `8080` read-only checks.
-- The MVP goal is still open because strict external evidence is incomplete:
-  9 launch evidence items, 12 miniapp manual QA items, and 12 admin-web manual
-  QA items remain unresolved.
-- `BACKEND-8080-HARDENING` is not proven: direct public 8080 was not reachable
-  from the current local network, but ECS-2 still listens on `0.0.0.0:8080`.
-- `CURRENT-BRANCH-DEPLOYED` is not proven: the current MVP branch has not been
-  pushed or merged to `main` for deployment.
+- Current branch: `codex/s18-payment-hardening`.
+- Latest production-enabled aggregate baseline: Round 39,
+  `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh` passed on 2026-06-02
+  08:58 Asia/Shanghai at pre-commit HEAD `255558f001e9`.
+- The baseline covered backend 57 tests, admin-web lint/test/build and behavior
+  wiring, miniapp smoke/wiring/user-flow replay, evidence/runbook non-strict
+  checks, deploy config static checks, production smoke, and backend `8080`
+  read-only inspection.
+- The MVP is not complete: strict closeout still has 33 unresolved required
+  items: 9 launch evidence, 12 miniapp manual QA, and 12 admin-web manual QA.
+- `BACKEND-8080-HARDENING` is pending because ECS-2 still listens on
+  `0.0.0.0:8080`; current checks do not prove Alibaba Cloud security-group
+  restriction.
+- `CURRENT-BRANCH-DEPLOYED` is pending because this branch has not been pushed
+  or merged to `main` to trigger the GitHub Actions deployment workflow.
 
-## Prompt
+## Goal Prompt
 
 ```text
-在 /Users/chenyao/dev/miniapp/sunflower 继续 MVP 收口目标：把小程序、admin-web、后端和部署链路推进到“主要功能真实可用、证据可验证、交接可复现”的有限终止状态。不要做无休止优化；只围绕剩余 MVP 证据和必要修复推进。
+在 /Users/chenyao/dev/miniapp/sunflower 继续有限 MVP 收口目标：把小程序、admin-web、后端和部署链路推进到“主要功能真实可用、证据可验证、交接可复现”的上线可用状态。不要无休止优化；只围绕剩余 MVP 证据、必要缺陷修复和安全交接推进。
 
-启动上下文：
-1. 先读取 AGENTS.md、docs/Agent-Memory.md、docs/Context-Index.md、docs/Project-State.md、docs/MVP-Readiness.md、docs/MVP-Handoff-Packet.md、docs/MVP-External-Approval-Packet.md、docs/MVP-Closeout-Audit.md、docs/MVP-Next-Goal-Prompt.md。
+启动动作：
+1. 读取 AGENTS.md、docs/Agent-Memory.md、docs/Context-Index.md、docs/Project-State.md、docs/MVP-Handoff-Packet.md、docs/MVP-Readiness.md、docs/MVP-Closeout-Audit.md、docs/MVP-Next-Goal-Prompt.md。
 2. 执行 git status --short --branch --untracked-files=all。
-3. 不要默认读取 docs/archive/**；除非当前文档明确指向历史材料。
-4. 记住当前基线：Round 32 的 RUN_PRODUCTION=1 scripts/check_mvp_regression.sh 已通过；旧的 admin-web _refundId lint 或 3 个测试失败记录是过期信息。MVP 仍缺 33 项外部/人工证据：9 项 launch、12 项小程序手工 QA、12 项 admin-web 手工 QA。
+3. 不默认读取 docs/archive/**，除非当前文档明确需要历史材料。
+4. 记住当前事实：Round 39 的 RUN_PRODUCTION=1 scripts/check_mvp_regression.sh 已通过；旧的 admin-web _refundId lint 或 3 个测试失败记录已经过期；MVP 仍缺 33 项外部/人工证据。
 
-每一轮执行闭环：
-1. 先写出本轮最小目标、会触及的证据 ID、阻塞项、是否需要用户审批。
-2. 若要开发通用能力或修复常见工程问题，必须使用 open-source-reference-first skill：优先查官方示例、成熟 GitHub/Gitee 实现或框架推荐；记录来源、许可证兼容性、采用/拒绝原因；能复用就复用，不重复造轮子。若只是项目内证据/文档维护，说明无需外部代码。
-3. 只做本轮最小必要改动或证据采集；保持 API 兼容；不碰无关重构。
-4. 运行相关自动化验证；如果改了通用链路，优先跑 scripts/check_mvp_regression.sh；涉及生产只读证据时再跑 RUN_PRODUCTION=1 scripts/check_mvp_regression.sh 或 scripts/check_production_readonly_audit.sh。
-5. 更新 docs/MVP-Progress.md、docs/Project-State.md，以及受影响的 docs/MVP-Launch-Evidence.json、docs/Miniapp-Manual-QA.json、docs/Admin-Web-Manual-QA.json、docs/Backend-8080-Security.md、docs/Production-Smoke.md 或其他证据文档。
-6. 做目标纠偏：明确本轮已解决什么、剩余什么、下一轮应选择哪条 approval lane、是否需要调整 goal。
-7. 每轮结束必须提交一次本地 commit；不要自动 push、merge 或触发部署。
+每一轮必须形成闭环：
+1. 先输出本轮最小目标、会影响的证据 ID、风险、是否需要用户审批。
+2. 开发前判断任务是否属于常见工程能力。如果是 auth/RBAC/支付/订单/日历/CRUD/上传/CI/CD/部署/监控/表单/校验/UI 通用模式等，必须使用 open-source-reference-first skill，优先查官方示例、成熟 GitHub/Gitee 项目或框架 recipe；记录来源、许可证兼容性、采用/拒绝原因。只有许可证兼容且适配本项目时才复制或改写代码；不要重复造轮子。若只是项目内证据、文档或脚本校验，说明无需外部代码。
+3. 只处理一个最小 lane 或一个必要缺陷，不跨多条 lane 混做；保持 API 向后兼容。若 API 必须变化，同步调用方和 docs/API.md、docs/API-Schemas.md。
+4. 完成本轮代码或证据后，更新 docs/MVP-Progress.md，必要时同步 docs/Project-State.md、docs/Decision-Log.md、docs/Context-Index.md、证据 JSON 和对应 QA/安全/生产文档。
+5. 做目标纠偏：说明本轮解决了什么、剩余什么、下一轮推荐 lane、goal 是否需要修改。
+6. 运行与改动匹配的自动验证。普通代码优先 scripts/check_mvp_regression.sh；生产只读证据可用 RUN_PRODUCTION=1 scripts/check_mvp_regression.sh 或 scripts/check_production_readonly_audit.sh；证据收口运行对应 strict checker。
+7. 每轮结束必须 git add 并本地 commit 一次。不要自动 push、merge、workflow_dispatch 或部署。
 
-硬边界：
-- 没有用户明确确认前，不允许 push 到 main、merge main、workflow_dispatch、触发生产部署、修改阿里云安全组/防火墙、执行真实支付/真实退款、修改生产数据。
+安全边界：
+- 未经用户明确批准，不允许 push 到 main、merge main、workflow_dispatch、触发生产部署、修改阿里云安全组/防火墙、执行真实支付/真实退款、修改生产数据。
 - 不提交密钥、真实 AppID、token、cookie、短信码、密码、手机号、openid/unionid、商户凭据、完整订单号/支付号/退款号、私钥或含个人信息的截图。
-- 可以做本地验证、只读生产检查、只读 SSH/HTTP 探测和文档证据整理；所有生产变更类动作先输出审批请求、风险、回滚方案并等待用户确认。
+- 真实 AppID 只能放在忽略跟踪的 sunflower-miniapp/project.private.config.json；提交态 sunflower-miniapp/project.config.json 必须保持 touristappid。
 
-优先推进路径：
-1. 首先确认本地与只读生产基线仍绿：scripts/check_mvp_regression.sh；必要时 RUN_PRODUCTION=1 scripts/check_mvp_regression.sh。
-2. 选择一个最小 approval lane 推进，不要一轮混做多条：MINIAPP-PREVIEW-DOMAIN、WECHAT-PAYMENT-REFUND、ADMIN-PROD-QA、BACKEND-8080-HARDENING、CURRENT-BRANCH-DEPLOYED、EVIDENCE-WAIVER。
-3. 开始任何 lane 前，阅读 docs/MVP-External-Approval-Packet.md，运行 node scripts/check_mvp_external_approval_packet.js，并按其中模板向用户申请必要批准。
-4. 证据只能写脱敏摘要；写入后运行对应 strict 检查，例如 node scripts/check_miniapp_manual_qa.js --strict、node scripts/check_admin_web_manual_qa.js --strict 或 node scripts/check_mvp_launch_evidence.js --strict。
-5. 如果发现代码缺陷阻塞某条证据，先用最小修复解除阻塞，再重新跑相关验证并提交。
+推荐推进顺序：
+1. 若本轮刚启动，先确认自动基线：scripts/check_mvp_regression.sh；必要时再跑 RUN_PRODUCTION=1 scripts/check_mvp_regression.sh。
+2. 之后每轮只选一个 approval lane：
+   - MINIAPP-PREVIEW-DOMAIN：微信合法 HTTPS 域名、真实 AppID 私有配置、预览/真机登录、手机号、下单路径。
+   - ADMIN-PROD-QA：生产或批准的 staging 管理后台账号、房态/价格/订单/售后人工 QA。
+   - BACKEND-8080-HARDENING：只读获取阿里云安全组/防火墙证据，或拿到明确风险豁免。
+   - CURRENT-BRANCH-DEPLOYED：经用户批准后 push/merge/workflow_dispatch，随后跑部署后只读审计。
+   - WECHAT-PAYMENT-REFUND：经用户批准后做低金额真实支付/退款或记录逐项豁免。
+   - EVIDENCE-WAIVER：用户对无法执行的外部证据逐项书面豁免。
+3. 开始任何 lane 前，阅读 docs/MVP-External-Approval-Packet.md 并运行 node scripts/check_mvp_external_approval_packet.js；涉及生产变更、真实支付、真实退款、安全组、防火墙或部署时，先输出审批请求、风险、回滚方案并停止等待确认。
+4. 证据只写脱敏摘要，写入 JSON 后运行对应 strict checker。
 
-最终完成条件：
+精确终止条件：
 - scripts/check_mvp_regression.sh 通过。
 - RUN_PRODUCTION=1 scripts/check_mvp_regression.sh 或部署后的 scripts/check_production_readonly_audit.sh 通过。
 - node scripts/check_mvp_launch_evidence.js --strict 通过。
@@ -59,29 +67,25 @@
 - node scripts/check_admin_web_manual_qa.js --strict 通过。
 - node scripts/check_mvp_closeout_readiness.js --strict 通过。
 - node scripts/check_mvp_handoff_packet.js 通过。
-- git status --short --branch --untracked-files=all 干净，且最后一轮已提交。
-只有这些条件全部满足，或用户对缺失外部证据做出明确逐项豁免且 strict 检查通过，才能把 goal 标记 complete。
+- git status --short --branch --untracked-files=all 干净，最后一轮已提交。
+只有全部满足，或用户对缺失项逐项明确豁免并使 strict 检查通过，才能把 goal 标记 complete。
 
-停止/人工介入条件：
-- 需要真实支付/退款、生产数据变更、安全组/防火墙变更、push/merge/deploy，而用户尚未批准。
-- 缺少真实 AppID、微信后台合法域名、商户号、QA 账号、可安全操作的 QA 订单/房源/价格数据等外部条件。
-- 阶段性分析发现 goal 必须调整但无法安全自动修改。此时停止当前 goal，输出不超过 4000 字的新 goal 提示词等待人工介入；等待人工介入等于停止当前 goal，不要继续假装推进。
+停止并等待人工介入：
+- 需要真实支付/退款、生产数据变更、安全组/防火墙变更、push/merge/deploy，但用户尚未批准。
+- 缺少真实 AppID、微信合法域名、商户号、QA 账号、可安全操作的 QA 数据等外部条件。
+- 阶段性分析发现 goal 必须调整。若 Codex 暴露了明确、可审计、可安全修改的 goal 存储/API，可先读取确认 schema 后修改；不要盲改未知内部数据库。若无法安全修改，就停止当前 goal，并在对话中输出不超过 4000 字的新 goal 提示词等待人工介入。
 ```
 
 ## Next Round Recommendation
 
-The production-enabled aggregate baseline has passed. Next, prepare the first
-approved external evidence collection round:
+The next round should avoid another baseline-only refresh unless the working
+tree or production state has changed. Choose one approval lane and collect
+sanitized external evidence or an explicit waiver. The lowest-risk useful next
+step is usually to prepare and request approval for either:
 
-- Choose one evidence lane from `docs/MVP-Handoff-Packet.md`: WeChat
-  preview/real-device QA, HTTPS legal domain, admin-web production or approved
-  staging QA, backend `8080` security-group proof, or approved current-branch
-  deployment.
-- Prepare the matching approval lane in
-  `docs/MVP-External-Approval-Packet.md` and run
-  `node scripts/check_mvp_external_approval_packet.js`.
-- For any lane that mutates production, uses real payment/refund, changes
-  security groups/firewall, or triggers GitHub Actions deployment, stop and ask
-  for explicit user approval first.
-- Record only sanitized evidence in the JSON ledgers and rerun the matching
-  strict checker for that lane.
+- `MINIAPP-PREVIEW-DOMAIN`: WeChat preview/domain evidence, if the operator can
+  provide real AppID/private config and legal HTTPS domain context.
+- `BACKEND-8080-HARDENING`: Alibaba Cloud security-group evidence or an explicit
+  risk waiver, because current read-only checks cannot prove restriction.
+- `CURRENT-BRANCH-DEPLOYED`: approved push/merge/deploy plus read-only
+  post-deploy audit, if the user wants the current branch live.
