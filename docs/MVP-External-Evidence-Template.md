@@ -95,7 +95,7 @@ Ledger update reminder:
 - Status now: `pending`
 - Area: deployment
 - Requirement: Current committed MVP branch code has been deployed through the approved GitHub Actions path, or deployment is explicitly declared out of scope by the user.
-- Current evidence: Round 38 node scripts/check_deployment_approval_preflight.js passed on branch codex/s18-payment-hardening at HEAD e48ccbdb982a, compared with origin/main 5a37a6788c21. Changed files since base: 142. Predicted push-to-main deploy target: all. Impact counts: backend 38, admin-web 5, ingress 1. Worktree was clean and branch was not main. No push, merge, workflow_dispatch, or deployment was performed, so current branch deployment remains unproven.
+- Current evidence: Round 41 node scripts/check_deployment_approval_preflight.js passed on branch codex/s18-payment-hardening at HEAD 5376567d2d1c, compared with origin/main 5a37a6788c21. Changed files since base: 142. Predicted push-to-main deploy target: all. Impact counts: backend 38, admin-web 5, ingress 1. Worktree was clean and branch was not main. No push, merge, workflow_dispatch, or deployment was performed, so current branch deployment remains unproven.
 - Next action: Ask for explicit approval before push/merge/workflow_dispatch, or record an explicit user decision that current-branch deployment evidence is out of scope.
 
 Suggested sanitized evidence entry:

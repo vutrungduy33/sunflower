@@ -51,8 +51,8 @@ Latest aggregate regression:
 Latest production/deployment read-only evidence:
 
 - `node scripts/check_deployment_approval_preflight.js`: passed in Round 30.
-  Round 38 reran it: current branch was not `main`, worktree was clean, HEAD
-  was `e48ccbdb982a`, changed files since `origin/main` were 142, future
+  Round 41 reran it: current branch was not `main`, worktree was clean, HEAD
+  was `5376567d2d1c`, changed files since `origin/main` were 142, future
   push/merge to `main` was predicted to trigger deployment target `all`, and
   impact counts were backend 38, admin-web 5, ingress 1.
 - Production checks inside `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`:
@@ -64,6 +64,10 @@ Latest production/deployment read-only evidence:
 
 The execution runbook for the remaining external evidence is
 `docs/MVP-External-Validation-Runbook.md`.
+
+The next human approval entry is `docs/MVP-Next-Approval-Request.md`. It turns
+the 33 unresolved required evidence items into one-lane approval requests and is
+checked by `node scripts/check_mvp_next_approval_request.js`.
 
 The compact handoff entry for the next operator is
 `docs/MVP-Handoff-Packet.md`. It is checked by
@@ -93,6 +97,7 @@ node scripts/check_mvp_external_runbook.js
 node scripts/generate_mvp_external_evidence_template.js
 node scripts/check_mvp_external_evidence_template.js
 node scripts/check_mvp_external_approval_packet.js
+node scripts/check_mvp_next_approval_request.js
 node scripts/check_mvp_handoff_packet.js
 node scripts/check_mvp_closeout_readiness.js
 node scripts/check_mvp_closeout_readiness.js --strict
@@ -179,6 +184,11 @@ ensures the template still covers every unresolved required evidence item.
 `docs/MVP-Handoff-Packet.md` still names every unresolved required launch,
 miniapp, and admin-web evidence item, plus the required approval boundaries and
 closeout commands.
+
+`node scripts/check_mvp_next_approval_request.js` verifies
+`docs/MVP-Next-Approval-Request.md` still names every unresolved evidence id,
+approval lane, safety boundary, and validation command needed for the next
+human-approved evidence round.
 
 When HTTPS/domain is ready, also verify:
 

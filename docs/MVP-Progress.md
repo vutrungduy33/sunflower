@@ -2502,3 +2502,75 @@
     preferably `MINIAPP-PREVIEW-DOMAIN`, `BACKEND-8080-HARDENING`, or
     `CURRENT-BRANCH-DEPLOYED`, and either collect sanitized evidence or stop
     for explicit user approval.
+
+## Round 41: Next Approval Request Entry
+
+- Date: 2026-06-02
+- Status: completed and committed.
+- Focus: make the next external-evidence step obvious and machine-checkable by
+  adding a visible one-lane approval request entry for the 33 unresolved
+  required MVP evidence items.
+- Start evidence:
+  - `git status --short --branch --untracked-files=all`: clean on
+    `codex/s18-payment-hardening` after Round 40 commit.
+  - Current HEAD before edits: `5376567`.
+  - `node scripts/check_mvp_closeout_readiness.js`: passed non-strict and
+    reported 33 unresolved required closeout items.
+  - `node scripts/check_deployment_approval_preflight.js`: passed on HEAD
+    `5376567d2d1c`; predicted push-to-main deploy target remained `all`; no
+    push, merge, workflow dispatch, deploy, or production mutation occurred.
+- Open-source reference check:
+  - Task classification: repository-specific evidence approval and handoff
+    documentation.
+  - Sources checked: not applicable; this round did not implement common
+    product code, reusable infrastructure, or external-code-dependent design.
+  - Selected approach: create a project-local approval request doc plus a
+    checker that derives unresolved evidence ids from the existing ledgers.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: existing evidence ledger schema, approval packet safety
+    boundaries, handoff packet conventions, and Node.js checker style.
+  - Rejected options: collecting real external evidence without approval,
+    deploying the current branch, or reducing the pending count through weak
+    documentation-only evidence.
+- Risks:
+  - The new approval request is not external proof and does not close any of
+    the 33 unresolved items.
+  - `CURRENT-BRANCH-DEPLOYED` remains pending; the refreshed preflight only
+    updates the approval snapshot for the current HEAD.
+- Acceptance criteria:
+  - `docs/MVP-Next-Approval-Request.md` names the recommended approval lanes,
+    user reply template, sensitive-data boundaries, current deployment preflight
+    snapshot, and validation commands.
+  - `scripts/check_mvp_next_approval_request.js` verifies the document covers
+    all unresolved required evidence ids and safety boundaries.
+  - Existing handoff/readiness/context/state docs point to the new approval
+    request.
+  - The aggregate MVP regression evidence step includes the new checker.
+  - The round is committed once.
+- Verification:
+  - `node scripts/check_mvp_next_approval_request.js`: passed.
+  - `node scripts/check_mvp_external_approval_packet.js`: passed.
+  - `node scripts/check_mvp_external_evidence_template.js`: passed.
+  - `node scripts/check_mvp_handoff_packet.js`: passed.
+  - `node scripts/check_mvp_launch_evidence.js`: passed non-strict and reported
+    9 unresolved required launch evidence entries.
+  - `node scripts/check_mvp_closeout_readiness.js`: passed non-strict and
+    reported 33 unresolved required closeout items.
+  - `RUN_BACKEND=0 RUN_ADMIN=0 RUN_MINIAPP=0 RUN_DEPLOY_CONFIG=0 scripts/check_mvp_regression.sh`:
+    passed the evidence-only aggregate step with the new checker included.
+  - `git diff --check`: passed.
+- Change summary:
+  - Added `docs/MVP-Next-Approval-Request.md`.
+  - Added `scripts/check_mvp_next_approval_request.js` and included it in the
+    aggregate evidence regression.
+  - Refreshed current-branch deployment approval evidence to HEAD
+    `5376567d2d1c` while keeping `CURRENT-BRANCH-DEPLOYED` pending.
+  - Regenerated `docs/MVP-External-Evidence-Template.md`.
+  - Updated handoff, readiness, context, docs index, production smoke, project
+    state, and this progress log.
+- Goal correction:
+  - The goal remains open. The next meaningful round should not be another
+    documentation-only approval-prep round unless the evidence ledgers changed.
+    It should collect sanitized evidence or explicit waiver for exactly one
+    lane, starting with `BACKEND-8080-HARDENING`, `MINIAPP-PREVIEW-DOMAIN`, or
+    `CURRENT-BRANCH-DEPLOYED` after user approval.

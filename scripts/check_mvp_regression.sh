@@ -80,6 +80,7 @@ run_evidence_checks() {
     cd "$ROOT_DIR"
     node scripts/check_mvp_external_runbook.js
     node scripts/check_mvp_external_evidence_template.js
+    node scripts/check_mvp_next_approval_request.js
     node scripts/check_mvp_launch_evidence.js
     node scripts/check_miniapp_manual_qa.js
     node scripts/check_admin_web_manual_qa.js

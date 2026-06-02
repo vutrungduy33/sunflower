@@ -51,7 +51,7 @@ regression recheck:
   production read-only checks.
 - Deployment approval preflight
   `node scripts/check_deployment_approval_preflight.js`: passed again in Round
-  38. Current branch was `codex/s18-payment-hardening`, HEAD `e48ccbdb982a`,
+  41. Current branch was `codex/s18-payment-hardening`, HEAD `5376567d2d1c`,
   worktree was clean, comparison base was `origin/main` at `5a37a6788c21`,
   changed files since base were 142, and path rules predicted a future
   push/merge to `main` would deploy target `all`. Impact counts were backend
@@ -196,10 +196,10 @@ regression recheck:
   does not mutate production and does not prove current-branch deployment.
 - Deployment approval preflight
   `node scripts/check_deployment_approval_preflight.js`: added in Round 23 and
-  rerun in Round 38 to summarize current branch cleanliness, branch/base refs,
-  changed-file deployment impact, workflow trigger shape, and the approval
-  boundary before any push/merge/workflow_dispatch. It does not deploy or prove
-  current branch code is live.
+  rerun most recently in Round 41 to summarize current branch cleanliness,
+  branch/base refs, changed-file deployment impact, workflow trigger shape, and
+  the approval boundary before any push/merge/workflow_dispatch. It does not
+  deploy or prove current branch code is live.
 - Miniapp behavior wiring guard `scripts/check_miniapp_behavior_wiring.js`: added
   on 2026-06-02 and included in aggregate miniapp regression. It statically
   checks login, phone binding, room browsing, order creation, payment, cancel,
@@ -218,6 +218,10 @@ regression recheck:
   payment/refund, admin production or approved-staging QA, backend `8080`
   hardening evidence, and current-branch deployment evidence. It is checked by
   `scripts/check_mvp_external_approval_packet.js`.
+- Next approval request `docs/MVP-Next-Approval-Request.md`: added in Round 41
+  as the visible one-lane human approval entry for the 33 unresolved required
+  MVP evidence items. It is checked by
+  `scripts/check_mvp_next_approval_request.js`.
 - Evidence quality guard added on 2026-06-02: launch, miniapp manual QA, and
   admin manual QA checkers now reject `passed`/`waived` entries whose evidence
   still looks unresolved or too short for handoff.
@@ -251,6 +255,7 @@ regression recheck:
 - Launch evidence tracker: `docs/MVP-Launch-Evidence.md`.
 - External validation runbook: `docs/MVP-External-Validation-Runbook.md`.
 - External approval packet: `docs/MVP-External-Approval-Packet.md`.
+- Next approval request: `docs/MVP-Next-Approval-Request.md`.
 - External evidence template: `docs/MVP-External-Evidence-Template.md`.
 - MVP handoff packet: `docs/MVP-Handoff-Packet.md`.
 - MVP next Codex goal prompt: `docs/MVP-Next-Goal-Prompt.md`.

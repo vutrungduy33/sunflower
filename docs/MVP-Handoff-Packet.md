@@ -28,7 +28,9 @@ The latest detailed state lives in `docs/Project-State.md`,
 `docs/MVP-Readiness.md`, and `docs/MVP-Closeout-Audit.md`.
 
 Before any external action that needs human approval, use
-`docs/MVP-External-Approval-Packet.md` and validate it with
+`docs/MVP-Next-Approval-Request.md` plus
+`docs/MVP-External-Approval-Packet.md` and validate them with
+`node scripts/check_mvp_next_approval_request.js` and
 `node scripts/check_mvp_external_approval_packet.js`.
 
 ## 3. Do First
@@ -42,6 +44,7 @@ RUN_PRODUCTION=1 scripts/check_mvp_regression.sh
 node scripts/check_mvp_closeout_readiness.js
 node scripts/generate_mvp_external_evidence_template.js
 node scripts/check_mvp_external_evidence_template.js
+node scripts/check_mvp_next_approval_request.js
 node scripts/check_mvp_external_approval_packet.js
 node scripts/check_deployment_approval_preflight.js
 ```
@@ -130,7 +133,9 @@ These admin-web entries are still unresolved in
    `node scripts/generate_mvp_external_evidence_template.js`.
 3. Validate the capture template with
    `node scripts/check_mvp_external_evidence_template.js`.
-4. Prepare the matching approval lane with
+4. Prepare the next approval request with
+   `docs/MVP-Next-Approval-Request.md`, then prepare the matching approval lane
+   with
    `docs/MVP-External-Approval-Packet.md` before any external action that needs
    user confirmation.
 5. Run miniapp preview or real-device QA and update
@@ -157,6 +162,7 @@ Non-strict daily summaries:
 node scripts/check_mvp_launch_evidence.js
 node scripts/check_miniapp_manual_qa.js
 node scripts/check_admin_web_manual_qa.js
+node scripts/check_mvp_next_approval_request.js
 node scripts/check_mvp_closeout_readiness.js
 node scripts/check_mvp_handoff_packet.js
 ```
