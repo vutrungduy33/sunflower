@@ -385,6 +385,13 @@ async function postPayOrder(orderId) {
   });
 }
 
+async function postConfirmPayOrder(orderId) {
+  return request(`/api/orders/${orderId}/pay/confirm`, {
+    method: 'POST',
+    requireAuth: true,
+  });
+}
+
 async function fetchOrders() {
   return request('/api/orders', {
     requireAuth: true,
@@ -436,6 +443,7 @@ module.exports = {
   patchProfile,
   postBindPhone,
   postCancelOrder,
+  postConfirmPayOrder,
   postCreateOrder,
   postPayOrder,
   postRefundOrder,

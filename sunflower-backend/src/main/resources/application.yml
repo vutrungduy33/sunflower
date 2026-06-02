@@ -25,6 +25,25 @@ app:
   media:
     avatar:
       storage-path: ${APP_MEDIA_AVATAR_STORAGE_PATH:./data/uploads/avatars}
+  pay:
+    wechat:
+      mock-enabled: ${WECHAT_PAY_MOCK_ENABLED:false}
+      app-id: ${WECHAT_APP_ID:}
+      mch-id: ${WECHAT_PAY_MCH_ID:}
+      merchant-serial-no: ${WECHAT_PAY_MERCHANT_SERIAL_NO:}
+      private-key-path: ${WECHAT_PAY_PRIVATE_KEY_PATH:}
+      private-key-content: ${WECHAT_PAY_PRIVATE_KEY_CONTENT:}
+      public-key-id: ${WECHAT_PAY_PUBLIC_KEY_ID:}
+      public-key-path: ${WECHAT_PAY_PUBLIC_KEY_PATH:}
+      public-key-content: ${WECHAT_PAY_PUBLIC_KEY_CONTENT:}
+      api-v3-key: ${WECHAT_PAY_API_V3_KEY:}
+      base-url: ${WECHAT_PAY_BASE_URL:https://api.mch.weixin.qq.com}
+      payment-notify-url: ${WECHAT_PAY_PAYMENT_NOTIFY_URL:}
+      refund-notify-url: ${WECHAT_PAY_REFUND_NOTIFY_URL:}
+      currency: ${WECHAT_PAY_CURRENCY:CNY}
+      pay-expire-minutes: ${WECHAT_PAY_EXPIRE_MINUTES:15}
+      connect-timeout-millis: ${WECHAT_PAY_CONNECT_TIMEOUT_MILLIS:5000}
+      read-timeout-millis: ${WECHAT_PAY_READ_TIMEOUT_MILLIS:10000}
   admin:
     activation:
       allowlist: ${ADMIN_ACTIVATION_ALLOWLIST:}

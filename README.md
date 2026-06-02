@@ -1,6 +1,8 @@
 # Sunflower 项目总览
 
-本仓库包含“泸沽湖民宿后台管理系统 + 微信小程序”的产品与技术文档，以及小程序工程。根 README 作为项目总览与导航，并保留历史调研资料作为业务背景与运营参考。
+本仓库包含“泸沽湖民宿后台管理系统 + 微信小程序”的产品与技术文档，以及小程序、管理后台、后端工程。根 README 作为项目总览与导航，并保留历史调研资料作为业务背景与运营参考。
+
+> 当前开发流程说明：本项目不再使用 Stage 强制流程、pre/post stage guard、提交前缀、分支前缀或 GitHub PR Gate。历史 Stage 文档已归档到 `/Users/chenyao/dev/miniapp/sunflower/docs/archive`，仅用于追溯，不作为当前开发约束。
 
 ## 1. 项目目标（摘要）
 - 建设“民宿后台管理系统 + 微信小程序”，实现住客服务闭环与 OTA 转私域
@@ -12,50 +14,64 @@
 
 ## 3. 技术栈与运行形态
 - 前端：微信小程序（原生框架）
-- 后端：Spring Boot 单体（基于 docker-compose 本地联调）
+- 后端：Spring Boot 单体（Java 11 + Spring Boot 2.7 + JPA + Flyway）
 - 数据库：MySQL
 - 管理后台：Web（`React 18 + TypeScript + Vite + TDesign React`，见 `/Users/chenyao/dev/miniapp/sunflower/docs/Web-Admin-Plan.md`）
+- 生产部署：GitHub Actions + 双阿里云 ECS + self-hosted runner（见 `/Users/chenyao/dev/miniapp/sunflower/docs/Architecture.md`）
 
 ## 4. 文档索引
 - `/Users/chenyao/dev/miniapp/sunflower/docs/README.md`：文档索引与开发概览
+- `/Users/chenyao/dev/miniapp/sunflower/docs/Agent-Memory.md`：Codex 记忆与上下文管理规则
+- `/Users/chenyao/dev/miniapp/sunflower/docs/Context-Index.md`：后续任务的上下文加载地图
+- `/Users/chenyao/dev/miniapp/sunflower/docs/Project-State.md`：当前项目事实、验证状态与风险快照
+- `/Users/chenyao/dev/miniapp/sunflower/docs/MVP-Readiness.md`：MVP 上线可用性清单、验证矩阵与阻塞项
+- `/Users/chenyao/dev/miniapp/sunflower/docs/MVP-Progress.md`：当前 MVP 推进轮次记录
+- `/Users/chenyao/dev/miniapp/sunflower/docs/MVP-Closeout-Audit.md`：MVP 完成度审计与剩余外部验证缺口
+- `/Users/chenyao/dev/miniapp/sunflower/docs/Decision-Log.md`：长期架构/流程/部署决策记录
+- `/Users/chenyao/dev/miniapp/sunflower/docs/Architecture.md`：当前系统架构与部署拓扑
 - `/Users/chenyao/dev/miniapp/sunflower/docs/PRD.md`：需求规格与开发计划
-- `/Users/chenyao/dev/miniapp/sunflower/docs/Agent-Stage-Plan.md`：按“一次对话=一个 Stage”的执行计划
 - `/Users/chenyao/dev/miniapp/sunflower/docs/Prototype.md`：MVP 原型页面清单
 - `/Users/chenyao/dev/miniapp/sunflower/docs/Miniapp-Frontend-MVP.md`：小程序前端一期 MVP 说明（页面/流程/API 映射）
+- `/Users/chenyao/dev/miniapp/sunflower/docs/Miniapp-MVP-QA.md`：小程序 MVP 自动 smoke 与人工 QA 清单
 - `/Users/chenyao/dev/miniapp/sunflower/docs/IA.md`：信息架构（小程序 + 后台）
 - `/Users/chenyao/dev/miniapp/sunflower/docs/Flows.md`：关键业务流程与状态
 - `/Users/chenyao/dev/miniapp/sunflower/docs/API.md`：REST 接口清单
 - `/Users/chenyao/dev/miniapp/sunflower/docs/API-Schemas.md`：接口字段级别定义
+- `/Users/chenyao/dev/miniapp/sunflower/docs/Backend-MVP-QA.md`：后端/API 自动测试、接口覆盖与生产 smoke 清单
 - `/Users/chenyao/dev/miniapp/sunflower/docs/DB-Design.md`：数据库索引与约束设计
 - `/Users/chenyao/dev/miniapp/sunflower/docs/DataDictionary.md`：核心表数据字典
 - `/Users/chenyao/dev/miniapp/sunflower/docs/Analytics.md`：埋点与报表 SQL 模板
-- `/Users/chenyao/dev/miniapp/sunflower/docs/Backlog.md`：Stage Backlog（执行状态）
-- `/Users/chenyao/dev/miniapp/sunflower/docs/Definition-of-Done.md`：Stage 完成清单（DoD）
+- `/Users/chenyao/dev/miniapp/sunflower/docs/Definition-of-Done.md`：当前交付检查清单（DoD）
 - `/Users/chenyao/dev/miniapp/sunflower/docs/Code-Conventions.md`：后续新增代码统一规范
-- `/Users/chenyao/dev/miniapp/sunflower/docs/stage-reports/README.md`：Stage 执行报告规范
 - `/Users/chenyao/dev/miniapp/sunflower/docs/CI-CD.md`：GitHub Actions CI/CD
+- `/Users/chenyao/dev/miniapp/sunflower/docs/S19-Prod-Deployment-Config.md`：生产部署配置说明
+- `/Users/chenyao/dev/miniapp/sunflower/docs/Production-Smoke.md`：最近一次生产 smoke 与 ECS 状态记录
 - `/Users/chenyao/dev/miniapp/sunflower/docs/Web-Admin-Plan.md`：管理后台 Web 选型、开发约束与环境依赖
+- `/Users/chenyao/dev/miniapp/sunflower/docs/archive/`：历史 Stage 计划、报告和旧门禁材料（非当前约束）
 
-## 4.1 当前研发进展（截至 2026-03-11）
+## 4.1 当前研发进展
 - 小程序一期 MVP 已落地于：`/Users/chenyao/dev/miniapp/sunflower/sunflower-miniapp/pages/mvp`
-- 已完成前端闭环：首页 → 预订 → 房型详情 → 填单 → 支付（模拟）→ 订单中心（含改期/退款）
+- 已完成前端闭环：首页 → 预订 → 房型详情 → 填单 → 支付 → 订单中心（含改期/退款）
 - 后端一期 API 已落地于：`/Users/chenyao/dev/miniapp/sunflower/sunflower-backend`
 - 当前可联调接口已覆盖：登录、用户资料、房型、价格日历、订单主链路、POI、游记读取，以及管理端房型/价格/库存、订单/经营概览 API
-- 后端已完成 M1（S1-S6）持久化与联调收口，管理端后端 API（S7/S8）也已完成
-- 后台管理系统（Web）已完成 `S9` 工程初始化，`/Users/chenyao/dev/miniapp/sunflower/sunflower-admin-web` 已可本地启动、测试与构建
+- 后端已完成 MySQL 持久化、微信认证/手机号绑定、真实微信支付/退款、管理端账号与短信能力
+- 后台管理系统（Web）已完成核心运营页面，`/Users/chenyao/dev/miniapp/sunflower/sunflower-admin-web` 已可本地启动、测试与构建
+- CI/CD 已完成：推送到 `main` 的部署相关变更会触发 GitHub Actions 自动部署到双 ECS
+- 当前 MVP 可用性、验证状态与上线阻塞项以 `/Users/chenyao/dev/miniapp/sunflower/docs/MVP-Readiness.md` 为准
 - Web 技术选型、环境约束与本地调试说明见 `/Users/chenyao/dev/miniapp/sunflower/docs/Web-Admin-Plan.md`
-- 已新增 Stage 守卫脚本：`make stage-pre STAGE=Sx` / `make stage-post STAGE=Sx`
-- 已新增 PR 门禁：Stage Guard + 后端自动化测试 + 分支/提交规范校验
+- 历史 Stage 计划与报告已归档到 `docs/archive/`，仅作为项目演进记录；当前开发不再强制 Stage 守卫、Stage 报告、分支前缀或 PR 门禁
 
 ## 5. 仓库结构（概览）
 ```
 /Users/chenyao/dev/miniapp/sunflower
 ├─ README.md                      # 项目总览（含历史调研资料）
 ├─ docs/                          # 产品与技术文档
-├─ sunflower-admin-web/           # Web 管理后台工程（S9 已完成）
+├─ sunflower-admin-web/           # Web 管理后台工程
 ├─ sunflower-miniapp/             # 微信小程序工程
-├─ sunflower-backend/             # Spring Boot 后端基础工程
-└─ docker-compose.yml             # 本地联调（MySQL + backend）
+├─ sunflower-backend/             # Spring Boot 后端工程
+├─ docker-compose.yml             # 本地/单机联调（MySQL + backend + admin-web）
+├─ docker-compose.backend.yml     # ECS-2 backend/mysql 部署
+└─ docker-compose.web.yml         # ECS-1 admin-web 部署
 ```
 
 ---

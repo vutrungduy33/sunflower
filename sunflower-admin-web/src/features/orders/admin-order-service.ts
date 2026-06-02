@@ -16,6 +16,7 @@ export type AdminOrderStatus =
   | 'CONFIRMED'
   | 'CHECKED_IN'
   | 'RESCHEDULED'
+  | 'REFUND_PENDING'
   | 'REFUNDED'
   | 'COMPLETED'
   | 'CANCELLED'
@@ -59,6 +60,15 @@ export interface AdminOrder {
   bookingStatusLabel: string
   paymentStatus: AdminOrderPaymentStatus
   paymentStatusLabel: string
+  paymentMode: string
+  paymentRecordStatus: string
+  paymentRecordNo: string
+  transactionId: string
+  latestRefundRecordId: number | null
+  latestRefundStatus: string
+  latestRefundFailureCode: string
+  latestRefundFailureMessage: string
+  latestRefundAmount: number
   latestAfterSaleRequestId: number | null
   latestAfterSaleType: AdminOrderAfterSaleType
   latestAfterSaleStatus: AdminOrderAfterSaleStatus
@@ -153,6 +163,14 @@ export async function refundAdminOrder(orderId: string, payload: RefundAdminOrde
   const response = await httpClient.post<ApiEnvelope<AdminOrder>>(`${ADMIN_ORDER_ENDPOINT}/${orderId}/refund`, {
     reason: normalizeOptionalText(payload.reason),
   })
+
+  return response.data.data
+}
+
+export async function retryAdminRefund(orderId: string, refundId: number) {
+  const response = await httpClient.post<ApiEnvelope<AdminOrder>>(
+    `${ADMIN_ORDER_ENDPOINT}/${orderId}/refunds/${refundId}/retry`,
+  )
 
   return response.data.data
 }

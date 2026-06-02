@@ -10,6 +10,7 @@ import com.sunflower.backend.modules.order.admin.dto.AdminOrderDto;
 import com.sunflower.backend.modules.order.admin.dto.AdminOrderOverviewDto;
 import com.sunflower.backend.modules.order.dto.RefundOrderRequest;
 import com.sunflower.backend.modules.order.dto.RescheduleOrderRequest;
+import com.sunflower.backend.modules.payment.wechat.OrderPaymentService;
 import com.sunflower.backend.modules.order.persistence.OrderEntity;
 import com.sunflower.backend.modules.order.persistence.OrderRepository;
 import com.sunflower.backend.modules.room.RoomService;
@@ -33,17 +34,20 @@ public class AdminOrderService {
 
     private final OrderRepository orderRepository;
     private final OrderService orderService;
+    private final OrderPaymentService orderPaymentService;
     private final RoomService roomService;
     private final AdminAuthService adminAuthService;
 
     public AdminOrderService(
         OrderRepository orderRepository,
         OrderService orderService,
+        OrderPaymentService orderPaymentService,
         RoomService roomService,
         AdminAuthService adminAuthService
     ) {
         this.orderRepository = orderRepository;
         this.orderService = orderService;
+        this.orderPaymentService = orderPaymentService;
         this.roomService = roomService;
         this.adminAuthService = adminAuthService;
     }
@@ -117,6 +121,11 @@ public class AdminOrderService {
         adminAuthService.requireAdminAccess();
         orderService.refundOrderByAdmin(orderId, request);
         return orderService.toAdminOrderDto(requireOrder(orderId));
+    }
+
+    public AdminOrderDto retryRefund(String orderId, Long refundId) {
+        adminAuthService.requireAdminAccess();
+        return orderService.toAdminOrderDto(orderPaymentService.retryRefund(orderId, refundId));
     }
 
     public AdminOrderDto approveAfterSaleRequest(String orderId, Long requestId) {

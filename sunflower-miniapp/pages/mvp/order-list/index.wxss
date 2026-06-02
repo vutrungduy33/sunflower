@@ -89,6 +89,11 @@
   background: linear-gradient(180deg, #f0fbf8, #deefe8);
 }
 
+.order-status--REFUND_PENDING {
+  color: #9d7d32;
+  background: linear-gradient(180deg, #fff8df, #ffefba);
+}
+
 .order-status--REFUNDED {
   color: #9e6b48;
   background: linear-gradient(180deg, #fff2e6, #ffe4d0);

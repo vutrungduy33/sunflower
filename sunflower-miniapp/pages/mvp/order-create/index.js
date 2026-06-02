@@ -3,10 +3,10 @@ const {
   fetchRoomDetail,
   postBindPhone,
   postCreateOrder,
-  postPayOrder,
 } = require('../../../utils/mvp/api');
 const { diffDays, getDefaultBookingDate } = require('../../../utils/mvp/date');
 const { normalizeProfile, normalizeRoomDetail } = require('../../../utils/mvp/normalize');
+const { payOrderByFlow } = require('../../../utils/mvp/payment');
 const { track } = require('../../../utils/mvp/tracker');
 
 Page({
@@ -181,15 +181,25 @@ Page({
 
   async payOrder(orderId) {
     try {
-      const paidOrder = await postPayOrder(orderId);
-      track('order_pay_success', {
-        orderId: paidOrder.id,
-        amount: paidOrder.totalAmount,
-      });
-      wx.showToast({ title: '支付成功', icon: 'success' });
-      setTimeout(() => {
+      const result = await payOrderByFlow(orderId);
+      if (result.status === 'success') {
+        track('order_pay_success', {
+          orderId: result.order.id,
+          amount: result.order.totalAmount,
+        });
         wx.redirectTo({ url: '/pages/mvp/order-list/index' });
-      }, 500);
+        return;
+      }
+      if (result.status === 'cancelled') {
+        wx.showToast({ title: '你已取消支付', icon: 'none' });
+        return;
+      }
+      if (result.status === 'confirming') {
+        wx.showToast({ title: result.message || '支付结果确认中', icon: 'none' });
+        wx.redirectTo({ url: '/pages/mvp/order-list/index' });
+        return;
+      }
+      wx.showToast({ title: result.message || '支付失败', icon: 'none' });
     } catch (error) {
       wx.showToast({ title: error.message || '支付失败', icon: 'none' });
     }

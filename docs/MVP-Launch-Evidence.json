@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-06-02",
+  "summary": "Launch evidence ledger for the active MVP hardening goal. Keep external evidence compact and do not store secrets or raw payment payloads.",
+  "statusValues": [
+    "passed",
+    "pending",
+    "blocked",
+    "waived"
+  ],
+  "entries": [
+    {
+      "id": "AUTO-BACKEND",
+      "area": "backend",
+      "requirement": "Backend automated test suite remains green.",
+      "status": "passed",
+      "requiredForMvp": true,
+      "evidence": "Round 39 RUN_PRODUCTION=1 scripts/check_mvp_regression.sh passed at pre-commit HEAD 255558f001e9 on 2026-06-02 08:58 Asia/Shanghai. Backend mvn -B test passed with 57 tests, 0 failures, 0 errors, 0 skipped.",
+      "nextAction": "Re-run after backend changes or before final closeout."
+    },
+    {
+      "id": "AUTO-ADMIN-WEB",
+      "area": "admin-web",
+      "requirement": "Admin web lint, tests, and production build remain green.",
+      "status": "passed",
+      "requiredForMvp": true,
+      "evidence": "Round 42 direct admin-web recheck passed on 2026-06-02 09:21-09:22 Asia/Shanghai using Node v20.20.1: npm run lint passed, npm run test passed with 23 Vitest tests across 5 files, and npm run build passed. Round 39 RUN_PRODUCTION=1 scripts/check_mvp_regression.sh also passed admin behavior wiring with 97 checks and admin external QA preflight with 6 checks at pre-commit HEAD 255558f001e9.",
+      "nextAction": "Re-run after admin-web changes or before final closeout."
+    },
+    {
+      "id": "AUTO-MINIAPP",
+      "area": "miniapp",
+      "requirement": "Miniapp smoke checks and key JavaScript syntax checks pass.",
+      "status": "passed",
+      "requiredForMvp": true,
+      "evidence": "Round 39 RUN_PRODUCTION=1 scripts/check_mvp_regression.sh passed at pre-commit HEAD 255558f001e9 on 2026-06-02 08:58 Asia/Shanghai. Miniapp smoke, behavior wiring, user-flow replay, external preflight, project config, and subpage nav checks passed. The run still warned that the default API base is bare HTTP for local/devtools validation and local project.private.config.json is absent.",
+      "nextAction": "Re-run after miniapp changes or before final closeout; real preview/device evidence remains separate."
+    },
+    {
+      "id": "PROD-SMOKE",
+      "area": "deployment",
+      "requirement": "Production public and internal smoke checks pass.",
+      "status": "passed",
+      "requiredForMvp": true,
+      "evidence": "Round 39 RUN_PRODUCTION=1 scripts/check_mvp_regression.sh passed at pre-commit HEAD 255558f001e9 on 2026-06-02 08:58 Asia/Shanghai. Production public/ECS internal smoke passed with 7 checks and 1 known backend-bind warning, and backend 8080 read-only exposure checks passed with 3 checks and 2 warnings. No push, deploy, Nginx reload, ECS/firewall/security-group change, or production configuration mutation was performed.",
+      "nextAction": "Re-run after approved deploy or production config change."
+    },
+    {
+      "id": "WECHAT-DOMAIN",
+      "area": "miniapp",
+      "requirement": "Miniapp production API uses an HTTPS legal request domain configured in the WeChat backend, with valid certificate and ICP/domain eligibility.",
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Not recorded in repo. Current default API base remains bare HTTP IP for DevTools validation only. Detailed miniapp QA ledger exists at docs/Miniapp-Manual-QA.json.",
+      "nextAction": "Configure and verify HTTPS API domain, then record domain, verification date, and non-secret evidence summary in docs/Miniapp-Manual-QA.json."
+    },
+    {
+      "id": "WECHAT-PREVIEW-LOGIN",
+      "area": "miniapp",
+      "requirement": "WeChat preview or real-device login obtains backend token and stores profile state without devtools-only bypasses.",
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Not recorded in repo. Detailed miniapp QA ledger exists at docs/Miniapp-Manual-QA.json.",
+      "nextAction": "Run WeChat DevTools preview or real device with real AppID from ignored project.private.config.json and legal domain, then record pass/fail summary in docs/Miniapp-Manual-QA.json."
+    },
+    {
+      "id": "WECHAT-PHONE",
+      "area": "miniapp",
+      "requirement": "Phone authorization and backend phone binding succeed in preview or real-device flow.",
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Not recorded in repo. Detailed miniapp QA ledger exists at docs/Miniapp-Manual-QA.json.",
+      "nextAction": "Run getPhoneNumber flow and record non-secret evidence in docs/Miniapp-Manual-QA.json."
+    },
+    {
+      "id": "MINIAPP-BOOKING-PATH",
+      "area": "miniapp",
+      "requirement": "User can browse home/rooms/calendar, create an order, and see it in the order center in preview or real-device flow.",
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Automated smoke covers file registration and syntax only. Dedicated miniapp manual QA ledger exists at docs/Miniapp-Manual-QA.json, but user-path manual evidence is not recorded.",
+      "nextAction": "Run node scripts/check_miniapp_manual_qa.js, execute pending booking checks, then require node scripts/check_miniapp_manual_qa.js --strict before marking this entry passed or waived."
+    },
+    {
+      "id": "WECHAT-REAL-PAYMENT",
+      "area": "payment",
+      "requirement": "One low-value real WeChat payment completes with merchant configuration, backend confirmation, and order status update.",
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Not recorded in repo. Detailed miniapp/payment QA ledger exists at docs/Miniapp-Manual-QA.json.",
+      "nextAction": "After user approval, run a low-value payment and record only non-secret transaction evidence in docs/Miniapp-Manual-QA.json."
+    },
+    {
+      "id": "WECHAT-REAL-REFUND",
+      "area": "payment",
+      "requirement": "One real refund or refund request path is validated with merchant configuration and backend status update.",
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Not recorded in repo. Detailed miniapp/payment QA ledger exists at docs/Miniapp-Manual-QA.json.",
+      "nextAction": "After user approval, run refund validation and record only non-secret evidence in docs/Miniapp-Manual-QA.json."
+    },
+    {
+      "id": "ADMIN-PROD-QA",
+      "area": "admin-web",
+      "requirement": "A real admin account can complete activation/login/password/account, room/price/inventory, order operations, and summary checks against production or approved staging.",
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Local automated admin tests passed. Dedicated admin manual QA ledger exists at docs/Admin-Web-Manual-QA.json, but production/staging manual QA with a real account is not recorded.",
+      "nextAction": "Run node scripts/check_admin_web_manual_qa.js, execute pending checks with non-secret evidence, then require node scripts/check_admin_web_manual_qa.js --strict before marking this entry passed or waived."
+    },
+    {
+      "id": "BACKEND-8080-HARDENING",
+      "area": "security",
+      "requirement": "Direct public access to backend port 8080 is restricted to ECS-1 by security group or host firewall, or explicitly accepted by the user as a launch risk.",
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Round 39 backend 8080 read-only checks passed at pre-commit HEAD 255558f001e9 on 2026-06-02 08:58 Asia/Shanghai: public 8080 was not directly usable from this network, ECS-1 private upstream works, and ECS-2 backend is healthy. ECS-2 still shows docker-proxy listening on 0.0.0.0:8080, and local firewall output did not prove restriction. Alibaba Cloud security group evidence or explicit waiver is still required.",
+      "nextAction": "Record Alibaba Cloud security group evidence in docs/Backend-8080-Security.md or get explicit user waiver before marking this entry passed or waived. Modifying security group/firewall requires user approval."
+    },
+    {
+      "id": "CURRENT-BRANCH-DEPLOYED",
+      "area": "deployment",
+      "requirement": "Current committed MVP branch code has been deployed through the approved GitHub Actions path, or deployment is explicitly declared out of scope by the user.",
+      "status": "pending",
+      "requiredForMvp": true,
+      "evidence": "Round 41 node scripts/check_deployment_approval_preflight.js passed on branch codex/s18-payment-hardening at HEAD 5376567d2d1c, compared with origin/main 5a37a6788c21. Changed files since base: 142. Predicted push-to-main deploy target: all. Impact counts: backend 38, admin-web 5, ingress 1. Worktree was clean and branch was not main. No push, merge, workflow_dispatch, or deployment was performed, so current branch deployment remains unproven.",
+      "nextAction": "Ask for explicit approval before push/merge/workflow_dispatch, or record an explicit user decision that current-branch deployment evidence is out of scope."
+    }
+  ]
+}

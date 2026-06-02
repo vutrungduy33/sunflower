@@ -15,6 +15,7 @@ import {
   rejectAdminAfterSaleRequest,
   refundAdminOrder,
   rescheduleAdminOrder,
+  retryAdminRefund,
   type AdminOrder,
   type AdminOrderOverview,
 } from '@/features/orders/admin-order-service'
@@ -260,6 +261,7 @@ vi.mock('@/features/orders/admin-order-service', () => ({
   rejectAdminAfterSaleRequest: vi.fn(),
   refundAdminOrder: vi.fn(),
   rescheduleAdminOrder: vi.fn(),
+  retryAdminRefund: vi.fn(),
 }))
 
 function buildOverview(overrides: Partial<AdminOrderOverview> = {}): AdminOrderOverview {
@@ -294,6 +296,15 @@ function buildOrder(overrides: Partial<AdminOrder> = {}): AdminOrder {
     bookingStatusLabel: '待入住',
     paymentStatus: 'PAID',
     paymentStatusLabel: '已支付',
+    paymentMode: 'WECHAT_MINIAPP',
+    paymentRecordStatus: 'SUCCESS',
+    paymentRecordNo: 'SFP2026031110301234A1B2C3',
+    transactionId: '4200000000000000001',
+    latestRefundRecordId: null,
+    latestRefundStatus: '',
+    latestRefundFailureCode: '',
+    latestRefundFailureMessage: '',
+    latestRefundAmount: 0,
     latestAfterSaleRequestId: null,
     latestAfterSaleType: '',
     latestAfterSaleStatus: '',
@@ -347,6 +358,7 @@ describe('OrderManagementPage', () => {
     vi.mocked(rejectAdminAfterSaleRequest).mockReset()
     vi.mocked(rescheduleAdminOrder).mockReset()
     vi.mocked(refundAdminOrder).mockReset()
+    vi.mocked(retryAdminRefund).mockReset()
     vi.mocked(getAdminOrderErrorMessage).mockClear()
 
     vi.mocked(fetchAdminOrderOverview).mockResolvedValue(buildOverview())
@@ -452,6 +464,22 @@ describe('OrderManagementPage', () => {
           afterSaleReason: payload.reason ?? '',
         }),
     )
+    vi.mocked(retryAdminRefund).mockImplementation(async (orderId: string, refundId: number) =>
+      buildOrder({
+        id: orderId,
+        status: 'CONFIRMED',
+        statusLabel: '待入住',
+        bookingStatus: 'CONFIRMED',
+        bookingStatusLabel: '待入住',
+        paymentStatus: 'REFUND_PENDING',
+        paymentStatusLabel: '退款中',
+        latestRefundRecordId: refundId,
+        latestRefundStatus: 'PROCESSING',
+        latestRefundFailureCode: '',
+        latestRefundFailureMessage: '',
+        latestRefundAmount: 488,
+      }),
+    )
   })
 
   it('filters the order list by status, keyword and check-in date range', async () => {
@@ -540,6 +568,157 @@ describe('OrderManagementPage', () => {
     })
     await waitFor(() => {
       expect(messageSuccess).toHaveBeenCalledWith('售后申请已同意')
+    })
+  })
+
+  it('rejects a pending after-sale request with an operator reason', async () => {
+    const user = userEvent.setup()
+
+    vi.mocked(fetchAdminOrders).mockResolvedValue([
+      buildOrder({
+        latestAfterSaleRequestId: 11,
+        latestAfterSaleType: 'REFUND',
+        latestAfterSaleStatus: 'REQUESTED',
+        latestAfterSaleStatusLabel: '处理中',
+        afterSaleReason: '用户申请退款',
+      }),
+    ])
+    vi.mocked(fetchAdminOrderDetail).mockResolvedValue(
+      buildOrder({
+        latestAfterSaleRequestId: 11,
+        latestAfterSaleType: 'REFUND',
+        latestAfterSaleStatus: 'REQUESTED',
+        latestAfterSaleStatusLabel: '处理中',
+        afterSaleReason: '用户申请退款',
+      }),
+    )
+
+    renderOrderManagementPage()
+
+    expect(await screen.findByText('后台售后住客A')).toBeInTheDocument()
+
+    await user.click(screen.getAllByRole('button', { name: '审核申请' })[0])
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+    await user.type(screen.getByPlaceholderText('请输入拒绝原因，例如：房态已锁满、已过可退款时限'), '房态已锁满')
+    await user.click(screen.getByRole('button', { name: '拒绝申请' }))
+
+    await waitFor(() => {
+      expect(rejectAdminAfterSaleRequest).toHaveBeenCalledWith('order-1', 11, {
+        rejectReason: '房态已锁满',
+      })
+    })
+    await waitFor(() => {
+      expect(messageSuccess).toHaveBeenCalledWith('售后申请已拒绝')
+    })
+  })
+
+  it('handles check-in, check-out and no-show actions from the detail drawer', async () => {
+    const user = userEvent.setup()
+
+    renderOrderManagementPage()
+
+    expect(await screen.findByText('后台售后住客A')).toBeInTheDocument()
+
+    await user.click(screen.getAllByRole('button', { name: '办理入住' })[0])
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+    await user.click(screen.getAllByRole('button', { name: '办理入住' }).at(-1) as HTMLElement)
+
+    await waitFor(() => {
+      expect(checkInAdminOrder).toHaveBeenCalledWith('order-1')
+    })
+    await waitFor(() => {
+      expect(messageSuccess).toHaveBeenCalledWith('已办理入住')
+    })
+
+    vi.mocked(fetchAdminOrders).mockResolvedValue([
+      buildOrder({
+        status: 'CHECKED_IN',
+        statusLabel: '已入住',
+        bookingStatus: 'CHECKED_IN',
+        bookingStatusLabel: '已入住',
+        checkedInAt: '2026-03-13T15:00:00+08:00',
+      }),
+    ])
+    vi.mocked(fetchAdminOrderDetail).mockResolvedValue(
+      buildOrder({
+        status: 'CHECKED_IN',
+        statusLabel: '已入住',
+        bookingStatus: 'CHECKED_IN',
+        bookingStatusLabel: '已入住',
+        checkedInAt: '2026-03-13T15:00:00+08:00',
+      }),
+    )
+
+    cleanup()
+    renderOrderManagementPage()
+
+    expect(await screen.findByText('后台售后住客A')).toBeInTheDocument()
+    await user.click(screen.getAllByRole('button', { name: '办理离店' })[0])
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+    await user.click(screen.getAllByRole('button', { name: '办理离店' }).at(-1) as HTMLElement)
+
+    await waitFor(() => {
+      expect(checkOutAdminOrder).toHaveBeenCalledWith('order-1')
+    })
+    await waitFor(() => {
+      expect(messageSuccess).toHaveBeenCalledWith('已办理离店')
+    })
+
+    vi.mocked(fetchAdminOrders).mockResolvedValue([
+      buildOrder({
+        latestAfterSaleRequestId: null,
+        latestAfterSaleStatus: '',
+      }),
+    ])
+    vi.mocked(fetchAdminOrderDetail).mockResolvedValue(
+      buildOrder({
+        latestAfterSaleRequestId: null,
+        latestAfterSaleStatus: '',
+      }),
+    )
+
+    cleanup()
+    renderOrderManagementPage()
+
+    expect(await screen.findByText('后台售后住客A')).toBeInTheDocument()
+    await user.click(screen.getAllByRole('button', { name: '标记失约' })[0])
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+    await user.click(screen.getAllByRole('button', { name: '标记失约' }).at(-1) as HTMLElement)
+
+    await waitFor(() => {
+      expect(noShowAdminOrder).toHaveBeenCalledWith('order-1')
+    })
+    await waitFor(() => {
+      expect(messageSuccess).toHaveBeenCalledWith('订单已标记失约')
+    })
+  })
+
+  it('retries a failed refund from the detail drawer', async () => {
+    const user = userEvent.setup()
+
+    const failedRefundOrder = buildOrder({
+      latestRefundRecordId: 27,
+      latestRefundStatus: 'FAILED',
+      latestRefundFailureCode: 'SYSTEM_ERROR',
+      latestRefundFailureMessage: '微信侧临时失败',
+      latestRefundAmount: 488,
+    })
+    vi.mocked(fetchAdminOrders).mockResolvedValue([failedRefundOrder])
+    vi.mocked(fetchAdminOrderDetail).mockResolvedValue(failedRefundOrder)
+
+    renderOrderManagementPage()
+
+    expect(await screen.findByText('后台售后住客A')).toBeInTheDocument()
+
+    await user.click(screen.getAllByRole('button', { name: '重试退款' })[0])
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+    await user.click(screen.getAllByRole('button', { name: '重试退款' }).at(-1) as HTMLElement)
+
+    await waitFor(() => {
+      expect(retryAdminRefund).toHaveBeenCalledWith('order-1', 27)
+    })
+    await waitFor(() => {
+      expect(messageSuccess).toHaveBeenCalledWith('退款已重新发起')
     })
   })
 

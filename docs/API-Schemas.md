@@ -1,6 +1,6 @@
 # 接口字段级别定义（请求/响应示例）
 
-> 更新时间：2026-03-24
+> 更新时间：2026-04-08
 > 说明：以下示例对齐当前 `sunflower-backend` 的 MVP 一期实现。
 
 统一响应壳：
@@ -304,9 +304,10 @@ null
 
 兼容状态字段 `status/statusLabel`：
 - `PENDING_PAYMENT`（待支付）
-- `CONFIRMED`（待入住，兼容包含“退款/改期处理中、被拒绝后继续待入住”的展示）
+- `CONFIRMED`（待入住，兼容包含“改期处理中、被拒绝后继续待入住”的展示）
 - `CHECKED_IN`（已入住）
 - `RESCHEDULED`（已改期，兼容展示态）
+- `REFUND_PENDING`（退款中，兼容展示态）
 - `REFUNDED`（已退款，兼容展示态）
 - `COMPLETED`（已完成）
 - `CANCELLED`（已取消）
@@ -359,6 +360,15 @@ null
   "bookingStatusLabel": "待支付",
   "paymentStatus": "UNPAID",
   "paymentStatusLabel": "未支付",
+  "paymentMode": "",
+  "paymentRecordStatus": "",
+  "paymentRecordNo": "",
+  "transactionId": "",
+  "latestRefundRecordId": null,
+  "latestRefundStatus": "",
+  "latestRefundFailureCode": "",
+  "latestRefundFailureMessage": "",
+  "latestRefundAmount": 0,
   "latestAfterSaleRequestId": null,
   "latestAfterSaleType": "",
   "latestAfterSaleStatus": "",
@@ -378,6 +388,38 @@ null
 ```
 
 ### `POST /api/orders/{id}/pay`
+说明：返回小程序 `wx.requestPayment` 所需参数和当前支付流水快照，不再直接把订单切为已支付。
+
+**响应**
+```json
+{
+  "order": {
+    "id": "order_1739260800000_123",
+    "status": "PENDING_PAYMENT",
+    "statusLabel": "待支付",
+    "bookingStatus": "PENDING_PAYMENT",
+    "paymentStatus": "UNPAID",
+    "paymentMode": "WECHAT_MINIAPP",
+    "paymentRecordStatus": "PREPARED",
+    "paymentRecordNo": "SFPSF202602121234AB12CD",
+    "transactionId": ""
+  },
+  "paymentMode": "WECHAT_MINIAPP",
+  "paymentRecordId": 21,
+  "expiresAt": "2026-02-12T10:45:00+08:00",
+  "paymentRequest": {
+    "timeStamp": "1770000000",
+    "nonceStr": "3f6f9c0f8bca4b24a11f80db29d8d001",
+    "package": "prepay_id=wx201410272009395522657a690389285100",
+    "signType": "RSA",
+    "paySign": "base64-signature-from-backend"
+  }
+}
+```
+
+### `POST /api/orders/{id}/pay/confirm`
+说明：小程序支付成功回调到前端后可调用该接口主动确认；正式链路会查微信订单状态，开发态 mock 直接确认成功。
+
 **响应**
 ```json
 {
@@ -385,7 +427,13 @@ null
   "status": "CONFIRMED",
   "statusLabel": "待入住",
   "bookingStatus": "CONFIRMED",
+  "bookingStatusLabel": "待入住",
   "paymentStatus": "PAID",
+  "paymentStatusLabel": "已支付",
+  "paymentMode": "WECHAT_MINIAPP",
+  "paymentRecordStatus": "SUCCESS",
+  "paymentRecordNo": "SFPSF202602121234AB12CD",
+  "transactionId": "4200002501202602121234567890",
   "paidAt": "2026-02-12T10:30:00+08:00"
 }
 ```
@@ -506,6 +554,44 @@ null
   "latestAfterSaleStatusLabel": "已同意",
   "refundedAt": "2026-02-12T12:00:00+08:00",
   "afterSaleReason": "临时取消行程"
+}
+```
+
+### `POST /api/payments/wechat/transactions/notify`
+说明：微信支付平台回调入口；验签成功且业务处理完成返回 `SUCCESS`，否则返回 `FAIL` 供微信重试。
+
+**成功响应**
+```json
+{
+  "code": "SUCCESS",
+  "message": "成功"
+}
+```
+
+**失败响应**
+```json
+{
+  "code": "FAIL",
+  "message": "微信支付回调金额不匹配"
+}
+```
+
+### `POST /api/payments/wechat/refunds/notify`
+说明：微信退款回调入口。退款成功时订单从 `REFUND_PENDING` 进入 `REFUNDED`；退款异常/关闭时会回退为可重试状态。
+
+**成功响应**
+```json
+{
+  "code": "SUCCESS",
+  "message": "成功"
+}
+```
+
+**失败响应**
+```json
+{
+  "code": "FAIL",
+  "message": "微信退款回调退款金额不匹配"
 }
 ```
 
@@ -914,7 +1000,7 @@ null
 ### `GET /api/admin/orders`
 **Query 参数**
 
-- `status`：可选，支持 `PENDING_PAYMENT` / `CONFIRMED` / `CHECKED_IN` / `RESCHEDULED` / `REFUNDED` / `COMPLETED` / `CANCELLED` / `NO_SHOW`
+- `status`：可选，支持 `PENDING_PAYMENT` / `CONFIRMED` / `CHECKED_IN` / `RESCHEDULED` / `REFUND_PENDING` / `REFUNDED` / `COMPLETED` / `CANCELLED` / `NO_SHOW`
 - `keyword`：可选，模糊匹配 `orderNo` / `roomName` / `guestName` / `guestPhone`
 - `checkInStartDate`：可选，格式 `yyyy-MM-dd`
 - `checkInEndDate`：可选，格式 `yyyy-MM-dd`
@@ -937,21 +1023,30 @@ null
     "arrivalTime": "18:00",
     "remark": "后台改期单",
     "totalAmount": 488,
-    "status": "CONFIRMED",
-    "statusLabel": "待入住（退款处理中）",
-    "bookingStatus": "CONFIRMED",
-    "bookingStatusLabel": "待入住",
-    "paymentStatus": "PAID",
-    "paymentStatusLabel": "已支付",
+    "status": "REFUND_PENDING",
+    "statusLabel": "退款中",
+    "bookingStatus": "CANCELLED",
+    "bookingStatusLabel": "已取消",
+    "paymentStatus": "REFUND_PENDING",
+    "paymentStatusLabel": "退款中",
+    "paymentMode": "WECHAT_MINIAPP",
+    "paymentRecordStatus": "SUCCESS",
+    "paymentRecordNo": "SFPSF2026031110301234AB12CD",
+    "transactionId": "4200002501202603111234567890",
+    "latestRefundRecordId": 18,
+    "latestRefundStatus": "PROCESSING",
+    "latestRefundFailureCode": "",
+    "latestRefundFailureMessage": "",
+    "latestRefundAmount": 488,
     "latestAfterSaleRequestId": 18,
     "latestAfterSaleType": "REFUND",
-    "latestAfterSaleStatus": "REQUESTED",
-    "latestAfterSaleStatusLabel": "处理中",
+    "latestAfterSaleStatus": "APPROVED",
+    "latestAfterSaleStatusLabel": "已同意",
     "latestAfterSaleRejectReason": "",
     "rescheduleCount": 1,
     "createdAt": "2026-03-11T10:30:12+08:00",
     "paidAt": "2026-03-11T10:31:00+08:00",
-    "cancelledAt": "",
+    "cancelledAt": "2026-03-11T10:36:00+08:00",
     "checkedInAt": "",
     "checkedOutAt": "",
     "noShowAt": "",
@@ -986,6 +1081,15 @@ null
   "bookingStatusLabel": "待入住",
   "paymentStatus": "PAID",
   "paymentStatusLabel": "已支付",
+  "paymentMode": "WECHAT_MINIAPP",
+  "paymentRecordStatus": "SUCCESS",
+  "paymentRecordNo": "SFPSF2026031110301234AB12CD",
+  "transactionId": "4200002501202603111234567890",
+  "latestRefundRecordId": null,
+  "latestRefundStatus": "",
+  "latestRefundFailureCode": "",
+  "latestRefundFailureMessage": "",
+  "latestRefundAmount": 0,
   "latestAfterSaleRequestId": 17,
   "latestAfterSaleType": "RESCHEDULE",
   "latestAfterSaleStatus": "APPROVED",
@@ -1033,7 +1137,7 @@ null
 ```
 
 ### `POST /api/admin/orders/{id}/refund`
-说明：兼容保留的后台直接退款接口，会立即完成退款状态落库。
+说明：兼容保留的后台直接退款接口，会立即发起退款流水；最终退款结果由微信退款回调落库。
 
 **请求**
 ```json
@@ -1045,14 +1149,36 @@ null
 ```json
 {
   "id": "order_1741651200000_7890",
-  "status": "REFUNDED",
-  "statusLabel": "已退款",
+  "status": "REFUND_PENDING",
+  "statusLabel": "退款中",
   "bookingStatus": "CANCELLED",
-  "paymentStatus": "REFUNDED",
+  "paymentStatus": "REFUND_PENDING",
+  "paymentMode": "WECHAT_MINIAPP",
+  "paymentRecordStatus": "SUCCESS",
+  "paymentRecordNo": "SFPSF2026031110400078AA99BB",
+  "transactionId": "4200002501202603119988776655",
+  "latestRefundRecordId": 28,
+  "latestRefundStatus": "PROCESSING",
   "latestAfterSaleType": "REFUND",
   "latestAfterSaleStatus": "APPROVED",
-  "refundedAt": "2026-03-11T10:40:00+08:00",
   "afterSaleReason": "后台审核同意退款"
+}
+```
+
+### `POST /api/admin/orders/{id}/refunds/{refundId}/retry`
+说明：仅允许重试 `FAILED / ABNORMAL / CLOSED` 的退款流水；重试后会创建新的退款流水并重新进入 `REFUND_PENDING`。
+
+**响应**
+```json
+{
+  "id": "order_1741651200000_7890",
+  "status": "REFUND_PENDING",
+  "bookingStatus": "CANCELLED",
+  "paymentStatus": "REFUND_PENDING",
+  "latestRefundRecordId": 29,
+  "latestRefundStatus": "PROCESSING",
+  "latestRefundFailureCode": "",
+  "latestRefundFailureMessage": ""
 }
 ```
 
@@ -1065,9 +1191,10 @@ null
   "latestAfterSaleType": "REFUND",
   "latestAfterSaleStatus": "APPROVED",
   "latestAfterSaleStatusLabel": "已同意",
-  "status": "REFUNDED",
+  "status": "REFUND_PENDING",
   "bookingStatus": "CANCELLED",
-  "paymentStatus": "REFUNDED"
+  "paymentStatus": "REFUND_PENDING",
+  "latestRefundStatus": "PROCESSING"
 }
 ```
 

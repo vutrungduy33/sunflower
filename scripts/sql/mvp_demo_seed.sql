@@ -8,6 +8,7 @@
 -- S15 order state machine sync: keep booking_status/payment_status and after-sale compatibility fields aligned.
 -- S16 auth/profile sync: keep user auth_version and profile bootstrap fields aligned.
 -- S17 admin real auth sync: keep admin account/credential demo seeds aligned with真实后台账号登录与会话 token。
+-- S18 wechat payment sync: keep 微信支付/退款事实表与演示订单资金流水结构对齐。
 
 INSERT INTO users (id, openid, unionid, phone, status, auth_version)
 VALUES ('user_demo_1001', 'mock_openid_mvp_code', NULL, '13800000000', 'ACTIVE', 1)
@@ -310,4 +311,59 @@ ON DUPLICATE KEY UPDATE
     no_show_at = VALUES(no_show_at),
     rescheduled_at = VALUES(rescheduled_at),
     refunded_at = VALUES(refunded_at),
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO wechat_payment_orders (
+    order_id,
+    user_id,
+    appid,
+    mchid,
+    payer_openid,
+    out_trade_no,
+    amount,
+    prepay_id,
+    transaction_id,
+    status,
+    time_expire,
+    request_snapshot,
+    response_snapshot,
+    last_query_at,
+    success_at,
+    fail_code,
+    fail_message
+)
+VALUES (
+    'order_seed_demo_0001',
+    'user_demo_1001',
+    'wx_demo_appid',
+    'demo_mchid',
+    'mock_openid_mvp_code',
+    'SFPDEMO0001SEED',
+    38800,
+    'mock_prepay_seed_demo_0001',
+    'mock_transaction_seed_demo_0001',
+    'SUCCESS',
+    DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 15 MINUTE),
+    '{"mode":"seed"}',
+    '{"status":"SUCCESS"}',
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP,
+    '',
+    ''
+)
+ON DUPLICATE KEY UPDATE
+    appid = VALUES(appid),
+    mchid = VALUES(mchid),
+    payer_openid = VALUES(payer_openid),
+    amount = VALUES(amount),
+    prepay_id = VALUES(prepay_id),
+    transaction_id = VALUES(transaction_id),
+    status = VALUES(status),
+    time_expire = VALUES(time_expire),
+    request_snapshot = VALUES(request_snapshot),
+    response_snapshot = VALUES(response_snapshot),
+    last_query_at = VALUES(last_query_at),
+    success_at = VALUES(success_at),
+    fail_code = VALUES(fail_code),
+    fail_message = VALUES(fail_message),
     updated_at = CURRENT_TIMESTAMP;

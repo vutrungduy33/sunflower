@@ -15,6 +15,56 @@ app:
   media:
     avatar:
       storage-path: ./target/test-uploads/avatars
+  pay:
+    wechat:
+      mock-enabled: true
+      app-id: wx_test_pay_appid
+      mch-id: 1900000109
+      merchant-serial-no: TEST_MERCHANT_SERIAL_20260407
+      private-key-content: |
+        -----BEGIN PRIVATE KEY-----
+        MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC1uBTZouak9iBw
+        TZYdokYXVWZcpYBDKezSJcVdhWjGOxujhMdOE8Ip9CrXVMtGJG836EpG+zRF1i5d
+        3V7s4HaH2NJeRLSfIqQjxyQ5qCPsZHJsxSooArp2hHSvhFHGTvEaeiQMKaYHI2Gd
+        GqbUmLH9rqLJUk4GCjPUN59tGvJZvOAkODF+SjF0wnHkBhhfhbXzkCKxl3AiM1Fe
+        bwOtzMxly60ozUtojGhA0C6UH5IFo40TS7FCgN23+KUgjzhvTTP8aGVdvJ28F/bc
+        1eWK8y6GUSu8Mry0p6Rh4/nXGNcZLQ6K00cZWWrD6k9Sh0wljeFhdLA4AQ1PlcVX
+        71gSEsJ9AgMBAAECggEABpUEMv06uSdDIIjm6EGMTrm6AJ7BXm1tKxAm2HmFxIcN
+        PBHfUugrTxq4LImL6AlXeqEa2PxYtd40BWld0AWyCr9N9g/WB7JDsMS8qVak9SHk
+        SnqlHsLj3yQdbTgalYIe1enZAWnGyO5n/D6kDqz4kYBFsYtze7Ywj2jJCQosqhcP
+        gNMh6hGWmHwGU0ypfeM5A0qN0m8Dn+T74FVelzI5LCDtcZFoz3oohpDZKpmt+y+8
+        tiRxSe5aE0GxlKS2kg69bJJu7NcpY+QazC2ctUMr+04sUirCmvxw0cp+WUMYyRu7
+        3r3yQZ1iaR/Ltc7Nev3mO7M4KjNfuVHm3YJqdRr8sQKBgQDiMVamhPutNi9NK3ny
+        mF/QR72RSyEcH0+9w8kb5fsfGfd+Bxa0VXqxSZ2qVWf1i3c0G292r1Lkc9MO8okq
+        shgAZzT6YcWJfqlByJXxGtxv2NC0+wkGUNRVMfNuzj8GydiXoEjRN6jya/Zgr+Dm
+        jF+wZM+5UiAIuxb5PcwANvYJ2QKBgQDNqmoLrhqy0xQt8UGGb3LxfxQkVj/lu/iK
+        a9X+S2gq0qOcfALdptEUsUZspqhzWYuZ9M5cShCxnHVxjIQP/hhyCztYOeAVcEND
+        L1iSume+gB6QtTg5TVXWbsKRthHVLTazy7xWeZH7392y01bnZBS795S2eIEsDCai
+        Up3/498TRQKBgCPQniDFw7f8cWbtsGR6PgmTom+EDt0OFCk++/P/6VBWYzrAUpcB
+        RekWd/GFjm1xxNEqWu7W+fAUauHeA1wQUP6XWOsgWg/YT2KMKTnBABBxqzJM4XPv
+        jn9i5mGwJIilozb2+TCveH/SGnPaxWib53bdr4pvd4UKYqvaXhfWnASZAoGBAJ9F
+        ZwSOm0x7XLhLiqQSsSBGepG9XZSLImoIItvhB9WJ9HyeKRYANxDgTJqd4fwaj5r1
+        083y6cSyVt1NpYRBEitXeWjUwS25F83y35QZ2XfU/lawkM8Hjf8XHYT8TAkcD63j
+        jIIneZ9meekf88AUaF482KUK43X6Hv08H/HoRXxFAoGAVQ7ifGrB7jxRJPCcym7o
+        43oPpaQQNM6TR7vyBdiTfpHkp/Tc1LnusfzA0fyi1+liB+1NYQtEMnkk2iTBoDiW
+        hvp0USAHd5tgHoflS6yipKpPGnUhthtOC+NRApKcuePJcDeJZ97dqMcPzjBCdmtR
+        9J4LkMxe9wMzlyvqBmMlrSY=
+        -----END PRIVATE KEY-----
+      public-key-id: TEST_WECHAT_PUBLIC_KEY_20260407
+      public-key-content: |
+        -----BEGIN PUBLIC KEY-----
+        MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtbgU2aLmpPYgcE2WHaJG
+        F1VmXKWAQyns0iXFXYVoxjsbo4THThPCKfQq11TLRiRvN+hKRvs0RdYuXd1e7OB2
+        h9jSXkS0nyKkI8ckOagj7GRybMUqKAK6doR0r4RRxk7xGnokDCmmByNhnRqm1Jix
+        /a6iyVJOBgoz1DefbRryWbzgJDgxfkoxdMJx5AYYX4W185AisZdwIjNRXm8DrczM
+        ZcutKM1LaIxoQNAulB+SBaONE0uxQoDdt/ilII84b00z/GhlXbydvBf23NXlivMu
+        hlErvDK8tKekYeP51xjXGS0OitNHGVlqw+pPUodMJY3hYXSwOAENT5XFV+9YEhLC
+        fQIDAQAB
+        -----END PUBLIC KEY-----
+      api-v3-key: 0123456789abcdef0123456789abcdef
+      payment-notify-url: https://pay.example.com/api/payments/wechat/transactions/notify
+      refund-notify-url: https://pay.example.com/api/payments/wechat/refunds/notify
+      pay-expire-minutes: 15
   admin:
     activation:
       allowlist: 13100000000:admin,13200000000:admin,13300000000:admin,13400000000:admin,13900000000:operator

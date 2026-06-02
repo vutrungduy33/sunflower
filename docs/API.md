@@ -1,6 +1,6 @@
 # 接口清单（REST）
 
-> 更新时间：2026-03-24
+> 更新时间：2026-04-08
 > 说明：以下区分“已实现（MVP 一期）”与“规划中（后续）”。
 
 ## 1. 已实现（MVP 一期）
@@ -55,16 +55,22 @@
 - `POST /api/orders`：创建订单
 - `GET /api/orders`：当前用户订单列表
 - `GET /api/orders/{id}`：订单详情
-- `POST /api/orders/{id}/pay`：模拟支付
+- `POST /api/orders/{id}/pay`：创建支付单并返回小程序调起支付参数（开发/测试环境可显式走 mock）
+- `POST /api/orders/{id}/pay/confirm`：确认支付结果（开发态 mock 直返成功，正式链路主动查单兜底）
 - `POST /api/orders/{id}/cancel`：取消未支付订单
 - `POST /api/orders/{id}/reschedule`：提交改期申请
 - `POST /api/orders/{id}/refund`：提交退款申请
+- `POST /api/payments/wechat/transactions/notify`：微信支付回调
+- `POST /api/payments/wechat/refunds/notify`：微信退款回调
 
 补充说明：
-- 订单返回兼容字段 `status/statusLabel`，同时新增 `bookingStatus/paymentStatus/latestAfterSale*`
+- 订单返回兼容字段 `status/statusLabel`，同时新增 `bookingStatus/paymentStatus/paymentMode/paymentRecordStatus/paymentRecordNo/transactionId/latestRefund*/latestAfterSale*`
+- 兼容状态 `status` 支持：`PENDING_PAYMENT` / `CONFIRMED` / `CHECKED_IN` / `RESCHEDULED` / `REFUND_PENDING` / `REFUNDED` / `COMPLETED` / `CANCELLED` / `NO_SHOW`
 - 当前订单主状态采用：`PENDING_PAYMENT` / `CONFIRMED` / `CHECKED_IN` / `CHECKED_OUT` / `CANCELLED` / `NO_SHOW`
 - 支付状态采用：`UNPAID` / `PAID` / `REFUND_PENDING` / `REFUNDED` / `PARTIALLY_REFUNDED`
 - 售后申请状态采用：`REQUESTED` / `APPROVED` / `REJECTED` / `WITHDRAWN`
+- 退款审批通过后，订单会先进入 `bookingStatus = CANCELLED` + `paymentStatus = REFUND_PENDING`；仅在微信退款回调成功后才转为 `paymentStatus = REFUNDED`
+- 支付/退款流水字段可用于追踪：`paymentRecordNo = outTradeNo`、`transactionId = 微信支付单号`、`latestRefundRecordId/latestRefundStatus/latestRefundFailure* = 最近一笔退款流水`
 
 ### 1.6 管理端房型与房态
 - `GET /api/admin/rooms`：后台房型列表（返回全部房型，含上架/下架状态）
@@ -77,7 +83,8 @@
 - `GET /api/admin/orders`：后台订单列表（支持 `status`、`keyword`、`checkInStartDate`、`checkInEndDate` 筛选）
 - `GET /api/admin/orders/{id}`：后台订单详情
 - `POST /api/admin/orders/{id}/reschedule`：后台直接改期处理（兼容保留）
-- `POST /api/admin/orders/{id}/refund`：后台直接退款处理（兼容保留）
+- `POST /api/admin/orders/{id}/refund`：后台直接发起退款（兼容保留；返回退款处理中态，最终结果以微信回调为准）
+- `POST /api/admin/orders/{id}/refunds/{refundId}/retry`：重试失败/异常/关闭的退款流水
 - `POST /api/admin/orders/{id}/after-sale/{requestId}/approve`：同意售后申请
 - `POST /api/admin/orders/{id}/after-sale/{requestId}/reject`：拒绝售后申请
 - `POST /api/admin/orders/{id}/check-in`：办理入住

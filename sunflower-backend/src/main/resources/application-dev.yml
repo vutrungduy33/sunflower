@@ -22,6 +22,13 @@ logging:
     com.sunflower.backend: debug
 
 app:
+  pay:
+    wechat:
+      mock-enabled: ${WECHAT_PAY_MOCK_ENABLED:true}
+      app-id: ${WECHAT_APP_ID:wx_dev_pay_appid}
+      mch-id: ${WECHAT_PAY_MCH_ID:1900000109}
+      payment-notify-url: ${WECHAT_PAY_PAYMENT_NOTIFY_URL:https://pay.example.com/api/payments/wechat/transactions/notify}
+      refund-notify-url: ${WECHAT_PAY_REFUND_NOTIFY_URL:https://pay.example.com/api/payments/wechat/refunds/notify}
   auth:
     wechat:
       mock-enabled: ${WECHAT_AUTH_MOCK_ENABLED:true}

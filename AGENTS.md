@@ -1,41 +1,47 @@
-# Repository Agent Rules
+# Repository Agent Notes
 
-## Stage-first workflow (mandatory)
+## Workflow
 
-These rules apply to all coding tasks in this repository.
+This repository no longer requires stage-locked development, stage guard commands,
+stage reports, branch-name prefixes, or stage-prefixed commit messages.
 
-1. Before any code changes:
-   - Read `/Users/chenyao/dev/miniapp/sunflower/docs/Agent-Stage-Plan.md`.
-   - Read `/Users/chenyao/dev/miniapp/sunflower/docs/Backlog.md`.
-   - Lock work to exactly one stage (`Sx`).
+For coding tasks:
 
-2. Scope control:
-   - Do not implement multiple stages in one turn.
-   - If user request spans multiple stages, execute only the current stage and list deferred items.
+1. Read the hot context first:
+   - `docs/Agent-Memory.md`
+   - `docs/Context-Index.md`
+   - `docs/Project-State.md`
+   - `git status --short --untracked-files=all`
+2. Load only task-relevant warm docs from `docs/Context-Index.md`.
+3. Do not read `docs/archive/**` by default; it is cold historical context only.
+4. Keep API contracts backward-compatible by default.
+5. If an API contract must change, update affected callers and the API docs.
+6. Run focused automated checks for the touched area when practical.
+7. Keep changes scoped and explain any manual verification steps.
 
-3. API contract guard:
-   - Keep API contract backward-compatible by default.
-   - If contract changes are required, update:
-     - caller side (miniapp/admin web as applicable)
-     - `/Users/chenyao/dev/miniapp/sunflower/docs/API.md`
-     - `/Users/chenyao/dev/miniapp/sunflower/docs/API-Schemas.md`
+## Memory and context hygiene
 
-4. Verification guard:
-   - Run at least one executable automated test command for the touched stage.
-   - Provide manual verification steps for QA replay.
+- Maintain `docs/Project-State.md` when durable facts, validation status, risks, or active topology change.
+- Maintain `docs/Decision-Log.md` for durable architecture, workflow, dependency, deployment, or product decisions.
+- Maintain `docs/Context-Index.md` when canonical docs, commands, or entry points move.
+- Keep memory compact: replace stale facts instead of appending duplicates.
+- Never write secrets or raw command logs into memory docs.
 
-5. Stage completion guard:
-   - Update `/Users/chenyao/dev/miniapp/sunflower/docs/Backlog.md` stage checkbox.
-   - Create or update `/Users/chenyao/dev/miniapp/sunflower/docs/stage-reports/Sx.md`.
-   - Run:
-     - `./scripts/stage_guard.sh pre Sx` before development
-     - `./scripts/stage_guard.sh post Sx` before final response
+## Open-source reference first
 
-6. Git conventions:
-   - Branch naming must follow `codex/s<stage>-<slug>` (example: `codex/s1-db-migration`).
-   - Commit subject must start with stage prefix (example: `[S1] add flyway baseline`).
+For common, non-novel engineering features, use the `open-source-reference-first`
+skill before implementation. This applies especially to auth, RBAC, payment
+flows, booking calendars, admin CRUD, uploads, CI/CD, deployment scripts,
+observability, validation, form flows, and reusable UI patterns.
 
-## Frontend component policy (mandatory)
+Record the reference check in a progress document or final summary:
+
+- sources checked
+- license/compatibility
+- selected approach
+- what was copied, adapted, or rejected
+
+## Frontend component policy
 
 1. Prefer TDesign components:
    - In miniapp frontend work, prioritize official `tdesign-miniprogram` components and patterns.
@@ -49,16 +55,7 @@ These rules apply to all coding tasks in this repository.
 4. Keep custom components thin when approved:
    - If a custom component is approved, keep it focused on business behavior/composition and reuse TDesign primitives for UI as much as possible.
 
-## Stage report format
+## Documentation
 
-Use `/Users/chenyao/dev/miniapp/sunflower/docs/stage-reports/_TEMPLATE.md` and keep all required headings.
-Also follow `/Users/chenyao/dev/miniapp/sunflower/docs/Definition-of-Done.md`.
-
-## Skill shortcuts (recommended)
-
-When relevant, explicitly invoke these skills:
-
-- `$stage-executor`: Use for complete single-stage delivery (`Sx`) with guard commands and reporting.
-- `$api-contract-guard`: Use when controller/DTO/API behavior may change.
-- `$spring-persistence-stage`: Use for Spring Boot in-memory to MySQL persistence migration stages.
-- `$submit-code-pr`: Use when the user asks to “提交代码/推送代码/创建PR”, and execute commit/push/PR creation with labels and milestone.
+Historical stage plans and reports remain in `docs/archive/` for reference only.
+They are not active process requirements.

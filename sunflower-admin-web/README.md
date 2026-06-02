@@ -1,8 +1,25 @@
 # Sunflower Admin Web
 
-S9 阶段交付的管理后台 Web 工程骨架。
+Sunflower MVP management console for guesthouse operations. This is the active
+React admin web app, not a stage skeleton.
 
-## 当前技术栈
+## Current Scope
+
+Implemented MVP operator paths:
+
+- Admin activation, login, logout, password reset, and password change.
+- Protected workspace with account/session recovery.
+- Room list, create/edit, filter, and shelf-status operations.
+- Price and inventory calendar with batch update support.
+- Order list filters, detail drawer, reschedule, refund, after-sale approval or
+  rejection, refund retry, check-in, check-out, and no-show operations.
+- Business overview and backend health summary.
+
+Production manual QA evidence is still tracked separately. Do not treat local
+unit tests as proof that a real admin account, SMS, live orders, or live refund
+operations have been validated.
+
+## Stack
 
 - React 18 + TypeScript + Vite
 - TDesign React
@@ -11,32 +28,48 @@ S9 阶段交付的管理后台 Web 工程骨架。
 - Axios
 - Vitest + Testing Library
 
-## 前置依赖
+## Runtime
 
-- Node.js `>= 20.19.0`
-- npm `>= 10`
+- Local dev uses Vite proxy for `/api`.
+- `VITE_API_PROXY_TARGET` can override the local backend target; default is
+  `http://localhost:8080`.
+- Production uses same-origin `/api`; host Nginx on ECS-1 proxies requests to
+  the backend on ECS-2.
 
-当前工作区已通过官方预编译包在 `$HOME/.local/node-v20.20.1-darwin-arm64` 安装 Node `v20.20.1`。如果系统默认 `node` 仍是旧版本，请在执行命令前先补 PATH：
-
-```bash
-export PATH="$HOME/.local/node-v20.20.1-darwin-arm64/bin:$PATH"
-```
-
-也可以直接使用本目录下的 `.nvmrc` 切换到 `20.20.1`。
-
-## 启动
+## Commands
 
 ```bash
 npm install
 npm run dev
 ```
 
-默认读取 `.env.development`，并通过 Vite proxy 把 `/api` 转发到 `http://localhost:8080`。
-
-## 校验
-
 ```bash
 npm run lint
 npm run test
 npm run build
 ```
+
+From the repository root:
+
+```bash
+node scripts/check_admin_web_behavior_wiring.js
+node scripts/check_admin_web_external_qa_preflight.js
+```
+
+The behavior wiring guard checks that routes, auth, room management,
+pricing/inventory, order actions, API services, and TanStack Query refreshes
+remain connected. It does not replace production or approved-staging manual QA.
+
+The external QA preflight checks the admin manual QA ledger and safety wording
+before a human validates production or approved staging. It does not log in,
+store credentials, mutate live data, or replace manual evidence.
+
+Node.js `>= 20.19.0` and npm `>= 10` are required. This workspace has also used
+Node `20.20.1`.
+
+## Handoff References
+
+- `docs/Admin-Web-MVP-QA.md`: automated and manual admin QA scope.
+- `docs/Admin-Web-Manual-QA.json`: machine-readable manual QA ledger.
+- `docs/Web-Admin-Plan.md`: admin web architecture and feature scope.
+- `docs/MVP-Readiness.md`: current MVP readiness status and blockers.
