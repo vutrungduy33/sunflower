@@ -39,8 +39,8 @@
 ## Latest Validation Baselines
 
 - Latest default aggregate local MVP regression:
-  `scripts/check_mvp_regression.sh` passed in Round 64 on local `main` HEAD
-  `4a3f630f30eb` with backend/admin/miniapp/evidence/deploy-config checks and
+  `scripts/check_mvp_regression.sh` passed in Round 71 on local `main` HEAD
+  `2af1ed43dfc9` with backend/admin/miniapp/evidence/deploy-config checks and
   production skipped.
 - Backend baseline from that run: `mvn -B test` passed with 57 tests, 0
   failures, 0 errors, and 0 skipped.
@@ -100,6 +100,10 @@
 - Real WeChat payment production config on ECS-2 remains incomplete. Strict
   payment readiness currently fails for missing/invalid merchant variables,
   key paths, API v3 key, and HTTPS notify URLs.
+- User confirmed in Round 71 that the real payment private key/config is not
+  fully provisioned yet. It is acceptable to use the explicit mock/nonprod lane
+  for interim validation, but this must remain recorded as mock evidence and
+  must not satisfy real payment/refund launch evidence.
 - Miniapp real-device/preview evidence is still pending for HTTPS request
   domain, real AppID preview, WeChat login, phone binding, booking path, payment,
   refund, and error states.

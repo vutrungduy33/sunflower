@@ -25,11 +25,11 @@ verified, and documented enough for handoff:
 
 | Area | Evidence | Status | Next action |
 | --- | --- | --- | --- |
-| Backend local quality | Round 64 default aggregate regression reran `mvn -B test` on local `main` HEAD `4a3f630f30eb`: passed, 57 tests, 0 failures/errors/skips. Round 28 added public order ownership isolation across current-user list/detail/pay preparation/pay confirmation/cancel/reschedule/refund actions. | Ready locally | Keep green after future backend changes. |
-| Admin web local quality | Round 64 default aggregate regression reran `npm run lint`, `npm run test` (24 tests across 5 files), and `npm run build`: passed. Behavior wiring passed 97 checks and admin external QA preflight passed 6 checks. Order tests cover check-in, check-out, no-show, after-sale rejection, failed refund retry, and invalid check-in date-range feedback/query blocking. | Ready locally | Keep green after future admin changes. |
-| Miniapp syntax/smoke | Round 64 default aggregate regression reran miniapp smoke, behavior wiring, user-flow replay, payment-flow replay, external preflight, project config, and subpage nav checks: passed. The run still warns that the default API base is bare HTTP for local/devtools validation and local `project.private.config.json` is absent. | Partially verified | Real-device login/phone/payment evidence still required. |
+| Backend local quality | Round 71 default aggregate regression reran `mvn -B test` on local `main` HEAD `2af1ed43dfc9`: passed, 57 tests, 0 failures/errors/skips. Round 28 added public order ownership isolation across current-user list/detail/pay preparation/pay confirmation/cancel/reschedule/refund actions. | Ready locally | Keep green after future backend changes. |
+| Admin web local quality | Round 71 default aggregate regression reran `npm run lint`, `npm run test` (24 tests across 5 files), and `npm run build`: passed. Behavior wiring passed 97 checks and admin external QA preflight passed 6 checks. Order tests cover check-in, check-out, no-show, after-sale rejection, failed refund retry, and invalid check-in date-range feedback/query blocking. | Ready locally | Keep green after future admin changes. |
+| Miniapp syntax/smoke | Round 71 default aggregate regression reran miniapp smoke, behavior wiring, user-flow replay, payment-flow replay, external preflight, project config, and subpage nav checks: passed. The run still warns that the default API base is bare HTTP for local/devtools validation and local `project.private.config.json` is absent. | Partially verified | Real-device login/phone/payment evidence still required. |
 | Miniapp real user path | Code supports real API, WeChat login, phone binding, `wx.requestPayment`, order and after-sale flows; manual QA ledger now exists. | Needs real-device evidence | Run `node scripts/check_miniapp_manual_qa.js --strict` after recording preview/real-device evidence. |
-| WeChat pay/refund | Backend has WeChat payment/refund gateway, callbacks, records, retry, and mock only when explicitly configured; miniapp payment QA ledger now exists. | Needs production evidence | Verify small real payment/refund with merchant config and callback domain, then record sanitized evidence. |
+| WeChat pay/refund | Backend has WeChat payment/refund gateway, callbacks, records, retry, and mock only when explicitly configured; miniapp payment QA ledger now exists. User confirmed in Round 71 that real payment private key/config is not fully provisioned yet, so interim validation may use mock/nonprod evidence only. | Needs production evidence | Use explicit mock/nonprod lane for interim validation if needed, but keep real payment/refund evidence pending until merchant config, private keys, and callback domain are ready. |
 | Admin operations path | Core pages and tests exist for auth, room, price/inventory, and order management; manual QA ledger now exists. | Partially verified | Run `node scripts/check_admin_web_manual_qa.js --strict` against deployed admin web after recording safe evidence. |
 | Deployment | Round 60 pushed commit `98e68e0dd478` to `main` and triggered GitHub Actions run `26796051853`. Backend/admin-web builds succeeded, but the first deploy attempt stalled in ECS-2 checkout. Follow-up commits `9e8c087` and `d0af634` triggered run `26796607775`; ECS-2 checkout/artifact download/image load succeeded, but backend deploy failed production env validation because `WECHAT_PAY_MCH_ID` is missing while real payment mode is configured. Round 66 added a separate non-production/mock-payment config lane checker. Round 67 wired that lane into manual GitHub Actions dispatch for backend-only deployment while keeping push/default dispatch production-lane. | Blocked on actual deployment evidence | Provision real WeChat Pay production variables/key files and deploy production, or manually dispatch backend `deployment_lane=nonprod-mock-payment` and record that it is not production payment evidence. |
 | Security / compliance | Secrets are local/ECS-owned; `.secrets/` ignored. Round 58 closed external backend `8080` by changing ECS-2 production `BACKEND_BIND_HOST` from `0.0.0.0` to `172.25.121.83`, recreating `sunflower-backend`, and verifying public 8080 is unusable while ECS-1 private upstream remains healthy. The user-provided miniapp备案 domain is `xiangrikui.cloud`, but HTTPS API host and WeChat legal request-domain configuration remain unverified. | Partially ready | Keep backend `8080` private after redeploys; complete HTTPS/WeChat domain setup. |
@@ -41,8 +41,8 @@ waived by the user.
 
 Latest aggregate regression:
 
-- `scripts/check_mvp_regression.sh`: passed in Round 64 on local `main` HEAD
-  `4a3f630f30eb` with the default 5 non-production steps: backend tests
+- `scripts/check_mvp_regression.sh`: passed in Round 71 on local `main` HEAD
+  `2af1ed43dfc9` with the default 5 non-production steps: backend tests
   (57 tests), admin-web lint/test/build plus behavior/external preflight,
   miniapp smoke/wiring/user-flow replay/payment-flow replay/external preflight,
   non-strict evidence checks including the termination audit guard, and deploy
@@ -56,13 +56,13 @@ Latest aggregate regression:
 
 Latest direct admin-web automated evidence:
 
-- `cd sunflower-admin-web && npm run lint`: passed in Round 64.
-- `cd sunflower-admin-web && npm run test`: passed in Round 64, 24 tests across
+- `cd sunflower-admin-web && npm run lint`: passed in Round 71.
+- `cd sunflower-admin-web && npm run test`: passed in Round 71, 24 tests across
   5 files.
-- `cd sunflower-admin-web && npm run build`: passed in Round 64.
-- `node scripts/check_admin_web_behavior_wiring.js`: passed in Round 64 with
+- `cd sunflower-admin-web && npm run build`: passed in Round 71.
+- `node scripts/check_admin_web_behavior_wiring.js`: passed in Round 71 with
   97 checks across 16 files.
-- `node scripts/check_admin_web_external_qa_preflight.js`: passed in Round 64
+- `node scripts/check_admin_web_external_qa_preflight.js`: passed in Round 71
   with 6 checks.
 - The earlier resumed-goal notes about `_refundId` or 3 failing/timed-out admin
   tests are stale and did not reproduce on the current worktree.

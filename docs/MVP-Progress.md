@@ -5,6 +5,72 @@
 > This active file keeps only the latest operational rounds. Older rounds are
 > archived in `docs/archive/mvp-progress/`.
 
+## Round 71: Current HEAD Default Regression Refresh
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: refresh the default local automated MVP regression on current local
+  `main` HEAD `2af1ed43dfc9` after the recent deployment-lane, handoff, and
+  documentation-pruning commits, without pushing, dispatching GitHub Actions,
+  deploying, or mutating production.
+- Start evidence:
+  - Local `main` was clean and ahead of `origin/main` by 11 commits.
+  - The latest documented default aggregate regression is still Round 64 at
+    HEAD `4a3f630f30eb`; this no longer covers Rounds 65-70.
+  - The latest read-only production audit remains Round 65; this round keeps
+    production checks skipped because no deployment or production state changed.
+- Open-source reference check:
+  - Task classification: repository-specific validation and documentation
+    refresh.
+  - Sources checked: not needed; no common feature, third-party implementation,
+    framework integration, deployment code, auth/payment flow, or UI pattern is
+    being introduced.
+  - License/compatibility: no external code copied.
+  - Selected approach: run the existing aggregate regression script on current
+    HEAD, record the exact result, and keep unresolved external/manual evidence
+    pending.
+  - Rejected options: re-running production smoke without a production-state
+    change, pushing to main to trigger deployment, or treating local regression
+    as proof of manual/external QA.
+- Risks:
+  - Default regression does not prove current-branch deployment, HTTPS WeChat
+    domain, real payment/refund, or manual admin/miniapp QA.
+  - If the regression fails, this round must switch from documentation refresh
+    to fixing the failing focused area before committing.
+- Acceptance criteria:
+  - Run `scripts/check_mvp_regression.sh` on current local HEAD.
+  - Record backend/admin/miniapp/evidence/deploy-config results.
+  - Update readiness/state/progress docs with current HEAD and unresolved
+    blocker facts.
+  - Run focused doc/check guards and commit once.
+- Change summary:
+  - Refreshed the default local automated MVP regression on current local
+    `main` HEAD `2af1ed43dfc9`.
+  - Updated `docs/Project-State.md` and `docs/MVP-Readiness.md` so the latest
+    default aggregate regression points to Round 71 instead of Round 64.
+  - Recorded the user's Round 71 clarification that real payment private
+    key/config is not fully provisioned yet; interim validation may use explicit
+    mock/nonprod evidence, but real payment/refund launch evidence remains
+    pending.
+- Verification:
+  - `scripts/check_mvp_regression.sh`: passed with 5 enabled default steps.
+    Backend `mvn -B test` passed with 57 tests, 0 failures, 0 errors, and 0
+    skipped. Admin-web lint, 24 Vitest tests across 5 files, production build,
+    behavior wiring (97 checks), and external QA preflight (6 checks) passed.
+    Miniapp smoke, behavior wiring (69 checks), user-flow replay (3
+    scenarios), payment-flow replay (5 scenarios), external preflight, appid
+    guard, and subpage nav guard passed. Evidence ledger checks and deploy
+    config static checks passed. Production checks were skipped by default.
+- Goal correction:
+  - The active MVP goal remains incomplete. This round proves the current
+    local automated baseline, but does not prove current-branch deployment,
+    HTTPS WeChat legal domain, real payment/refund, or manual admin/miniapp QA.
+- Next recommended round:
+  - Use the explicit backend-only `deployment_lane=nonprod-mock-payment` path
+    if interim cloud/mock validation is needed while real payment private keys
+    are missing; otherwise provision real payment config before production-lane
+    deployment.
+
 ## Round 70: Active Documentation Pruning
 
 - Date: 2026-06-02
