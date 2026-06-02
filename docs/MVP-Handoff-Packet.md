@@ -28,7 +28,12 @@ the user explicitly waives the remaining external evidence.
   payment-flow replay checks.
 - Production read-only checks have passed for public health/admin/API smoke,
   ECS private upstream checks, and backend `8080` exposure inspection.
-- Deployment config static checks and deployment approval preflight exist. Round 60 pushed current `main` commit `98e68e0dd478` and restored the deleted ECS-2 runner registration, but the deployment job stalled in ECS-2 `actions/checkout`; current-branch deployment remains pending.
+- Deployment config static checks and deployment approval preflight exist. Round
+  60 pushed current `main` commit `98e68e0dd478` and restored the deleted ECS-2
+  runner registration. The first deploy job stalled in ECS-2 `actions/checkout`;
+  follow-up run `26796607775` for `d0af634314d0` passed checkout/artifact
+  download/image load, then failed production env validation because
+  `WECHAT_PAY_MCH_ID` is missing. Current-branch deployment remains pending.
 - Round 58 backend `8080` hardening passed after ECS-2 backend host port was
   rebound to private IP `172.25.121.83`.
 - Latest strict closeout shape confirms the goal is still incomplete:
@@ -107,7 +112,9 @@ These entries are still unresolved in `docs/MVP-Launch-Evidence.json`:
 - `CURRENT-BRANCH-DEPLOYED`: prove the current branch commit was deployed by
   the approved GitHub Actions path, or capture an explicit out-of-scope decision.
   Round 60 attempted this for `98e68e0dd478`; backend/admin-web images built,
-  but ECS-2 checkout to GitHub stalled, so this remains pending.
+  but ECS-2 checkout to GitHub stalled. Follow-up run `26796607775` for
+  `d0af634314d0` reached ECS-2 image load and then failed because
+  `WECHAT_PAY_MCH_ID` is missing, so this remains pending.
 
 Latest strict launch evidence result after Round 58:
 

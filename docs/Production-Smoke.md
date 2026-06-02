@@ -38,6 +38,20 @@ Latest deployment attempt:
 - ECS-2 `.release.env` still pointed at older image tag
   `f9185fe257cee1b40850ea35c820afd7fdb82946`; therefore current commit
   deployment is not proven and `CURRENT-BRANCH-DEPLOYED` remains pending.
+- Follow-up commits `9e8c087` and `d0af634` were pushed to `main`, triggering
+  GitHub Actions run `26796607775` for commit `d0af634314d0`.
+- Run `26796607775` passed `detect-targets` and `build-backend`; `build-admin-web`
+  was skipped because the detected target was backend-only.
+- `deploy-backend-host` successfully checked out the deployment bundle,
+  synchronized files, downloaded the backend image artifact, loaded the image,
+  and confirmed image availability on ECS-2.
+- The run failed in `Deploy backend host locally` during production env
+  validation: `WECHAT_PAY_MCH_ID is required`.
+- ECS-2 `.release.env` now references backend image
+  `ghcr.io/vutrungduy33/sunflower-backend:d0af634314d01180fe061959beadc93c51a9e33e`,
+  but the backend container was not recreated from that image because
+  validation failed before deployment. Existing private backend health remains
+  `UP`.
 
 Latest read-only production result:
 
@@ -162,16 +176,18 @@ Latest Round 46 production read-only audit reconfirmed the same health shape:
 
 - HTTPS/domain validation is not proven in this smoke. Miniapp production still
   requires a legal HTTPS request domain.
-- Current `main` commit `98e68e0dd478` is pushed, but deployment is not proven
-  because the Round 60 Actions run stalled in ECS-2 checkout.
-- ECS-2 outbound connectivity to GitHub is currently unreliable enough to block
-  self-hosted runner checkout.
+- Current `main` commit `d0af634314d0` is pushed, but deployment is not proven
+  because GitHub Actions run `26796607775` failed production env validation
+  before recreating the backend container.
+- ECS-2 self-hosted runner checkout/artifact download recovered in run
+  `26796607775`; the active blocker is missing/undocumented real WeChat Pay
+  production configuration on ECS-2 while `WECHAT_PAY_MOCK_ENABLED=false`.
 - Real WeChat login, phone authorization, payment, refund, SMS, and callback
   delivery still require external-service production validation.
 
 ## 5. Next Deployment Decision
 
-To complete current-branch deployment evidence, first restore reliable ECS-2
-outbound access to GitHub/actions checkout or adjust the deployment bundle path
-so ECS-2 does not need to fetch from GitHub. Then rerun the GitHub Actions
-deployment and follow it with the read-only audit.
+To complete current-branch deployment evidence, first decide and provision the
+payment configuration lane: real WeChat Pay merchant variables/key files for
+production mode, or an explicit non-production/mock-payment deployment decision.
+Then rerun the GitHub Actions deployment and follow it with the read-only audit.

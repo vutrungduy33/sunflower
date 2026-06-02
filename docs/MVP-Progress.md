@@ -10,7 +10,8 @@
 - Date: 2026-06-02
 - Status: completed with deployment blocker
 - Focus: verify the approved push-to-`main` deployment path for current commit
-  `98e68e0dd478` and collect enough evidence to decide whether
+  `98e68e0dd478`, then follow-up commit `d0af634314d0`, and collect enough
+  evidence to decide whether
   `CURRENT-BRANCH-DEPLOYED` can pass.
 - Start evidence:
   - User had explicitly stated there is currently no production environment and
@@ -30,20 +31,29 @@
       `.github/workflows/deploy-backend.yml`,
       `scripts/execute_runner_deploy.sh`, `scripts/deploy_backend.sh`, and
       `scripts/check_production_smoke.sh`.
+    - WeChat Pay official Java SDK and merchant documentation:
+      `https://pay.wechatpay.cn/doc/v3/merchant/4012076506` and
+      `https://github.com/wechatpay-apiv3/wechatpay-java`.
   - Selected approach: use `gh run`/`gh api` for workflow evidence, restore the
     existing ECS-2 self-hosted runner registration, and patch repo deployment
-    checks to respect the new private backend bind host.
+    checks to respect the new private backend bind host. Preserve production
+    WeChat Pay credential validation because real payment mode requires
+    merchant identity, serial/key material, and API v3 key.
   - License/compatibility: no external code copied.
   - Reused/adapted: repository-native deployment scripts and GitHub Actions
     runner service layout already present on ECS hosts.
   - Rejected options: marking `CURRENT-BRANCH-DEPLOYED` passed without a
-    completed workflow and smoke evidence, or committing runner tokens/secrets.
+    completed workflow and smoke evidence, weakening production payment
+    validation while `WECHAT_PAY_MOCK_ENABLED=false`, or committing runner
+    tokens/secrets.
 - Risks:
   - ECS-2's old `ecs-2-backend` runner registration had been deleted by GitHub;
     the service could start locally but could not create a session until
     reconfigured.
-  - After runner recovery, the deployment job still depends on ECS-2 outbound
-    GitHub connectivity for `actions/checkout`.
+  - After runner recovery, the first deployment job still depended on ECS-2
+    outbound GitHub connectivity for `actions/checkout`; a follow-up push later
+    proved checkout/artifact download could run and shifted the active blocker
+    to missing ECS-2 production WeChat Pay environment variables.
   - Backend deploy and production-smoke scripts had stale `127.0.0.1:8080`
     assumptions that no longer match private-IP binding.
 - Acceptance criteria:
@@ -76,6 +86,20 @@
     loopback.
   - Updated launch evidence, readiness, production-smoke, architecture, and
     project-state docs to keep `CURRENT-BRANCH-DEPLOYED` pending.
+  - Committed and pushed follow-up deployment-script/doc commits `9e8c087` and
+    `d0af634` to `main`, triggering GitHub Actions run `26796607775`.
+  - Observed run `26796607775`: `detect-targets` and `build-backend` passed,
+    `build-admin-web` was skipped because the target was backend-only, and
+    `deploy-backend-host` successfully checked out the deployment bundle,
+    synchronized files, downloaded the backend image artifact, loaded the image,
+    and confirmed image availability.
+  - Run `26796607775` failed in `Deploy backend host locally` at production env
+    validation with `[validate] ERROR: WECHAT_PAY_MCH_ID is required`.
+    ECS-2 `.release.env` now references image
+    `ghcr.io/vutrungduy33/sunflower-backend:d0af634314d01180fe061959beadc93c51a9e33e`,
+    but the backend container was not recreated from that image because
+    validation failed before deploy. Existing private backend health still
+    returns `UP`.
 - Verification:
   - `gh run view 26796051853`: head SHA `98e68e0dd478`; build jobs succeeded;
     deploy job reached ECS-2 only after runner re-registration and then stalled
@@ -102,13 +126,25 @@
     `node scripts/check_mvp_termination_audit.js`: passed.
   - `RUN_INTERNAL=1 ENFORCE_RESTRICTED=1 scripts/check_backend_8080_exposure.sh`:
     passed with 5 passes and 0 warnings.
+  - `node scripts/check_deployment_approval_preflight.js`: passed after
+    follow-up approval-boundary wording was restored. Current branch `main`,
+    HEAD `d0af634314d0`, comparison base `origin/main` at `98e68e0dd478`,
+    changed files since base 10, predicted target `backend`, backend-impact 1.
+  - `git push origin main`: pushed `98e68e0..d0af634` to `main`, triggering
+    GitHub Actions run `26796607775`.
+  - `gh run view 26796607775 --json status,conclusion,name,headSha,createdAt,updatedAt,jobs`:
+    completed with conclusion `failure`; backend build succeeded;
+    deploy-backend-host failed at the production env validation step because
+    `WECHAT_PAY_MCH_ID` is missing.
   - `git diff --check`: passed.
 - Goal correction:
   - The active MVP goal remains incomplete. Current branch deployment is not
     proven; unresolved required closeout evidence remains 32 items.
 - Next recommended round:
-  - Restore reliable ECS-2 outbound access to GitHub/actions checkout or adjust
-    the deployment bundle path so ECS-2 does not need to fetch from GitHub, then
+  - Decide the payment configuration lane before rerunning deployment: either
+    provision real ECS-2 WeChat Pay production variables and key files for
+    `WECHAT_PAY_MOCK_ENABLED=false`, or explicitly change this to a
+    non-production/mock-payment deployment with matching risk acceptance. Then
     rerun deployment and post-deploy smoke.
 
 ## Round 58: Backend 8080 Hardening

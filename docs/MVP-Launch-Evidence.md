@@ -65,9 +65,11 @@ The remaining launch evidence is concentrated in these areas:
   ledger: `docs/Admin-Web-MVP-QA.md`.
 - Approved deployment of current branch code through GitHub Actions, or explicit
   user decision that deployment is out of MVP closeout scope. Round 60 attempted
-  this for commit `98e68e0dd478`, but deployment remains pending because the
-  ECS-2 self-hosted runner stalled in `actions/checkout` while fetching from
-  GitHub after backend/admin-web image builds succeeded.
+  this for commit `98e68e0dd478`, but the first deploy attempt stalled in
+  ECS-2 `actions/checkout`. Follow-up commit `d0af634314d0` proved ECS-2
+  checkout/artifact download/image load in run `26796607775`, but deployment
+  remains pending because production env validation failed with
+  `WECHAT_PAY_MCH_ID is required` before the backend container was recreated.
 
 Backend `8080` hardening passed in Round 58; detailed security evidence lives in
 `docs/Backend-8080-Security.md`.

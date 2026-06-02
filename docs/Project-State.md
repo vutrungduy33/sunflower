@@ -28,7 +28,8 @@
 
 ## Recent Validation Snapshot
 
-Current snapshot after 2026-06-02 Round 60 deployment attempt:
+Current snapshot after 2026-06-02 Round 60 deployment attempt and follow-up
+deployment run:
 
 - `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: passed in Round 32 with
   6 enabled steps: backend tests, admin-web lint/test/build, admin behavior and
@@ -121,6 +122,17 @@ Current snapshot after 2026-06-02 Round 60 deployment attempt:
   not proven deployed, and `CURRENT-BRANCH-DEPLOYED` remains pending. Round 60
   also updated backend deploy/smoke scripts to use the private backend bind host
   instead of hard-coded `127.0.0.1:8080` health checks.
+- Round 60 follow-up commits `9e8c087` and `d0af634` were pushed to `main`,
+  triggering GitHub Actions run `26796607775`. This run proved the recovered
+  ECS-2 runner could check out the deployment bundle, download and load the
+  backend image artifact, and confirm image availability. It then failed in
+  `Deploy backend host locally` at production env validation with
+  `WECHAT_PAY_MCH_ID is required`. ECS-2 `.release.env` now points at backend
+  image tag `d0af634314d01180fe061959beadc93c51a9e33e`, but the backend
+  container was not recreated from that image because validation failed before
+  deploy. Current-branch deployment remains pending. Do not weaken
+  `WECHAT_PAY_MOCK_ENABLED=false` production payment validation without an
+  explicit non-production/mock-payment deployment decision.
 - Round 50 audited the original goal termination criteria against current
   evidence in `docs/MVP-Closeout-Audit.md`. Result: the active MVP goal remains
   incomplete because strict external/manual evidence still has 33 unresolved

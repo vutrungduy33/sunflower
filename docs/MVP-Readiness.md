@@ -31,7 +31,7 @@ verified, and documented enough for handoff:
 | Miniapp real user path | Code supports real API, WeChat login, phone binding, `wx.requestPayment`, order and after-sale flows; manual QA ledger now exists. | Needs real-device evidence | Run `node scripts/check_miniapp_manual_qa.js --strict` after recording preview/real-device evidence. |
 | WeChat pay/refund | Backend has WeChat payment/refund gateway, callbacks, records, retry, and mock only when explicitly configured; miniapp payment QA ledger now exists. | Needs production evidence | Verify small real payment/refund with merchant config and callback domain, then record sanitized evidence. |
 | Admin operations path | Core pages and tests exist for auth, room, price/inventory, and order management; manual QA ledger now exists. | Partially verified | Run `node scripts/check_admin_web_manual_qa.js --strict` against deployed admin web after recording safe evidence. |
-| Deployment | Round 60 pushed commit `98e68e0dd478` to `main` and triggered GitHub Actions run `26796051853`. `detect-targets`, `build-admin-web`, and `build-backend` succeeded. ECS-2 runner `ecs-2-backend` was re-registered after its old GitHub registration was deleted, but deploy then stalled in `actions/checkout` on ECS-2; ECS-2 curl to GitHub timed out after 12 seconds and `.release.env` still pointed at older image tag `f9185fe257cee1b40850ea35c820afd7fdb82946`. | Blocked on deployment runner/network | Restore ECS-2 outbound GitHub checkout or change the deployment bundle path, then rerun deployment and post-deploy smoke. |
+| Deployment | Round 60 pushed commit `98e68e0dd478` to `main` and triggered GitHub Actions run `26796051853`. Backend/admin-web builds succeeded, but the first deploy attempt stalled in ECS-2 checkout. Follow-up commits `9e8c087` and `d0af634` triggered run `26796607775`; ECS-2 checkout/artifact download/image load succeeded, but backend deploy failed production env validation because `WECHAT_PAY_MCH_ID` is missing while real payment mode is configured. | Blocked on production payment config | Provision real WeChat Pay production variables/key files on ECS-2, or explicitly switch the deployment lane to non-production/mock-payment with risk acceptance, then rerun deployment and post-deploy smoke. |
 | Security / compliance | Secrets are local/ECS-owned; `.secrets/` ignored. Round 58 closed external backend `8080` by changing ECS-2 production `BACKEND_BIND_HOST` from `0.0.0.0` to `172.25.121.83`, recreating `sunflower-backend`, and verifying public 8080 is unusable while ECS-1 private upstream remains healthy. The user-provided miniapp备案 domain is `xiangrikui.cloud`, but HTTPS API host and WeChat legal request-domain configuration remain unverified. | Partially ready | Keep backend `8080` private after redeploys; complete HTTPS/WeChat domain setup. |
 
 Detailed launch evidence is tracked in `docs/MVP-Launch-Evidence.md` and
@@ -73,7 +73,12 @@ Latest production/deployment evidence:
   ECS-2 runner `ecs-2-backend` was re-registered after its old registration
   had been deleted by GitHub. The deploy phase then stalled in
   `actions/checkout` on ECS-2, and an ECS-2 curl probe to GitHub timed out
-  after 12 seconds. Current branch deployment is therefore still unproven.
+  after 12 seconds.
+- Follow-up commits `9e8c087` and `d0af634` triggered run `26796607775` at
+  HEAD `d0af634314d0`. This run proved ECS-2 checkout, artifact download, image
+  load, and image availability, then failed deploy validation because
+  `WECHAT_PAY_MCH_ID` is missing on ECS-2. Current branch deployment is still
+  unproven because the backend container was not recreated from the new image.
 - Backend `8080` hardening passed in Round 58. ECS-2 production
   `BACKEND_BIND_HOST` now binds the backend published port to
   `172.25.121.83`; `RUN_INTERNAL=1 ENFORCE_RESTRICTED=1
