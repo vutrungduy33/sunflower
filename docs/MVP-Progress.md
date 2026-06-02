@@ -3,6 +3,52 @@
 > Compact round-by-round progress for the current MVP hardening goal. Keep this
 > file factual and update it at the end of each committed round.
 
+## Round 42: Admin Web Quality Baseline Recheck
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: recheck the current `sunflower-admin-web` lint/test/build baseline from
+  a clean worktree, then fix any reproducible failures in one scoped loop.
+- Start evidence:
+  - `git status --short --untracked-files=all`: clean.
+  - `docs/Project-State.md` says older notes about `_refundId` and three
+    failing/timed-out admin tests are stale, but the current round must verify
+    that claim against the live worktree.
+- Open-source reference check:
+  - Task classification: admin-web quality repair/recheck using common ESLint
+    and Vitest behavior.
+  - Sources checked: ESLint `no-unused-vars` official docs; Vitest `testTimeout`
+    config and `test` API official docs.
+  - Selected approach: prefer a code/test fix if failures reproduce; avoid
+    lint suppressions or timeout increases unless the failure proves to be an
+    environment/runtime timing issue.
+  - License/compatibility: official documentation only; no external code
+    copied.
+  - Reused/adapted: none yet.
+  - Rejected options: adding broad ignore patterns or blanket test timeout
+    changes before reproducing the failure.
+- Risks:
+  - The reported failures may be stale; if so, the round should correct the
+    documented baseline rather than changing working code.
+  - Admin tests exercise async UI behavior, so failures should be rerun before
+    changing production behavior.
+- Acceptance criteria:
+  - `cd sunflower-admin-web && npm run lint`: passed.
+  - `cd sunflower-admin-web && npm run test`: passed, 23 tests across 5 files.
+  - `cd sunflower-admin-web && npm run build`: passed.
+  - `docs/Project-State.md` records the current admin-web validation result.
+  - The round is committed once.
+- Change summary:
+  - No admin-web code change was needed; the reported `_refundId` lint failure
+    and three failing/timed-out tests did not reproduce on the current worktree.
+  - Updated durable progress/state docs so the next round starts from the live
+    green admin-web baseline instead of stale launch prompt evidence.
+- Goal correction:
+  - Treat the admin-web automated baseline as green for the next MVP round.
+  - Continue with MVP readiness/doc readiness work or the next scoped functional
+    hardening loop; do not spend another round on the stale admin-web lint/test
+    failures unless they reappear.
+
 ## Round 1: Admin Web Quality Baseline
 
 - Date: 2026-06-02

@@ -71,13 +71,19 @@ regression recheck:
   retry.
 - Admin web `npm run build`: passed again in Round 36 at 2026-06-02 08:46
   Asia/Shanghai.
+- Admin web `npm run lint`: passed again in Round 42 at 2026-06-02 09:21
+  Asia/Shanghai using Node `v20.20.1`.
+- Admin web `npm run test`: passed again in Round 42 at 2026-06-02 09:22
+  Asia/Shanghai using Node `v20.20.1`, 23 tests across 5 files.
+- Admin web `npm run build`: passed again in Round 42 at 2026-06-02 09:22
+  Asia/Shanghai using Node `v20.20.1`.
 - Admin web lint/test/build passed again inside Round 39; Vitest passed 23
   tests across 5 files, behavior wiring passed 97 checks, and admin external QA
   preflight passed 6 checks.
 - Older goal notes that mention an admin-web `_refundId` lint failure or 3
-  failing/timed-out admin tests are stale. Round 36 direct admin-web reruns and
-  Round 32 aggregate regression prove current admin-web lint/test/build is
-  green.
+  failing/timed-out admin tests are stale. Round 36/Round 42 direct admin-web
+  reruns and Round 32/Round 39 aggregate regressions prove current admin-web
+  lint/test/build is green.
 - Admin web `node scripts/check_admin_web_behavior_wiring.js`: passed in
   Round 17 with 97 key behavior wiring checks across 16 files.
 - Admin web external QA preflight
