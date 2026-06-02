@@ -59,6 +59,7 @@ check_shell_syntax() {
     scripts/check_production_smoke.sh
     scripts/check_backend_8080_exposure.sh
     scripts/check_backend_payment_config_readiness.sh
+    scripts/check_nonprod_mock_payment_deploy_lane.sh
     scripts/check_production_readonly_audit.sh
   )
 
@@ -82,6 +83,12 @@ check_runner_deploy_release_metadata() {
   log PASS "runner deploy release metadata failure behavior checked"
 }
 
+check_nonprod_mock_payment_lane() {
+  log INFO "checking non-production mock-payment deploy lane example"
+  bash "$ROOT_DIR/scripts/check_nonprod_mock_payment_deploy_lane.sh"
+  log PASS "non-production mock-payment deploy lane example checked"
+}
+
 main() {
   require_command ruby
   require_command docker
@@ -91,6 +98,7 @@ main() {
   check_workflow_yaml
   check_compose_rendering
   check_shell_syntax
+  check_nonprod_mock_payment_lane
   check_runner_deploy_release_metadata
   check_node_syntax
 

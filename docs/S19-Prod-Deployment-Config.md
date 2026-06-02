@@ -67,13 +67,16 @@ S19 之后，生产部署固定采用双 ECS + self-hosted runner 链路：
 
 - backend 节点：[.env.prod.example](/Users/chenyao/dev/miniapp/sunflower/.env.prod.example)
 - web 节点：[.env.prod.web.example](/Users/chenyao/dev/miniapp/sunflower/.env.prod.web.example)
+- 非生产/mock-payment backend lane：
+  [.env.nonprod-mock.example](/Users/chenyao/dev/miniapp/sunflower/.env.nonprod-mock.example)
 
 ### 3.1 backend 节点（ECS-2）
 
 固定值：
 
 - `DEPLOY_NODE_ROLE=backend`
-- `BACKEND_BIND_HOST=0.0.0.0`
+- `BACKEND_BIND_HOST=172.25.121.83` on the current ECS-2 deployment, or another
+  private/local interface. Do not expose backend `8080` on the public interface.
 
 必填：
 
@@ -117,7 +120,40 @@ S19 之后，生产部署固定采用双 ECS + self-hosted runner 链路：
 - MySQL 建议继续只绑定 `127.0.0.1`。
 - 通过安全组限制 `8080` 仅允许 ECS-1 访问。
 
-### 3.2 web 节点（ECS-1）
+### 3.2 非生产/mock-payment backend lane
+
+This lane is only for approved MVP validation when there is no production
+merchant configuration. It is not production payment readiness and must not be
+used to mark real payment/refund evidence as passed.
+
+Committed template:
+
+- [.env.nonprod-mock.example](/Users/chenyao/dev/miniapp/sunflower/.env.nonprod-mock.example)
+
+Required boundary:
+
+- `SUNFLOWER_DEPLOY_LANE=nonprod-mock-payment`
+- `DEPLOY_NODE_ROLE=backend`
+- `WECHAT_AUTH_MOCK_ENABLED=false`
+- `WECHAT_MANUAL_PHONE_BIND_ENABLED=false`
+- `WECHAT_PAY_MOCK_ENABLED=true`
+- `BACKEND_BIND_HOST` stays on a private/local interface.
+- Payment variables still have placeholder-but-shaped values so the Spring prod
+  profile can bind configuration, but the backend must not call WeChat Pay in
+  this lane.
+
+Validation:
+
+```bash
+bash scripts/check_nonprod_mock_payment_deploy_lane.sh
+```
+
+Current GitHub Actions runner deploy still calls `scripts/validate_prod_env.sh`;
+therefore push-to-main and normal `workflow_dispatch` remain production-lane
+deployments. A cloud deployment using this non-production lane requires an
+explicit workflow/input/env change or a manual, risk-accepted runbook step.
+
+### 3.3 web 节点（ECS-1）
 
 固定值：
 
@@ -284,5 +320,10 @@ As of the 2026-06-02 scripted smoke:
 - ECS-1 Nginx is active and `sunflower-admin-web` is healthy.
 - ECS-2 `sunflower-backend` and `sunflower-mysql` are healthy.
 - HTTPS/domain validation remains unproven.
-- Backend still binds `0.0.0.0:8080`; security group or firewall hardening
-  should restrict direct backend access to ECS-1.
+- Backend `8080` hardening is complete as of Round 58/Round 65: ECS-2 backend
+  is bound to `172.25.121.83:8080`, ECS-1 private upstream remains healthy, and
+  direct public backend `8080` is not usable.
+- Real WeChat Pay production config remains incomplete; use
+  `RUN_INTERNAL=1 ENFORCE_PAYMENT_CONFIG=1
+  scripts/check_backend_payment_config_readiness.sh` before any true production
+  deploy claim.

@@ -5,6 +5,89 @@
 > This active file keeps only the latest operational rounds. Older rounds are
 > archived in `docs/archive/mvp-progress/`.
 
+## Round 66: Non-Production Mock-Payment Deploy Lane Boundary
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: make the user-approved "no production environment / mock payment"
+  option explicit and verifiable without weakening production deployment
+  validation.
+- Start evidence:
+  - Local `main` was clean and ahead of `origin/main` by 6 commits.
+  - Push-to-main path rules would still trigger deployment, and runner deploy
+    still calls `scripts/validate_prod_env.sh`.
+  - Real-payment production readiness remained blocked by the 8 sanitized
+    WeChat Pay config issues from Round 65.
+- Open-source reference check:
+  - Task classification: common deployment/configuration lane boundary.
+  - Sources checked:
+    - The Twelve-Factor App config guidance:
+      `https://12factor.net/config`.
+    - GitHub Actions environment/deployment protection documentation:
+      `https://docs.github.com/actions/deployment/targeting-different-environments/using-environments-for-deployment`.
+    - Docker Compose profiles documentation:
+      `https://docs.docker.com/compose/how-tos/profiles/`.
+    - Repository-native deployment validation:
+      `scripts/validate_prod_env.sh`, `scripts/execute_runner_deploy.sh`,
+      `.github/workflows/deploy-backend.yml`, and compose env loading.
+  - License/compatibility: official documentation only; no external code was
+    copied.
+  - Selected approach: keep production validation strict and add a separate
+    non-production/mock-payment backend lane checker and env template. This
+    mirrors config-by-environment guidance while avoiding an accidental prod
+    bypass.
+  - Rejected options: relaxing `validate_prod_env.sh`, treating mock payment as
+    production payment readiness, or wiring push-to-main to a non-production
+    lane without a separate workflow approval/design pass.
+- Risks:
+  - The new lane validates configuration shape only; it does not prove a
+    current branch deployment, real payment/refund, HTTPS domain, or manual QA.
+  - Current GitHub Actions push-to-main deployment remains production-lane and
+    will still fail until real payment config is provisioned or the workflow is
+    explicitly changed.
+- Acceptance criteria:
+  - Add a committed non-production backend env template for mock-payment MVP
+    validation.
+  - Add a repeatable checker that requires
+    `SUNFLOWER_DEPLOY_LANE=nonprod-mock-payment`,
+    `DEPLOY_NODE_ROLE=backend`, private/local backend bind, real WeChat auth
+    mode, and `WECHAT_PAY_MOCK_ENABLED=true`.
+  - Wire the checker into deploy config static checks.
+  - Document that production validation remains strict and this lane is not
+    launch/payment evidence.
+  - Run focused checks and commit once.
+- Change summary:
+  - Added `.env.nonprod-mock.example`.
+  - Added `scripts/check_nonprod_mock_payment_deploy_lane.sh`.
+  - Added the new checker to `scripts/check_deploy_config.sh`.
+  - Updated deployment docs, readiness/state docs, and decision log.
+- Verification:
+  - `bash -n scripts/check_nonprod_mock_payment_deploy_lane.sh
+    scripts/check_deploy_config.sh`: passed.
+  - `bash scripts/check_nonprod_mock_payment_deploy_lane.sh`: passed for
+    `.env.nonprod-mock.example`.
+  - `PROD_ENV_FILE=.env.nonprod-mock.example bash
+    scripts/validate_prod_env.sh`: expected non-zero; production validation
+    rejected the non-production template because it contains placeholder
+    production secrets and mock payment.
+  - `scripts/check_deploy_config.sh`: passed, including compose rendering,
+    shell syntax, non-production lane validation, release metadata failure
+    behavior, and deployment Node.js syntax.
+  - `RUN_BACKEND=0 RUN_ADMIN=0 RUN_MINIAPP=0 RUN_EVIDENCE=0
+    RUN_DEPLOY_CONFIG=1 RUN_PRODUCTION=0 scripts/check_mvp_regression.sh`:
+    passed with deploy config static checks enabled.
+  - `git diff --check`: passed.
+- Goal correction:
+  - The active MVP goal remains incomplete. This round clarifies a deploy lane
+    choice but does not deploy current local `main` or collect external/manual
+    QA, domain, real payment, or refund evidence.
+- Next recommended round:
+  - If the operator wants cloud validation without real merchant config, add an
+    explicit workflow/manual-dispatch path for the non-production mock-payment
+    lane and record the risk acceptance. If the operator wants production
+    readiness, provision real WeChat Pay config and rerun strict payment
+    readiness before pushing.
+
 ## Round 65: Production Read-Only Smoke Refresh
 
 - Date: 2026-06-02

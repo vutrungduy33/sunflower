@@ -31,6 +31,19 @@
 Current snapshot after 2026-06-02 Round 64 local regression and deployment
 approval preflight refresh:
 
+- Non-production/mock-payment deployment boundary:
+  Round 66 added `.env.nonprod-mock.example` and
+  `scripts/check_nonprod_mock_payment_deploy_lane.sh` for approved MVP cloud or
+  operator validation when there is no real merchant configuration. The checker
+  requires `SUNFLOWER_DEPLOY_LANE=nonprod-mock-payment`, backend node role,
+  private/local backend bind, real WeChat auth mode, and
+  `WECHAT_PAY_MOCK_ENABLED=true`. It is wired into `scripts/check_deploy_config.sh`.
+  `PROD_ENV_FILE=.env.nonprod-mock.example bash scripts/validate_prod_env.sh`
+  fails as expected, so production validation remains strict. Current
+  GitHub Actions push-to-main and `workflow_dispatch` runner deploy paths still
+  call `scripts/validate_prod_env.sh`; a non-production/mock-payment cloud
+  deployment needs an explicit workflow/input/runbook decision and is not real
+  payment/refund evidence.
 - `scripts/check_mvp_regression.sh`: passed in Round 64 on current local
   `main` HEAD `4a3f630f30eb` with the default 5 enabled non-production steps.
   Backend `mvn -B test` passed with 57 tests, 0 failures, 0 errors, and 0

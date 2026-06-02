@@ -263,3 +263,17 @@ Append durable decisions here. Keep entries short and include provenance.
   traceability without making stale planning or old evidence look current.
 - Provenance: `docs/README.md`, `docs/Context-Index.md`,
   `docs/archive/README.md`, `docs/MVP-Progress.md`.
+
+## 2026-06-02: Separate Non-Production Mock-Payment Lane
+
+- Decision: Keep `scripts/validate_prod_env.sh` strict for production and add
+  `.env.nonprod-mock.example` plus
+  `scripts/check_nonprod_mock_payment_deploy_lane.sh` for an explicit
+  non-production/mock-payment backend validation lane.
+- Rationale: The current environment lacks real WeChat Pay merchant config, but
+  weakening production validation would make mock payment look like launch
+  readiness. A separate lane supports MVP validation while preserving the
+  production boundary.
+- Provenance: `docs/S19-Prod-Deployment-Config.md`, `docs/CI-CD.md`,
+  `.env.nonprod-mock.example`,
+  `scripts/check_nonprod_mock_payment_deploy_lane.sh`.

@@ -135,6 +135,10 @@ deploy path 必填：
 - backend host 的 `.env.prod` 保存数据库、微信、小程序鉴权、后台账号、短信与 backend 端口配置。
 - web host 的 `.env.prod` 保存 admin-web 端口、内网 backend upstream、Nginx 域名与证书配置。
 - `.release.env` 由 workflow 每次覆盖，只保存镜像与发布元信息。
+- `.env.nonprod-mock.example` 是后端非生产/mock-payment 验收 lane 的
+  示例模板；它必须通过
+  `scripts/check_nonprod_mock_payment_deploy_lane.sh`，但不得被当成生产
+  `.env.prod` 或真实支付 readiness。
 
 完整变量清单、首次 bootstrap、回滚与 smoke test 说明见：
 
@@ -147,6 +151,7 @@ deploy path 必填：
 - `node scripts/check_deployment_approval_preflight.js`
 - `RUN_INTERNAL=1 scripts/check_backend_payment_config_readiness.sh`
 - `RUN_INTERNAL=1 ENFORCE_PAYMENT_CONFIG=1 scripts/check_backend_payment_config_readiness.sh`
+- `bash scripts/check_nonprod_mock_payment_deploy_lane.sh`
 - `ruby -e 'require "yaml"; YAML.load_file(".github/workflows/deploy-backend.yml")'`
 - `docker compose -f docker-compose.backend.yml --env-file .env.prod.example config`
 - `docker compose -f docker-compose.web.yml --env-file .env.prod.web.example config`
@@ -166,6 +171,15 @@ deploy path 必填：
   它只报告 ECS-2 `.env.prod` 中微信支付变量和 key 文件是否存在/形态是否合理，
   不打印密钥值，不推送，不部署。常规模式用于记录阻塞；部署前可用
   `ENFORCE_PAYMENT_CONFIG=1` 让缺项以非零退出。
+- `scripts/check_nonprod_mock_payment_deploy_lane.sh` 是非生产/mock-payment
+  lane 的配置边界检查：它要求 `SUNFLOWER_DEPLOY_LANE=nonprod-mock-payment`、
+  后端节点、私有/本机 backend 绑定、真实微信登录模式，以及
+  `WECHAT_PAY_MOCK_ENABLED=true`。该检查只证明 mock-payment lane 配置形态可用，
+  不证明生产支付、退款、HTTPS 域名、当前分支已部署或 MVP 可上线。
+- 当前 `.github/workflows/deploy-backend.yml` 的 push-to-main 和
+  `workflow_dispatch` runner 路径仍调用 `scripts/validate_prod_env.sh`，即
+  生产 lane。若要把 GitHub Actions 接到非生产/mock-payment lane，需要另开
+  明确的 workflow/输入/环境决策，而不是复用生产校验。
 - 若需要回滚 backend/admin-web，优先通过 `workflow_dispatch + image_tag=<历史 sha>` 完成，而不是在 ECS 上手工改 compose 文件。
 - `node scripts/check_deployment_approval_preflight.js` 只读分析当前分支相对
   `origin/main`/`main` 的部署影响面和人工审批边界，不会 push、触发

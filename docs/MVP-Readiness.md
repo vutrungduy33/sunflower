@@ -31,7 +31,7 @@ verified, and documented enough for handoff:
 | Miniapp real user path | Code supports real API, WeChat login, phone binding, `wx.requestPayment`, order and after-sale flows; manual QA ledger now exists. | Needs real-device evidence | Run `node scripts/check_miniapp_manual_qa.js --strict` after recording preview/real-device evidence. |
 | WeChat pay/refund | Backend has WeChat payment/refund gateway, callbacks, records, retry, and mock only when explicitly configured; miniapp payment QA ledger now exists. | Needs production evidence | Verify small real payment/refund with merchant config and callback domain, then record sanitized evidence. |
 | Admin operations path | Core pages and tests exist for auth, room, price/inventory, and order management; manual QA ledger now exists. | Partially verified | Run `node scripts/check_admin_web_manual_qa.js --strict` against deployed admin web after recording safe evidence. |
-| Deployment | Round 60 pushed commit `98e68e0dd478` to `main` and triggered GitHub Actions run `26796051853`. Backend/admin-web builds succeeded, but the first deploy attempt stalled in ECS-2 checkout. Follow-up commits `9e8c087` and `d0af634` triggered run `26796607775`; ECS-2 checkout/artifact download/image load succeeded, but backend deploy failed production env validation because `WECHAT_PAY_MCH_ID` is missing while real payment mode is configured. | Blocked on production payment config | Provision real WeChat Pay production variables/key files on ECS-2, or explicitly switch the deployment lane to non-production/mock-payment with risk acceptance, then rerun deployment and post-deploy smoke. |
+| Deployment | Round 60 pushed commit `98e68e0dd478` to `main` and triggered GitHub Actions run `26796051853`. Backend/admin-web builds succeeded, but the first deploy attempt stalled in ECS-2 checkout. Follow-up commits `9e8c087` and `d0af634` triggered run `26796607775`; ECS-2 checkout/artifact download/image load succeeded, but backend deploy failed production env validation because `WECHAT_PAY_MCH_ID` is missing while real payment mode is configured. Round 66 added a separate non-production/mock-payment config lane checker, but current GitHub Actions deploy remains production-lane. | Blocked on production payment config or explicit non-production workflow/runbook | Provision real WeChat Pay production variables/key files on ECS-2, or explicitly add/approve a non-production/mock-payment deployment path and record that it is not production payment evidence. |
 | Security / compliance | Secrets are local/ECS-owned; `.secrets/` ignored. Round 58 closed external backend `8080` by changing ECS-2 production `BACKEND_BIND_HOST` from `0.0.0.0` to `172.25.121.83`, recreating `sunflower-backend`, and verifying public 8080 is unusable while ECS-1 private upstream remains healthy. The user-provided miniapp备案 domain is `xiangrikui.cloud`, but HTTPS API host and WeChat legal request-domain configuration remain unverified. | Partially ready | Keep backend `8080` private after redeploys; complete HTTPS/WeChat domain setup. |
 
 Detailed launch evidence is tracked in `docs/MVP-Launch-Evidence.md` and
@@ -84,6 +84,13 @@ Latest production/deployment evidence:
   scripts/check_backend_payment_config_readiness.sh` exited non-zero as
   expected because the 8 required real-payment config items remain missing or
   invalid.
+- Round 66 added `.env.nonprod-mock.example` and
+  `scripts/check_nonprod_mock_payment_deploy_lane.sh`. The new checker passed
+  for the example template, while `PROD_ENV_FILE=.env.nonprod-mock.example
+  bash scripts/validate_prod_env.sh` failed as expected, proving production
+  validation remains strict. This is a deploy-lane boundary only; it does not
+  prove current-branch deployment, real payment/refund, HTTPS domain, or
+  manual QA.
 - Round 64 deployment approval preflight passed on local `main` HEAD
   `4a3f630f30eb` with comparison base `origin/main d0af634314d0`. Changed files
   since base were 28, path rules predicted push-to-main deploy target `all`,
