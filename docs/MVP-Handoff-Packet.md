@@ -17,7 +17,9 @@ the user explicitly waives the remaining external evidence.
 
 - Backend local tests have passed with 57 tests.
 - Admin web lint, unit tests, build, behavior wiring, and external QA preflight
-  have passed.
+  have passed. The latest direct admin-web lint/test/build recheck was Round 42
+  on 2026-06-02 09:21-09:22 Asia/Shanghai using Node `v20.20.1`, with 23
+  Vitest tests across 5 files.
 - Miniapp syntax/smoke, behavior wiring, project config, navigation, and
   external QA preflight have passed.
 - Production read-only checks have passed for public health/admin/API smoke,

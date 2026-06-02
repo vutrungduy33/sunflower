@@ -16,15 +16,19 @@ node scripts/check_admin_web_external_qa_preflight.js
 
 Current recorded baseline:
 
-- `npm run lint`: passed again in Round 25.
-- `npm run test`: passed again in Round 27, 23 tests.
-- `npm run build`: passed again in Round 27.
+- `npm run lint`: passed again in Round 42 using Node `v20.20.1`.
+- `npm run test`: passed again in Round 42 using Node `v20.20.1`, 23 tests
+  across 5 files.
+- `npm run build`: passed again in Round 42 using Node `v20.20.1`.
 - `node scripts/check_admin_web_behavior_wiring.js`: passed in Round 17 with
   97 key behavior wiring checks across 16 files.
 - `node scripts/check_admin_web_external_qa_preflight.js`: added in Round 22 to
   check admin manual QA environment URLs, required evidence IDs, high-risk
   mutation next actions, sensitive evidence boundaries, and credential/live-data
   safety wording before production or approved-staging QA.
+
+Older notes about an unused `_refundId` lint issue or 3 failing/timed-out
+admin-web tests are stale; the Round 42 direct recheck did not reproduce them.
 
 The automated tests cover auth page behavior, protected shell routing, room
 management, price/inventory management, order list/detail/actions, after-sale

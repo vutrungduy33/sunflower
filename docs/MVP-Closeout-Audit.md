@@ -23,6 +23,10 @@ Local automated checks:
 - `cd sunflower-admin-web && npm run lint`: passed.
 - `cd sunflower-admin-web && npm run test`: passed, 23 tests across 5 files.
 - `cd sunflower-admin-web && npm run build`: passed.
+- Round 42 direct admin-web recheck on 2026-06-02 09:21-09:22 Asia/Shanghai
+  passed `npm run lint`, `npm run test` with 23 tests across 5 files, and
+  `npm run build` using Node `v20.20.1`; the older `_refundId`/3-test-failure
+  notes are stale.
 - `node scripts/check_miniapp_mvp_smoke.js`: passed with expected warning that
   the default API base is bare HTTP and only suitable for local/devtools
   validation.

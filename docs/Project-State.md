@@ -28,8 +28,8 @@
 
 ## Recent Validation Snapshot
 
-Current snapshot after 2026-06-02 Round 39 production-enabled aggregate MVP
-regression recheck:
+Current snapshot after 2026-06-02 Round 43 MVP readiness documentation
+reconciliation:
 
 - `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: passed in Round 32 with
   6 enabled steps: backend tests, admin-web lint/test/build, admin behavior and
@@ -154,6 +154,12 @@ regression recheck:
   Round 40 with the current Round 39 baseline, mandatory per-round commit loop,
   open-source-reference-first rule, approval lanes, hard safety boundaries,
   exact strict completion commands, and stop/manual-intervention conditions.
+- MVP readiness documentation was reconciled again in Round 43 so
+  `docs/MVP-Readiness.md`, `docs/MVP-Closeout-Audit.md`,
+  `docs/Admin-Web-MVP-QA.md`, `docs/MVP-Handoff-Packet.md`,
+  `docs/MVP-Next-Goal-Prompt.md`, and `docs/MVP-Launch-Evidence.json` include
+  the Round 42 direct admin-web lint/test/build evidence while keeping the 33
+  unresolved external/manual closeout items pending.
 - Launch evidence `node scripts/check_mvp_launch_evidence.js --strict`: expected
   non-zero on 2026-06-02 because 9 required external evidence entries remain
   pending.

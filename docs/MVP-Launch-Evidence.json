@@ -24,7 +24,7 @@
       "requirement": "Admin web lint, tests, and production build remain green.",
       "status": "passed",
       "requiredForMvp": true,
-      "evidence": "Round 39 RUN_PRODUCTION=1 scripts/check_mvp_regression.sh passed at pre-commit HEAD 255558f001e9 on 2026-06-02 08:58 Asia/Shanghai. Admin web npm run lint, npm run test, and npm run build passed; 23 Vitest tests across 5 files passed. Admin behavior wiring passed with 97 key behavior wiring checks, and admin external QA preflight passed with 6 checks.",
+      "evidence": "Round 42 direct admin-web recheck passed on 2026-06-02 09:21-09:22 Asia/Shanghai using Node v20.20.1: npm run lint passed, npm run test passed with 23 Vitest tests across 5 files, and npm run build passed. Round 39 RUN_PRODUCTION=1 scripts/check_mvp_regression.sh also passed admin behavior wiring with 97 checks and admin external QA preflight with 6 checks at pre-commit HEAD 255558f001e9.",
       "nextAction": "Re-run after admin-web changes or before final closeout."
     },
     {

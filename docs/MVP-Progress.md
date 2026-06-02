@@ -3,6 +3,78 @@
 > Compact round-by-round progress for the current MVP hardening goal. Keep this
 > file factual and update it at the end of each committed round.
 
+## Round 43: MVP Readiness Documentation Reconciliation
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: reconcile active MVP readiness, QA, closeout, and goal/handoff docs
+  with the current Round 42 admin-web automated baseline while preserving the
+  unresolved external-evidence boundary.
+- Start evidence:
+  - `git status --short --untracked-files=all`: clean after Round 42 commit
+    `9670649`.
+  - `docs/MVP-Readiness.md`, `docs/MVP-Closeout-Audit.md`,
+    `docs/Admin-Web-MVP-QA.md`, and `docs/MVP-Next-Goal-Prompt.md` still
+    pointed at older Round 27/39 admin-web evidence in several places.
+  - The component READMEs and root/doc indexes already point to the active MVP
+    readiness and QA trackers.
+- Open-source reference check:
+  - Task classification: repository-specific documentation/evidence
+    reconciliation.
+  - Sources checked: not needed; no common feature, reusable UI, auth, payment,
+    deployment, or infrastructure implementation is being added.
+  - Selected approach: derive the readiness wording from current local evidence
+    and existing machine-readable ledgers.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: existing local MVP evidence-ledger wording and checker
+    commands.
+  - Rejected options: changing manual evidence statuses without external proof,
+    adding new docs, or re-running production/deploy checks for a docs-only
+    correction.
+- Risks:
+  - Updating automated evidence must not imply miniapp real-device, admin
+    production manual QA, HTTPS/domain, backend `8080` hardening, or current
+    branch deployment evidence has been completed.
+- Acceptance criteria:
+  - `docs/MVP-Readiness.md`, `docs/MVP-Closeout-Audit.md`,
+    `docs/Admin-Web-MVP-QA.md`, `docs/MVP-Next-Goal-Prompt.md`, and
+    `docs/MVP-Launch-Evidence.json` reflect the Round 42 admin-web automated
+    baseline.
+  - Pending external/manual evidence counts remain unchanged unless a checker
+    proves otherwise.
+  - Relevant evidence/readiness checkers pass in non-strict mode.
+  - The round is committed once.
+- Change summary:
+  - Updated active readiness, closeout, admin QA, handoff, goal prompt, and
+    launch evidence docs so the latest direct admin-web automated baseline is
+    Round 42: `npm run lint`, `npm run test` with 23 tests across 5 files, and
+    `npm run build` all passed with Node `v20.20.1`.
+  - Updated `docs/Project-State.md` so the durable snapshot names this
+    documentation reconciliation and keeps the 33 unresolved external/manual
+    evidence items pending.
+  - Left manual QA and launch evidence statuses unchanged except for the
+    already-passed `AUTO-ADMIN-WEB` evidence text.
+- Verification:
+  - `node scripts/check_mvp_launch_evidence.js`: passed in non-strict mode,
+    13 required launch entries with 4 passed and 9 pending.
+  - `node scripts/check_mvp_handoff_packet.js`: passed, covering 33 unresolved
+    required items, 12 commands, and 8 safety boundaries.
+  - `node scripts/check_admin_web_manual_qa.js`: passed in non-strict mode,
+    12 required admin manual QA checks still pending.
+  - `node scripts/check_admin_web_external_qa_preflight.js`: passed, 6 checks.
+  - `node scripts/check_mvp_closeout_readiness.js`: passed in non-strict mode,
+    33 unresolved required closeout items remain.
+- Goal correction:
+  - The MVP goal remains open; this round improves handoff accuracy but does
+    not complete miniapp preview/real-device evidence, admin production manual
+    QA, backend `8080` hardening proof, HTTPS/domain proof, real payment/refund
+    proof, or current-branch deployment evidence.
+- Next recommended round:
+  - Choose one approval-gated lane instead of another baseline-only refresh.
+    Lowest-risk options are `BACKEND-8080-HARDENING` evidence/waiver,
+    `MINIAPP-PREVIEW-DOMAIN` evidence preparation, or
+    `CURRENT-BRANCH-DEPLOYED` approval preflight.
+
 ## Round 42: Admin Web Quality Baseline Recheck
 
 - Date: 2026-06-02

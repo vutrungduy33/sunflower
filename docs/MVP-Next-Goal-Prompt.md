@@ -14,6 +14,9 @@
   wiring, miniapp smoke/wiring/user-flow replay, evidence/runbook non-strict
   checks, deploy config static checks, production smoke, and backend `8080`
   read-only inspection.
+- Latest direct admin-web automated baseline: Round 42, `npm run lint`,
+  `npm run test` (23 tests across 5 files), and `npm run build` passed on
+  2026-06-02 09:21-09:22 Asia/Shanghai using Node `v20.20.1`.
 - The MVP is not complete: strict closeout still has 33 unresolved required
   items: 9 launch evidence, 12 miniapp manual QA, and 12 admin-web manual QA.
 - `BACKEND-8080-HARDENING` is pending because ECS-2 still listens on
@@ -31,7 +34,7 @@
 1. 读取 AGENTS.md、docs/Agent-Memory.md、docs/Context-Index.md、docs/Project-State.md、docs/MVP-Handoff-Packet.md、docs/MVP-Readiness.md、docs/MVP-Closeout-Audit.md、docs/MVP-Next-Goal-Prompt.md。
 2. 执行 git status --short --branch --untracked-files=all。
 3. 不默认读取 docs/archive/**，除非当前文档明确需要历史材料。
-4. 记住当前事实：Round 39 的 RUN_PRODUCTION=1 scripts/check_mvp_regression.sh 已通过；旧的 admin-web _refundId lint 或 3 个测试失败记录已经过期；MVP 仍缺 33 项外部/人工证据。
+4. 记住当前事实：Round 39 的 RUN_PRODUCTION=1 scripts/check_mvp_regression.sh 已通过；Round 42 的 admin-web npm run lint/test/build 直接复核已通过；旧的 admin-web _refundId lint 或 3 个测试失败记录已经过期；MVP 仍缺 33 项外部/人工证据。
 
 每一轮必须形成闭环：
 1. 先输出本轮最小目标、会影响的证据 ID、风险、是否需要用户审批。
