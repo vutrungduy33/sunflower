@@ -334,14 +334,14 @@
 | 触达点击率 | 触达效果 | `campaign_click` / `campaign_sent` |
 
 ## 13. 相关文档
-- 信息架构：`docs/IA.md`
-- 关键流程：`docs/Flows.md`
+- 信息架构：`docs/archive/planning/IA.md`
+- 关键流程：`docs/archive/planning/Flows.md`
 - 接口清单：`docs/API.md`
 - 接口字段定义：`docs/API-Schemas.md`
 - 数据字典：`docs/DataDictionary.md`
 - 数据库索引与约束：`docs/DB-Design.md`
-- MVP 原型页：`docs/Prototype.md`
+- MVP 原型页：`docs/archive/planning/Prototype.md`
 - MVP 可用性：`docs/MVP-Readiness.md`
 - 历史 Stage Backlog：`docs/archive/Backlog.md`
-- 埋点与报表：`docs/Analytics.md`
+- 埋点与报表：`docs/archive/planning/Analytics.md`
 - CI/CD 部署：`docs/CI-CD.md`

@@ -22,6 +22,7 @@
 | MVP hardening | Start with `docs/MVP-Handoff-Packet.md`, `docs/MVP-Readiness.md`, `docs/Project-State.md`, and the JSON ledgers (`docs/MVP-Launch-Evidence.json`, `docs/Miniapp-Manual-QA.json`, `docs/Admin-Web-Manual-QA.json`). Then load task-relevant docs such as `docs/MVP-Next-Approval-Request.md`, `docs/MVP-External-Approval-Packet.md`, `docs/MVP-Closeout-Audit.md`, or app QA docs only when needed. |
 | New Codex MVP goal | `docs/MVP-Next-Goal-Prompt.md`, `docs/MVP-Handoff-Packet.md`, `docs/MVP-Readiness.md`, `docs/Project-State.md`, and task-relevant approval/evidence docs |
 | Component handoff docs | `sunflower-miniapp/README.md`, `sunflower-admin-web/README.md`, `sunflower-backend/README.md`, plus the matching QA docs above |
+| Product background / early planning | `docs/PRD.md`, then `docs/archive/planning/**` only when the task needs historical IA, flows, prototype, analytics, code convention, or definition-of-done context |
 | Process / decisions | `docs/Decision-Log.md`, then only relevant linked docs |
 | Historical diagnosis | `docs/archive/**` only when explicitly needed |
 
@@ -29,6 +30,7 @@
 
 - `docs/archive/**`
 - `docs/archive/mvp-progress/**`
+- `docs/archive/planning/**`
 - `sunflower-miniapp/miniprogram_npm/**`
 - `sunflower-admin-web/node_modules/**`
 - `sunflower-backend/target/**`

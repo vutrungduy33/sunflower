@@ -166,6 +166,16 @@ deployment run:
   backend `8080` exposure checks, and backend payment config readiness. The
   audit did not push, deploy, reload Nginx, or mutate ECS/firewall/security
   group state; it reported the same 8 sanitized payment config issues.
+- Current documentation simplification round moved early planning docs
+  (`Analytics.md`, `Code-Conventions.md`, `Definition-of-Done.md`, `Flows.md`,
+  `IA.md`, and `Prototype.md`) under `docs/archive/planning/`, archived older
+  active progress rounds 48-57 under
+  `docs/archive/mvp-progress/MVP-Progress-Rounds-48-57.md`, and kept
+  `docs/MVP-Progress.md` limited to the latest operational rounds. Active
+  entry docs now prioritize `docs/Context-Index.md`, `docs/Project-State.md`,
+  `docs/MVP-Readiness.md`, `docs/MVP-Handoff-Packet.md`, the evidence ledgers,
+  `docs/Architecture.md`, `docs/CI-CD.md`, `docs/API.md`,
+  `docs/API-Schemas.md`, and `docs/Decision-Log.md`.
 - Round 50 audited the original goal termination criteria against current
   evidence in `docs/MVP-Closeout-Audit.md`. Result: the active MVP goal remains
   incomplete because strict external/manual evidence still has 33 unresolved
@@ -481,37 +491,15 @@ deployment run:
   production requires HTTPS legal WeChat request domain.
 - Backend container observed binding public `0.0.0.0:8080`; security group should
   restrict direct backend access to ECS-1 where possible.
-- Canonical MVP readiness tracker: `docs/MVP-Readiness.md`.
-- Miniapp QA tracker: `docs/Miniapp-MVP-QA.md`.
-- Miniapp manual QA tracker: `docs/Miniapp-Manual-QA.md`.
-- Backend/API QA tracker: `docs/Backend-MVP-QA.md`.
-- Backend 8080 security tracker: `docs/Backend-8080-Security.md`.
-- Admin web QA tracker: `docs/Admin-Web-MVP-QA.md`.
-- Production smoke tracker: `docs/Production-Smoke.md`.
-- Launch evidence tracker: `docs/MVP-Launch-Evidence.md`.
-- External validation runbook: `docs/MVP-External-Validation-Runbook.md`.
-- External approval packet: `docs/MVP-External-Approval-Packet.md`.
-- Next approval request: `docs/MVP-Next-Approval-Request.md`.
-- External evidence template: `docs/MVP-External-Evidence-Template.md`.
-- MVP handoff packet: `docs/MVP-Handoff-Packet.md`.
-- MVP next Codex goal prompt: `docs/MVP-Next-Goal-Prompt.md`.
-- MVP closeout audit: `docs/MVP-Closeout-Audit.md`.
-- MVP termination audit guard: `scripts/check_mvp_termination_audit.js`.
-- MVP closeout readiness guard: `scripts/check_mvp_closeout_readiness.js`.
-- MVP handoff packet guard: `scripts/check_mvp_handoff_packet.js`.
-- Aggregate MVP regression script: `scripts/check_mvp_regression.sh`, including
-  the non-strict termination audit guard in its evidence step.
-- Production read-only audit script:
-  `scripts/check_production_readonly_audit.sh`.
-- Deployment approval preflight:
-  `scripts/check_deployment_approval_preflight.js`.
-- Deploy config static check: `scripts/check_deploy_config.sh`.
-- Admin web behavior wiring check: `scripts/check_admin_web_behavior_wiring.js`.
-- Admin web external QA preflight:
-  `scripts/check_admin_web_external_qa_preflight.js`.
-- Miniapp external QA preflight:
-  `scripts/check_miniapp_external_qa_preflight.js`.
-- Miniapp user-flow replay guard: `scripts/check_miniapp_user_flow_replay.js`.
+- Canonical current-entry docs: `docs/Context-Index.md`,
+  `docs/Project-State.md`, `docs/MVP-Readiness.md`,
+  `docs/MVP-Handoff-Packet.md`, `docs/Architecture.md`, `docs/CI-CD.md`,
+  `docs/API.md`, `docs/API-Schemas.md`, and `docs/Decision-Log.md`.
+- Machine-readable evidence ledgers: `docs/MVP-Launch-Evidence.json`,
+  `docs/Miniapp-Manual-QA.json`, and `docs/Admin-Web-Manual-QA.json`.
+- Task-specific QA/security/deployment docs remain available through
+  `docs/Context-Index.md`; historical planning and older MVP progress logs
+  live under `docs/archive/` and are not default loading context.
 
 ## Current Dirty Worktree Note
 

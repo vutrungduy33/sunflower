@@ -7,6 +7,7 @@ const path = require('path');
 const rootDir = path.resolve(__dirname, '..');
 const auditPath = path.join(rootDir, 'docs', 'MVP-Closeout-Audit.md');
 const progressPath = path.join(rootDir, 'docs', 'MVP-Progress.md');
+const archivedProgressDir = path.join(rootDir, 'docs', 'archive', 'mvp-progress');
 const projectStatePath = path.join(rootDir, 'docs', 'Project-State.md');
 
 const requiredCriteria = [
@@ -70,10 +71,28 @@ function requireIncludes(text, expected, label) {
   }
 }
 
+function readProgressCorpus() {
+  const texts = [readText(progressPath)];
+  try {
+    const archivedFiles = fs
+      .readdirSync(archivedProgressDir)
+      .filter((fileName) => /^MVP-Progress-Rounds-.*\.md$/.test(fileName))
+      .sort();
+
+    for (const fileName of archivedFiles) {
+      texts.push(readText(path.join(archivedProgressDir, fileName)));
+    }
+  } catch (error) {
+    fail(`cannot read archived progress directory ${archivedProgressDir}: ${error.message}`);
+  }
+
+  return texts.join('\n');
+}
+
 function main() {
   const audit = readText(auditPath);
   const normalizedAudit = normalize(audit);
-  const progress = readText(progressPath);
+  const progress = readProgressCorpus();
   const projectState = readText(projectStatePath);
 
   for (const criterion of requiredCriteria) {

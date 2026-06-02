@@ -1,6 +1,7 @@
-# 项目文档索引与开发概览
+# 项目文档索引
 
-本文档用于快速了解本仓库的文档位置、开发目标、当前架构与文件结构。
+本文档只保留当前开发与交接需要的入口。历史规划、旧 Stage 与旧轮次日志
+已归档到 `docs/archive/`，不作为默认阅读上下文。
 
 > 当前开发流程说明：本项目不再使用 Stage 强制流程、pre/post stage guard、提交前缀、分支前缀或 GitHub PR Gate。历史 Stage 文档已归档到 `docs/archive/`，仅用于追溯，不作为当前开发约束。
 
@@ -9,28 +10,12 @@
 - 为泸沽湖游客提供公共服务：地图 / 景点 / 点评 / 游记
 - 业务目标：转私域、效率提升、体验提升
 
-## 2. 开发目标与范围（优先级）
-### P0（必须）
-- 房型/房态/价格展示（小程序）
-- 订单管理（下单/支付/取消/改期/入住核销）
-- 后台房态与价格管理
-- 微信登录与手机号绑定、用户标签
-- 微信支付与对账报表
-- 基础内容：民宿介绍、位置与交通、客服
-- 私域转化入口与客源归因
+## 2. 当前优先级
 
-### P1（高优先）
-- 餐饮/商品点单
-- 泸沽湖地图与景点推荐
-- 猪槽船/接驳服务预订
-- 评价与分享、优惠券与会员权益
-- 私域触达与再营销、会员成长体系
-
-### P2（可延后）
-- 活动与主题团
-- 数据分析面板
-- CRM 与私域触达
-- 多店扩展
+- MVP 可用性、验证状态与上线阻塞项以 `docs/MVP-Readiness.md` 为准。
+- 产品背景与 P0/P1/P2 范围见 `docs/PRD.md`。
+- 早期 IA、流程、原型、埋点、代码规范和 DoD 已归档到
+  `docs/archive/planning/`，仅在需要历史背景时读取。
 
 ## 3. 技术栈与运行形态（当前约定）
 - 前端：微信小程序（原生框架）
@@ -41,20 +26,19 @@
 
 说明：根目录提供单机联调 `docker-compose.yml`，以及生产双节点拆分用的 `docker-compose.backend.yml` / `docker-compose.web.yml`。
 
-## 4. 文档索引
-- `docs/Context-Index.md`：上下文加载地图；后续任务按它决定读哪些文档
-- `docs/Project-State.md`：当前项目事实、验证状态与风险快照
-- `docs/MVP-Readiness.md`：MVP 上线可用性清单、验证矩阵与阻塞项
-- `docs/MVP-Handoff-Packet.md`：继续 MVP 收口时的紧凑交接入口
+## 4. 核心文档
+
+- `docs/Context-Index.md`：上下文加载地图；后续任务按它决定读哪些文档。
+- `docs/Project-State.md`：当前事实、验证状态、风险和活跃拓扑。
+- `docs/MVP-Readiness.md`：MVP 可用性清单、验证矩阵与阻塞项。
+- `docs/MVP-Handoff-Packet.md`：继续 MVP 收口时的紧凑交接入口。
 - `docs/MVP-Launch-Evidence.json`、`docs/Miniapp-Manual-QA.json`、
-  `docs/Admin-Web-Manual-QA.json`：机器可读证据 ledgers
-- `docs/MVP-Next-Approval-Request.md`：下一轮人工审批/外部证据请求入口
+  `docs/Admin-Web-Manual-QA.json`：机器可读证据 ledgers。
+- `docs/MVP-Next-Approval-Request.md`：下一轮人工审批/外部证据请求入口。
 - `docs/Architecture.md`、`docs/CI-CD.md`、`docs/API.md`、`docs/API-Schemas.md`：
-  架构、部署与接口事实
-- `docs/Decision-Log.md`：长期架构/流程/部署决策记录
-- `docs/archive/`：历史 Stage 计划、报告、M1/S14 验收与旧门禁材料（非当前约束）
-- `docs/archive/mvp-progress/`：已归档的早期 MVP 轮次日志
-- `README.md`：项目总览 + 运营调研资料
+  架构、部署与接口事实。
+- `docs/Decision-Log.md`：长期架构/流程/部署决策记录。
+- `docs/archive/`：历史 Stage、早期规划与旧 MVP 轮次材料，非当前约束。
 
 ## 5. 文件结构（概览）
 ```
@@ -66,7 +50,7 @@
 │  ├─ Context-Index.md
 │  ├─ Project-State.md
 │  ├─ MVP-Readiness.md
-│  ├─ MVP-Progress.md
+│  ├─ MVP-Progress.md              # 仅保留最新运营轮次
 │  ├─ MVP-Handoff-Packet.md
 │  ├─ MVP-Next-Approval-Request.md
 │  ├─ MVP-Launch-Evidence.json
@@ -78,7 +62,8 @@
 │  ├─ API-Schemas.md
 │  ├─ CI-CD.md
 │  ├─ archive/
-│  ├─ archive/mvp-progress/
+│  ├─ archive/mvp-progress/        # 旧 MVP 轮次日志
+│  ├─ archive/planning/            # 早期规划/流程/原型/规范文档
 │  └─ Web-Admin-Plan.md
 ├─ sunflower-admin-web/           # Web 管理后台工程
 ├─ sunflower-miniapp/             # 微信小程序工程

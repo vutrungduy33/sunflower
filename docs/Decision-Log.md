@@ -251,3 +251,15 @@ Append durable decisions here. Keep entries short and include provenance.
 - Provenance: `docs/MVP-External-Approval-Packet.md`,
   `scripts/check_mvp_external_approval_packet.js`,
   `docs/MVP-Handoff-Packet.md`.
+
+## 2026-06-02: Keep Active Docs Compact
+
+- Decision: Keep default documentation entry points focused on current project
+  state, architecture, API/deploy facts, MVP readiness, handoff, and evidence
+  ledgers. Move early planning docs and older MVP progress rounds under
+  `docs/archive/`.
+- Rationale: The repository accumulated enough planning and round-history
+  material that default context loading became noisy. Archiving preserves
+  traceability without making stale planning or old evidence look current.
+- Provenance: `docs/README.md`, `docs/Context-Index.md`,
+  `docs/archive/README.md`, `docs/MVP-Progress.md`.
