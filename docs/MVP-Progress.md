@@ -3,6 +3,87 @@
 > Compact round-by-round progress for the current MVP hardening goal. Keep this
 > file factual and update it at the end of each committed round.
 
+## Round 46: Main Deployment Preflight And Read-Only Smoke Refresh
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: refresh the current local `main` deployment approval preflight and
+  read-only production smoke evidence after the Round 45 commit, without
+  pushing, deploying, reloading Nginx, or mutating ECS/security-group state.
+- Start evidence:
+  - `git status --short --branch --untracked-files=all`: local `main` is ahead
+    of `origin/main` by 49 commits and has no tracked worktree changes.
+  - `docs/Production-Smoke.md` still records the latest deployment approval
+    preflight from Round 41 on branch `codex/s18-payment-hardening`, not the
+    current local `main`.
+  - `docs/MVP-Readiness.md` still records production/deployment read-only
+    evidence from Round 39/41; it needs current-branch deployment risk wording
+    before any human approval for `CURRENT-BRANCH-DEPLOYED`.
+- Open-source reference check:
+  - Task classification: common CI/CD deployment preflight, workflow trigger
+    review, compose rendering, and read-only smoke validation.
+  - Sources checked: GitHub Actions official workflow syntax docs for
+    `push` branch/path filters and `workflow_dispatch`; GitHub Actions official
+    self-hosted runner label docs; Docker official `docker compose config`
+    reference.
+  - Selected approach: reuse existing repository-native read-only scripts:
+    `node scripts/check_deployment_approval_preflight.js` and
+    `scripts/check_production_readonly_audit.sh`.
+  - License/compatibility: official documentation only; no external code
+    copied.
+  - Reused/adapted: current repo scripts and docs; no new dependency or
+    deployment code.
+  - Rejected options: pushing local `main`, dispatching GitHub Actions,
+    changing ECS firewall/security groups, or marking current branch deployed
+    without post-deploy evidence.
+- Risks:
+  - The production smoke can prove current live service health, but not that
+    the local ahead commits are deployed.
+  - Backend `8080` may remain listener-bound to `0.0.0.0`; this requires
+    Alibaba Cloud security-group evidence, firewall evidence, mutation
+    approval, or explicit waiver before final closeout.
+- Acceptance criteria:
+  - Deployment approval preflight passes on current local `main` and records
+    branch, HEAD, ahead/diff impact, predicted deploy target, and no-action
+    boundary.
+  - Read-only production audit passes or records any warnings without mutation.
+  - `docs/Project-State.md`, `docs/Production-Smoke.md`, and
+    `docs/MVP-Readiness.md` reflect the refreshed evidence and remaining
+    approval boundary.
+  - The round is committed once.
+- Change summary:
+  - Refreshed deployment approval evidence for current local `main` at HEAD
+    `758729091785`.
+  - Refreshed production read-only smoke evidence using the existing audit
+    wrapper.
+  - Updated readiness, production smoke, next approval, launch evidence, and
+    project-state docs without changing deployment scripts or evidence
+    statuses beyond evidence text.
+- Verification:
+  - `node scripts/check_deployment_approval_preflight.js`: passed after
+    temporarily stashing the in-progress Round 46 progress-doc edit so the
+    script's required clean-worktree check could run. It reported current branch
+    `main`, HEAD `758729091785`, comparison base `origin/main` at
+    `89f93d704719`, 145 changed files since base, predicted deploy target
+    `all`, and impact counts backend 38/admin-web 5/ingress 1.
+  - `scripts/check_production_readonly_audit.sh`: passed 3 read-only audit
+    steps. Production smoke passed with 7 checks and 1 warning; backend `8080`
+    exposure checks passed with 3 checks and 2 warnings.
+  - No push, merge, workflow dispatch, deployment, Nginx reload, ECS mutation,
+    firewall mutation, security-group mutation, or production configuration
+    change was performed.
+- Goal correction:
+  - This round proves the current deployment risk and live read-only health, but
+    does not prove current local `main` is deployed. `CURRENT-BRANCH-DEPLOYED`
+    remains pending.
+  - `BACKEND-8080-HARDENING` remains pending because ECS-2 still listens on
+    `0.0.0.0:8080` and security-group/firewall restriction is not proven.
+- Next recommended round:
+  - Ask the user for exactly one approval lane. The most direct next lanes are
+    `CURRENT-BRANCH-DEPLOYED` if they want to push/deploy local `main`, or
+    `BACKEND-8080-HARDENING` if they can provide security-group evidence or an
+    explicit waiver.
+
 ## Round 45: Admin Order Filter Error-State Guard
 
 - Date: 2026-06-02

@@ -31,8 +31,8 @@ verified, and documented enough for handoff:
 | Miniapp real user path | Code supports real API, WeChat login, phone binding, `wx.requestPayment`, order and after-sale flows; manual QA ledger now exists. | Needs real-device evidence | Run `node scripts/check_miniapp_manual_qa.js --strict` after recording preview/real-device evidence. |
 | WeChat pay/refund | Backend has WeChat payment/refund gateway, callbacks, records, retry, and mock only when explicitly configured; miniapp payment QA ledger now exists. | Needs production evidence | Verify small real payment/refund with merchant config and callback domain, then record sanitized evidence. |
 | Admin operations path | Core pages and tests exist for auth, room, price/inventory, and order management; manual QA ledger now exists. | Partially verified | Run `node scripts/check_admin_web_manual_qa.js --strict` against deployed admin web after recording safe evidence. |
-| Deployment | Round 39 `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh` passed deploy config static checks plus production public/ECS internal smoke and backend `8080` read-only checks. Public `/api/health`, `/api/content/home`, `/healthz`, admin web HTML, ECS internal health, and deploy config static checks passed. No push/deploy was performed. | Partially verified | Push/dispatch deploy only after confirming branch/production intent. |
-| Security / compliance | Secrets are local/ECS-owned; `.secrets/` ignored. Round 39 backend `8080` read-only checks show public 8080 not directly usable from this network, ECS-1 private upstream works, and ECS-2 backend health is present, but ECS-2 still listens on `0.0.0.0:8080` and firewall/security-group restriction is not proven. | Needs hardening | Record Alibaba Cloud security group evidence or explicit user waiver; complete HTTPS/WeChat domain setup. |
+| Deployment | Round 46 `node scripts/check_deployment_approval_preflight.js` passed on current local `main` at HEAD `758729091785`: comparison base `origin/main` at `89f93d704719`, 145 changed files since base, predicted push-to-main deploy target `all`, and impact counts backend 38/admin-web 5/ingress 1. Round 46 `scripts/check_production_readonly_audit.sh` also passed deploy config static checks plus production public/ECS internal smoke and backend `8080` read-only checks. No push/deploy was performed. | Partially verified | Push/dispatch deploy only after explicit production approval; local `main` push can trigger `all` deployment. |
+| Security / compliance | Secrets are local/ECS-owned; `.secrets/` ignored. Round 46 backend `8080` read-only checks show public 8080 not directly usable from this network, ECS-1 private upstream works, and ECS-2 backend health is present, but ECS-2 still listens on `0.0.0.0:8080` and firewall/security-group restriction is not proven. | Needs hardening | Record Alibaba Cloud security group evidence or explicit user waiver; complete HTTPS/WeChat domain setup. |
 
 Detailed launch evidence is tracked in `docs/MVP-Launch-Evidence.md` and
 `docs/MVP-Launch-Evidence.json`. Final MVP completion requires the strict
@@ -65,15 +65,17 @@ Latest direct admin-web automated evidence:
 
 Latest production/deployment read-only evidence:
 
-- `node scripts/check_deployment_approval_preflight.js`: passed in Round 30.
-  Round 41 reran it: current branch was not `main`, worktree was clean, HEAD
-  was `5376567d2d1c`, changed files since `origin/main` were 142, future
-  push/merge to `main` was predicted to trigger deployment target `all`, and
-  impact counts were backend 38, admin-web 5, ingress 1.
-- Production checks inside `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`:
-  passed in Round 39 with production public/ECS internal smoke and backend
-  `8080` exposure read-only checks enabled.
-- Backend `8080` hardening remains unresolved after the Round 39 direct
+- `node scripts/check_deployment_approval_preflight.js`: passed in Round 46 on
+  current local `main` at HEAD `758729091785`. Comparison base was
+  `origin/main` at `89f93d704719`, changed files since base were 145, push to
+  `main` is predicted to trigger deploy target `all`, and impact counts were
+  backend 38, admin-web 5, ingress 1. No push, merge, workflow dispatch, or
+  deployment was performed.
+- `scripts/check_production_readonly_audit.sh`: passed in Round 46 with deploy
+  config static checks, production public/ECS internal smoke, and backend
+  `8080` exposure read-only checks enabled. No push, deploy, Nginx reload,
+  ECS mutation, firewall mutation, or security-group mutation was performed.
+- Backend `8080` hardening remains unresolved after the Round 46 direct
   read-only check because ECS-2 still listens on `0.0.0.0:8080` and local
   firewall output did not prove restriction.
 

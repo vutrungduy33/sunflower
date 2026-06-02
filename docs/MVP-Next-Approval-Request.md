@@ -1,6 +1,6 @@
 # MVP Next Approval Request
 
-> Current as of 2026-06-02 Round 41. This is the visible next-step approval
+> Current as of 2026-06-02 Round 46. This is the visible next-step approval
 > request for MVP closeout. It is not proof that the MVP is complete.
 
 ## 1. Purpose
@@ -88,18 +88,20 @@ refund, and no live production data mutation.
 
 ## 6. Current Deployment Preflight Snapshot
 
-Latest clean read-only deployment approval preflight before this document round:
+Latest clean read-only deployment approval preflight before an approved deploy:
 
 - Command: `node scripts/check_deployment_approval_preflight.js`
-- Branch: `codex/s18-payment-hardening`
-- HEAD checked: `5376567d2d1c`
-- Base: `origin/main` at `5a37a6788c21`
-- Changed files since base: 142
+- Branch: local `main`
+- HEAD checked: `758729091785`
+- Base: `origin/main` at `89f93d704719`
+- Changed files since base: 145
 - Predicted push-to-main deploy target: `all`
 - Impact counts: backend 38 files, admin-web 5 files, ingress 1 file
-- Result: passed 5 checks
+- Result: passed 4 checks
 - Actions taken: no push, no merge, no `workflow_dispatch`, no deploy, no ECS
   mutation
+- Important boundary: the branch is `main`; pushing these deployment-relevant
+  local commits can trigger production deployment.
 
 Rerun `node scripts/check_deployment_approval_preflight.js` after any new commit
 and before asking the user to approve `CURRENT-BRANCH-DEPLOYED`.

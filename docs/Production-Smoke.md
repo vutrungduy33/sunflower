@@ -1,6 +1,6 @@
 # Production Smoke
 
-> Latest run: 2026-06-02 08:58 Asia/Shanghai. This records observed production
+> Latest run: 2026-06-02 Round 46. This records observed production
 > health for the MVP hardening goal. It does not mean a new deployment was
 > triggered.
 
@@ -25,6 +25,21 @@ deploy, reload Nginx, or change ECS/firewall/security-group state.
 
 Latest read-only production result:
 
+- `scripts/check_production_readonly_audit.sh`: passed in Round 46 on current
+  local `main` at HEAD `758729091785`.
+- Deploy config static checks passed.
+- Production public/ECS internal smoke passed with 7 checks and 1 warning:
+  ECS-2 backend still listens on `0.0.0.0:8080`.
+- Backend `8080` exposure check passed with 3 checks and 2 warnings: public
+  `8080` was not directly usable from this local network, ECS-1 private
+  upstream worked, ECS-2 backend health was present, but local firewall output
+  did not prove restriction.
+- No deployment, push, workflow dispatch, Nginx reload, ECS mutation, firewall
+  mutation, security-group mutation, or production configuration change was
+  performed.
+
+Previous read-only production result:
+
 - `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: production smoke and
   backend `8080` read-only checks passed in Round 39 as part of the 6-step
   aggregate MVP regression at pre-commit HEAD `255558f001e9`.
@@ -36,16 +51,18 @@ Latest read-only production result:
 
 Latest deployment approval preflight:
 
-- `node scripts/check_deployment_approval_preflight.js`: passed 5 checks on
-  2026-06-02 during Round 41.
-- Current branch: `codex/s18-payment-hardening`.
-- Current branch HEAD: `5376567d2d1c`.
-- Comparison base: `origin/main` at `5a37a6788c21`.
-- Changed files since base: 142.
+- `node scripts/check_deployment_approval_preflight.js`: passed 4 checks in
+  Round 46.
+- Current branch: local `main`.
+- Current branch HEAD: `758729091785`.
+- Comparison base: `origin/main` at `89f93d704719`.
+- Changed files since base: 145.
 - Predicted push-to-main deploy target from workflow path rules: `all`.
 - Impact counts: backend 38 files, admin-web 5 files, ingress 1 file.
-- Worktree was clean, branch was not `main`, and no deployment, push, or
-  production configuration change was performed.
+- Worktree was clean for the preflight run. The current branch is `main`, so
+  pushing deployment-relevant changes can trigger production deployment. No
+  deployment, push, workflow dispatch, or production configuration change was
+  performed.
 
 ## 1. GitHub Actions
 
@@ -55,8 +72,8 @@ Latest deployment approval preflight:
   - `workflow_dispatch`
   - `push` to `main` for deployment-relevant paths
 - Current branch during latest deployment preflight:
-  `codex/s18-payment-hardening`
-- Current branch HEAD during latest deployment preflight: `5376567d2d1c`
+  `main`
+- Current branch HEAD during latest deployment preflight: `758729091785`
 - Deployment action taken in this round: none
 - `gh auth status`: authenticated as `vutrungduy33` with `repo` and `workflow`
   scopes.
@@ -117,8 +134,7 @@ ECS-2 backend/data host `47.120.42.15`:
 - `ss -ltnp`: confirms MySQL local-only and backend listening on all interfaces
   through docker-proxy.
 
-Latest 2026-06-02 08:58 production-enabled aggregate regression reconfirmed
-the same health shape:
+Latest Round 46 production read-only audit reconfirmed the same health shape:
 
 - ECS-1 Nginx/admin-web/private backend smoke passed.
 - ECS-2 backend/MySQL/local health smoke passed.
@@ -133,14 +149,14 @@ the same health shape:
   requires a legal HTTPS request domain.
 - Backend container is bound to `0.0.0.0:8080`; security group or host firewall
   should restrict access to ECS-1.
-- This branch has not been pushed to `main`; current committed MVP hardening
-  work has not triggered deployment. The latest approval preflight predicts an
-  `all` deployment target if these branch changes are merged/pushed to `main`.
+- Local `main` is ahead of `origin/main`; current committed MVP hardening work
+  has not been pushed and has not triggered deployment. The latest approval
+  preflight predicts an `all` deployment target if local `main` is pushed.
 - Real WeChat login, phone authorization, payment, refund, SMS, and callback
   delivery still require external-service production validation.
 
 ## 5. Next Deployment Decision
 
-Do not trigger production deployment automatically from this branch. To deploy
-the current branch state, first merge/push to `main` or manually run
-`workflow_dispatch` with an explicit target after confirming production intent.
+Do not trigger production deployment automatically. To deploy the current local
+`main` state, first confirm production intent, then push `main` or manually run
+`workflow_dispatch` with an explicit target, followed by the read-only audit.

@@ -42,7 +42,7 @@
       "requirement": "Production public and internal smoke checks pass.",
       "status": "passed",
       "requiredForMvp": true,
-      "evidence": "Round 39 RUN_PRODUCTION=1 scripts/check_mvp_regression.sh passed at pre-commit HEAD 255558f001e9 on 2026-06-02 08:58 Asia/Shanghai. Production public/ECS internal smoke passed with 7 checks and 1 known backend-bind warning, and backend 8080 read-only exposure checks passed with 3 checks and 2 warnings. No push, deploy, Nginx reload, ECS/firewall/security-group change, or production configuration mutation was performed.",
+      "evidence": "Round 46 scripts/check_production_readonly_audit.sh passed on current local main at HEAD 758729091785. Deploy config static checks passed, production public/ECS internal smoke passed with 7 checks and 1 known backend-bind warning, and backend 8080 read-only exposure checks passed with 3 checks and 2 warnings. No push, deploy, workflow_dispatch, Nginx reload, ECS/firewall/security-group change, or production configuration mutation was performed.",
       "nextAction": "Re-run after approved deploy or production config change."
     },
     {
@@ -114,7 +114,7 @@
       "requirement": "Direct public access to backend port 8080 is restricted to ECS-1 by security group or host firewall, or explicitly accepted by the user as a launch risk.",
       "status": "pending",
       "requiredForMvp": true,
-      "evidence": "Round 39 backend 8080 read-only checks passed at pre-commit HEAD 255558f001e9 on 2026-06-02 08:58 Asia/Shanghai: public 8080 was not directly usable from this network, ECS-1 private upstream works, and ECS-2 backend is healthy. ECS-2 still shows docker-proxy listening on 0.0.0.0:8080, and local firewall output did not prove restriction. Alibaba Cloud security group evidence or explicit waiver is still required.",
+      "evidence": "Round 46 scripts/check_production_readonly_audit.sh passed on current local main at HEAD 758729091785. Backend 8080 read-only checks passed with 3 checks and 2 warnings: public 8080 was not directly usable from this network, ECS-1 private upstream works, and ECS-2 backend is healthy. ECS-2 still shows docker-proxy listening on 0.0.0.0:8080, and local firewall output did not prove restriction. Alibaba Cloud security group evidence or explicit waiver is still required.",
       "nextAction": "Record Alibaba Cloud security group evidence in docs/Backend-8080-Security.md or get explicit user waiver before marking this entry passed or waived. Modifying security group/firewall requires user approval."
     },
     {
@@ -123,7 +123,7 @@
       "requirement": "Current committed MVP branch code has been deployed through the approved GitHub Actions path, or deployment is explicitly declared out of scope by the user.",
       "status": "pending",
       "requiredForMvp": true,
-      "evidence": "Round 41 node scripts/check_deployment_approval_preflight.js passed on branch codex/s18-payment-hardening at HEAD 5376567d2d1c, compared with origin/main 5a37a6788c21. Changed files since base: 142. Predicted push-to-main deploy target: all. Impact counts: backend 38, admin-web 5, ingress 1. Worktree was clean and branch was not main. No push, merge, workflow_dispatch, or deployment was performed, so current branch deployment remains unproven.",
+      "evidence": "Round 46 node scripts/check_deployment_approval_preflight.js passed on current local main at HEAD 758729091785 after temporarily stashing the in-progress progress-doc edit so the required clean-worktree check could run. Comparison base was origin/main at 89f93d704719. Changed files since base: 145. Predicted push-to-main deploy target: all. Impact counts: backend 38, admin-web 5, ingress 1. The branch is main, so pushing deployment-relevant commits can trigger production deployment. No push, merge, workflow_dispatch, or deployment was performed, so current branch deployment remains unproven.",
       "nextAction": "Ask for explicit approval before push/merge/workflow_dispatch, or record an explicit user decision that current-branch deployment evidence is out of scope."
     }
   ]

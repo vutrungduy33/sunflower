@@ -28,8 +28,8 @@
 
 ## Recent Validation Snapshot
 
-Current snapshot after 2026-06-02 Round 45 admin order filter error-state
-guard:
+Current snapshot after 2026-06-02 Round 46 main deployment preflight and
+read-only smoke refresh:
 
 - `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: passed in Round 32 with
   6 enabled steps: backend tests, admin-web lint/test/build, admin behavior and
@@ -56,6 +56,15 @@ guard:
   changed files since base were 142, and path rules predicted a future
   push/merge to `main` would deploy target `all`. Impact counts were backend
   38 files, admin-web 5 files, and ingress 1 file.
+- Deployment approval preflight
+  `node scripts/check_deployment_approval_preflight.js`: passed again in Round
+  46 against current local `main` at HEAD `758729091785`, after temporarily
+  stashing the in-progress Round 46 progress-doc edit so the required clean
+  worktree check could run. Comparison base was `origin/main` at
+  `89f93d704719`, changed files since base were 145, path rules predicted a
+  push-to-main deploy target `all`, and impact counts were backend 38 files,
+  admin-web 5 files, and ingress 1 file. No push, merge, workflow_dispatch,
+  deployment, Nginx reload, or ECS mutation was performed.
 - Production smoke and backend `8080` read-only checks: passed again in Round
   32 through `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`. The checks did
   not push, deploy, reload Nginx, or change ECS/firewall/security-group state.
@@ -63,6 +72,14 @@ guard:
   39 through `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh` with 7
   production smoke passes/1 backend-bind warning and backend `8080` exposure 3
   passes/2 warnings.
+- Production read-only audit `scripts/check_production_readonly_audit.sh`:
+  passed again in Round 46 with 3 read-only audit steps: deploy config static
+  checks, production public/ECS internal smoke, and backend `8080` exposure
+  inspection. Production smoke still had 7 passes and 1 warning for ECS-2
+  backend listening on `0.0.0.0:8080`; backend `8080` inspection still had 3
+  passes and 2 warnings because public 8080 was not directly usable from this
+  network but local firewall output did not prove restriction. No push,
+  deploy, reload, or production configuration mutation was performed.
 - Admin web `npm run lint`: passed again in Round 36 at 2026-06-02 08:46
   Asia/Shanghai.
 - Admin web `npm run test`: passed again in Round 36 at 2026-06-02 08:46
