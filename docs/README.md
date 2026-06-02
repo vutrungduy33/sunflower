@@ -42,36 +42,18 @@
 说明：根目录提供单机联调 `docker-compose.yml`，以及生产双节点拆分用的 `docker-compose.backend.yml` / `docker-compose.web.yml`。
 
 ## 4. 文档索引
-- `docs/Agent-Memory.md`：Codex 记忆与上下文管理规则
-- `docs/Context-Index.md`：后续任务的上下文加载地图
+- `docs/Context-Index.md`：上下文加载地图；后续任务按它决定读哪些文档
 - `docs/Project-State.md`：当前项目事实、验证状态与风险快照
 - `docs/MVP-Readiness.md`：MVP 上线可用性清单、验证矩阵与阻塞项
-- `docs/MVP-Progress.md`：当前 MVP 推进轮次记录
-- `docs/MVP-Closeout-Audit.md`：MVP 完成度审计与剩余外部验证缺口
-- `docs/MVP-Next-Goal-Prompt.md`：用于继续 MVP 收口的 Codex goal 提示词
+- `docs/MVP-Handoff-Packet.md`：继续 MVP 收口时的紧凑交接入口
+- `docs/MVP-Launch-Evidence.json`、`docs/Miniapp-Manual-QA.json`、
+  `docs/Admin-Web-Manual-QA.json`：机器可读证据 ledgers
 - `docs/MVP-Next-Approval-Request.md`：下一轮人工审批/外部证据请求入口
-- `docs/MVP-External-Approval-Packet.md`：外部证据采集前的审批边界与请求模板
+- `docs/Architecture.md`、`docs/CI-CD.md`、`docs/API.md`、`docs/API-Schemas.md`：
+  架构、部署与接口事实
 - `docs/Decision-Log.md`：长期架构/流程/部署决策记录
-- `docs/Architecture.md`：当前系统架构、部署拓扑与运行组件说明
-- `docs/PRD.md`：需求规格与开发计划（范围、优先级、里程碑）
-- `docs/Prototype.md`：MVP 原型页面清单
-- `docs/Miniapp-Frontend-MVP.md`：小程序前端一期 MVP 设计与实现说明
-- `docs/Miniapp-MVP-QA.md`：小程序 MVP 自动 smoke 与人工 QA 清单
-- `docs/IA.md`：信息架构（小程序 + 后台）
-- `docs/Flows.md`：关键业务流程与状态
-- `docs/API.md`：REST 接口清单
-- `docs/API-Schemas.md`：接口字段级别定义（含示例）
-- `docs/Backend-MVP-QA.md`：后端/API 自动测试、接口覆盖与生产 smoke 清单
-- `docs/DB-Design.md`：数据库索引与约束设计
-- `docs/DataDictionary.md`：核心表数据字典
-- `docs/Analytics.md`：埋点与报表 SQL 模板
-- `docs/Definition-of-Done.md`：当前交付检查清单（DoD）
-- `docs/Code-Conventions.md`：后续新增代码统一规范
-- `docs/CI-CD.md`：GitHub Actions CI/CD
-- `docs/S19-Prod-Deployment-Config.md`：生产部署与配置说明
-- `docs/Production-Smoke.md`：最近一次生产 smoke 与 ECS 状态记录
-- `docs/Web-Admin-Plan.md`：管理后台 Web 选型、开发约束与环境依赖
 - `docs/archive/`：历史 Stage 计划、报告、M1/S14 验收与旧门禁材料（非当前约束）
+- `docs/archive/mvp-progress/`：已归档的早期 MVP 轮次日志
 - `README.md`：项目总览 + 运营调研资料
 
 ## 5. 文件结构（概览）
@@ -85,29 +67,18 @@
 │  ├─ Project-State.md
 │  ├─ MVP-Readiness.md
 │  ├─ MVP-Progress.md
-│  ├─ MVP-Closeout-Audit.md
-│  ├─ MVP-Next-Goal-Prompt.md
+│  ├─ MVP-Handoff-Packet.md
 │  ├─ MVP-Next-Approval-Request.md
+│  ├─ MVP-Launch-Evidence.json
+│  ├─ Miniapp-Manual-QA.json
+│  ├─ Admin-Web-Manual-QA.json
 │  ├─ Decision-Log.md
 │  ├─ Architecture.md
-│  ├─ PRD.md
-│  ├─ Prototype.md
-│  ├─ Miniapp-Frontend-MVP.md
-│  ├─ Miniapp-MVP-QA.md
-│  ├─ IA.md
-│  ├─ Flows.md
 │  ├─ API.md
 │  ├─ API-Schemas.md
-│  ├─ Backend-MVP-QA.md
-│  ├─ DB-Design.md
-│  ├─ DataDictionary.md
-│  ├─ Analytics.md
-│  ├─ Definition-of-Done.md
-│  ├─ Code-Conventions.md
 │  ├─ CI-CD.md
-│  ├─ S19-Prod-Deployment-Config.md
-│  ├─ Production-Smoke.md
 │  ├─ archive/
+│  ├─ archive/mvp-progress/
 │  └─ Web-Admin-Plan.md
 ├─ sunflower-admin-web/           # Web 管理后台工程
 ├─ sunflower-miniapp/             # 微信小程序工程

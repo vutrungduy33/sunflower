@@ -52,6 +52,9 @@ scripts/check_deploy_config.sh
 2. Prepare external environment evidence:
    - Confirm the HTTPS API domain, certificate, ICP/domain eligibility, and
      WeChat legal request-domain configuration.
+     User-provided miniapp备案 domain: `xiangrikui.cloud`; this is not by itself
+     proof that the concrete HTTPS API host is configured as a WeChat legal
+     request domain.
    - Confirm the local preview uses a real AppID without committing it.
    - Confirm backend, admin web, WeChat, SMS, payment, and callback configuration
      are the intended environment.

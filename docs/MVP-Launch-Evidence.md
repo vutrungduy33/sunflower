@@ -42,8 +42,8 @@ Allowed status values:
 Current machine-check result:
 
 - Required entries: 13.
-- Passed: 4.
-- Pending: 9.
+- Passed: 5.
+- Pending: 8.
 - Waived: 0.
 - Blocked: 0.
 
@@ -63,10 +63,11 @@ The remaining launch evidence is concentrated in these areas:
 - One low-value real payment and one refund/refund request validation.
 - Admin web production manual QA with a real admin account. Detailed admin QA
   ledger: `docs/Admin-Web-MVP-QA.md`.
-- Backend `8080` direct-access restriction or explicit user risk acceptance.
-  Detailed security evidence: `docs/Backend-8080-Security.md`.
 - Approved deployment of current branch code through GitHub Actions, or explicit
   user decision that deployment is out of MVP closeout scope.
+
+Backend `8080` hardening passed in Round 58; detailed security evidence lives in
+`docs/Backend-8080-Security.md`.
 
 ## 4. Evidence Recording Rules
 

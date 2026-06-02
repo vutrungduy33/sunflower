@@ -24,6 +24,46 @@ Modes:
 
 ## 2. Current Result
 
+Latest hardening result from Round 58 on 2026-06-02:
+
+- User explicitly approved closing backend `8080`.
+- ECS-2 deployment directory: `/home/chenyao/sunflower`.
+- ECS-2 `.env.prod` was backed up as
+  `.env.prod.pre-backend-8080-hardening-20260602`.
+- ECS-2 `.env.prod` changed `BACKEND_BIND_HOST` from `0.0.0.0` to
+  `172.25.121.83`.
+- `sunflower-backend` was force-recreated through
+  `docker compose -f docker-compose.backend.yml --env-file .env.prod up -d
+  --no-deps --force-recreate backend`.
+- `docker ps` and `ss` show backend port publishing as
+  `172.25.121.83:8080->8080/tcp`, not `0.0.0.0:8080`.
+- ECS-1 can still reach ECS-2 backend through private upstream
+  `http://172.25.121.83:8080/api/health`.
+- Public ingress `/api/health` remains `UP`.
+- ECS-2 `127.0.0.1:8080` is no longer reachable, which is expected after
+  binding the host port to the ECS-2 private address.
+- Public direct probe `http://47.120.42.15:8080/api/health` is not usable from
+  the local network.
+- `RUN_INTERNAL=1 ENFORCE_RESTRICTED=1 scripts/check_backend_8080_exposure.sh`
+  passed with 5 passes and 0 warnings.
+- No Alibaba Cloud security group change was made.
+
+Conclusion:
+
+- `BACKEND-8080-HARDENING` is now passed because backend `8080` no longer
+  listens on the public interface and ECS-1 private upstream still works.
+- Re-run the check after backend redeploys or production network changes.
+
+Rollback if needed:
+
+```bash
+cd /home/chenyao/sunflower
+cp .env.prod.pre-backend-8080-hardening-20260602 .env.prod
+docker compose -f docker-compose.backend.yml --env-file .env.prod up -d --no-deps --force-recreate backend
+```
+
+## 3. Previous Result
+
 Latest direct read-only result from the backend `8080` step inside
 `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh` at 2026-06-02 08:58
 Asia/Shanghai on pre-commit HEAD `255558f001e9`:
@@ -54,11 +94,13 @@ Previous aggregate result:
   directly at 2026-06-02 08:49 Asia/Shanghai on HEAD `9c9d242` with the same 3
   pass / 2 warning shape.
 
-## 3. Required Launch Evidence
+## 4. Required Launch Evidence
 
 To mark `BACKEND-8080-HARDENING` as `passed` in
 `docs/MVP-Launch-Evidence.json`, record one of:
 
+- Backend host port is bound only to the ECS-2 private address and public
+  direct probe is denied while ECS-1 private upstream still works.
 - Alibaba Cloud security group rule allows backend `8080` only from ECS-1
   private/public source as intended, plus a successful public denial probe.
 - Host firewall rule restricts `8080` to ECS-1 and the rule survives reboot or
@@ -73,7 +115,7 @@ Do not commit:
 - full firewall dumps with secrets or unrelated private topology
 - raw logs beyond compact non-secret evidence summaries
 
-## 4. Open-Source Reference Check
+## 5. Open-Source Reference Check
 
 - Task classification: common production port exposure and launch security
   evidence tracking.
@@ -84,12 +126,20 @@ Do not commit:
     `docs/S19-Prod-Deployment-Config.md`.
   - Docker Compose port publishing reference:
     `https://docs.docker.com/reference/compose-file/services/#ports`.
+  - Docker Engine packet filtering/firewall reference:
+    `https://docs.docker.com/engine/network/packet-filtering-firewalls/`.
+  - Alibaba Cloud ECS security group documentation:
+    `https://www.alibabacloud.com/help/en/ecs/user-guide/security-groups`.
   - UFW status/checking conventions:
     `https://help.ubuntu.com/community/UFW`.
-- Selected approach: read-only Bash inspection using curl, ssh, Docker, `ss`,
-  `ufw`, and `iptables`; no new dependency and no production mutation.
+- Selected approach: after explicit user approval, bind the backend published
+  port to ECS-2 private IP `172.25.121.83` instead of `0.0.0.0`, then verify
+  public denial and ECS-1 private upstream health.
 - License/compatibility: no external code copied.
-- Reused/adapted: existing SSH/curl pattern from `scripts/check_production_smoke.sh`.
-- Rejected options: changing security groups automatically, rewriting compose
-  binding to `127.0.0.1` without deployment planning, or treating a single
-  failed public curl as sufficient proof.
+- Reused/adapted: existing SSH/curl pattern from
+  `scripts/check_production_smoke.sh` and existing compose
+  `${BACKEND_BIND_HOST}:${BACKEND_HOST_PORT}:8080` support.
+- Rejected options: changing Alibaba Cloud security groups without needing to,
+  binding to `127.0.0.1` because ECS-1 would lose private upstream access, or
+  treating a single failed public curl as sufficient proof while still
+  listening on `0.0.0.0`.

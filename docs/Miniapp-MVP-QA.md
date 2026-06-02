@@ -100,6 +100,14 @@ wx.setStorageSync('SUNFLOWER_API_BASE_URL', 'https://<api-domain>')
    domain. Bare `http://47.113.223.248` is for DevTools/local investigation
    only.
 
+Known filed miniapp domain:
+
+- `xiangrikui.cloud` is the miniapp备案 domain provided by the user on
+  2026-06-02. This records the domain fact only; final MVP evidence still needs
+  the concrete HTTPS API host under this domain, certificate validation, and
+  WeChat backend legal request-domain configuration before `WECHAT-DOMAIN` or
+  `MINIAPP-DOMAIN-HTTPS` can be marked passed.
+
 ## 3. Manual QA Checklist
 
 Login and profile:

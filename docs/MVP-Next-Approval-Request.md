@@ -6,7 +6,7 @@
 ## 1. Purpose
 
 The automated and read-only production baseline is green, but final MVP
-closeout still has 33 unresolved required evidence items. Future Codex work
+closeout still has 32 unresolved required evidence items. Future Codex work
 should not keep refreshing the same local baseline unless the worktree or
 production state changed. The next useful step is to get one explicit user
 approval or waiver lane, then collect sanitized evidence for that lane.
@@ -18,6 +18,9 @@ Round 48 strict closeout audit confirmed the unresolved shape:
 - Admin-web manual QA strict checker: 12 required checks pending.
 - Aggregate strict closeout checker: 33 required items unresolved.
 
+Round 58 completed `BACKEND-8080-HARDENING`, reducing current unresolved
+required items to 32.
+
 Use this file with:
 
 - `docs/MVP-Handoff-Packet.md`
@@ -27,7 +30,7 @@ Use this file with:
 - `docs/Miniapp-Manual-QA.json`
 - `docs/Admin-Web-Manual-QA.json`
 
-Unresolved required items: 33
+Unresolved required items: 32
 
 ## 2. Latest Analysis
 
@@ -53,13 +56,12 @@ Choose exactly one lane for the next Codex round.
 
 Recommended first choices:
 
-1. `BACKEND-8080-HARDENING`: provide sanitized Alibaba Cloud security-group
-   proof for ECS-2 port `8080`, or explicitly waive the risk. This can be
-   evidence-only if no security-group/firewall mutation is requested.
-2. `MINIAPP-PREVIEW-DOMAIN`: provide or confirm real AppID private config,
+1. `MINIAPP-PREVIEW-DOMAIN`: provide or confirm real AppID private config,
    legal HTTPS request domain, and allowed preview/real-device QA scope.
-3. `CURRENT-BRANCH-DEPLOYED`: approve push/merge/workflow dispatch and
+2. `CURRENT-BRANCH-DEPLOYED`: approve push/merge/workflow dispatch and
    post-deploy read-only audit if the current branch should become live.
+3. `ADMIN-PROD-QA`: provide a dedicated QA admin account and approved QA data
+   scope for production or approved-staging manual checks.
 
 Do not start `WECHAT-PAYMENT-REFUND` until the user explicitly approves a
 low-value real payment/refund or gives itemized waivers.
@@ -93,7 +95,7 @@ refund, and no live production data mutation.
 | `MINIAPP-PREVIEW-DOMAIN` | `WECHAT-DOMAIN`, `WECHAT-PREVIEW-LOGIN`, `WECHAT-PHONE`, `MINIAPP-BOOKING-PATH`, `MINIAPP-DOMAIN-HTTPS`, `MINIAPP-APPID-PREVIEW`, `MINIAPP-WX-LOGIN`, `MINIAPP-PHONE-BIND`, `MINIAPP-HOME-CONTENT`, `MINIAPP-ROOM-BROWSE`, `MINIAPP-ORDER-CREATE`, `MINIAPP-ORDER-LIST-ACTIONS`, `MINIAPP-ERROR-STATES` | Real AppID private config, HTTPS domain, preview/real-device QA, any order mutation |
 | `WECHAT-PAYMENT-REFUND` | `WECHAT-REAL-PAYMENT`, `WECHAT-REAL-REFUND`, `MINIAPP-MOCK-PAYMENT`, `MINIAPP-REAL-PAYMENT`, `MINIAPP-REFUND` | Low-value real payment, real refund, merchant/callback evidence, or itemized waiver |
 | `ADMIN-PROD-QA` | `ADMIN-PROD-QA`, `ADMIN-AUTH-LOGIN`, `ADMIN-AUTH-ACTIVATE`, `ADMIN-AUTH-RESET-CHANGE`, `ADMIN-WORKSPACE-HEALTH`, `ADMIN-ROOM-LIST-EDIT`, `ADMIN-ROOM-SHELF`, `ADMIN-PRICING-CALENDAR`, `ADMIN-PRICING-BATCH`, `ADMIN-ORDER-LIST-DETAIL`, `ADMIN-ORDER-OPS`, `ADMIN-AFTER-SALE`, `ADMIN-ERROR-STATES` | Dedicated QA admin account, approved QA data, rollback/restoration or final-state acceptance |
-| `BACKEND-8080-HARDENING` | `BACKEND-8080-HARDENING` | Alibaba Cloud security-group evidence, host firewall evidence, mutation approval, or explicit waiver |
+| `BACKEND-8080-HARDENING` | Already passed in Round 58; revalidates `BACKEND-8080-HARDENING` after backend redeploys or network changes | Preserve private-IP binding, host firewall/security-group evidence if topology changes, or explicit waiver if exposure is reintroduced |
 | `CURRENT-BRANCH-DEPLOYED` | `CURRENT-BRANCH-DEPLOYED` | Push/merge/workflow dispatch/deploy approval, then post-deploy smoke |
 | `EVIDENCE-WAIVER` | Any remaining unresolved id | Exact id, accepted risk, date, reason, and scope |
 

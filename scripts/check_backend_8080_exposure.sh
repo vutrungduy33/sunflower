@@ -105,8 +105,12 @@ run_internal_readonly_checks() {
     set -e
     echo '--- docker ps ---'
     docker ps --format '{{.Names}} {{.Status}} {{.Ports}}' | grep -E 'sunflower-(backend|mysql)'
+    echo '--- docker health ---'
+    docker inspect -f '{{.State.Health.Status}} {{json .NetworkSettings.Ports}}' sunflower-backend
     echo '--- local health ---'
-    curl -fsS http://127.0.0.1:8080/api/health
+    curl -fsS '${BACKEND_PRIVATE_BASE_URL%/}/api/health'
+    echo '--- loopback health ---'
+    curl -fsS --connect-timeout 2 --max-time 4 http://127.0.0.1:8080/api/health || true
     echo '--- listeners ---'
     ss -ltnp | grep -E ':(8080|3306)' || true
     echo '--- ufw ---'
@@ -119,13 +123,19 @@ run_internal_readonly_checks() {
   printf '%s\n' "$backend_output" | grep -Fq '"status":"UP"' || fail "ECS-2 local backend health is not UP"
   pass "ECS-2 backend container and local health are present"
 
+  local private_bind=0
   if printf '%s\n' "$backend_output" | grep -Fq '0.0.0.0:8080'; then
     warn "ECS-2 docker-proxy still listens on 0.0.0.0:8080; external restriction must be proven by security group/firewall evidence"
+  elif printf '%s\n' "$backend_output" | grep -Fq '172.25.121.83:8080'; then
+    private_bind=1
+    pass "ECS-2 backend 8080 is bound to private address 172.25.121.83"
   else
     pass "ECS-2 backend 8080 is not shown as 0.0.0.0 in listener output"
   fi
 
-  if printf '%s\n' "$backend_output" | grep -Eq '172\.25\.121\.84|DROP|REJECT'; then
+  if [ "$private_bind" -eq 1 ]; then
+    pass "ECS-2 backend 8080 is not listening on the public interface"
+  elif printf '%s\n' "$backend_output" | grep -Eq '172\.25\.121\.84|DROP|REJECT'; then
     pass "ECS-2 local firewall output includes possible restriction evidence"
   else
     warn "ECS-2 local firewall output did not prove 8080 restriction; Alibaba Cloud security group evidence is still required"

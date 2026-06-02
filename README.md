@@ -20,34 +20,15 @@
 - 生产部署：GitHub Actions + 双阿里云 ECS + self-hosted runner（见 `/Users/chenyao/dev/miniapp/sunflower/docs/Architecture.md`）
 
 ## 4. 文档索引
-- `/Users/chenyao/dev/miniapp/sunflower/docs/README.md`：文档索引与开发概览
-- `/Users/chenyao/dev/miniapp/sunflower/docs/Agent-Memory.md`：Codex 记忆与上下文管理规则
+- `/Users/chenyao/dev/miniapp/sunflower/docs/README.md`：文档入口与开发概览
 - `/Users/chenyao/dev/miniapp/sunflower/docs/Context-Index.md`：后续任务的上下文加载地图
-- `/Users/chenyao/dev/miniapp/sunflower/docs/Project-State.md`：当前项目事实、验证状态与风险快照
-- `/Users/chenyao/dev/miniapp/sunflower/docs/MVP-Readiness.md`：MVP 上线可用性清单、验证矩阵与阻塞项
-- `/Users/chenyao/dev/miniapp/sunflower/docs/MVP-Progress.md`：当前 MVP 推进轮次记录
-- `/Users/chenyao/dev/miniapp/sunflower/docs/MVP-Closeout-Audit.md`：MVP 完成度审计与剩余外部验证缺口
-- `/Users/chenyao/dev/miniapp/sunflower/docs/Decision-Log.md`：长期架构/流程/部署决策记录
-- `/Users/chenyao/dev/miniapp/sunflower/docs/Architecture.md`：当前系统架构与部署拓扑
-- `/Users/chenyao/dev/miniapp/sunflower/docs/PRD.md`：需求规格与开发计划
-- `/Users/chenyao/dev/miniapp/sunflower/docs/Prototype.md`：MVP 原型页面清单
-- `/Users/chenyao/dev/miniapp/sunflower/docs/Miniapp-Frontend-MVP.md`：小程序前端一期 MVP 说明（页面/流程/API 映射）
-- `/Users/chenyao/dev/miniapp/sunflower/docs/Miniapp-MVP-QA.md`：小程序 MVP 自动 smoke 与人工 QA 清单
-- `/Users/chenyao/dev/miniapp/sunflower/docs/IA.md`：信息架构（小程序 + 后台）
-- `/Users/chenyao/dev/miniapp/sunflower/docs/Flows.md`：关键业务流程与状态
-- `/Users/chenyao/dev/miniapp/sunflower/docs/API.md`：REST 接口清单
-- `/Users/chenyao/dev/miniapp/sunflower/docs/API-Schemas.md`：接口字段级别定义
-- `/Users/chenyao/dev/miniapp/sunflower/docs/Backend-MVP-QA.md`：后端/API 自动测试、接口覆盖与生产 smoke 清单
-- `/Users/chenyao/dev/miniapp/sunflower/docs/DB-Design.md`：数据库索引与约束设计
-- `/Users/chenyao/dev/miniapp/sunflower/docs/DataDictionary.md`：核心表数据字典
-- `/Users/chenyao/dev/miniapp/sunflower/docs/Analytics.md`：埋点与报表 SQL 模板
-- `/Users/chenyao/dev/miniapp/sunflower/docs/Definition-of-Done.md`：当前交付检查清单（DoD）
-- `/Users/chenyao/dev/miniapp/sunflower/docs/Code-Conventions.md`：后续新增代码统一规范
-- `/Users/chenyao/dev/miniapp/sunflower/docs/CI-CD.md`：GitHub Actions CI/CD
-- `/Users/chenyao/dev/miniapp/sunflower/docs/S19-Prod-Deployment-Config.md`：生产部署配置说明
-- `/Users/chenyao/dev/miniapp/sunflower/docs/Production-Smoke.md`：最近一次生产 smoke 与 ECS 状态记录
-- `/Users/chenyao/dev/miniapp/sunflower/docs/Web-Admin-Plan.md`：管理后台 Web 选型、开发约束与环境依赖
-- `/Users/chenyao/dev/miniapp/sunflower/docs/archive/`：历史 Stage 计划、报告和旧门禁材料（非当前约束）
+- `/Users/chenyao/dev/miniapp/sunflower/docs/Project-State.md`：当前事实、验证状态与风险快照
+- `/Users/chenyao/dev/miniapp/sunflower/docs/MVP-Readiness.md`：MVP 可用性清单、验证矩阵与阻塞项
+- `/Users/chenyao/dev/miniapp/sunflower/docs/MVP-Handoff-Packet.md`：继续收口时的紧凑交接入口
+- `/Users/chenyao/dev/miniapp/sunflower/docs/MVP-Launch-Evidence.json`、`/Users/chenyao/dev/miniapp/sunflower/docs/Miniapp-Manual-QA.json`、`/Users/chenyao/dev/miniapp/sunflower/docs/Admin-Web-Manual-QA.json`：机器可读证据 ledgers
+- `/Users/chenyao/dev/miniapp/sunflower/docs/Architecture.md`、`/Users/chenyao/dev/miniapp/sunflower/docs/CI-CD.md`、`/Users/chenyao/dev/miniapp/sunflower/docs/API.md`、`/Users/chenyao/dev/miniapp/sunflower/docs/API-Schemas.md`：架构、部署与接口事实
+- `/Users/chenyao/dev/miniapp/sunflower/docs/Decision-Log.md`：长期架构/流程/部署决策
+- `/Users/chenyao/dev/miniapp/sunflower/docs/archive/`：历史 Stage、早期 MVP 轮次与旧门禁材料（非当前约束）
 
 ## 4.1 当前研发进展
 - 小程序一期 MVP 已落地于：`/Users/chenyao/dev/miniapp/sunflower/sunflower-miniapp/pages/mvp`

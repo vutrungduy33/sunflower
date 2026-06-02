@@ -32,7 +32,7 @@ verified, and documented enough for handoff:
 | WeChat pay/refund | Backend has WeChat payment/refund gateway, callbacks, records, retry, and mock only when explicitly configured; miniapp payment QA ledger now exists. | Needs production evidence | Verify small real payment/refund with merchant config and callback domain, then record sanitized evidence. |
 | Admin operations path | Core pages and tests exist for auth, room, price/inventory, and order management; manual QA ledger now exists. | Partially verified | Run `node scripts/check_admin_web_manual_qa.js --strict` against deployed admin web after recording safe evidence. |
 | Deployment | Round 47 `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh` passed deploy config static checks plus production public/ECS internal smoke and backend `8080` read-only checks on local `main` HEAD `8d9b11d`. Round 55 deployment approval preflight predicted local `main` HEAD `75987946b73b` push target `all` against `origin/main` `89f93d704719` with 146 changed files. No push/deploy was performed. | Partially verified | Push/dispatch deploy only after explicit production approval; local `main` push can trigger `all` deployment. |
-| Security / compliance | Secrets are local/ECS-owned; `.secrets/` ignored. Round 47 backend `8080` read-only checks show public 8080 not directly usable from this network, ECS-1 private upstream works, and ECS-2 backend health is present, but ECS-2 still listens on `0.0.0.0:8080` and firewall/security-group restriction is not proven. | Needs hardening | Record Alibaba Cloud security group evidence or explicit user waiver; complete HTTPS/WeChat domain setup. |
+| Security / compliance | Secrets are local/ECS-owned; `.secrets/` ignored. Round 58 closed external backend `8080` by changing ECS-2 production `BACKEND_BIND_HOST` from `0.0.0.0` to `172.25.121.83`, recreating `sunflower-backend`, and verifying public 8080 is unusable while ECS-1 private upstream remains healthy. The user-provided miniapp备案 domain is `xiangrikui.cloud`, but HTTPS API host and WeChat legal request-domain configuration remain unverified. | Partially ready | Keep backend `8080` private after redeploys; complete HTTPS/WeChat domain setup. |
 
 Detailed launch evidence is tracked in `docs/MVP-Launch-Evidence.md` and
 `docs/MVP-Launch-Evidence.json`. Final MVP completion requires the strict
@@ -79,9 +79,11 @@ Latest production/deployment read-only evidence:
   internal smoke, and backend `8080` exposure read-only checks enabled. No
   push, deploy, Nginx reload, ECS mutation, firewall mutation, or
   security-group mutation was performed.
-- Backend `8080` hardening remains unresolved after the Round 47 direct
-  read-only check because ECS-2 still listens on `0.0.0.0:8080` and local
-  firewall output did not prove restriction.
+- Backend `8080` hardening passed in Round 58. ECS-2 production
+  `BACKEND_BIND_HOST` now binds the backend published port to
+  `172.25.121.83`; `RUN_INTERNAL=1 ENFORCE_RESTRICTED=1
+  scripts/check_backend_8080_exposure.sh` passed with 5 passes and 0 warnings.
+  No Alibaba Cloud security group change was made.
 
 Latest strict closeout evidence:
 
@@ -100,7 +102,7 @@ The execution runbook for the remaining external evidence is
 `docs/MVP-External-Validation-Runbook.md`.
 
 The next human approval entry is `docs/MVP-Next-Approval-Request.md`. It turns
-the 33 unresolved required evidence items into one-lane approval requests and is
+the 32 unresolved required evidence items into one-lane approval requests and is
 checked by `node scripts/check_mvp_next_approval_request.js`.
 
 The compact handoff entry for the next operator is
@@ -115,7 +117,8 @@ Admin-web manual QA is tracked separately in `docs/Admin-Web-MVP-QA.md` and
 `docs/Admin-Web-Manual-QA.json`.
 
 Backend `8080` hardening evidence is tracked separately in
-`docs/Backend-8080-Security.md`.
+`docs/Backend-8080-Security.md`; Round 58 marks it passed in
+`docs/MVP-Launch-Evidence.json`.
 
 ## 3. Final Verification Commands
 
@@ -276,14 +279,15 @@ Production:
 - Confirm ECS-1 host Nginx and admin-web health.
 - Confirm ECS-2 backend and MySQL health.
 - Confirm public API requests flow through ECS-1 to ECS-2 private upstream.
-- Confirm direct public access to backend `8080` is blocked or security-group
-  restricted to ECS-1.
+- Confirm direct public access to backend `8080` remains blocked and ECS-1
+  private upstream remains healthy after future deploys.
 
 ## 5. Launch Blockers
 
 - No recorded real-device WeChat login/phone/payment/refund validation yet.
 - HTTPS legal request domain for miniapp production is not proven in this repo.
-- Backend `8080` public exposure needs security-group hardening evidence.
+- Backend `8080` public exposure was closed in Round 58 by binding the backend
+  published port to the ECS-2 private IP.
 - Push-triggered deployment from the current MVP branch has not been performed;
   deployment requires explicit branch/production confirmation.
 - `node scripts/check_mvp_launch_evidence.js --strict` currently fails by
@@ -295,16 +299,17 @@ Production:
   because miniapp preview/real-device/payment evidence remains pending.
 - `node scripts/check_admin_web_manual_qa.js --strict` currently fails by
   design because admin production/staging manual QA evidence remains pending.
-- `RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh` improves evidence but
-  does not prove Alibaba Cloud security group restriction.
+- `RUN_INTERNAL=1 ENFORCE_RESTRICTED=1 scripts/check_backend_8080_exposure.sh`
+  passed in Round 58 and should pass with no warnings after future backend
+  redeploys.
 
 ## 6. Next Rounds
 
 1. Complete WeChat preview/real-device validation for login, phone binding,
    order creation, payment, refund, and after-sale flows.
 2. Harden admin operational manual QA against a running backend or production.
-3. Verify HTTPS legal request domain and backend `8080` restriction before
-   declaring launch readiness.
+3. Verify HTTPS legal request domain before declaring launch readiness; recheck
+   backend `8080` restriction after any backend redeploy.
 
 ## 7. Closeout Audit
 

@@ -112,10 +112,10 @@
       "id": "BACKEND-8080-HARDENING",
       "area": "security",
       "requirement": "Direct public access to backend port 8080 is restricted to ECS-1 by security group or host firewall, or explicitly accepted by the user as a launch risk.",
-      "status": "pending",
+      "status": "passed",
       "requiredForMvp": true,
-      "evidence": "Round 47 RUN_PRODUCTION=1 scripts/check_mvp_regression.sh passed on current local main HEAD 8d9b11d. Backend 8080 read-only checks passed with 3 checks and 2 warnings: public 8080 was not directly usable from this network, ECS-1 private upstream works, and ECS-2 backend is healthy. ECS-2 still shows docker-proxy listening on 0.0.0.0:8080, and local firewall output did not prove restriction. Alibaba Cloud security group evidence or explicit waiver is still required.",
-      "nextAction": "Record Alibaba Cloud security group evidence in docs/Backend-8080-Security.md or get explicit user waiver before marking this entry passed or waived. Modifying security group/firewall requires user approval."
+      "evidence": "Round 58 BACKEND-8080-HARDENING completed on 2026-06-02 with explicit user approval to close 8080. ECS-2 /home/chenyao/sunflower/.env.prod was backed up as .env.prod.pre-backend-8080-hardening-20260602 and BACKEND_BIND_HOST was changed from 0.0.0.0 to 172.25.121.83, then sunflower-backend was force-recreated. Verification: docker ps and ss show 172.25.121.83:8080->8080/tcp, not 0.0.0.0:8080; ECS-1 can reach http://172.25.121.83:8080/api/health; public ingress /api/health remains UP; local public probe to http://47.120.42.15:8080/api/health is not usable; RUN_INTERNAL=1 ENFORCE_RESTRICTED=1 scripts/check_backend_8080_exposure.sh passed with 5 passes and 0 warnings. No Alibaba Cloud security group change was made.",
+      "nextAction": "Keep BACKEND_BIND_HOST bound to the ECS-2 private IP in production. Re-run RUN_INTERNAL=1 ENFORCE_RESTRICTED=1 scripts/check_backend_8080_exposure.sh after backend redeploys or production network changes."
     },
     {
       "id": "CURRENT-BRANCH-DEPLOYED",

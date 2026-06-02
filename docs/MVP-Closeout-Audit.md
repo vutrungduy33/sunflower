@@ -17,6 +17,13 @@ miniapp manual QA checks, and 12 admin-web manual QA checks remain pending.
 This preserves the Round 50 conclusion as a historical invariant: Round 50
 completion audit result: **not complete**.
 
+Round 58 update: `BACKEND-8080-HARDENING` passed after backend `8080` was
+rebound to ECS-2 private IP `172.25.121.83` and
+`RUN_INTERNAL=1 ENFORCE_RESTRICTED=1 scripts/check_backend_8080_exposure.sh`
+passed with 5 passes and 0 warnings. Current strict closeout is still not
+complete, but the unresolved total is now 32: 8 launch evidence entries, 12
+miniapp manual QA checks, and 12 admin-web manual QA checks.
+
 ## 1.1 User Goal Termination Criteria Audit
 
 | Termination criterion | Current evidence | Result |
@@ -143,6 +150,13 @@ These failures are approval/evidence blockers, not new local automated code
 regressions. Further local-only reruns of already-green automated baselines will
 not make the strict closeout commands pass.
 
+Round 58 changed the launch-evidence shape:
+
+- Launch evidence: 13 required entries, 5 passed, 8 pending.
+- Miniapp manual QA: 12 required checks, 0 passed, 12 pending.
+- Admin-web manual QA: 12 required checks, 0 passed, 12 pending.
+- Aggregate closeout: 32 unresolved required items.
+
 ## 4. Requirements Still Not Proven
 
 - WeChat real-device or preview validation for login, phone authorization, and
@@ -152,11 +166,9 @@ not make the strict closeout commands pass.
 - Low-value real WeChat payment and refund with merchant credentials is not
   recorded as passed.
 - HTTPS legal request domain for miniapp production is not proven.
-- Backend `8080` hardening is not proven. ECS-2 still shows Docker binding
-  `0.0.0.0:8080->8080/tcp`; security group/firewall must restrict direct
-  backend access to ECS-1. The read-only 8080 check confirms local public probe
-  unavailable and ECS-1 private upstream works, but local firewall output did
-  not prove restriction.
+- Backend `8080` hardening passed in Round 58. ECS-2 now publishes backend only
+  on private IP `172.25.121.83:8080`, ECS-1 private upstream remains healthy,
+  and public direct backend `8080` is not usable.
 - Current local `main` is ahead of `origin/main`; it has not been pushed, so
   current repository commits have not triggered production deploy.
 - Admin web production manual QA with a real admin account is not recorded as
@@ -185,8 +197,8 @@ Do not call the MVP complete until:
 3. Real payment/refund smoke is executed with production merchant configuration
    or explicitly waived by the user.
 4. HTTPS/domain setup is verified for the miniapp request domain.
-5. Backend direct `8080` exposure is restricted or explicitly accepted as a
-   documented risk by the user.
+5. Backend direct `8080` exposure remains restricted after future backend
+   redeploys or production network changes.
 6. Current code is deployed through the approved GitHub Actions path, or the
    user explicitly decides deployment is out of scope for MVP closeout.
 7. `node scripts/check_mvp_launch_evidence.js --strict` passes.

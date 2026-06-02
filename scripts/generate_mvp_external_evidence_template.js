@@ -72,65 +72,6 @@ function collectSections() {
   }));
 }
 
-function renderFieldList(item) {
-  const fields = [
-    '- Evidence date: `YYYY-MM-DD`',
-    '- Environment: `production | approved-staging | WeChat preview | real device | local devtools`',
-    '- Operator: `<role label or reviewer initials>`',
-    '- Route/API: `<route, page, or API alias>`',
-    '- Sanitized resource alias: `<room/order/payment/refund/admin alias or id suffix only>`',
-    '- Result: `passed | failed | waived request`',
-    '- Evidence summary: `<short non-secret summary of what was observed>`',
-    '- Recovery or rollback: `<restored final status, no mutation, or accepted change>`',
-    '- Follow-up: `<remaining action or none>`',
-  ];
-
-  if (item.id.includes('PAYMENT') || item.id.includes('REFUND')) {
-    fields.splice(2, 0, '- Approval note: `<explicit user approval before real payment/refund>`');
-    fields.splice(7, 0, '- Amount band: `<low-value / test amount band only>`');
-  }
-
-  if (item.id.includes('8080') || item.id.includes('HARDENING')) {
-    fields.splice(4, 0, '- Security rule summary: `<security group/firewall rule summary, no console secrets>`');
-  }
-
-  if (item.id.includes('DEPLOYED')) {
-    fields.splice(4, 0, '- Workflow evidence: `<workflow run id/url, commit sha, target, smoke result>`');
-  }
-
-  return fields.join('\n');
-}
-
-function renderItem(item) {
-  const lines = [
-    `<!-- template:${item.id} -->`,
-    `### ${item.id}`,
-    '',
-    `- Status now: \`${item.status}\``,
-    `- Area: ${normalizeLine(item.area) || 'n/a'}`,
-    item.route ? `- Route: ${normalizeLine(item.route)}` : null,
-    `- Requirement: ${normalizeLine(item.requirement)}`,
-    Array.isArray(item.relatedApis) && item.relatedApis.length
-      ? `- Related APIs/capabilities: ${item.relatedApis.map((api) => `\`${api}\``).join(', ')}`
-      : null,
-    `- Current evidence: ${normalizeLine(item.evidence)}`,
-    `- Next action: ${normalizeLine(item.nextAction)}`,
-    '',
-    'Suggested sanitized evidence entry:',
-    '',
-    renderFieldList(item),
-    '',
-    'Ledger update reminder:',
-    '',
-    '- Change `status` only after the evidence above is actually available.',
-    '- Use `waived` only with explicit user acceptance and reason.',
-    '- Keep `evidence` at least one compact sentence with non-secret proof.',
-    '',
-  ];
-
-  return lines.filter((line) => line !== null).join('\n');
-}
-
 function renderTemplate(sections) {
   const unresolvedTotal = sections.reduce((sum, section) => sum + section.items.length, 0);
   const lines = [
@@ -162,6 +103,32 @@ function renderTemplate(sections) {
     '',
   ];
 
+  lines.push(
+    '## Reusable Evidence Entry',
+    '',
+    'Use this compact shape for any unresolved item, then copy the sanitized',
+    'summary into the matching JSON ledger:',
+    '',
+    '```text',
+    'Evidence id:',
+    'Evidence date: YYYY-MM-DD',
+    'Environment: production | approved-staging | WeChat preview | real device | local devtools',
+    'Operator: <role label or reviewer initials>',
+    'Route/API: <route, page, or API alias>',
+    'Sanitized resource alias: <room/order/payment/refund/admin alias or id suffix only>',
+    'Result: passed | failed | waiver requested',
+    'Evidence summary: <short non-secret summary of what was observed>',
+    'Recovery or rollback: <restored final status, no mutation, or accepted change>',
+    'Follow-up: <remaining action or none>',
+    '```',
+    '',
+    'For payment/refund, include an explicit approval note and low-value amount',
+    'band only. For deployment, include workflow run id/url, commit sha, target,',
+    'and smoke result. For security/firewall changes, include only sanitized rule',
+    'summaries.',
+    '',
+  );
+
   for (const section of sections) {
     lines.push(`## ${section.ledger.name}`, '');
     if (!section.items.length) {
@@ -170,8 +137,12 @@ function renderTemplate(sections) {
     }
 
     for (const item of section.items) {
-      lines.push(renderItem(item));
+      lines.push(
+        `<!-- template:${item.id} -->`,
+        `- \`${item.id}\`: ${normalizeLine(item.nextAction)}`,
+      );
     }
+    lines.push('');
   }
 
   lines.push(

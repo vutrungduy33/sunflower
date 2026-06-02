@@ -19,8 +19,8 @@
 | Database / persistence | `docs/DB-Design.md`, `docs/DataDictionary.md`, Flyway migrations, seed SQL |
 | Admin web | `docs/Web-Admin-Plan.md`, `docs/Admin-Web-MVP-QA.md`, `sunflower-admin-web/src/**`, admin web tests |
 | Miniapp | `docs/Miniapp-Frontend-MVP.md`, `docs/Miniapp-MVP-QA.md`, `docs/Miniapp-Manual-QA.md`, `sunflower-miniapp/pages/mvp/**`, `sunflower-miniapp/utils/mvp/**` |
-| MVP hardening | `docs/MVP-Handoff-Packet.md`, `docs/MVP-Next-Approval-Request.md`, `docs/MVP-Readiness.md`, `docs/MVP-Launch-Evidence.md`, `docs/MVP-External-Validation-Runbook.md`, `docs/MVP-External-Approval-Packet.md`, `docs/MVP-Progress.md`, `docs/MVP-Closeout-Audit.md`, `docs/Project-State.md`, task-relevant app docs |
-| New Codex MVP goal | `docs/MVP-Next-Goal-Prompt.md`, `docs/MVP-Handoff-Packet.md`, `docs/MVP-Next-Approval-Request.md`, `docs/MVP-External-Approval-Packet.md`, `docs/MVP-Readiness.md`, `docs/MVP-Closeout-Audit.md`, `docs/Project-State.md` |
+| MVP hardening | Start with `docs/MVP-Handoff-Packet.md`, `docs/MVP-Readiness.md`, `docs/Project-State.md`, and the JSON ledgers (`docs/MVP-Launch-Evidence.json`, `docs/Miniapp-Manual-QA.json`, `docs/Admin-Web-Manual-QA.json`). Then load task-relevant docs such as `docs/MVP-Next-Approval-Request.md`, `docs/MVP-External-Approval-Packet.md`, `docs/MVP-Closeout-Audit.md`, or app QA docs only when needed. |
+| New Codex MVP goal | `docs/MVP-Next-Goal-Prompt.md`, `docs/MVP-Handoff-Packet.md`, `docs/MVP-Readiness.md`, `docs/Project-State.md`, and task-relevant approval/evidence docs |
 | Component handoff docs | `sunflower-miniapp/README.md`, `sunflower-admin-web/README.md`, `sunflower-backend/README.md`, plus the matching QA docs above |
 | Process / decisions | `docs/Decision-Log.md`, then only relevant linked docs |
 | Historical diagnosis | `docs/archive/**` only when explicitly needed |
@@ -28,6 +28,7 @@
 ## Do Not Load By Default
 
 - `docs/archive/**`
+- `docs/archive/mvp-progress/**`
 - `sunflower-miniapp/miniprogram_npm/**`
 - `sunflower-admin-web/node_modules/**`
 - `sunflower-backend/target/**`

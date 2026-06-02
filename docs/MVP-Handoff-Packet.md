@@ -7,7 +7,7 @@
 ## 1. Current Decision
 
 The MVP goal is still open. Local automated checks and read-only production
-smoke have strong coverage, but final closeout still has 33 unresolved required
+smoke have strong coverage, but final closeout still has 32 unresolved required
 items across launch evidence, miniapp manual QA, and admin-web manual QA.
 
 Do not declare the goal complete until the strict commands in section 7 pass, or
@@ -29,8 +29,10 @@ the user explicitly waives the remaining external evidence.
 - Production read-only checks have passed for public health/admin/API smoke,
   ECS private upstream checks, and backend `8080` exposure inspection.
 - Deployment config static checks and deployment approval preflight exist.
-- Round 48 strict closeout audit confirmed the goal is still incomplete:
-  9 launch evidence items, 12 miniapp manual QA items, and 12 admin-web manual
+- Round 58 backend `8080` hardening passed after ECS-2 backend host port was
+  rebound to private IP `172.25.121.83`.
+- Latest strict closeout shape confirms the goal is still incomplete:
+  8 launch evidence items, 12 miniapp manual QA items, and 12 admin-web manual
   QA items remain unresolved.
 
 The latest detailed state lives in `docs/Project-State.md`,
@@ -102,16 +104,14 @@ These entries are still unresolved in `docs/MVP-Launch-Evidence.json`:
 - `WECHAT-REAL-PAYMENT`: prove one approved low-value real WeChat payment.
 - `WECHAT-REAL-REFUND`: prove one approved real refund or refund request path.
 - `ADMIN-PROD-QA`: prove admin-web production or approved-staging manual QA.
-- `BACKEND-8080-HARDENING`: prove direct backend `8080` is restricted to ECS-1
-  by security-group/firewall, or capture an explicit user risk waiver.
 - `CURRENT-BRANCH-DEPLOYED`: prove the current branch commit was deployed by
   the approved GitHub Actions path, or capture an explicit out-of-scope decision.
 
-Round 48 strict launch evidence result:
+Latest strict launch evidence result after Round 58:
 
 - Total required launch evidence: 13.
-- Passed: 4.
-- Pending: 9.
+- Passed: 5.
+- Pending: 8.
 - Strict checker: `node scripts/check_mvp_launch_evidence.js --strict` exits
   non-zero until the pending items are passed or waived with valid evidence.
 
@@ -179,8 +179,9 @@ Round 48 strict admin-web manual QA result:
    `docs/Miniapp-Manual-QA.json`.
 5. Run admin-web production or approved-staging QA and update
    `docs/Admin-Web-Manual-QA.json`.
-6. Run backend `8080` read-only evidence and record security-group/firewall
-   proof or a user waiver in the launch ledger.
+6. Re-run backend `8080` hardening evidence after backend redeploys or
+   production network changes; Round 58 already marks the launch ledger entry
+   passed.
 7. Before any approved deploy action, run
    `node scripts/check_deployment_approval_preflight.js`.
 8. After approved deploy, run `scripts/check_production_readonly_audit.sh`.

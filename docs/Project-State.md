@@ -28,8 +28,7 @@
 
 ## Recent Validation Snapshot
 
-Current snapshot after 2026-06-02 Round 57 MVP readiness snapshot
-reconciliation:
+Current snapshot after 2026-06-02 Round 59 documentation simplification:
 
 - `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: passed in Round 32 with
   6 enabled steps: backend tests, admin-web lint/test/build, admin behavior and
@@ -87,6 +86,31 @@ reconciliation:
   deployment approval preflight, and Round 56 strict closeout boundary audit
   instead of presenting older Round 47/Round 49 entries as the newest local and
   deployment facts. No evidence ledger status or production state changed.
+- Round 58 completed `BACKEND-8080-HARDENING` after explicit user approval to
+  close backend `8080`. ECS-2 `/home/chenyao/sunflower/.env.prod` was backed up
+  as `.env.prod.pre-backend-8080-hardening-20260602`, then
+  `BACKEND_BIND_HOST` was changed from `0.0.0.0` to `172.25.121.83` and
+  `sunflower-backend` was force-recreated. Verification:
+  `RUN_INTERNAL=1 ENFORCE_RESTRICTED=1 scripts/check_backend_8080_exposure.sh`
+  passed with 5 passes and 0 warnings; `docker ps`/`ss` show
+  `172.25.121.83:8080->8080/tcp`, ECS-1 private upstream and public ingress
+  `/api/health` remain healthy, and direct public backend `8080` is not usable.
+  `docs/MVP-Launch-Evidence.json` now marks `BACKEND-8080-HARDENING` passed, so
+  launch evidence is 13 required entries: 5 passed and 8 pending.
+- User provided miniapp备案 domain `xiangrikui.cloud` in Round 58. It is recorded
+  as domain context only; the concrete HTTPS API host, certificate, and WeChat
+  legal request-domain configuration still need verification before
+  `WECHAT-DOMAIN`/`MINIAPP-DOMAIN-HTTPS` can pass.
+- Round 59 started documentation simplification: `docs/MVP-Progress.md` now
+  keeps only recent Rounds 48-58, with older Rounds 1-47 moved to
+  `docs/archive/mvp-progress/MVP-Progress-Rounds-1-47.md`; generated external
+  evidence template output is compact instead of repeating every ledger field;
+  `docs/MVP-External-Approval-Packet.md` is a short approval boundary packet
+  while `docs/MVP-Launch-Evidence.json`, `docs/Miniapp-Manual-QA.json`, and
+  `docs/Admin-Web-Manual-QA.json` remain the source-of-truth ledgers.
+  Root `README.md`, `docs/README.md`, and `docs/Context-Index.md` now point to
+  a smaller set of canonical entry docs instead of listing every historical or
+  task-specific file. No evidence status changed in this documentation cleanup.
 - Round 50 audited the original goal termination criteria against current
   evidence in `docs/MVP-Closeout-Audit.md`. Result: the active MVP goal remains
   incomplete because strict external/manual evidence still has 33 unresolved
