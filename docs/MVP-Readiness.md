@@ -32,7 +32,7 @@ verified, and documented enough for handoff:
 | WeChat pay/refund | Backend has WeChat payment/refund gateway, callbacks, records, retry, and mock only when explicitly configured; miniapp payment QA ledger now exists. | Needs production evidence | Verify small real payment/refund with merchant config and callback domain, then record sanitized evidence. |
 | Admin operations path | Core pages and tests exist for auth, room, price/inventory, and order management; manual QA ledger now exists. | Partially verified | Run `node scripts/check_admin_web_manual_qa.js --strict` against deployed admin web after recording safe evidence. |
 | Deployment | Round 32 `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh` passed deploy config static checks plus production public/ECS internal smoke and backend `8080` read-only checks. Public `/api/health`, `/api/content/home`, `/healthz`, admin web HTML, ECS internal health, and deploy config static checks passed. No push/deploy was performed. | Partially verified | Push/dispatch deploy only after confirming branch/production intent. |
-| Security / compliance | Secrets are local/ECS-owned; `.secrets/` ignored. Round 32 backend `8080` read-only checks show public 8080 not directly usable from this network, ECS-1 private upstream works, and ECS-2 backend health is present, but ECS-2 still listens on `0.0.0.0:8080` and firewall/security-group restriction is not proven. | Needs hardening | Record Alibaba Cloud security group evidence or explicit user waiver; complete HTTPS/WeChat domain setup. |
+| Security / compliance | Secrets are local/ECS-owned; `.secrets/` ignored. Round 37 backend `8080` read-only checks show public 8080 not directly usable from this network, ECS-1 private upstream works, and ECS-2 backend health is present, but ECS-2 still listens on `0.0.0.0:8080` and firewall/security-group restriction is not proven. | Needs hardening | Record Alibaba Cloud security group evidence or explicit user waiver; complete HTTPS/WeChat domain setup. |
 
 Detailed launch evidence is tracked in `docs/MVP-Launch-Evidence.md` and
 `docs/MVP-Launch-Evidence.json`. Final MVP completion requires the strict
@@ -56,8 +56,9 @@ Latest production/deployment read-only evidence:
 - Production checks inside `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`:
   passed in Round 32 with production public/ECS internal smoke and backend
   `8080` exposure read-only checks enabled.
-- Backend `8080` hardening remains unresolved because ECS-2 still listens on
-  `0.0.0.0:8080` and local firewall output did not prove restriction.
+- Backend `8080` hardening remains unresolved after the Round 37 direct
+  read-only check because ECS-2 still listens on `0.0.0.0:8080` and local
+  firewall output did not prove restriction.
 
 The execution runbook for the remaining external evidence is
 `docs/MVP-External-Validation-Runbook.md`.

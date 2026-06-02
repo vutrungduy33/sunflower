@@ -101,17 +101,21 @@ regression recheck:
   2026-06-02 07:33 Asia/Shanghai with 7 checks and 1 known backend-bind
   warning.
 - Backend 8080 read-only security check
-  `RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh`: passed again on
-  2026-06-02 07:33 Asia/Shanghai with 3 checks and 2 warnings. It confirms
-  public 8080 is not directly usable from this local network and ECS-1 private
-  upstream works, but does not prove security-group restriction because ECS-2
-  still listens on `0.0.0.0:8080`.
+  `RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh`: passed again in
+  Round 37 at 2026-06-02 08:49 Asia/Shanghai on HEAD `9c9d242` with 3 checks
+  and 2 warnings. It confirms public 8080 is not directly usable from this local
+  network and ECS-1 private upstream works, but does not prove security-group
+  restriction because ECS-2 still listens on `0.0.0.0:8080`.
 - Launch evidence `node scripts/check_mvp_launch_evidence.js`: passed on
   2026-06-02.
 - Launch evidence ledger `docs/MVP-Launch-Evidence.json`: refreshed in Round
   35 so the passed automated baseline entries and deployment/8080 pending
   entries reference Round 32/Round 34 evidence instead of older 56-test or
   05:59 smoke summaries. No pending external evidence was marked passed.
+- Launch evidence ledger `docs/MVP-Launch-Evidence.json`: refreshed again in
+  Round 37 for `BACKEND-8080-HARDENING` with current read-only backend `8080`
+  evidence. The entry remains `pending`; no security-group/firewall mutation was
+  performed.
 - MVP next Codex goal prompt `docs/MVP-Next-Goal-Prompt.md`: refined in Round
   35 with startup context, per-round execution loop, approval lanes, hard
   safety boundaries, exact completion commands, and stop/manual-intervention

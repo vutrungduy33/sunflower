@@ -2243,3 +2243,71 @@
     likely `MINIAPP-PREVIEW-DOMAIN`, `ADMIN-PROD-QA`,
     `BACKEND-8080-HARDENING`, or `CURRENT-BRANCH-DEPLOYED`, and collect real
     external evidence or explicit waivers.
+
+## Round 37: Backend 8080 Read-Only Evidence Refresh
+
+- Date: 2026-06-02
+- Status: completed and committed.
+- Focus: advance the `BACKEND-8080-HARDENING` approval lane with current
+  read-only evidence, without modifying Alibaba Cloud security groups, host
+  firewall rules, Docker, deployment files, or production data.
+- Start evidence:
+  - `git status --short --branch --untracked-files=all`: clean on
+    `codex/s18-payment-hardening` after Round 36 commit.
+  - `docs/Backend-8080-Security.md` still pointed to the Round 32 aggregate
+    07:33 check as its latest result.
+  - `docs/MVP-Launch-Evidence.json` had `BACKEND-8080-HARDENING` pending with
+    Round 32 evidence, correctly requiring security group proof or user waiver.
+- Open-source reference check:
+  - Task classification: repository-specific read-only security evidence
+    refresh using an existing script.
+  - Sources checked: not applicable for new external code; this round did not
+    implement a common security mechanism or copy firewall/security-group code.
+  - Selected approach: rerun the existing read-only backend `8080` exposure
+    script and update evidence docs while preserving `status: pending`.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: existing `scripts/check_backend_8080_exposure.sh`,
+    `docs/Backend-8080-Security.md`, and launch evidence ledger schema.
+  - Rejected options: changing security groups/firewall, editing Docker port
+    bindings, or marking the lane passed from a local public denial probe.
+- Risks:
+  - The check proves current local/public probe result and ECS private upstream
+    health, but it still cannot prove Alibaba Cloud security-group restriction.
+  - ECS-2 still shows `docker-proxy` listening on `0.0.0.0:8080`.
+  - Final closeout still needs security-group proof or explicit user waiver.
+- Acceptance criteria:
+  - `RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh` completes without
+    production mutation.
+  - `docs/Backend-8080-Security.md`, `docs/Project-State.md`,
+    `docs/MVP-Readiness.md`, and `docs/MVP-Launch-Evidence.json` reflect the
+    current read-only evidence.
+  - `BACKEND-8080-HARDENING` remains pending until external security-group
+    evidence or an explicit waiver exists.
+  - External evidence template regenerates from the refreshed ledger.
+  - The round is committed once.
+- Verification:
+  - `RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh`: passed with 3
+    pass(es) and 2 warning(s).
+    - Public `http://47.120.42.15:8080/api/health` was not directly usable from
+      this network.
+    - ECS-1 can reach ECS-2 backend through private upstream.
+    - ECS-2 backend container and local health are present.
+    - Warning: ECS-2 `docker-proxy` still listens on `0.0.0.0:8080`.
+    - Warning: local firewall output did not prove restriction; Alibaba Cloud
+      security group evidence is still required.
+  - `node scripts/generate_mvp_external_evidence_template.js`: regenerated
+    `docs/MVP-External-Evidence-Template.md` with 33 unresolved required items.
+- Change summary:
+  - Updated `docs/Backend-8080-Security.md` with the Round 37 direct read-only
+    result.
+  - Updated `docs/MVP-Launch-Evidence.json` evidence text for
+    `BACKEND-8080-HARDENING` while keeping `status: pending`.
+  - Regenerated `docs/MVP-External-Evidence-Template.md`.
+  - Updated `docs/Project-State.md`, `docs/MVP-Readiness.md`, and this progress
+    log.
+- Goal correction:
+  - The backend `8080` evidence is fresher but still incomplete. The next
+    meaningful progress for this lane requires either sanitized Alibaba Cloud
+    security-group evidence or explicit user waiver. Otherwise, choose another
+    external evidence lane such as `MINIAPP-PREVIEW-DOMAIN`,
+    `ADMIN-PROD-QA`, or `CURRENT-BRANCH-DEPLOYED`.
