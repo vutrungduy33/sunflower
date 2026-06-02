@@ -28,8 +28,8 @@
 
 ## Recent Validation Snapshot
 
-Current snapshot after 2026-06-02 Round 52 aggregate regression termination
-audit wiring:
+Current snapshot after 2026-06-02 Round 53 default aggregate regression
+recheck:
 
 - `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: passed in Round 32 with
   6 enabled steps: backend tests, admin-web lint/test/build, admin behavior and
@@ -46,6 +46,14 @@ audit wiring:
   checks, MVP evidence ledger checks, deploy config static checks, and
   production smoke/backend `8080` read-only checks. The command did not push,
   deploy, reload Nginx, or change ECS/firewall/security-group state.
+- `scripts/check_mvp_regression.sh`: passed again in Round 53 on current local
+  `main` HEAD `0cbeac5` with the default 5 enabled non-production steps:
+  backend tests, admin-web lint/test/build plus behavior/external preflight,
+  miniapp smoke/wiring/replay/external-preflight checks, MVP evidence ledger
+  checks including termination audit guard, and deploy config static checks.
+  Production checks were skipped by default; no push, deploy, workflow dispatch,
+  Nginx reload, ECS mutation, firewall mutation, security-group mutation,
+  payment/refund action, or live QA data mutation was performed.
 - Round 50 audited the original goal termination criteria against current
   evidence in `docs/MVP-Closeout-Audit.md`. Result: the active MVP goal remains
   incomplete because strict external/manual evidence still has 33 unresolved

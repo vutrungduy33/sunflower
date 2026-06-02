@@ -3,6 +3,84 @@
 > Compact round-by-round progress for the current MVP hardening goal. Keep this
 > file factual and update it at the end of each committed round.
 
+## Round 53: Default Aggregate Regression Recheck
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: rerun the default non-production aggregate MVP regression after Round
+  52 wired the termination audit guard into the evidence step, proving the
+  standard local regression entry remains green.
+- Start evidence:
+  - `git status --short --branch --untracked-files=all`: local `main` is ahead
+    of `origin/main` by 56 commits and has no tracked worktree changes.
+  - HEAD is `0cbeac5` (`Wire termination audit into MVP regression`).
+  - `scripts/check_mvp_regression.sh` now runs
+    `node scripts/check_mvp_termination_audit.js` inside the non-strict evidence
+    step.
+- Open-source reference check:
+  - Task classification: repository-specific validation rerun.
+  - Sources checked: not needed; no common feature, reusable UI, auth, payment,
+    deployment implementation, or infrastructure code is being added.
+  - Selected approach: run the repository-native default aggregate regression
+    command exactly as listed in `docs/Context-Index.md`.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: existing local aggregate regression and evidence checker
+    commands.
+  - Rejected options: running production smoke without a production-focused
+    round, pushing `main`, dispatching workflow, deploying, or changing any
+    pending evidence status.
+- Risks:
+  - The run is broader and slower than Round 52's evidence-only slice because it
+    includes backend tests, admin-web lint/test/build, miniapp checks, evidence
+    checks, and deploy config static checks.
+  - Passing the default aggregate regression remains non-strict for external
+    evidence and does not complete the 33 pending manual/external items.
+- Acceptance criteria:
+  - `scripts/check_mvp_regression.sh` passes with default settings.
+  - The output shows the evidence step includes `[termination-audit] PASS`.
+  - `docs/Project-State.md` and this progress entry record the new default
+    regression baseline and unresolved evidence boundary.
+  - `git diff --check` passes.
+  - The round is committed once.
+- Change summary:
+  - Reran the default aggregate MVP regression on current local `main` after
+    Round 52 wired termination audit into the evidence step.
+  - Recorded the new non-production aggregate baseline in
+    `docs/Project-State.md` while keeping all external/manual evidence pending
+    statuses unchanged.
+  - No product code, deployment workflow, evidence status, production state,
+    ECS state, payment/refund state, or live QA data changed.
+- Verification:
+  - `scripts/check_mvp_regression.sh`: passed with 5 enabled steps and
+    production checks skipped by default.
+  - Backend step: `mvn -B test` passed with 57 tests, 0 failures, 0 errors, 0
+    skipped.
+  - Admin-web step: `npm run lint`, `npm run test` with 24 Vitest tests across
+    5 files, `npm run build`, 97 behavior wiring checks, and 6 external
+    preflight checks passed.
+  - Miniapp step: smoke, behavior wiring, user-flow replay, payment-flow
+    replay, external preflight, project config guard, and subpage navigation
+    guard passed. Expected warnings remained for local/devtools bare HTTP API
+    base, missing local `project.private.config.json`, and shell locale.
+  - Evidence step: non-strict evidence checks passed, including
+    `[termination-audit] PASS`; unresolved evidence remains 13 launch required
+    entries with 9 pending, 12 miniapp manual QA pending checks, 12 admin-web
+    manual QA pending checks, and 33 unresolved required closeout items.
+  - Deploy-config step: workflow YAML, backend/web compose rendering,
+    deployment shell syntax, and deployment Node.js script syntax passed.
+  - Production step: skipped by default; no push, deploy, workflow dispatch, ECS
+    mutation, firewall/security-group mutation, payment/refund action, or live
+    QA data mutation was performed.
+- Goal correction:
+  - The active goal remains incomplete. The default aggregate local regression
+    is green, but final closeout still requires approved external/manual
+    evidence or explicit waivers plus strict closeout success.
+- Next recommended round:
+  - Stop adding local-only proof unless the user asks for a specific guard.
+    Choose an approval lane and collect real evidence: `MINIAPP-PREVIEW-DOMAIN`,
+    `ADMIN-PROD-QA`, `BACKEND-8080-HARDENING`, `CURRENT-BRANCH-DEPLOYED`, or
+    `WECHAT-PAYMENT-REFUND`.
+
 ## Round 52: Aggregate Regression Termination Audit Wiring
 
 - Date: 2026-06-02
