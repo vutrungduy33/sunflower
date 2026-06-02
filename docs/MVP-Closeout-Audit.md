@@ -9,10 +9,13 @@ The repository is substantially closer to MVP readiness, but the full goal is
 not complete yet because several explicit launch requirements depend on
 external production/mobile validation that is not currently proven.
 
-Round 50 completion audit result: **not complete**. The current worktree is
-clean on local `main` at commit `3e0618b`, but the strict closeout evidence
-requirements are still unresolved: 9 launch evidence entries, 12 miniapp manual
-QA checks, and 12 admin-web manual QA checks remain pending.
+Round 56 completion audit result: **not complete and local-only progress is
+exhausted**. The current worktree was clean on local `main` at commit
+`d9db23166dba` before the Round 56 documentation update, but the strict closeout
+evidence requirements are still unresolved: 9 launch evidence entries, 12
+miniapp manual QA checks, and 12 admin-web manual QA checks remain pending.
+This preserves the Round 50 conclusion as a historical invariant: Round 50
+completion audit result: **not complete**.
 
 ## 1.1 User Goal Termination Criteria Audit
 
@@ -124,6 +127,22 @@ same unresolved shape remains authoritative:
 - Admin-web manual QA: 12 required checks, 0 passed, 12 pending.
 - Aggregate closeout: 33 unresolved required items.
 
+Round 56 reran the strict closeout commands on local `main` HEAD
+`d9db23166dba` and confirmed the same unresolved shape still blocks completion:
+
+- `node scripts/check_mvp_launch_evidence.js --strict`: failed because 9
+  required launch entries remain pending.
+- `node scripts/check_miniapp_manual_qa.js --strict`: failed because 12
+  required miniapp manual QA checks remain pending.
+- `node scripts/check_admin_web_manual_qa.js --strict`: failed because 12
+  required admin-web manual QA checks remain pending.
+- `node scripts/check_mvp_closeout_readiness.js --strict`: failed because 33
+  required closeout items remain unresolved.
+
+These failures are approval/evidence blockers, not new local automated code
+regressions. Further local-only reruns of already-green automated baselines will
+not make the strict closeout commands pass.
+
 ## 4. Requirements Still Not Proven
 
 - WeChat real-device or preview validation for login, phone authorization, and
@@ -152,7 +171,11 @@ same unresolved shape remains authoritative:
 
 ## 5. Goal Status
 
-Keep the active goal open.
+Keep the active goal open until the blocker policy permits marking it blocked,
+or until the user provides the required approval/evidence/waiver inputs. Do not
+continue infinite local-only refresh rounds after Round 56; the next meaningful
+step must be one explicit approval lane from `docs/MVP-Next-Approval-Request.md`
+or an itemized evidence/waiver packet.
 
 Do not call the MVP complete until:
 

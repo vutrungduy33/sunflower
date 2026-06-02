@@ -28,8 +28,7 @@
 
 ## Recent Validation Snapshot
 
-Current snapshot after 2026-06-02 Round 55 deployment approval preflight
-refresh:
+Current snapshot after 2026-06-02 Round 56 automatic progress boundary audit:
 
 - `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: passed in Round 32 with
   6 enabled steps: backend tests, admin-web lint/test/build, admin behavior and
@@ -70,6 +69,18 @@ refresh:
   workflow dispatch, deployment, Nginx reload, ECS mutation, firewall mutation,
   security-group mutation, payment/refund action, or live QA data mutation was
   performed.
+- Round 56 reran the strict closeout commands on local `main` HEAD
+  `d9db23166dba` and confirmed the same external/manual blocker shape remains:
+  `node scripts/check_mvp_launch_evidence.js --strict` fails with 9 required
+  launch entries pending, `node scripts/check_miniapp_manual_qa.js --strict`
+  fails with 12 required miniapp manual QA checks pending,
+  `node scripts/check_admin_web_manual_qa.js --strict` fails with 12 required
+  admin-web manual QA checks pending, and
+  `node scripts/check_mvp_closeout_readiness.js --strict` fails with 33
+  unresolved required closeout items. These are approval/evidence blockers, not
+  new automated code regressions. No further local-only refresh work can satisfy
+  the remaining termination criteria without user-approved evidence, waivers, or
+  deployment action.
 - Round 50 audited the original goal termination criteria against current
   evidence in `docs/MVP-Closeout-Audit.md`. Result: the active MVP goal remains
   incomplete because strict external/manual evidence still has 33 unresolved
