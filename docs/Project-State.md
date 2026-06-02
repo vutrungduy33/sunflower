@@ -45,7 +45,11 @@ approval preflight refresh:
   `deployment_lane=nonprod-mock-payment` supports only `target=auto/backend`
   and deploys backend-only with `.env.nonprod-mock.example`. This is not real
   payment/refund evidence and does not by itself prove current-branch
-  deployment.
+  deployment. Round 68 added
+  `scripts/check_workflow_dispatch_lane_matrix.js`, which is wired into
+  `scripts/check_deploy_config.sh` and verifies production dispatch behavior,
+  backend-only nonprod dispatch behavior, rejected nonprod web/nginx/all/bootstrap
+  targets, and push-event production behavior.
 - `scripts/check_mvp_regression.sh`: passed in Round 64 on current local
   `main` HEAD `4a3f630f30eb` with the default 5 enabled non-production steps.
   Backend `mvn -B test` passed with 57 tests, 0 failures, 0 errors, and 0

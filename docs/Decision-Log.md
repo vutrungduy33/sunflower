@@ -290,3 +290,16 @@ Append durable decisions here. Keep entries short and include provenance.
 - Provenance: `.github/workflows/deploy-backend.yml`,
   `scripts/execute_runner_deploy.sh`, `scripts/sync_deploy_bundle.sh`,
   `scripts/test_execute_runner_deploy_release_env.sh`, `docs/CI-CD.md`.
+
+## 2026-06-02: Add Workflow Dispatch Lane Matrix Guard
+
+- Decision: Use `scripts/check_workflow_dispatch_lane_matrix.js` inside
+  `scripts/check_deploy_config.sh` to verify production dispatch, backend-only
+  nonprod dispatch, rejected nonprod web/nginx/all/bootstrap targets, and
+  push-event production behavior.
+- Rationale: The manual `deployment_lane` input is security-sensitive enough
+  that string checks are too weak; a local matrix guard makes the expected
+  target/build/host behavior explicit without adding a GitHub Actions runner
+  dependency.
+- Provenance: `scripts/check_workflow_dispatch_lane_matrix.js`,
+  `scripts/check_deploy_config.sh`, `docs/CI-CD.md`.

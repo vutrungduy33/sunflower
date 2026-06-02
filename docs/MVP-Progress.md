@@ -5,6 +5,72 @@
 > This active file keeps only the latest operational rounds. Older rounds are
 > archived in `docs/archive/mvp-progress/`.
 
+## Round 68: Workflow Dispatch Lane Matrix Guard
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: add a local matrix guard for the manual deployment lane logic so the
+  `deployment_lane` workflow input remains verifiably production-safe and
+  backend-only for mock-payment dispatches.
+- Start evidence:
+  - Local `main` was clean and ahead of `origin/main` by 8 commits.
+  - Round 67 added the manual `deployment_lane` input and runner branching.
+  - Existing checks verified workflow YAML, string snippets, and runner script
+    behavior, but did not execute the workflow target/lane matrix as a unit.
+- Open-source reference check:
+  - Task classification: common CI/CD workflow input validation and local
+    deployment guard.
+  - Sources checked:
+    - GitHub Actions workflow syntax and `workflow_dispatch` input docs:
+      `https://docs.github.com/actions/using-workflows/workflow-syntax-for-github-actions`.
+    - GitHub Actions contexts/input semantics:
+      `https://docs.github.com/actions/learn-github-actions/contexts`.
+    - Existing repository workflow resolution logic in
+      `.github/workflows/deploy-backend.yml`.
+  - License/compatibility: official documentation only; no external code was
+    copied.
+  - Selected approach: add a dependency-free Node.js guard that mirrors the
+    workflow's deployment target resolution and asserts the expected matrix.
+    This keeps verification local and avoids adding `act` or another workflow
+    runner dependency.
+  - Rejected options: adding a new third-party local GitHub Actions runner,
+    relying only on workflow string checks, or broadening the non-production
+    lane beyond backend.
+- Risks:
+  - The guard proves local resolution rules, not a live GitHub Actions run.
+  - If the workflow shell logic changes, the mirrored guard must be updated
+    intentionally to keep the matrix meaningful.
+- Acceptance criteria:
+  - Add a local checker covering production dispatch targets, nonprod accepted
+    targets, nonprod rejected targets, and push event default production
+    behavior.
+  - Wire the checker into deployment config checks.
+  - Update docs/state with the new verification command.
+  - Run focused deploy checks and commit once.
+- Change summary:
+  - Added `scripts/check_workflow_dispatch_lane_matrix.js`.
+  - Wired the new checker into `scripts/check_deploy_config.sh`.
+  - Updated deployment command indexes and project state with the new guard.
+- Verification:
+  - `node --check scripts/check_workflow_dispatch_lane_matrix.js`: passed.
+  - `node scripts/check_workflow_dispatch_lane_matrix.js`: passed with 12
+    checks covering production auto/backend rollback/nginx dispatch,
+    nonprod auto/backend dispatch, nonprod rejected admin-web/nginx/all/bootstrap
+    dispatches, and push-event production behavior.
+  - `scripts/check_deploy_config.sh`: passed, including workflow YAML parse,
+    compose rendering, shell syntax, nonprod lane example, runner deploy tests,
+    workflow dispatch lane matrix, and deployment Node.js syntax.
+  - `git diff --check`: passed.
+- Goal correction:
+  - The active MVP goal remains incomplete. This round improves confidence in
+    the manual deployment lane, but it does not push, dispatch, deploy, prove
+    current local `main` is live, or collect external/manual QA, HTTPS domain,
+    real payment, or refund evidence.
+- Next recommended round:
+  - Rerun the clean-worktree deployment approval preflight after commit, then
+    decide whether to push and manually dispatch the backend-only nonprod lane
+    or provision real payment config for a production-lane deployment.
+
 ## Round 67: Manual Non-Production Mock-Payment Workflow Lane
 
 - Date: 2026-06-02

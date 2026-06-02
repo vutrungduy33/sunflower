@@ -159,6 +159,7 @@ deploy path 必填：
 - `RUN_INTERNAL=1 scripts/check_backend_payment_config_readiness.sh`
 - `RUN_INTERNAL=1 ENFORCE_PAYMENT_CONFIG=1 scripts/check_backend_payment_config_readiness.sh`
 - `bash scripts/check_nonprod_mock_payment_deploy_lane.sh`
+- `node scripts/check_workflow_dispatch_lane_matrix.js`
 - `ruby -e 'require "yaml"; YAML.load_file(".github/workflows/deploy-backend.yml")'`
 - `docker compose -f docker-compose.backend.yml --env-file .env.prod.example config`
 - `docker compose -f docker-compose.web.yml --env-file .env.prod.web.example config`
@@ -188,6 +189,9 @@ deploy path 必填：
   生产 lane。只有手动选择 `deployment_lane=nonprod-mock-payment` 且目标为
   `auto/backend` 时，backend runner 才会使用非生产/mock-payment 校验并加载
   `.env.nonprod-mock.example`。
+- `scripts/check_workflow_dispatch_lane_matrix.js` 是本地 deployment-lane
+  矩阵 guard：它覆盖 production dispatch、nonprod accepted/rejected
+  dispatch，以及 push event 默认 production 行为，避免 workflow 手动入口漂移。
 - 若需要回滚 backend/admin-web，优先通过 `workflow_dispatch + image_tag=<历史 sha>` 完成，而不是在 ECS 上手工改 compose 文件。
 - `node scripts/check_deployment_approval_preflight.js` 只读分析当前分支相对
   `origin/main`/`main` 的部署影响面和人工审批边界，不会 push、触发

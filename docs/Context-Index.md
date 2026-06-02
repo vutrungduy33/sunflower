@@ -89,6 +89,7 @@ Production smoke:
 node scripts/check_deployment_approval_preflight.js
 scripts/check_production_readonly_audit.sh
 scripts/check_deploy_config.sh
+node scripts/check_workflow_dispatch_lane_matrix.js
 RUN_INTERNAL=1 scripts/check_production_smoke.sh
 RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh
 RUN_INTERNAL=1 scripts/check_backend_payment_config_readiness.sh

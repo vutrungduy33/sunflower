@@ -74,6 +74,7 @@ check_shell_syntax() {
 check_node_syntax() {
   log INFO "checking deployment Node.js script syntax"
   node --check "$ROOT_DIR/scripts/check_deployment_approval_preflight.js"
+  node --check "$ROOT_DIR/scripts/check_workflow_dispatch_lane_matrix.js"
   log PASS "deployment Node.js script syntax checked"
 }
 
@@ -81,6 +82,12 @@ check_runner_deploy_release_metadata() {
   log INFO "checking runner deploy release metadata failure behavior"
   bash "$ROOT_DIR/scripts/test_execute_runner_deploy_release_env.sh"
   log PASS "runner deploy release metadata failure behavior checked"
+}
+
+check_workflow_dispatch_lane_matrix() {
+  log INFO "checking workflow dispatch deployment lane matrix"
+  node "$ROOT_DIR/scripts/check_workflow_dispatch_lane_matrix.js"
+  log PASS "workflow dispatch deployment lane matrix checked"
 }
 
 check_nonprod_mock_payment_lane() {
@@ -100,6 +107,7 @@ main() {
   check_shell_syntax
   check_nonprod_mock_payment_lane
   check_runner_deploy_release_metadata
+  check_workflow_dispatch_lane_matrix
   check_node_syntax
 
   log INFO "deploy config checks completed"
