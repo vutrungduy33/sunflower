@@ -5,6 +5,49 @@
 > This active file keeps only the latest operational rounds. Older rounds are
 > archived in `docs/archive/mvp-progress/`.
 
+## Round 83: Backend Nonprod Mock Deploy Smoke
+
+- Date: 2026-06-02
+- Status: in progress
+- Focus: use the explicit backend-only `deployment_lane=nonprod-mock-payment`
+  workflow dispatch to collect reduced-scope cloud deployment evidence after
+  the artifact-based deploy bundle path removed the ECS checkout blocker.
+- Start evidence:
+  - Local `main` and `origin/main` are aligned at `c11e293`.
+  - Production-lane run `26803892859` for HEAD `86b4cc2` proved bundle/image
+    artifact download and load on ECS-2, then failed at production env
+    validation because `WECHAT_PAY_MCH_ID` is missing.
+  - User has stated there is no production environment, code merge/push is
+    allowed, and payment can be mocked/bypassed with documentation.
+- Open-source reference check:
+  - Task classification: common GitHub Actions manual workflow dispatch and
+    smoke evidence collection.
+  - Sources checked: GitHub Actions official `workflow_dispatch` guidance and
+    the repository-native dispatch helper/guards.
+  - License/compatibility: official documentation and local code only; no
+    external code copied.
+  - Selected approach: run the existing readiness guard and helper, execute
+    only `deployment_lane=nonprod-mock-payment` with `target=backend`, then
+    observe GitHub Actions and run read-only smoke checks if deployment reaches
+    backend recreation.
+  - Rejected options: weakening production env validation or treating mock
+    payment as real payment/refund evidence.
+- Risks:
+  - The lane is backend-only and mock-payment; it does not refresh admin-web or
+    Nginx and cannot satisfy real payment/refund evidence.
+  - ECS still needs GitHub artifact/API connectivity for image artifact
+    download.
+  - If deployment succeeds, smoke evidence is reduced-scope and must remain
+    labeled as nonprod/mock.
+- Acceptance criteria:
+  - Run strict local nonprod dispatch readiness and helper dry-run on a clean
+    worktree.
+  - Execute the backend-only nonprod/mock workflow dispatch.
+  - Observe the resulting run and record whether it reaches backend deploy and
+    smoke checks.
+  - Update Project-State, launch evidence, and progress docs; run relevant
+    evidence/deploy checks; commit once.
+
 ## Round 82: Artifact-Based Deployment Bundle
 
 - Date: 2026-06-02
