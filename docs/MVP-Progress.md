@@ -3,6 +3,90 @@
 > Compact round-by-round progress for the current MVP hardening goal. Keep this
 > file factual and update it at the end of each committed round.
 
+## Round 50: Goal Termination Criteria Audit
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: audit the original MVP termination criteria against current
+  authoritative evidence so the goal remains finite and cannot be declared
+  complete while external/manual proof is missing.
+- Start evidence:
+  - `git status --short --branch --untracked-files=all`: local `main` is ahead
+    of `origin/main` by 53 commits and has no tracked worktree changes.
+  - HEAD is `3e0618b` (`Refresh deployment approval preflight snapshot`).
+  - Round 49 refreshed the deployment approval preflight, but the strict
+    closeout shape is still unresolved: 9 launch entries, 12 miniapp manual QA
+    checks, and 12 admin-web manual QA checks remain pending.
+- Open-source reference check:
+  - Task classification: repository-specific completion audit and handoff
+    reconciliation.
+  - Sources checked: not needed; no common feature, reusable UI, auth, payment,
+    deployment implementation, or infrastructure code is being added.
+  - Selected approach: use existing local evidence ledgers and checkers as the
+    authoritative proof source, then update closeout/readiness/project-state
+    docs.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: existing strict/non-strict closeout checker outputs and
+    current MVP handoff wording.
+  - Rejected options: redefining completion around local green checks, marking
+    external evidence passed without proof, pushing `main`, or performing any
+    production/manual QA mutation without approval.
+- Risks:
+  - A documentation-only audit must avoid overstating MVP completion; the
+    strongest current conclusion is that automated readiness is good but final
+    external evidence is incomplete.
+  - The audit must distinguish current deployed-system smoke from evidence that
+    the local ahead `main` commits are deployed.
+- Acceptance criteria:
+  - `docs/MVP-Closeout-Audit.md` maps each user termination criterion to
+    current evidence and a clear result.
+  - `docs/MVP-Readiness.md` no longer points to stale Round 46 deployment
+    preflight facts.
+  - `docs/Project-State.md` records the Round 50 audit and current unresolved
+    counts.
+  - Focused evidence/handoff/readiness checkers and `git diff --check` pass.
+  - The round is committed once.
+- Change summary:
+  - Added a user-goal termination-criteria audit to
+    `docs/MVP-Closeout-Audit.md`, mapping each explicit completion condition to
+    current evidence and result.
+  - Reconciled `docs/MVP-Readiness.md` so deployment readiness points at the
+    Round 49 current-`main` preflight instead of the older Round 46 snapshot.
+  - Updated `docs/Project-State.md` to record that the active goal remains
+    incomplete because 33 required external/manual closeout items are still
+    unresolved.
+  - No product code, deployment workflow, evidence status, production state,
+    ECS state, payment/refund state, or live QA data changed.
+- Verification:
+  - `node scripts/check_mvp_next_approval_request.js`: passed.
+  - `node scripts/check_mvp_handoff_packet.js`: passed.
+  - `node scripts/check_mvp_launch_evidence.js`: passed in non-strict mode with
+    13 required entries, 4 passed, 9 pending.
+  - `node scripts/check_mvp_closeout_readiness.js`: passed in non-strict mode
+    with 33 unresolved required closeout items.
+  - `node scripts/check_mvp_launch_evidence.js --strict`: expected non-zero,
+    `STRICT_LAUNCH_RC=1`, because 9 required launch evidence entries remain
+    pending.
+  - `node scripts/check_miniapp_manual_qa.js --strict`: expected non-zero,
+    `STRICT_MINIAPP_RC=1`, because all 12 required miniapp manual QA checks
+    remain pending.
+  - `node scripts/check_admin_web_manual_qa.js --strict`: expected non-zero,
+    `STRICT_ADMIN_RC=1`, because all 12 required admin-web manual QA checks
+    remain pending.
+  - `node scripts/check_mvp_closeout_readiness.js --strict`: expected non-zero,
+    `STRICT_CLOSEOUT_RC=1`, because 33 required closeout items remain
+    unresolved.
+  - `git diff --check`: passed.
+- Goal correction:
+  - The goal remains active and not complete. The next meaningful progress
+    requires one explicit approval/evidence lane, not another broad local
+    baseline refresh.
+- Next recommended round:
+  - Ask the user to choose one lane and provide the required approval/resources:
+    `MINIAPP-PREVIEW-DOMAIN`, `WECHAT-PAYMENT-REFUND`, `ADMIN-PROD-QA`,
+    `BACKEND-8080-HARDENING`, `CURRENT-BRANCH-DEPLOYED`, or itemized
+    `EVIDENCE-WAIVER`.
+
 ## Round 49: Current Deployment Approval Preflight Snapshot
 
 - Date: 2026-06-02

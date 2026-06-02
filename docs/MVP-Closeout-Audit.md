@@ -9,6 +9,26 @@ The repository is substantially closer to MVP readiness, but the full goal is
 not complete yet because several explicit launch requirements depend on
 external production/mobile validation that is not currently proven.
 
+Round 50 completion audit result: **not complete**. The current worktree is
+clean on local `main` at commit `3e0618b`, but the strict closeout evidence
+requirements are still unresolved: 9 launch evidence entries, 12 miniapp manual
+QA checks, and 12 admin-web manual QA checks remain pending.
+
+## 1.1 User Goal Termination Criteria Audit
+
+| Termination criterion | Current evidence | Result |
+| --- | --- | --- |
+| Backend tests pass and core API health check is usable. | Backend `mvn -B test` passed with 57 tests in the Round 47 aggregate baseline. Production `/api/health` and `/api/content/home` read-only smoke passed in production checks. | Proven locally and read-only production healthy. Keep green after future backend changes. |
+| Admin-web lint/test/build pass and main operations are usable. | Round 47 aggregate baseline passed `npm run lint`, `npm run test` with 24 Vitest tests across 5 files, `npm run build`, 97 behavior wiring checks, and 6 external QA preflight checks. Manual production or approved-staging admin QA remains pending. | Automated readiness proven; manual operational evidence not complete. |
+| Miniapp main user path has explicit verification record and key JS has no syntax errors. | Round 47 miniapp smoke, behavior wiring, user-flow replay, payment-flow replay, project config, subpage nav, and key JS syntax checks passed. WeChat preview/real-device login, phone binding, HTTPS domain, payment, refund, and order-path manual QA entries remain pending. | Local/replay readiness proven; real WeChat evidence not complete. |
+| GitHub automatic deployment pipeline is preserved/explainable, and production smoke is recorded. | `docs/CI-CD.md` and `docs/Architecture.md` describe the single GitHub Actions deploy workflow. Round 46 read-only production audit and Round 47 production checks passed. Round 49 deployment approval preflight passed for local `main` HEAD `a072612b94a6`, but no push/dispatch/deploy was performed. | Pipeline and smoke are documented; current-branch deployment evidence not complete. |
+| `docs/Project-State.md`, `docs/MVP-Readiness.md`, and `docs/Decision-Log.md` reflect current facts. | Project-state and readiness are maintained as current active state docs; decision log records durable process and evidence decisions. Round 50 reconciles the closeout audit and readiness facts. | Proven after Round 50 doc update. |
+| Worktree is clean and final round has committed code. | At Round 50 start, `git status --short --branch --untracked-files=all` showed clean local `main` ahead of `origin/main` by 53 commits at `3e0618b`. | Must be rechecked after Round 50 commit. |
+
+Completion conclusion: the active MVP goal cannot be marked complete until the
+manual/external evidence is collected or explicitly waived and the strict
+closeout commands pass.
+
 ## 2. Evidence That Is Proven
 
 Local automated checks:
@@ -95,6 +115,14 @@ baseline:
 These strict failures are not new automated-regression failures. They are the
 current authoritative proof that the MVP cannot be marked complete without
 external evidence or explicit itemized waivers.
+
+Round 50 reran the non-strict closeout/evidence summaries and confirmed the
+same unresolved shape remains authoritative:
+
+- Launch evidence: 13 required entries, 4 passed, 9 pending.
+- Miniapp manual QA: 12 required checks, 0 passed, 12 pending.
+- Admin-web manual QA: 12 required checks, 0 passed, 12 pending.
+- Aggregate closeout: 33 unresolved required items.
 
 ## 4. Requirements Still Not Proven
 

@@ -28,8 +28,7 @@
 
 ## Recent Validation Snapshot
 
-Current snapshot after 2026-06-02 Round 49 deployment approval preflight
-refresh:
+Current snapshot after 2026-06-02 Round 50 goal termination criteria audit:
 
 - `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: passed in Round 32 with
   6 enabled steps: backend tests, admin-web lint/test/build, admin behavior and
@@ -46,6 +45,14 @@ refresh:
   checks, MVP evidence ledger checks, deploy config static checks, and
   production smoke/backend `8080` read-only checks. The command did not push,
   deploy, reload Nginx, or change ECS/firewall/security-group state.
+- Round 50 audited the original goal termination criteria against current
+  evidence in `docs/MVP-Closeout-Audit.md`. Result: the active MVP goal remains
+  incomplete because strict external/manual evidence still has 33 unresolved
+  required items: 9 launch evidence entries, 12 miniapp manual QA checks, and
+  12 admin-web manual QA checks. Automated backend/admin/miniapp readiness is
+  green from prior baselines, but real WeChat/domain/payment/refund/admin QA,
+  backend `8080` hardening evidence, and current-branch deployment evidence
+  remain approval/evidence gated.
 - Backend `mvn -B test`: passed again in Round 32, 57 tests. Round 28 added
   public order ownership isolation coverage for current-user list/detail/pay
   preparation/pay confirmation/cancel/reschedule/refund actions.
