@@ -28,7 +28,8 @@
 
 ## Recent Validation Snapshot
 
-Current snapshot after 2026-06-02 Round 54 origin/main freshness audit:
+Current snapshot after 2026-06-02 Round 55 deployment approval preflight
+refresh:
 
 - `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: passed in Round 32 with
   6 enabled steps: backend tests, admin-web lint/test/build, admin behavior and
@@ -60,6 +61,15 @@ Current snapshot after 2026-06-02 Round 54 origin/main freshness audit:
   This proves local `main` includes the latest fetched `origin/main` and is
   ahead by 57 commits. No pull, merge, push, workflow dispatch, deployment, or
   production mutation was performed.
+- Deployment approval preflight
+  `node scripts/check_deployment_approval_preflight.js`: refreshed in Round 55
+  against current local `main` at HEAD `75987946b73b`. Comparison base was
+  `origin/main` at `89f93d704719`, changed files since base were 146, path
+  rules predicted a push-to-main deploy target `all`, and impact counts were
+  backend 38 files, admin-web 5 files, and ingress 1 file. No push, merge,
+  workflow dispatch, deployment, Nginx reload, ECS mutation, firewall mutation,
+  security-group mutation, payment/refund action, or live QA data mutation was
+  performed.
 - Round 50 audited the original goal termination criteria against current
   evidence in `docs/MVP-Closeout-Audit.md`. Result: the active MVP goal remains
   incomplete because strict external/manual evidence still has 33 unresolved

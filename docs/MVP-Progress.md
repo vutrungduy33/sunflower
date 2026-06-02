@@ -3,6 +3,91 @@
 > Compact round-by-round progress for the current MVP hardening goal. Keep this
 > file factual and update it at the end of each committed round.
 
+## Round 55: Deployment Approval Preflight Refresh
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: refresh the read-only deployment approval preflight snapshot for
+  current local `main` before any future `CURRENT-BRANCH-DEPLOYED` approval,
+  without pushing, dispatching, deploying, or changing production state.
+- Start evidence:
+  - `git status --short --branch --untracked-files=all`: local `main` is ahead
+    of `origin/main` by 58 commits and has no tracked worktree changes.
+  - HEAD is `7598794` (`Record origin main freshness audit`).
+  - `origin/main` is `89f93d704719`; Round 54 confirmed it is an ancestor of
+    local `main`.
+  - `docs/MVP-Next-Approval-Request.md` still carries the older Round 49
+    preflight snapshot at HEAD `a072612b94a6`, so the handoff approval packet
+    needs a fresh current-branch snapshot.
+- Open-source reference check:
+  - Task classification: repository-specific deployment approval documentation
+    and read-only Git/workflow preflight.
+  - Sources checked: not needed; no common feature, reusable UI, auth, payment,
+    deployment implementation, or infrastructure code is being added.
+  - Selected approach: use the repository-native
+    `node scripts/check_deployment_approval_preflight.js` checker and update
+    only the approval/handoff docs with sanitized results.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: existing deployment preflight script, current CI/CD docs,
+    and launch-evidence approval boundary.
+  - Rejected options: push to `main`, `workflow_dispatch`, production deploy,
+    marking `CURRENT-BRANCH-DEPLOYED` passed, or changing any manual/external
+    evidence status.
+- Risks:
+  - The preflight is an approval and impact classifier only; it does not prove
+    current local commits are deployed.
+  - Because the branch is `main`, any future push of these deployment-relevant
+    commits can trigger the GitHub Actions production deployment workflow.
+  - Updating documentation before the final clean-worktree preflight can make
+    an intermediate run fail; the committed round must record the final passing
+    clean run instead.
+- Acceptance criteria:
+  - `node scripts/check_deployment_approval_preflight.js` passes on a clean
+    worktree before commit.
+  - `docs/MVP-Next-Approval-Request.md`, `docs/Project-State.md`, and this
+    progress entry record the current HEAD/base/changed-file/deploy-target
+    facts and the no-push/no-deploy boundary.
+  - Focused MVP approval/handoff checkers pass.
+  - `git diff --check` passes.
+  - The round is committed once.
+- Change summary:
+  - Refreshed `docs/MVP-Next-Approval-Request.md` so the visible next approval
+    request points at the current Round 55 deployment preflight snapshot instead
+    of the older Round 49 snapshot.
+  - Updated `docs/Project-State.md` with the current local `main` deployment
+    impact: HEAD `75987946b73b`, base `origin/main` `89f93d704719`, 146 changed
+    files, predicted deploy target `all`, backend 38 files, admin-web 5 files,
+    and ingress 1 file.
+  - Kept `CURRENT-BRANCH-DEPLOYED` pending; no launch, miniapp manual QA, or
+    admin manual QA evidence status changed.
+  - No push, merge, `workflow_dispatch`, deployment, Nginx reload, ECS
+    mutation, firewall mutation, security-group mutation, payment/refund
+    action, or live QA data mutation was performed.
+- Verification:
+  - `node scripts/check_deployment_approval_preflight.js`: passed after
+    temporarily stashing the in-progress Round 55 documentation edits so the
+    required clean-worktree check could run.
+  - The preflight reported branch `main`, HEAD `75987946b73b`, comparison base
+    `origin/main` at `89f93d704719`, 146 changed files since base, predicted
+    push-to-main deploy target `all`, backend-impact files 38, admin-web-impact
+    files 5, ingress-impact files 1, and 4 passing checks.
+  - `node scripts/check_mvp_next_approval_request.js`: passed.
+  - `node scripts/check_mvp_handoff_packet.js`: passed.
+  - `node scripts/check_mvp_launch_evidence.js`: passed in non-strict mode with
+    13 required entries, 4 passed, and 9 pending.
+  - `node scripts/check_mvp_closeout_readiness.js`: passed in non-strict mode
+    with 33 unresolved required closeout items.
+  - `git diff --check`: passed.
+- Goal correction:
+  - The active goal remains incomplete. The approval request is now fresher and
+    safer to hand off, but `CURRENT-BRANCH-DEPLOYED` still needs explicit user
+    approval plus push/dispatch/deploy evidence and post-deploy smoke or an
+    explicit waiver.
+- Next recommended round:
+  - Ask the user to choose one approval lane. If they choose
+    `CURRENT-BRANCH-DEPLOYED`, rerun deployment approval preflight on a clean
+    worktree immediately before any push or workflow dispatch.
+
 ## Round 54: Origin Main Freshness Audit
 
 - Date: 2026-06-02
