@@ -151,6 +151,52 @@
     sanitized reduced-scope smoke evidence. Keep real payment/refund evidence
     pending until real credentials and explicit approval exist.
 
+## Round 75: Push and Nonprod Mock Dispatch Attempt
+
+- Date: 2026-06-02
+- Status: in progress
+- Focus: move the current committed `main` branch to GitHub and attempt the
+  explicitly approved backend-only nonprod/mock-payment workflow dispatch so
+  current-branch deployability can be tested without real payment credentials.
+- Start evidence:
+  - Local `main` is clean and ahead of `origin/main` by 15 commits at HEAD
+    `af3e8d0ceaf0`.
+  - User previously approved code merge/push and said there is no production
+    environment. User also confirmed real payment private key/config is not
+    fully provisioned and mock/bypass is acceptable if recorded.
+  - `gh version` is available locally, and `origin` points to
+    `git@github.com:vutrungduy33/sunflower.git`.
+- Open-source reference check:
+  - Task classification: common GitHub Actions manual workflow dispatch and
+    deployment operation.
+  - Sources checked: GitHub Docs manual workflow run guidance and GitHub CLI
+    `gh workflow run` manual.
+  - License/compatibility: official documentation only; no external code
+    copied.
+  - Selected approach: push the current committed branch, then use the
+    repository-native `scripts/dispatch_nonprod_mock_payment_deploy.sh` helper
+    with `deployment_lane=nonprod-mock-payment`, preserving the production
+    payment blocker rather than weakening production validation.
+  - Rejected options: treating mock payment as real payment/refund evidence,
+    pushing uncommitted changes, or manually assembling an ad hoc
+    `workflow_dispatch` command.
+- Risks:
+  - Pushing `main` can trigger the production lane because the workflow has a
+    push trigger. The user has explicitly allowed push/merge and said there is
+    no production environment, but real payment config remains incomplete, so
+    any production-lane run may fail env validation before backend recreation.
+  - The nonprod/mock-payment dispatch is backend-only; it does not refresh
+    admin-web or Nginx and cannot prove real payment/refund evidence.
+- Acceptance criteria:
+  - Re-run local deployment approval and nonprod readiness guards on a clean
+    worktree.
+  - Commit this pre-action plan.
+  - Push local `main` to `origin/main`.
+  - Execute only the backend-only nonprod/mock-payment dispatch helper if
+    guards pass.
+  - Record the actual run result or blocker in project state/progress and
+    commit once more.
+
 ## Round 72: Nonprod Mock Deployment Approval Snapshot
 
 - Date: 2026-06-02
