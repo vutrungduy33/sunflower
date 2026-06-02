@@ -36,6 +36,7 @@ import {
 
 const ORDER_LIST_QUERY_KEY = ['admin-orders']
 const ORDER_OVERVIEW_QUERY_KEY = ['admin-order-overview']
+const DATE_FILTER_PATTERN = /^\d{4}-\d{2}-\d{2}$/
 
 type DrawerMode = 'detail' | 'reschedule' | 'refund'
 type RescheduleEditorField = 'checkInDate' | 'checkOutDate' | 'reason'
@@ -221,6 +222,22 @@ function calculateNights(checkInDate: string, checkOutDate: string) {
   return Math.round((checkOutTime - checkInTime) / 86400000)
 }
 
+function isCompleteDateFilter(value: string) {
+  return !value || DATE_FILTER_PATTERN.test(value)
+}
+
+function resolveDateRangeError(checkInStartDate: string, checkInEndDate: string) {
+  if (!isCompleteDateFilter(checkInStartDate) || !isCompleteDateFilter(checkInEndDate)) {
+    return '请输入完整的入住日期，格式为 YYYY-MM-DD'
+  }
+
+  if (checkInStartDate && checkInEndDate && checkInStartDate > checkInEndDate) {
+    return '入住开始日期不能晚于结束日期'
+  }
+
+  return ''
+}
+
 function validateRescheduleEditorValue(value: RescheduleEditorValue, order?: AdminOrder) {
   const errors: RescheduleEditorErrors = {}
 
@@ -301,10 +318,7 @@ export function OrderManagementPage() {
   const [rejectErrors, setRejectErrors] = useState<RejectEditorErrors>({})
   const [actionFeedback, setActionFeedback] = useState<string | null>(null)
   const deferredKeyword = useDeferredValue(keyword.trim())
-  const dateRangeError =
-    checkInStartDate && checkInEndDate && checkInStartDate > checkInEndDate
-      ? '入住开始日期不能晚于结束日期'
-      : ''
+  const dateRangeError = resolveDateRangeError(checkInStartDate, checkInEndDate)
 
   const orderOverviewQuery = useQuery({
     queryKey: ORDER_OVERVIEW_QUERY_KEY,

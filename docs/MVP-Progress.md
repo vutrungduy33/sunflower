@@ -3,6 +3,72 @@
 > Compact round-by-round progress for the current MVP hardening goal. Keep this
 > file factual and update it at the end of each committed round.
 
+## Round 45: Admin Order Filter Error-State Guard
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: strengthen admin-web order-management validation by proving invalid
+  check-in date ranges show operator feedback and do not issue unsafe list
+  queries.
+- Start evidence:
+  - `git status --short --branch --untracked-files=all`: local `main` is ahead
+    of `origin/main` after merging `codex/s18-payment-hardening`; no tracked
+    worktree changes were present at round start.
+  - Existing order-management tests cover filters, direct reschedule,
+    after-sale approve/reject, check-in, check-out, no-show, refund retry, and
+    direct refund backend failure.
+  - `OrderManagementPage` already has `dateRangeError` logic that disables the
+    order list query when the check-in start date is later than the end date,
+    but no test proved this operational error-state guard.
+- Open-source reference check:
+  - Task classification: common React admin filtering/error-state validation
+    around forms, table queries, and mutation-safe operator workflows.
+  - Sources checked: Testing Library guiding principles and user-event docs;
+    TanStack Query docs for query enablement/invalidation patterns; TDesign
+    React table/form/message component conventions already used in the project.
+  - Selected approach: add a user-visible unit test using existing Testing
+    Library patterns and local TDesign mocks; do not change page behavior unless
+    the test exposes a bug.
+  - License/compatibility: official documentation only; no external code
+    copied.
+  - Reused/adapted: existing local admin-web test harness and page mocks.
+  - Rejected options: adding browser e2e tooling, changing API contracts, or
+    treating production manual QA as completed.
+- Risks:
+  - This is local automated evidence only; it does not prove production admin
+    account login, real order data, or live backend behavior.
+- Acceptance criteria:
+  - `sunflower-admin-web/src/test/order-management-page.test.tsx` covers invalid
+    check-in date range feedback and confirms no extra `fetchAdminOrders` call
+    is made for the invalid range.
+  - Focused admin tests pass.
+  - `docs/Project-State.md` records the new validation evidence.
+  - The round is committed once.
+- Change summary:
+  - Added complete-date validation for the order-management check-in date
+    filters before applying the existing reversed-range guard.
+  - Added a Vitest/Testing Library test proving a complete single-ended start
+    date can still query, while a reversed complete date range shows operator
+    feedback and does not issue a new order-list API query.
+  - No backend API contract, service endpoint, or deployment behavior changed.
+- Verification:
+  - `cd sunflower-admin-web && npx vitest run src/test/order-management-page.test.tsx`:
+    passed, 8 order-management tests.
+  - `cd sunflower-admin-web && npm run lint`: passed.
+  - `cd sunflower-admin-web && npm run test`: passed, 24 tests across 5 files.
+  - `cd sunflower-admin-web && npm run build`: passed.
+  - `node scripts/check_admin_web_behavior_wiring.js`: passed, 97 checks across
+    16 files.
+  - `node scripts/check_admin_web_external_qa_preflight.js`: passed, 6 checks.
+- Goal correction:
+  - This round improves repeatable local admin operations evidence only. It does
+    not complete production admin login/SMS/live-data manual QA or deployment
+    validation.
+- Next recommended round:
+  - Continue admin-web operational hardening with another narrow high-risk path,
+    or request approval for the remaining external admin QA lane before marking
+    admin operations production-ready.
+
 ## Round 44: Miniapp Payment Flow Replay
 
 - Date: 2026-06-02

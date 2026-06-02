@@ -28,8 +28,8 @@
 
 ## Recent Validation Snapshot
 
-Current snapshot after 2026-06-02 Round 43 MVP readiness documentation
-reconciliation:
+Current snapshot after 2026-06-02 Round 45 admin order filter error-state
+guard:
 
 - `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: passed in Round 32 with
   6 enabled steps: backend tests, admin-web lint/test/build, admin behavior and
@@ -77,6 +77,17 @@ reconciliation:
   Asia/Shanghai using Node `v20.20.1`, 23 tests across 5 files.
 - Admin web `npm run build`: passed again in Round 42 at 2026-06-02 09:22
   Asia/Shanghai using Node `v20.20.1`.
+- Admin web order-management focused test
+  `npx vitest run src/test/order-management-page.test.tsx`: passed in Round 45
+  with 8 tests. Round 45 added coverage that an invalid check-in date range
+  shows operator feedback and does not issue a new order-list API query.
+- Admin web `npm run lint`, `npm run test`, and `npm run build`: passed again
+  in Round 45 on local `main` using Node `v20.20.1`. Vitest passed 24 tests
+  across 5 files.
+- Admin web `node scripts/check_admin_web_behavior_wiring.js`: passed again in
+  Round 45 with 97 checks across 16 files.
+- Admin web `node scripts/check_admin_web_external_qa_preflight.js`: passed
+  again in Round 45 with 6 checks.
 - Admin web lint/test/build passed again inside Round 39; Vitest passed 23
   tests across 5 files, behavior wiring passed 97 checks, and admin external QA
   preflight passed 6 checks.

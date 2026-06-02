@@ -16,16 +16,22 @@ node scripts/check_admin_web_external_qa_preflight.js
 
 Current recorded baseline:
 
-- `npm run lint`: passed again in Round 42 using Node `v20.20.1`.
-- `npm run test`: passed again in Round 42 using Node `v20.20.1`, 23 tests
+- `npm run lint`: passed again in Round 45 on local `main` using Node
+  `v20.20.1`.
+- `npm run test`: passed again in Round 45 on local `main` using Node
+  `v20.20.1`, 24 tests across 5 files.
+- `npm run build`: passed again in Round 45 on local `main` using Node
+  `v20.20.1`.
+- `node scripts/check_admin_web_behavior_wiring.js`: passed again in Round 45
+  with 97 key behavior wiring checks across 16 files.
+- `node scripts/check_admin_web_external_qa_preflight.js`: passed again in
+  Round 45 with 6 checks.
+- Previous Round 42 baseline: `npm run lint`, `npm run test` with 23 tests
   across 5 files.
-- `npm run build`: passed again in Round 42 using Node `v20.20.1`.
-- `node scripts/check_admin_web_behavior_wiring.js`: passed in Round 17 with
-  97 key behavior wiring checks across 16 files.
-- `node scripts/check_admin_web_external_qa_preflight.js`: added in Round 22 to
-  check admin manual QA environment URLs, required evidence IDs, high-risk
-  mutation next actions, sensitive evidence boundaries, and credential/live-data
-  safety wording before production or approved-staging QA.
+- `node scripts/check_admin_web_external_qa_preflight.js` checks admin manual
+  QA environment URLs, required evidence IDs, high-risk mutation next actions,
+  sensitive evidence boundaries, and credential/live-data safety wording before
+  production or approved-staging QA.
 
 Older notes about an unused `_refundId` lint issue or 3 failing/timed-out
 admin-web tests are stale; the Round 42 direct recheck did not reproduce them.
@@ -33,9 +39,11 @@ admin-web tests are stale; the Round 42 direct recheck did not reproduce them.
 The automated tests cover auth page behavior, protected shell routing, room
 management, price/inventory management, order list/detail/actions, after-sale
 approval/rejection, failed refund retry, check-in, check-out, no-show, and price
-batch utility logic. The behavior wiring guard checks route, service endpoint,
-page action, and mutation-refetch wiring. These checks do not prove production
-admin account, SMS, browser, or live data safety.
+batch utility logic. Round 45 also covers the order-management check-in date
+filter guard: a reversed complete date range shows operator feedback and does
+not issue a new order-list query. The behavior wiring guard checks route,
+service endpoint, page action, and mutation-refetch wiring. These checks do not
+prove production admin account, SMS, browser, or live data safety.
 
 ## 2. Manual QA Ledger
 

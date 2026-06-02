@@ -504,6 +504,31 @@ describe('OrderManagementPage', () => {
     })
   })
 
+  it('blocks order list reload when the check-in date range is invalid', async () => {
+    const user = userEvent.setup()
+
+    renderOrderManagementPage()
+
+    expect(await screen.findByText('SF2026031110301234')).toBeInTheDocument()
+    expect(fetchAdminOrders).toHaveBeenCalledTimes(1)
+
+    await user.type(screen.getByPlaceholderText('入住开始日期'), '2026-02-18')
+    await waitFor(() => {
+      expect(fetchAdminOrders).toHaveBeenLastCalledWith({
+        status: undefined,
+        keyword: '',
+        checkInStartDate: '2026-02-18',
+        checkInEndDate: '',
+      })
+    })
+    const validStartDateCallCount = vi.mocked(fetchAdminOrders).mock.calls.length
+
+    await user.type(screen.getByPlaceholderText('入住结束日期'), '2026-02-16')
+
+    expect(await screen.findByText('入住开始日期不能晚于结束日期')).toBeInTheDocument()
+    expect(fetchAdminOrders).toHaveBeenCalledTimes(validStartDateCallCount)
+  })
+
   it('submits a direct reschedule action successfully from the drawer', async () => {
     const user = userEvent.setup()
 

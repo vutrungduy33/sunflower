@@ -26,7 +26,7 @@ verified, and documented enough for handoff:
 | Area | Evidence | Status | Next action |
 | --- | --- | --- | --- |
 | Backend local quality | Round 39 `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh` reran `mvn -B test`: passed, 57 tests, 0 failures/errors/skips. Round 28 added public order ownership isolation across current-user list/detail/pay preparation/pay confirmation/cancel/reschedule/refund actions. | Ready locally | Keep green after future backend changes. |
-| Admin web local quality | Round 42 directly reran `npm run lint`, `npm run test` (23 tests across 5 files), and `npm run build` with Node `v20.20.1`: passed. Round 39 aggregate regression also passed admin behavior wiring (97 checks) and admin external QA preflight (6 checks). Round 27 order tests cover check-in, check-out, no-show, after-sale rejection, and failed refund retry. | Ready locally | Keep green after future admin changes. |
+| Admin web local quality | Round 45 directly reran `npm run lint`, `npm run test` (24 tests across 5 files), and `npm run build` on local `main` with Node `v20.20.1`: passed. Round 45 also passed admin behavior wiring (97 checks) and admin external QA preflight (6 checks). Order tests cover check-in, check-out, no-show, after-sale rejection, failed refund retry, and invalid check-in date-range feedback/query blocking. | Ready locally | Keep green after future admin changes. |
 | Miniapp syntax/smoke | Round 39 reran miniapp smoke, behavior wiring, user-flow replay, external preflight, project config, and subpage nav checks: passed. The run still warns that the default API base is bare HTTP for local/devtools validation and local `project.private.config.json` is absent. | Partially verified | Real-device login/phone/payment evidence still required. |
 | Miniapp real user path | Code supports real API, WeChat login, phone binding, `wx.requestPayment`, order and after-sale flows; manual QA ledger now exists. | Needs real-device evidence | Run `node scripts/check_miniapp_manual_qa.js --strict` after recording preview/real-device evidence. |
 | WeChat pay/refund | Backend has WeChat payment/refund gateway, callbacks, records, retry, and mock only when explicitly configured; miniapp payment QA ledger now exists. | Needs production evidence | Verify small real payment/refund with merchant config and callback domain, then record sanitized evidence. |
@@ -50,12 +50,16 @@ Latest aggregate regression:
 
 Latest direct admin-web automated evidence:
 
-- `cd sunflower-admin-web && npm run lint`: passed in Round 42 at 2026-06-02
-  09:21 Asia/Shanghai using Node `v20.20.1`.
-- `cd sunflower-admin-web && npm run test`: passed in Round 42 at 2026-06-02
-  09:22 Asia/Shanghai using Node `v20.20.1`, 23 tests across 5 files.
-- `cd sunflower-admin-web && npm run build`: passed in Round 42 at 2026-06-02
-  09:22 Asia/Shanghai using Node `v20.20.1`.
+- `cd sunflower-admin-web && npm run lint`: passed in Round 45 on local `main`
+  using Node `v20.20.1`.
+- `cd sunflower-admin-web && npm run test`: passed in Round 45 on local `main`
+  using Node `v20.20.1`, 24 tests across 5 files.
+- `cd sunflower-admin-web && npm run build`: passed in Round 45 on local `main`
+  using Node `v20.20.1`.
+- `node scripts/check_admin_web_behavior_wiring.js`: passed in Round 45 with
+  97 checks across 16 files.
+- `node scripts/check_admin_web_external_qa_preflight.js`: passed in Round 45
+  with 6 checks.
 - The earlier resumed-goal notes about `_refundId` or 3 failing/timed-out admin
   tests are stale and did not reproduce on the current worktree.
 
