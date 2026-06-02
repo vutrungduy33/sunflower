@@ -52,14 +52,18 @@ regression recheck:
 - Production smoke and backend `8080` read-only checks: passed again in Round
   32 through `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`. The checks did
   not push, deploy, reload Nginx, or change ECS/firewall/security-group state.
-- Admin web `npm run lint`: passed again in Round 27.
-- Admin web `npm run test`: passed again in Round 27, 23 tests. Round 27 added
-  order-management tests for check-in, check-out, no-show, after-sale rejection,
-  and failed refund retry.
-- Admin web `npm run build`: passed again in Round 27.
+- Admin web `npm run lint`: passed again in Round 36 at 2026-06-02 08:46
+  Asia/Shanghai.
+- Admin web `npm run test`: passed again in Round 36 at 2026-06-02 08:46
+  Asia/Shanghai, 23 tests across 5 files. Round 27 added order-management tests
+  for check-in, check-out, no-show, after-sale rejection, and failed refund
+  retry.
+- Admin web `npm run build`: passed again in Round 36 at 2026-06-02 08:46
+  Asia/Shanghai.
 - Older goal notes that mention an admin-web `_refundId` lint failure or 3
-  failing/timed-out admin tests are stale. Round 29 aggregate regression proves
-  current admin-web lint/test/build is green.
+  failing/timed-out admin tests are stale. Round 36 direct admin-web reruns and
+  Round 32 aggregate regression prove current admin-web lint/test/build is
+  green.
 - Admin web `node scripts/check_admin_web_behavior_wiring.js`: passed in
   Round 17 with 97 key behavior wiring checks across 16 files.
 - Admin web external QA preflight

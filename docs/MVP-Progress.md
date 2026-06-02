@@ -2179,3 +2179,67 @@
     completion remains open. The next meaningful closeout work still requires
     selecting one approval lane from `docs/MVP-External-Approval-Packet.md` and
     collecting real external evidence or an explicit user waiver.
+
+## Round 36: Admin Web Baseline Recheck
+
+- Date: 2026-06-02
+- Status: completed and committed.
+- Focus: reconcile the resumed goal's stale admin-web failure baseline with the
+  current repository reality, using direct admin-web lint/test/build evidence
+  and without changing production or deployment state.
+- Start evidence:
+  - `git status --short --branch --untracked-files=all`: clean on
+    `codex/s18-payment-hardening` after Round 35 commit.
+  - The resumed goal text still mentioned an admin-web `_refundId` lint issue
+    and 3 failing/timed-out admin-web tests.
+  - `docs/Project-State.md` already marked those failures stale, but its latest
+    direct admin-web command bullets still pointed to Round 27.
+- Open-source reference check:
+  - Task classification: repository-specific verification and durable evidence
+    maintenance.
+  - Sources checked: not applicable; this round did not implement a common
+    feature, reusable infrastructure, or external-code-dependent design.
+  - Selected approach: rerun the exact admin-web commands named in the resumed
+    goal and update readiness/state docs from current command output.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: existing admin-web npm scripts and current MVP evidence
+    guards.
+  - Rejected options: editing code to fix a non-reproducible stale failure,
+    suppressing lint/tests, or marking production/manual QA evidence complete
+    from local admin-web checks.
+- Risks:
+  - Direct admin-web lint/test/build proves local admin quality only; it does
+    not satisfy `ADMIN-PROD-QA` or the 12 pending admin manual QA entries.
+  - No push, merge, workflow dispatch, deploy, ECS mutation, real payment, real
+    refund, or production data mutation was performed.
+- Acceptance criteria:
+  - `sunflower-admin-web` lint, tests, and build pass from current worktree.
+  - `docs/Project-State.md` and `docs/MVP-Readiness.md` state the current
+    direct Round 36 admin-web baseline and identify older admin failures as
+    stale.
+  - Non-strict launch/closeout evidence guards still pass and keep 33 unresolved
+    external/manual evidence items visible.
+  - The round is committed once.
+- Verification:
+  - `cd sunflower-admin-web && npm run lint`: passed.
+  - `cd sunflower-admin-web && npm run test`: passed, 23 tests across 5 files.
+  - `cd sunflower-admin-web && npm run build`: passed.
+  - `node scripts/check_mvp_launch_evidence.js`: passed non-strict and reported
+    9 unresolved required launch evidence entries.
+  - `node scripts/check_mvp_closeout_readiness.js`: passed non-strict and
+    reported 33 unresolved required closeout items.
+- Change summary:
+  - Updated `docs/Project-State.md` with the Round 36 direct admin-web
+    lint/test/build evidence and clarified that the resumed goal's admin-web
+    failure notes are stale.
+  - Updated `docs/MVP-Readiness.md` so the admin-web local quality row reflects
+    the latest direct admin-web run.
+  - Updated this progress log.
+- Goal correction:
+  - The resumed goal's first suggested round is already satisfied by current
+    evidence; do not spend another coding round on the stale `_refundId` or
+    three-test failure. The next meaningful MVP progress should choose one
+    remaining approval lane from `docs/MVP-External-Approval-Packet.md`, most
+    likely `MINIAPP-PREVIEW-DOMAIN`, `ADMIN-PROD-QA`,
+    `BACKEND-8080-HARDENING`, or `CURRENT-BRANCH-DEPLOYED`, and collect real
+    external evidence or explicit waivers.
