@@ -112,6 +112,10 @@
   error class was the same GitHub HTTPS fetch problem: TLS connection
   termination followed by `github.com:443` connection timeouts. Current-branch
   backend deploy and smoke remain pending.
+- Round 79 added `scripts/check_ecs_runner_github_connectivity.sh` as a
+  read-only SSH diagnostic for the ECS-2 self-hosted runner. It checks runner
+  process hints, `_diag/Worker_*.log` summaries, GitHub DNS/HTTPS reachability,
+  `git ls-remote`, and disk space without printing secrets or mutating ECS.
 - Round 60 pushed `98e68e0dd478` to `main` and triggered GitHub Actions run
   `26796051853`; backend/admin-web images built, but ECS-2 checkout stalled
   before deployment completed.

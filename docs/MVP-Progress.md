@@ -442,6 +442,78 @@
     to GitHub from ECS-2, check DNS/proxy/firewall/security-group/egress rules,
     and only then re-dispatch backend-only nonprod/mock lane.
 
+## Round 79: ECS Runner GitHub Connectivity Diagnostic
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: add a repeatable read-only diagnostic for ECS self-hosted runner
+  connectivity to GitHub so deployment checkout failures can be investigated
+  without manually assembling SSH commands.
+- Start evidence:
+  - Local `main` and `origin/main` are aligned at `9ce4a10`.
+  - Repeated backend deploy attempts now fail before app deploy when ECS-2
+    `actions/checkout` runs `git fetch` against GitHub over HTTPS.
+  - The failure class is TLS connection termination and
+    `github.com:443` connection timeouts; backend application validation is not
+    reached in the latest nonprod/mock run.
+- Open-source reference check:
+  - Task classification: common GitHub Actions self-hosted runner
+    observability and network diagnostic workflow.
+  - Sources checked: GitHub official self-hosted runner monitoring and
+    troubleshooting documentation, including runner `_diag` logs and network
+    communication requirements.
+  - License/compatibility: official documentation only; no external code
+    copied.
+  - Selected approach: add a repository-native read-only SSH diagnostic script
+    that checks runner process/workspace hints, recent `_diag` logs, DNS,
+    HTTPS reachability, `git ls-remote`, and disk space without printing
+    secrets or mutating ECS state.
+  - Rejected options: repeated workflow re-dispatch without fixing runner
+    egress, committing secrets, or replacing GitHub Actions deployment
+    architecture.
+- Risks:
+  - The script diagnoses connectivity but cannot fix cloud networking by
+    itself.
+  - RUN_INTERNAL mode requires SSH access to ECS-2; local-only mode can only
+    validate script shape.
+- Acceptance criteria:
+  - Add a read-only runner connectivity diagnostic script.
+  - Document the command in CI/CD and Context Index.
+  - Wire shell syntax into deploy config validation.
+  - Update Project-State/Progress and run focused checks before committing.
+- Change summary:
+  - Added `scripts/check_ecs_runner_github_connectivity.sh`.
+  - The script defaults to local no-op guidance; with `RUN_INTERNAL=1`, it SSHes
+    to ECS-2 and checks runner process hints, `_diag/Worker_*.log` summaries,
+    GitHub DNS/HTTPS, `git ls-remote`, and disk space without mutating ECS.
+  - Wired shell syntax into `scripts/check_deploy_config.sh`.
+  - Updated `docs/CI-CD.md`, `docs/Context-Index.md`, and
+    `docs/Project-State.md`.
+- Verification:
+  - `scripts/check_ecs_runner_github_connectivity.sh`: passed local default
+    mode with one expected warning that `RUN_INTERNAL=1` is required for ECS
+    inspection.
+  - `bash -n scripts/check_ecs_runner_github_connectivity.sh
+    scripts/check_deploy_config.sh`: passed.
+  - `scripts/check_deploy_config.sh`: passed, including workflow YAML parse,
+    compose rendering, shell syntax, nonprod env check, runner release metadata
+    guard, workflow lane matrix, nonprod readiness, helper dry-run, and Node.js
+    syntax.
+  - `node scripts/check_mvp_handoff_packet.js`,
+    `node scripts/check_mvp_next_approval_request.js`,
+    `node scripts/check_mvp_external_approval_packet.js`, and
+    `node scripts/check_mvp_closeout_readiness.js`: passed in non-strict mode;
+    closeout still reports 32 unresolved required items.
+  - `git diff --check`: passed.
+- Goal correction:
+  - The active MVP goal remains incomplete. This round adds a reproducible
+    diagnostic path for the current ECS-2 GitHub connectivity blocker; it does
+    not deploy backend or collect smoke/manual QA evidence.
+- Next recommended round:
+  - Run `RUN_INTERNAL=1 scripts/check_ecs_runner_github_connectivity.sh` with
+    ECS SSH access. Fix any DNS/HTTPS/git connectivity issue it reports before
+    retrying backend-only nonprod/mock dispatch.
+
 ## Round 72: Nonprod Mock Deployment Approval Snapshot
 
 - Date: 2026-06-02

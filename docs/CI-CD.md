@@ -162,6 +162,7 @@ deploy path 必填：
 - `node scripts/check_deployment_approval_preflight.js`
 - `RUN_INTERNAL=1 scripts/check_backend_payment_config_readiness.sh`
 - `RUN_INTERNAL=1 ENFORCE_PAYMENT_CONFIG=1 scripts/check_backend_payment_config_readiness.sh`
+- `RUN_INTERNAL=1 scripts/check_ecs_runner_github_connectivity.sh`
 - `bash scripts/check_nonprod_mock_payment_deploy_lane.sh`
 - `node scripts/check_workflow_dispatch_lane_matrix.js`
 - `node scripts/check_nonprod_dispatch_readiness.js`
@@ -215,6 +216,10 @@ deploy path 必填：
   优先查看对应 ECS runner 工作目录下的 `_diag/Worker_*.log`，并确认 runner
   进程、GitHub 网络连通性、磁盘空间和工作目录权限。workflow timeout 只负责
   让挂起有界失败，不代表根因已修复。
+- `scripts/check_ecs_runner_github_connectivity.sh` 是只读 ECS runner 诊断：
+  默认不连 ECS；设置 `RUN_INTERNAL=1` 后通过 SSH 到 ECS-2 检查 runner 进程、
+  `_diag/Worker_*.log` 摘要、`github.com` DNS/HTTPS、`git ls-remote` 和磁盘
+  空间，不打印密钥，也不修改 runner/部署状态。
 - 若需要回滚 backend/admin-web，优先通过 `workflow_dispatch + image_tag=<历史 sha>` 完成，而不是在 ECS 上手工改 compose 文件。
 - `node scripts/check_deployment_approval_preflight.js` 只读分析当前分支相对
   `origin/main`/`main` 的部署影响面和人工审批边界，不会 push、触发

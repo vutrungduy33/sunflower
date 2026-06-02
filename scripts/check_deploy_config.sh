@@ -59,6 +59,7 @@ check_shell_syntax() {
     scripts/check_production_smoke.sh
     scripts/check_backend_8080_exposure.sh
     scripts/check_backend_payment_config_readiness.sh
+    scripts/check_ecs_runner_github_connectivity.sh
     scripts/check_nonprod_mock_payment_deploy_lane.sh
     scripts/dispatch_nonprod_mock_payment_deploy.sh
     scripts/check_production_readonly_audit.sh

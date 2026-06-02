@@ -105,6 +105,7 @@ RUN_INTERNAL=1 scripts/check_production_smoke.sh
 RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh
 RUN_INTERNAL=1 scripts/check_backend_payment_config_readiness.sh
 RUN_INTERNAL=1 ENFORCE_PAYMENT_CONFIG=1 scripts/check_backend_payment_config_readiness.sh
+RUN_INTERNAL=1 scripts/check_ecs_runner_github_connectivity.sh
 bash scripts/check_nonprod_mock_payment_deploy_lane.sh
 ```
 
