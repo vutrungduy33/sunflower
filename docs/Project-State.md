@@ -17,6 +17,10 @@
 - Pushes to `main` for deployment-relevant paths still trigger GitHub Actions.
 - Manual `workflow_dispatch` supports `deployment_lane=production` and the
   backend-only `deployment_lane=nonprod-mock-payment` lane.
+- The deployment workflow now packages the deployment bundle on a GitHub-hosted
+  runner and uploads it as a workflow artifact. ECS self-hosted runners download
+  and extract that artifact instead of running `actions/checkout` for deploy
+  bundle source.
 - Local secrets belong under `.secrets/`, which is ignored by Git.
 
 ## Current Architecture
@@ -131,6 +135,11 @@
   `47.113.223.248`; TLS probes did not return a usable certificate chain for
   the target API/admin hostnames. This is recorded as DNS/certificate not yet
   deployable, not as a proven expired certificate.
+- Round 82 changed `.github/workflows/deploy-backend.yml` so deploy bundle
+  source is packaged by `package-deploy-bundle` on a GitHub-hosted runner and
+  consumed by ECS deploy jobs via workflow artifact download/extract. This
+  reduces the intermittent ECS self-hosted `actions/checkout` dependency; ECS
+  still needs GitHub artifact/API connectivity for deploy.
 - Round 60 pushed `98e68e0dd478` to `main` and triggered GitHub Actions run
   `26796051853`; backend/admin-web images built, but ECS-2 checkout stalled
   before deployment completed.
@@ -170,8 +179,8 @@
 
 - The active MVP goal is still open. Do not mark complete until strict closeout
   evidence passes or the user explicitly waives itemized blockers.
-- Current local `main` is aligned with `origin/main` at `3f8d237` after the
-  Round 79 push. Future deployment-relevant pushes to `main` can still trigger
+- Current local `main` is aligned with `origin/main` at `d3f8c0a` after the
+  Round 81 push. Future deployment-relevant pushes to `main` can still trigger
   the production lane unless a manual nonprod lane is explicitly selected.
 - Real WeChat payment production config on ECS-2 remains incomplete. Strict
   payment readiness currently fails for missing/invalid merchant variables,

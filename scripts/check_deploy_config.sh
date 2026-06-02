@@ -46,6 +46,7 @@ check_shell_syntax() {
   local scripts=(
     scripts/deploy_lib.sh
     scripts/validate_prod_env.sh
+    scripts/package_deploy_bundle.sh
     scripts/deploy_backend.sh
     scripts/deploy_admin_web.sh
     scripts/bootstrap_prod.sh

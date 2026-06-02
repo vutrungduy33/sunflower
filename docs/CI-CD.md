@@ -69,18 +69,27 @@ PR 门禁 workflow 已移除。仓库当前不再强制：
    - 两个镜像保持并行构建。
    - 常规发布会在 GitHub Hosted Runner 上构建镜像、推送 GHCR 备用 tag，并额外导出压缩后的镜像 artifact。
    - 若手动传入历史 `image_tag`，则跳过镜像构建与 artifact 生成，直接走既有 GHCR fallback。
-3. `deploy-backend-host`
+3. `package-deploy-bundle`
+   - 运行在 GitHub Hosted Runner。
+   - checkout 只包含部署所需的 compose、env example、Nginx 模板和 scripts。
+   - 通过 `scripts/package_deploy_bundle.sh` 打包 deployment bundle，并上传为 workflow artifact。
+   - 这样 ECS self-hosted runner 不再依赖 `actions/checkout` 访问 GitHub 仓库。
+4. `deploy-backend-host`
    - 运行在 `self-hosted + ecs-backend`。
-   - 本机 checkout deployment bundle、同步到 `$BACKEND_DEPLOY_PATH`、下载 backend artifact、`docker load`，然后生成 pending release metadata，校验并部署 backend；只有部署成功后才把 pending 元数据原子切换为正式 `.release.env`。
-   - self-hosted checkout 步骤设置 `timeout-minutes: 8`，本机部署步骤设置
-     `timeout-minutes: 20`，避免 runner checkout 或本机 deploy 无限挂起。
+   - 下载并解包 deployment bundle artifact、同步到 `$BACKEND_DEPLOY_PATH`、
+     下载 backend image artifact、`docker load`，然后生成 pending release
+     metadata，校验并部署 backend；只有部署成功后才把 pending 元数据原子
+     切换为正式 `.release.env`。
+   - 本机部署步骤设置 `timeout-minutes: 20`，避免 runner 本机 deploy 无限挂起。
    - `bootstrap` 时仅 backend host 执行 seed 导入。
-4. `deploy-web-host`
+5. `deploy-web-host`
    - 运行在 `self-hosted + ecs-web`。
    - 仅在 backend host 成功或被跳过后执行。
-   - 本机 checkout deployment bundle、同步到 `$WEB_DEPLOY_PATH`、下载 admin-web artifact、`docker load`，然后生成 pending release metadata，校验并部署 admin-web；只有部署成功后才把 pending 元数据原子切换为正式 `.release.env`。
-   - self-hosted checkout 步骤设置 `timeout-minutes: 8`，本机部署步骤设置
-     `timeout-minutes: 20`。
+   - 下载并解包 deployment bundle artifact、同步到 `$WEB_DEPLOY_PATH`、
+     下载 admin-web image artifact、`docker load`，然后生成 pending release
+     metadata，校验并部署 admin-web；只有部署成功后才把 pending 元数据原子
+     切换为正式 `.release.env`。
+   - 本机部署步骤设置 `timeout-minutes: 20`。
    - `target=all / nginx / bootstrap` 时最后再刷新宿主机 Nginx。
 
 提效策略：
@@ -90,6 +99,8 @@ PR 门禁 workflow 已移除。仓库当前不再强制：
 - 若只改 `sunflower-admin-web/**`，只触发 web host。
 - 若只改 `sunflower-backend/**`，只触发 backend host。
 - backend artifact 由 ECS-2 直接下载，admin-web artifact 由 ECS-1 直接下载，ECS-1 不再中转 backend 产物。
+- deployment bundle artifact 由两台 ECS 各自直接下载，避免 ECS runner 在
+  部署阶段执行 `actions/checkout`。
 
 部署约束：
 
@@ -126,7 +137,8 @@ deploy path 必填：
 
 - 常规发布不再需要 `BACKEND_ECS_*`、`WEB_ECS_*` SSH Secrets。
 - GitHub Hosted Runner 只负责构建、上传 artifact，不再负责 SSH 进入 ECS。
-- self-hosted runner 会在目标主机本地下载 artifact、同步 bundle 并触发脚本。
+- self-hosted runner 会在目标主机本地下载 deployment bundle/image
+  artifacts、同步 bundle 并触发脚本，不再 checkout 仓库源码。
 - 小程序认证、管理端短信、数据库口令、应用 token secret 等不再存放在 GitHub Secrets。
 
 ### 4.2 ECS 本地配置文件
@@ -170,7 +182,7 @@ deploy path 必填：
 - `ruby -e 'require "yaml"; YAML.load_file(".github/workflows/deploy-backend.yml")'`
 - `docker compose -f docker-compose.backend.yml --env-file .env.prod.example config`
 - `docker compose -f docker-compose.web.yml --env-file .env.prod.web.example config`
-- `bash -n scripts/deploy_lib.sh scripts/validate_prod_env.sh scripts/deploy_backend.sh scripts/deploy_admin_web.sh scripts/bootstrap_prod.sh scripts/deploy_prod.sh scripts/reload_host_nginx.sh scripts/sync_deploy_bundle.sh scripts/execute_runner_deploy.sh scripts/test_execute_runner_deploy_release_env.sh scripts/start_backend_with_mvp_seed.sh scripts/start_admin_web.sh scripts/check_backend_payment_config_readiness.sh`
+- `bash -n scripts/deploy_lib.sh scripts/validate_prod_env.sh scripts/package_deploy_bundle.sh scripts/deploy_backend.sh scripts/deploy_admin_web.sh scripts/bootstrap_prod.sh scripts/deploy_prod.sh scripts/reload_host_nginx.sh scripts/sync_deploy_bundle.sh scripts/execute_runner_deploy.sh scripts/test_execute_runner_deploy_release_env.sh scripts/start_backend_with_mvp_seed.sh scripts/start_admin_web.sh scripts/check_backend_payment_config_readiness.sh`
 - `cd sunflower-backend && mvn -B test`
 - `cd sunflower-admin-web && npm run build`
 
@@ -212,10 +224,10 @@ deploy path 必填：
   命令，不会触发 GitHub Actions；只有在审批后同时传入 `--execute` 且设置
   `CONFIRM_NONPROD_MOCK_DISPATCH=1` 才会执行。该 lane 仍不刷新
   admin-web/Nginx，也不是 real payment/refund evidence。
-- 若 self-hosted deploy job 卡在 `actions/checkout` 或 runner 本机步骤，
-  优先查看对应 ECS runner 工作目录下的 `_diag/Worker_*.log`，并确认 runner
-  进程、GitHub 网络连通性、磁盘空间和工作目录权限。workflow timeout 只负责
-  让挂起有界失败，不代表根因已修复。
+- 若 self-hosted deploy job 卡在 artifact 下载或 runner 本机步骤，优先查看
+  对应 ECS runner 工作目录下的 `_diag/Worker_*.log`，并确认 runner 进程、
+  GitHub artifact/API 网络连通性、磁盘空间和工作目录权限。workflow timeout
+  只负责让挂起有界失败，不代表根因已修复。
 - `scripts/check_ecs_runner_github_connectivity.sh` 是只读 ECS runner 诊断：
   默认不连 ECS；设置 `RUN_INTERNAL=1` 后通过 SSH 到 ECS-2 检查 runner 进程、
   `_diag/Worker_*.log` 摘要、`github.com` DNS/HTTPS、`git ls-remote` 和磁盘

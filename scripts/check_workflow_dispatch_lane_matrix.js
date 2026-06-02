@@ -159,6 +159,11 @@ function checkWorkflowContainsLaneInput() {
     '- nonprod-mock-payment',
     'nonprod-mock-payment lane only supports target auto or backend',
     'DEPLOYMENT_LANE: ${{ needs.detect-targets.outputs.deployment_lane }}',
+    'package-deploy-bundle:',
+    'deploy_bundle_artifact_name',
+    'Download backend deployment bundle artifact',
+    'Download web deployment bundle artifact',
+    'needs.package-deploy-bundle.result == \'success\'',
   ];
 
   for (const snippet of snippets) {
@@ -167,7 +172,13 @@ function checkWorkflowContainsLaneInput() {
     }
   }
 
-  pass('workflow contains explicit deployment lane input and runner env wiring');
+  for (const stepName of ['Checkout backend deployment bundle source', 'Checkout web deployment bundle source']) {
+    if (workflow.includes(stepName)) {
+      fail(`self-hosted deploy job must not use actions/checkout step: ${stepName}`);
+    }
+  }
+
+  pass('workflow contains explicit deployment lane input, runner env wiring, and artifact deployment bundle');
 }
 
 function main() {

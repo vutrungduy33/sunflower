@@ -163,6 +163,10 @@ function checkWorkflowShape() {
     'self-hosted',
     'ecs-backend',
     'ecs-web',
+    'package-deploy-bundle:',
+    'deploy_bundle_artifact_name',
+    'Download backend deployment bundle artifact',
+    'Download web deployment bundle artifact',
   ];
 
   for (const snippet of requiredSnippets) {
@@ -188,6 +192,11 @@ function checkWorkflowShape() {
   }
   if (!workflow.includes('nonprod-mock-payment lane only supports target auto or backend')) {
     fail('deployment workflow must reject nonprod-mock-payment targets that do not map to backend-only deploys');
+  }
+  for (const stepName of ['Checkout backend deployment bundle source', 'Checkout web deployment bundle source']) {
+    if (workflow.includes(stepName)) {
+      fail(`self-hosted deploy job must not use actions/checkout step: ${stepName}`);
+    }
   }
 
   pass('deployment workflow exposes push main, workflow_dispatch targets, and explicit deployment lanes');

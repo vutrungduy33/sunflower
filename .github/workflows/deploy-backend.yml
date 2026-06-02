@@ -87,6 +87,7 @@ jobs:
       admin_web_image: ${{ steps.meta.outputs.admin_web_image_ref }}
       backend_artifact_name: ${{ steps.meta.outputs.backend_artifact_name }}
       admin_web_artifact_name: ${{ steps.meta.outputs.admin_web_artifact_name }}
+      deploy_bundle_artifact_name: ${{ steps.meta.outputs.deploy_bundle_artifact_name }}
 
     steps:
       - name: Checkout
@@ -251,6 +252,7 @@ jobs:
           admin_web_image_ref=""
           backend_artifact_name=""
           admin_web_artifact_name=""
+          deploy_bundle_artifact_name="deploy-bundle-${source_sha}"
 
           if [ "$backend_changed" = "true" ]; then
             backend_image_ref="ghcr.io/${owner}/sunflower-backend:${image_tag}"
@@ -279,7 +281,51 @@ jobs:
             echo "admin_web_image_ref=${admin_web_image_ref}"
             echo "backend_artifact_name=${backend_artifact_name}"
             echo "admin_web_artifact_name=${admin_web_artifact_name}"
+            echo "deploy_bundle_artifact_name=${deploy_bundle_artifact_name}"
           } >> "${GITHUB_OUTPUT}"
+
+  package-deploy-bundle:
+    needs: detect-targets
+    if: >-
+      ${{
+        needs.detect-targets.outputs.deploy_backend_host == 'true' ||
+        needs.detect-targets.outputs.deploy_web_host == 'true'
+      }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout deployment bundle source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          sparse-checkout: |
+            .env.empty
+            .env.prod.example
+            .env.prod.web.example
+            .env.nonprod-mock.example
+            docker-compose.backend.yml
+            docker-compose.web.yml
+            deploy/nginx
+            scripts
+          sparse-checkout-cone-mode: false
+
+      - name: Package deployment bundle artifact
+        run: |
+          artifact_dir="${RUNNER_TEMP}/deploy-bundle"
+          artifact_file="${artifact_dir}/deploy-bundle.tar.gz"
+          mkdir -p "$artifact_dir"
+          bash scripts/package_deploy_bundle.sh "$artifact_file"
+
+      - name: Upload deployment bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ needs.detect-targets.outputs.deploy_bundle_artifact_name }}
+          path: ${{ runner.temp }}/deploy-bundle/deploy-bundle.tar.gz
+          if-no-files-found: error
+          compression-level: 0
 
   build-backend:
     needs: detect-targets
@@ -433,11 +479,13 @@ jobs:
         always() &&
         !cancelled() &&
         needs.detect-targets.outputs.deploy_backend_host == 'true' &&
+        needs.package-deploy-bundle.result == 'success' &&
         (needs.build-backend.result == 'success' || needs.build-backend.result == 'skipped') &&
         (needs.build-admin-web.result == 'success' || needs.build-admin-web.result == 'skipped')
       }}
     needs:
       - detect-targets
+      - package-deploy-bundle
       - build-backend
       - build-admin-web
     runs-on:
@@ -445,26 +493,20 @@ jobs:
       - linux
       - ecs-backend
     permissions:
-      contents: read
       actions: read
 
     steps:
-      - name: Checkout backend deployment bundle source
-        uses: actions/checkout@v4
-        timeout-minutes: 8
+      - name: Download backend deployment bundle artifact
+        uses: actions/download-artifact@v4
         with:
-          ref: ${{ github.sha }}
-          fetch-depth: 1
-          sparse-checkout: |
-            .env.empty
-            .env.prod.example
-            .env.prod.web.example
-            .env.nonprod-mock.example
-            docker-compose.backend.yml
-            docker-compose.web.yml
-            deploy/nginx
-            scripts
-          sparse-checkout-cone-mode: false
+          name: ${{ needs.detect-targets.outputs.deploy_bundle_artifact_name }}
+          path: ${{ runner.temp }}/deploy-bundle
+
+      - name: Extract backend deployment bundle
+        run: |
+          artifact_file="${RUNNER_TEMP}/deploy-bundle/deploy-bundle.tar.gz"
+          [ -f "$artifact_file" ] || { echo "Missing deployment bundle artifact: $artifact_file" >&2; exit 1; }
+          tar -C "${GITHUB_WORKSPACE}" -xzf "$artifact_file"
 
       - name: Synchronize backend deployment bundle
         env:
@@ -529,6 +571,7 @@ jobs:
         always() &&
         !cancelled() &&
         needs.detect-targets.outputs.deploy_web_host == 'true' &&
+        needs.package-deploy-bundle.result == 'success' &&
         (needs.build-backend.result == 'success' || needs.build-backend.result == 'skipped') &&
         (needs.build-admin-web.result == 'success' || needs.build-admin-web.result == 'skipped') &&
         (
@@ -538,6 +581,7 @@ jobs:
       }}
     needs:
       - detect-targets
+      - package-deploy-bundle
       - build-backend
       - build-admin-web
       - deploy-backend-host
@@ -546,26 +590,20 @@ jobs:
       - linux
       - ecs-web
     permissions:
-      contents: read
       actions: read
 
     steps:
-      - name: Checkout web deployment bundle source
-        uses: actions/checkout@v4
-        timeout-minutes: 8
+      - name: Download web deployment bundle artifact
+        uses: actions/download-artifact@v4
         with:
-          ref: ${{ github.sha }}
-          fetch-depth: 1
-          sparse-checkout: |
-            .env.empty
-            .env.prod.example
-            .env.prod.web.example
-            .env.nonprod-mock.example
-            docker-compose.backend.yml
-            docker-compose.web.yml
-            deploy/nginx
-            scripts
-          sparse-checkout-cone-mode: false
+          name: ${{ needs.detect-targets.outputs.deploy_bundle_artifact_name }}
+          path: ${{ runner.temp }}/deploy-bundle
+
+      - name: Extract web deployment bundle
+        run: |
+          artifact_file="${RUNNER_TEMP}/deploy-bundle/deploy-bundle.tar.gz"
+          [ -f "$artifact_file" ] || { echo "Missing deployment bundle artifact: $artifact_file" >&2; exit 1; }
+          tar -C "${GITHUB_WORKSPACE}" -xzf "$artifact_file"
 
       - name: Synchronize web deployment bundle
         env:

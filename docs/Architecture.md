@@ -106,10 +106,14 @@ High-level flow:
 
 1. Detect changed target areas.
 2. Build backend/admin-web Docker images on GitHub-hosted runners when needed.
-3. Upload image artifacts and push GHCR fallback tags.
-4. ECS-2 self-hosted runner downloads and deploys backend artifacts.
-5. ECS-1 self-hosted runner downloads and deploys admin-web artifacts.
-6. ECS-1 reloads host Nginx for ingress changes or full deployments.
+3. Package the deployment bundle on a GitHub-hosted runner and upload it as a
+   workflow artifact, avoiding repository checkout on ECS deploy runners.
+4. Upload image artifacts and push GHCR fallback tags.
+5. ECS-2 self-hosted runner downloads the deployment bundle/image artifacts and
+   deploys backend.
+6. ECS-1 self-hosted runner downloads the deployment bundle/image artifacts and
+   deploys admin-web.
+7. ECS-1 reloads host Nginx for ingress changes or full deployments.
 
 There is no active GitHub PR gate workflow. Historical stage gates and PR guard
 documents are archived under `docs/archive/`.

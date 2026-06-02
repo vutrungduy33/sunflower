@@ -5,6 +5,84 @@
 > This active file keeps only the latest operational rounds. Older rounds are
 > archived in `docs/archive/mvp-progress/`.
 
+## Round 82: Artifact-Based Deployment Bundle
+
+- Date: 2026-06-02
+- Status: in progress
+- Focus: reduce ECS self-hosted runner dependency on repository checkout by
+  packaging the deployment bundle on a GitHub-hosted runner and delivering it
+  to ECS deploy jobs as a workflow artifact.
+- Start evidence:
+  - Local `main` and `origin/main` are aligned at `d3f8c0a`.
+  - Round 80 live diagnostics showed current ECS-2 GitHub DNS/HTTPS/git checks
+    passing, but runner `_diag` still recorded intermittent GitHub TLS/443
+    failures during `actions/checkout`.
+  - Round 81 selected artifact-based ECS deploy as the preferred no-new-paid
+    service fallback if checkout instability persists.
+- Open-source reference check:
+  - Task classification: common GitHub Actions artifact-based deployment and
+    self-hosted runner reliability improvement.
+  - Sources checked: GitHub Actions official `upload-artifact` /
+    `download-artifact` documentation and GitHub self-hosted runner
+    troubleshooting guidance.
+  - License/compatibility: official documentation only; no external code
+    copied.
+  - Selected approach: add a repository-native deployment bundle packaging
+    script, upload the bundle from a GitHub-hosted job, and make ECS deploy
+    jobs download/extract it before running existing deploy scripts.
+  - Rejected options: adding a paid deployment service, weakening production
+    payment validation, or continuing to rely on self-hosted `actions/checkout`
+    for the deploy bundle.
+- Risks:
+  - ECS runners still need GitHub Actions artifact/API connectivity.
+  - A workflow change pushed to `main` is deployment-relevant and may trigger
+    the production lane; push should be handled deliberately.
+  - This round changes deployment mechanics but does not prove a successful
+    cloud deploy until a workflow run and smoke evidence are recorded.
+- Acceptance criteria:
+  - Add a reusable deployment bundle packaging script.
+  - Update `.github/workflows/deploy-backend.yml` so ECS deploy jobs no longer
+    use `actions/checkout` for bundle source.
+  - Add a static guard that fails if self-hosted deploy checkout returns.
+  - Update deployment docs/state and run focused workflow/deploy validation.
+- Change summary:
+  - Added `scripts/package_deploy_bundle.sh`.
+  - Updated `scripts/sync_deploy_bundle.sh` to use the same packaging script as
+    the workflow.
+  - Added `package-deploy-bundle` to `.github/workflows/deploy-backend.yml`.
+  - Replaced backend/web self-hosted deployment bundle checkout steps with
+    `actions/download-artifact` plus local `tar` extraction.
+  - Added workflow guards in `scripts/check_workflow_dispatch_lane_matrix.js`
+    and `scripts/check_deployment_approval_preflight.js` so self-hosted bundle
+    checkout does not silently return.
+  - Updated `docs/Architecture.md`, `docs/CI-CD.md`,
+    `docs/Context-Index.md`, and `docs/Project-State.md`.
+- Verification:
+  - `scripts/package_deploy_bundle.sh <tmp>.tar.gz` plus `tar -tzf` smoke:
+    passed for expected bundle files.
+  - `ruby -e 'require "yaml"; YAML.load_file(".github/workflows/deploy-backend.yml")'`:
+    passed.
+  - `bash -n scripts/package_deploy_bundle.sh scripts/sync_deploy_bundle.sh
+    scripts/check_deploy_config.sh`: passed.
+  - `node scripts/check_workflow_dispatch_lane_matrix.js`: passed with the new
+    artifact bundle guard.
+  - `scripts/check_deploy_config.sh`: passed, including workflow YAML,
+    compose rendering, shell syntax, nonprod env check, runner release metadata
+    guard, workflow lane matrix, nonprod readiness, dispatch helper dry-run,
+    and Node.js syntax.
+  - `node scripts/check_deployment_approval_preflight.js` was also exercised
+    during development and correctly failed only because the worktree was dirty;
+    rerun on a clean post-commit state before any deployment approval.
+- Goal correction:
+  - The active MVP goal remains incomplete. This round reduces deployment
+    checkout risk but does not prove current-branch deployment, HTTPS domain,
+    production smoke, or manual QA evidence.
+- Next recommended round:
+  - After commit, run clean deployment approval preflight. If the user approves
+    a deployment-relevant push, push `main` and observe the new
+    `package-deploy-bundle` / artifact-download path before retrying
+    backend-only nonprod/mock deployment smoke.
+
 ## Round 73: Nonprod Dispatch Readiness Guard
 
 - Date: 2026-06-02

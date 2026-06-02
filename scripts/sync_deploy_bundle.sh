@@ -9,6 +9,7 @@ PREFIX="sync-bundle"
 
 main() {
   local target_path
+  local bundle_file
   cd "$(project_root)"
 
   target_path="$(normalize_deploy_path "${1:-${ECS_DEPLOY_PATH:-}}")"
@@ -25,15 +26,10 @@ main() {
     "$target_path/docker-compose.web.yml"
   rm -rf "$target_path/deploy/nginx" "$target_path/scripts"
 
-  tar -C "$(project_root)" -cf - \
-    .env.empty \
-    .env.prod.example \
-    .env.prod.web.example \
-    .env.nonprod-mock.example \
-    docker-compose.backend.yml \
-    docker-compose.web.yml \
-    deploy/nginx \
-    scripts | tar -C "$target_path" -xf -
+  bundle_file="$(mktemp "${TMPDIR:-/tmp}/sunflower-deploy-bundle.XXXXXX.tar.gz")"
+  trap 'rm -f "$bundle_file"' EXIT
+  "$SCRIPT_DIR/package_deploy_bundle.sh" "$bundle_file"
+  tar -C "$target_path" -xzf "$bundle_file"
 
   [ -f "$target_path/docker-compose.backend.yml" ] || fail "$PREFIX" "backend compose file missing after sync"
   [ -f "$target_path/docker-compose.web.yml" ] || fail "$PREFIX" "web compose file missing after sync"
