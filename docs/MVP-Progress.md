@@ -514,6 +514,142 @@
     ECS SSH access. Fix any DNS/HTTPS/git connectivity issue it reports before
     retrying backend-only nonprod/mock dispatch.
 
+## Round 80: ECS Runner Live Connectivity Evidence
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: run the read-only ECS-2 runner connectivity diagnostic against the
+  actual self-hosted runner and turn the result into durable deployment-blocker
+  evidence.
+- Start evidence:
+  - Local `main` and `origin/main` are aligned at `3f8d237`.
+  - Current-branch backend deploy/smoke remains pending because the latest
+    backend-only nonprod/mock run failed during ECS-2 `actions/checkout`.
+  - Real WeChat Pay private key/config remains incomplete, so real
+    payment/refund evidence is still out of scope for this round.
+- Open-source reference check:
+  - Task classification: common GitHub Actions self-hosted runner
+    troubleshooting and network-readiness diagnosis.
+  - Sources checked: GitHub official self-hosted runner communication
+    requirements and monitoring/troubleshooting docs.
+  - License/compatibility: official documentation only; no code copied.
+  - Selected approach: use the repo-native read-only diagnostic to inspect
+    runner process presence, `_diag` worker log hints, GitHub DNS/HTTPS,
+    repository `git ls-remote`, and disk status. This follows GitHub guidance
+    to verify the runner application is running, outbound HTTPS over 443 is
+    available, and diagnostic logs under `_diag` are reviewed.
+  - Rejected options: retrying workflow dispatch without new evidence,
+    modifying ECS networking blindly, or recording mock deploy evidence as real
+    payment/deploy readiness.
+- Risks:
+  - SSH or transient network failure may make the result inconclusive.
+  - The diagnostic is read-only and may identify cloud/network remediation that
+    cannot be fixed purely in this repo.
+  - Output must remain sanitized; do not record secrets, tokens, or full
+    sensitive runtime logs.
+- Acceptance criteria:
+  - Run `RUN_INTERNAL=1 scripts/check_ecs_runner_github_connectivity.sh`.
+  - Summarize the sanitized outcome and next corrective action in
+    `docs/Project-State.md` and this progress section.
+  - Run focused validation for touched docs/scripts.
+  - Commit the round separately.
+- Diagnostic result:
+  - `RUN_INTERNAL=1 scripts/check_ecs_runner_github_connectivity.sh` passed
+    against ECS-2 with 7 pass(es) and 0 warning(s).
+  - Current runner evidence: the GitHub Actions runner process is present, the
+    expected runner root and `_diag` directory exist, `github.com` DNS resolves,
+    HTTPS HEAD to `github.com` succeeds, `git ls-remote` reaches the repository
+    and sees `main` at `3f8d237`, and disk usage is healthy.
+  - Recent worker log evidence still shows the earlier checkout failure class:
+    a GitHub TLS connection was non-properly terminated, followed by repeated
+    `github.com:443` connection timeouts during repository access.
+- Change summary:
+  - Updated `docs/Project-State.md` with the live diagnostic result and
+    corrected the stale local/remote branch risk wording.
+  - Updated this progress section from planning to completed evidence.
+- Verification:
+  - `RUN_INTERNAL=1 scripts/check_ecs_runner_github_connectivity.sh`: passed.
+- Goal correction:
+  - The active MVP goal remains incomplete. This round provides stronger
+    deployment-blocker evidence but does not deploy current branch code or
+    collect production smoke/manual QA evidence.
+- Next recommended round:
+  - Treat ECS-2 GitHub checkout failures as intermittent outbound connectivity
+    instability. Before retrying the backend-only nonprod/mock lane, either
+    coordinate cloud/network remediation for ECS-2 egress to GitHub over 443 or
+    add workflow-level resilience around self-hosted checkout if acceptable.
+    Then re-dispatch nonprod/mock backend deploy and record post-deploy smoke.
+
+## Round 81: Domain Certificate and No-Cost Deploy Alternative Research
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: investigate the备案 domain/certificate situation and record a no-new-paid
+  service fallback if GitHub-to-Aliyun ECS connectivity remains unstable.
+- Start evidence:
+  - User stated `sunflower.cloud` is already备案.
+  - Earlier project memory also recorded `xiangrikui.cloud` as a user-provided
+    miniapp备案 domain.
+  - Latest ECS-2 live runner diagnosis passed current GitHub DNS/HTTPS/git
+    probes, but previous runner logs still show intermittent GitHub TLS/443
+    checkout failures.
+- Open-source/reference check:
+  - Task classification: common HTTPS certificate and GitHub Actions deployment
+    reliability research.
+  - Sources checked: GitHub self-hosted runner diagnostics and workflow artifact
+    docs, Let's Encrypt/Certbot free certificate guidance, IANA/RFC reserved
+    address documentation for `198.18.0.0/15`, and WeChat miniapp HTTPS/legal
+    domain requirement references. WeChat official pages should still be
+    rechecked in the miniapp backend before final launch because public web
+    access to the exact official page was unreliable during this round.
+  - License/compatibility: documentation only; no external code copied.
+  - Selected approach: record DNS/certificate as a pending launch prerequisite,
+    prefer trusted free DV certificates with automated renewal, and prefer an
+    artifact-based GitHub Actions deploy path if ECS checkout keeps failing.
+- Findings:
+  - DNS: `sunflower.cloud`, `www.sunflower.cloud`, `api.sunflower.cloud`,
+    `admin.sunflower.cloud`, `xiangrikui.cloud`, and common subdomains were
+    checked against local DNS plus public resolvers `1.1.1.1`, `8.8.8.8`,
+    `223.5.5.5`, and `114.114.114.114`.
+  - All tested names currently resolve to `198.18.x.x` addresses, which are
+    reserved benchmarking/test addresses rather than ECS-1 public ingress
+    `47.113.223.248`.
+  - TLS: `openssl s_client` did not return a usable certificate chain for the
+    tested API/admin hostnames. `curl -I https://...` either reached placeholder
+    responses for root/www `sunflower.cloud` or failed TLS handshake for API,
+    admin, and `xiangrikui.cloud` names.
+  - Conclusion: current certificate state is not deployable/WeChat-ready. It is
+    not proven as "expired"; the stronger evidence is DNS points away from ECS
+    and no usable TLS certificate chain is served on the intended hostnames.
+  - Free certificate feasibility: Let's Encrypt or cloud-provider free DV
+    certificates should satisfy the technical HTTPS requirement if the selected
+    hostname resolves to ECS-1, the full certificate chain is trusted, TLS is
+    modern, renewal is automated, and the hostname is configured in the WeChat
+    miniapp backend as a legal request domain. Let's Encrypt's 90-day validity
+    makes automated renewal mandatory.
+  - No-new-paid deployment alternative: if ECS self-hosted runner checkout keeps
+    failing, move repository checkout and deployment-bundle packaging to
+    GitHub-hosted runners, upload the bundle as a workflow artifact, and let ECS
+    self-hosted jobs download artifacts plus image artifacts and execute local
+    deploy scripts without `actions/checkout`.
+- Change summary:
+  - Updated `docs/Project-State.md` with `sunflower.cloud`, DNS/TLS evidence,
+    and the preferred no-new-paid deploy fallback.
+  - Updated `docs/MVP-Readiness.md` deployment and security/compliance rows.
+  - Updated `docs/MVP-Launch-Evidence.json` next actions for `WECHAT-DOMAIN`
+    and `CURRENT-BRANCH-DEPLOYED`.
+  - Added a durable deployment decision to `docs/Decision-Log.md`.
+- Verification:
+  - DNS and TLS probes were run from the local environment.
+  - Documentation/evidence checker validation is recorded in the command output
+    for this round's commit.
+- Next recommended round:
+  - Choose the final public hostnames, point DNS to ECS-1, install a trusted
+    free certificate with automatic renewal, and add a small repeatable domain
+    TLS checker before attempting WeChat preview/domain evidence.
+  - Separately, implement the artifact-based ECS deploy fallback if another
+    workflow run fails at ECS `actions/checkout`.
+
 ## Round 72: Nonprod Mock Deployment Approval Snapshot
 
 - Date: 2026-06-02

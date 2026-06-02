@@ -31,9 +31,9 @@
   - ECS-2 `47.120.42.15` / `172.25.121.83`: backend and MySQL.
 - Backend `8080` is hardened by binding the published backend port to
   `172.25.121.83:8080`; direct public backend `8080` should remain unusable.
-- User-provided miniapp备案 domain: `xiangrikui.cloud`. HTTPS API host,
-  certificate, and WeChat legal request-domain configuration still need
-  verification.
+- User-provided备案 domains: `xiangrikui.cloud` and `sunflower.cloud`. The
+  final WeChat miniapp legal request domain still needs confirmation, HTTPS
+  certificate deployment, and WeChat backend configuration.
 - Canonical architecture doc: `docs/Architecture.md`.
 
 ## Latest Validation Baselines
@@ -116,6 +116,21 @@
   read-only SSH diagnostic for the ECS-2 self-hosted runner. It checks runner
   process hints, `_diag/Worker_*.log` summaries, GitHub DNS/HTTPS reachability,
   `git ls-remote`, and disk space without printing secrets or mutating ECS.
+- Round 80 ran `RUN_INTERNAL=1 scripts/check_ecs_runner_github_connectivity.sh`
+  against ECS-2. Current evidence shows the runner service is active, runner
+  root and `_diag` exist, GitHub DNS resolves, HTTPS HEAD to `github.com`
+  succeeds, `git ls-remote` reaches the repository at HEAD `3f8d237`, and disk
+  usage is healthy. The recent worker log still records the previous GitHub
+  TLS termination and `github.com:443` timeout failures, so the deploy blocker
+  is now documented as intermittent ECS-2 outbound GitHub connectivity during
+  checkout rather than a constant runner/service/disk/repository-access failure.
+- Round 81 checked the备案 domains `sunflower.cloud` and `xiangrikui.cloud`
+  plus common `www`/`api`/`admin` subdomains from local and public DNS
+  resolvers. They currently resolve to `198.18.x.x` addresses, which are
+  reserved benchmarking/test addresses rather than the ECS-1 public entry
+  `47.113.223.248`; TLS probes did not return a usable certificate chain for
+  the target API/admin hostnames. This is recorded as DNS/certificate not yet
+  deployable, not as a proven expired certificate.
 - Round 60 pushed `98e68e0dd478` to `main` and triggered GitHub Actions run
   `26796051853`; backend/admin-web images built, but ECS-2 checkout stalled
   before deployment completed.
@@ -155,12 +170,21 @@
 
 - The active MVP goal is still open. Do not mark complete until strict closeout
   evidence passes or the user explicitly waives itemized blockers.
-- Current local `main` is ahead of `origin/main`; pushing deployment-relevant
-  changes to `main` can trigger the production lane unless a manual nonprod lane
-  is explicitly selected.
+- Current local `main` is aligned with `origin/main` at `3f8d237` after the
+  Round 79 push. Future deployment-relevant pushes to `main` can still trigger
+  the production lane unless a manual nonprod lane is explicitly selected.
 - Real WeChat payment production config on ECS-2 remains incomplete. Strict
   payment readiness currently fails for missing/invalid merchant variables,
   key paths, API v3 key, and HTTPS notify URLs.
+- `sunflower.cloud` is备案 according to the user, but current DNS/TLS evidence
+  is not WeChat-ready: the domain records must be pointed to the public ingress,
+  a trusted HTTPS certificate must be installed, TLS must be rechecked, and the
+  chosen API host must be added as a WeChat miniapp legal request domain.
+- GitHub Actions self-hosted checkout on ECS-2 has intermittent outbound
+  connectivity to GitHub. If this remains unstable, the preferred no-new-paid
+  service path is to keep image builds/artifacts on GitHub-hosted runners and
+  change ECS deploy jobs so they consume workflow artifacts or a prepacked
+  deployment bundle instead of running `actions/checkout` on ECS.
 - User confirmed in Round 71 that the real payment private key/config is not
   fully provisioned yet. It is acceptable to use the explicit mock/nonprod lane
   for interim validation, but this must remain recorded as mock evidence and

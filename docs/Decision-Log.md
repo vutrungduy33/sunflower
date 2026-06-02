@@ -222,6 +222,21 @@ Append durable decisions here. Keep entries short and include provenance.
   `docs/MVP-Launch-Evidence.json`,
   `scripts/check_deployment_approval_preflight.js`.
 
+## 2026-06-02: Prefer Artifact-Based ECS Deploy If Checkout Remains Unstable
+
+- Decision: If ECS self-hosted runner access to GitHub remains unstable, keep
+  builds and deployment-bundle packaging on GitHub-hosted runners, then let ECS
+  self-hosted jobs download workflow artifacts and execute local deploy scripts
+  without running `actions/checkout` on ECS.
+- Rationale: Round 80 proved the ECS-2 runner can currently reach GitHub, but
+  recent worker logs still show intermittent TLS termination and `github.com:443`
+  timeouts during checkout. GitHub-hosted runners and workflow artifacts are
+  already part of GitHub Actions and do not add a new paid service; this
+  reduces reliance on ECS outbound repository checkout while preserving the
+  existing two-ECS topology.
+- Provenance: `docs/Project-State.md`, `docs/MVP-Progress.md`, GitHub Actions
+  artifact documentation.
+
 ## 2026-06-02: Add MVP Handoff Packet
 
 - Decision: Use `docs/MVP-Handoff-Packet.md` as the compact first-read handoff
