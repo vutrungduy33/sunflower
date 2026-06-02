@@ -15,16 +15,23 @@ the user explicitly waives the remaining external evidence.
 
 ## 2. Proven Baseline
 
+- Round 47 `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh` passed on
+  current local `main` HEAD `8d9b11d` with all 6 enabled steps:
+  backend/admin-web/miniapp/evidence/deploy-config/production read-only checks.
 - Backend local tests have passed with 57 tests.
 - Admin web lint, unit tests, build, behavior wiring, and external QA preflight
-  have passed. The latest direct admin-web lint/test/build recheck was Round 42
-  on 2026-06-02 09:21-09:22 Asia/Shanghai using Node `v20.20.1`, with 23
-  Vitest tests across 5 files.
+  have passed. The latest aggregate admin-web baseline was Round 47 with
+  `npm run lint`, `npm run test` (24 Vitest tests across 5 files), `npm run
+  build`, 97 behavior wiring checks, and 6 external-preflight checks.
 - Miniapp syntax/smoke, behavior wiring, project config, navigation, and
-  external QA preflight have passed.
+  external QA preflight have passed. Round 47 also includes user-flow and
+  payment-flow replay checks.
 - Production read-only checks have passed for public health/admin/API smoke,
   ECS private upstream checks, and backend `8080` exposure inspection.
 - Deployment config static checks and deployment approval preflight exist.
+- Round 48 strict closeout audit confirmed the goal is still incomplete:
+  9 launch evidence items, 12 miniapp manual QA items, and 12 admin-web manual
+  QA items remain unresolved.
 
 The latest detailed state lives in `docs/Project-State.md`,
 `docs/MVP-Readiness.md`, and `docs/MVP-Closeout-Audit.md`.
@@ -41,13 +48,18 @@ Run these before editing code or evidence:
 
 ```bash
 git status --short --untracked-files=all
-scripts/check_mvp_regression.sh
-RUN_PRODUCTION=1 scripts/check_mvp_regression.sh
 node scripts/check_mvp_closeout_readiness.js
 node scripts/generate_mvp_external_evidence_template.js
 node scripts/check_mvp_external_evidence_template.js
 node scripts/check_mvp_next_approval_request.js
 node scripts/check_mvp_external_approval_packet.js
+```
+
+Do not rerun the full aggregate baseline unless code, deployment state, or
+production state changed; Round 47 already refreshed it on current local
+`main`. Before the `CURRENT-BRANCH-DEPLOYED` lane, rerun:
+
+```bash
 node scripts/check_deployment_approval_preflight.js
 ```
 
@@ -95,6 +107,14 @@ These entries are still unresolved in `docs/MVP-Launch-Evidence.json`:
 - `CURRENT-BRANCH-DEPLOYED`: prove the current branch commit was deployed by
   the approved GitHub Actions path, or capture an explicit out-of-scope decision.
 
+Round 48 strict launch evidence result:
+
+- Total required launch evidence: 13.
+- Passed: 4.
+- Pending: 9.
+- Strict checker: `node scripts/check_mvp_launch_evidence.js --strict` exits
+  non-zero until the pending items are passed or waived with valid evidence.
+
 ## 6. Remaining Manual QA Evidence
 
 These miniapp entries are still unresolved in `docs/Miniapp-Manual-QA.json`:
@@ -112,6 +132,14 @@ These miniapp entries are still unresolved in `docs/Miniapp-Manual-QA.json`:
 - `MINIAPP-REFUND`
 - `MINIAPP-ERROR-STATES`
 
+Round 48 strict miniapp manual QA result:
+
+- Total required miniapp manual QA checks: 12.
+- Passed: 0.
+- Pending: 12.
+- Strict checker: `node scripts/check_miniapp_manual_qa.js --strict` exits
+  non-zero until these items are passed or waived with valid evidence.
+
 These admin-web entries are still unresolved in
 `docs/Admin-Web-Manual-QA.json`:
 
@@ -128,28 +156,35 @@ These admin-web entries are still unresolved in
 - `ADMIN-AFTER-SALE`
 - `ADMIN-ERROR-STATES`
 
+Round 48 strict admin-web manual QA result:
+
+- Total required admin-web manual QA checks: 12.
+- Passed: 0.
+- Pending: 12.
+- Strict checker: `node scripts/check_admin_web_manual_qa.js --strict` exits
+  non-zero until these items are passed or waived with valid evidence.
+
 ## 7. Execution Order
 
-1. Refresh local baseline with `scripts/check_mvp_regression.sh`.
-2. Generate safe capture notes with
+1. Generate safe capture notes with
    `node scripts/generate_mvp_external_evidence_template.js`.
-3. Validate the capture template with
+2. Validate the capture template with
    `node scripts/check_mvp_external_evidence_template.js`.
-4. Prepare the next approval request with
+3. Prepare the next approval request with
    `docs/MVP-Next-Approval-Request.md`, then prepare the matching approval lane
    with
    `docs/MVP-External-Approval-Packet.md` before any external action that needs
    user confirmation.
-5. Run miniapp preview or real-device QA and update
+4. Run miniapp preview or real-device QA and update
    `docs/Miniapp-Manual-QA.json`.
-6. Run admin-web production or approved-staging QA and update
+5. Run admin-web production or approved-staging QA and update
    `docs/Admin-Web-Manual-QA.json`.
-7. Run backend `8080` read-only evidence and record security-group/firewall
+6. Run backend `8080` read-only evidence and record security-group/firewall
    proof or a user waiver in the launch ledger.
-8. Before any approved deploy action, run
+7. Before any approved deploy action, run
    `node scripts/check_deployment_approval_preflight.js`.
-9. After approved deploy, run `scripts/check_production_readonly_audit.sh`.
-10. Run final strict closeout:
+8. After approved deploy, run `scripts/check_production_readonly_audit.sh`.
+9. Run final strict closeout:
 
 ```bash
 node scripts/check_mvp_launch_evidence.js --strict

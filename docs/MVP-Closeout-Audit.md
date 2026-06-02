@@ -18,10 +18,14 @@ Local automated checks:
 - `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: passed again in Round 39
   on 2026-06-02 08:58 Asia/Shanghai at pre-commit HEAD `255558f001e9` with
   backend/admin/miniapp/evidence/deploy-config/production checks enabled.
+- `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: passed again in Round 47
+  on current local `main` HEAD `8d9b11d` with 6 enabled steps:
+  backend/admin/miniapp/evidence/deploy-config/production read-only checks.
 - `cd sunflower-backend && mvn -B test`: passed, 57 tests, 0 failures, 0
   errors, 0 skipped.
 - `cd sunflower-admin-web && npm run lint`: passed.
-- `cd sunflower-admin-web && npm run test`: passed, 23 tests across 5 files.
+- `cd sunflower-admin-web && npm run test`: passed in the latest Round 47
+  aggregate regression, 24 tests across 5 files.
 - `cd sunflower-admin-web && npm run build`: passed.
 - Round 42 direct admin-web recheck on 2026-06-02 09:21-09:22 Asia/Shanghai
   passed `npm run lint`, `npm run test` with 23 tests across 5 files, and
@@ -38,6 +42,9 @@ Production smoke:
 - Production checks inside `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`:
   passed again on 2026-06-02 08:58 Asia/Shanghai with production smoke and
   backend `8080` read-only exposure checks enabled.
+- Production checks inside the Round 47
+  `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh` run passed again on
+  current local `main` HEAD `8d9b11d`.
 - `RUN_INTERNAL=1 scripts/check_production_smoke.sh`: passed with 7 checks and
   1 known backend-bind warning.
 - `RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh`: passed read-only
@@ -71,7 +78,25 @@ Workflow and docs:
 - `docs/MVP-Handoff-Packet.md` now gives the next operator a compact,
   machine-checked entry point for the 33 unresolved required closeout items.
 
-## 3. Requirements Still Not Proven
+## 3. Latest Strict Closeout Result
+
+Round 48 reran the strict closeout commands after the Round 47 automated
+baseline:
+
+- `node scripts/check_mvp_launch_evidence.js --strict`: expected non-zero,
+  because 9 required launch evidence entries remain pending.
+- `node scripts/check_miniapp_manual_qa.js --strict`: expected non-zero,
+  because 12 required miniapp manual QA checks remain pending.
+- `node scripts/check_admin_web_manual_qa.js --strict`: expected non-zero,
+  because 12 required admin-web manual QA checks remain pending.
+- `node scripts/check_mvp_closeout_readiness.js --strict`: expected non-zero,
+  because 33 required closeout items remain unresolved.
+
+These strict failures are not new automated-regression failures. They are the
+current authoritative proof that the MVP cannot be marked complete without
+external evidence or explicit itemized waivers.
+
+## 4. Requirements Still Not Proven
 
 - WeChat real-device or preview validation for login, phone authorization, and
   payment is not recorded as passed.
@@ -85,8 +110,8 @@ Workflow and docs:
   backend access to ECS-1. The read-only 8080 check confirms local public probe
   unavailable and ECS-1 private upstream works, but local firewall output did
   not prove restriction.
-- Current branch `codex/s18-payment-hardening` has not been pushed/merged to
-  `main`, so current repository commits have not triggered production deploy.
+- Current local `main` is ahead of `origin/main`; it has not been pushed, so
+  current repository commits have not triggered production deploy.
 - Admin web production manual QA with a real admin account is not recorded as
   passed in this repository.
 - `node scripts/check_admin_web_manual_qa.js --strict` currently fails because
@@ -97,7 +122,7 @@ Workflow and docs:
   because 33 required closeout items remain unresolved across launch, miniapp
   manual QA, and admin-web manual QA ledgers.
 
-## 4. Goal Status
+## 5. Goal Status
 
 Keep the active goal open.
 
@@ -124,7 +149,7 @@ Do not call the MVP complete until:
     synchronized with the unresolved evidence ledgers while the goal remains
     open.
 
-## 5. Recommended Next Goal Prompt
+## 6. Recommended Next Goal Prompt
 
 Use `docs/MVP-Next-Goal-Prompt.md` as the current finite Codex goal prompt for
 continuing MVP closeout from this baseline. It supersedes the older inline

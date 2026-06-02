@@ -28,8 +28,8 @@
 
 ## Recent Validation Snapshot
 
-Current snapshot after 2026-06-02 Round 47 current HEAD full regression
-baseline:
+Current snapshot after 2026-06-02 Round 48 strict closeout audit
+reconciliation:
 
 - `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: passed in Round 32 with
   6 enabled steps: backend tests, admin-web lint/test/build, admin behavior and
@@ -226,11 +226,19 @@ baseline:
 - Launch evidence `node scripts/check_mvp_launch_evidence.js --strict`: expected
   non-zero on 2026-06-02 because 9 required external evidence entries remain
   pending.
+- Launch evidence `node scripts/check_mvp_launch_evidence.js --strict`: rerun
+  in Round 48 and expected non-zero because 9 required launch evidence entries
+  remain pending.
 - MVP closeout readiness `node scripts/check_mvp_closeout_readiness.js`: passed
   in Round 18 and summarized 33 unresolved required closeout items.
 - MVP closeout readiness `node scripts/check_mvp_closeout_readiness.js --strict`:
   expected non-zero in Round 18 because required launch, miniapp manual QA, and
   admin-web manual QA evidence remains pending.
+- MVP closeout readiness
+  `node scripts/check_mvp_closeout_readiness.js --strict`: rerun in Round 48
+  and expected non-zero because 33 required closeout items remain unresolved:
+  9 launch evidence entries, 12 miniapp manual QA checks, and 12 admin-web
+  manual QA checks.
 - External evidence template
   `node scripts/generate_mvp_external_evidence_template.js`: passed in Round 19
   and generated `docs/MVP-External-Evidence-Template.md` for 33 unresolved
@@ -246,6 +254,9 @@ baseline:
 - Miniapp manual QA `node scripts/check_miniapp_manual_qa.js --strict`:
   expected non-zero on 2026-06-02 because 12 required miniapp manual QA checks
   remain pending.
+- Miniapp manual QA `node scripts/check_miniapp_manual_qa.js --strict`: rerun
+  in Round 48 and expected non-zero because all 12 required miniapp manual QA
+  checks remain pending.
 - Miniapp Round 9 recheck `node scripts/check_miniapp_mvp_smoke.js`: passed
   with expected bare HTTP API warning.
 - Miniapp Round 9 recheck `bash scripts/check_miniapp_project_config.sh`:
@@ -256,6 +267,9 @@ baseline:
 - Admin manual QA `node scripts/check_admin_web_manual_qa.js --strict`:
   expected non-zero on 2026-06-02 because 12 required admin manual QA checks
   remain pending.
+- Admin manual QA `node scripts/check_admin_web_manual_qa.js --strict`: rerun
+  in Round 48 and expected non-zero because all 12 required admin manual QA
+  checks remain pending.
 - ECS-1 Nginx active; `sunflower-admin-web` healthy on `127.0.0.1:18080`.
 - ECS-2 `sunflower-backend` and `sunflower-mysql` healthy.
 - Component README handoff refresh completed on 2026-06-02 for

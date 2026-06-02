@@ -6,24 +6,26 @@
 
 ## Current Baseline
 
-- Current branch: `codex/s18-payment-hardening`.
-- Latest production-enabled aggregate baseline: Round 39,
-  `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh` passed on 2026-06-02
-  08:58 Asia/Shanghai at pre-commit HEAD `255558f001e9`.
+- Current branch: local `main`, ahead of `origin/main`; do not push without
+  explicit production deployment approval.
+- Latest production-enabled aggregate baseline: Round 47,
+  `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh` passed on current local
+  `main` HEAD `8d9b11d`.
 - The baseline covered backend 57 tests, admin-web lint/test/build and behavior
-  wiring, miniapp smoke/wiring/user-flow replay, evidence/runbook non-strict
-  checks, deploy config static checks, production smoke, and backend `8080`
-  read-only inspection.
-- Latest direct admin-web automated baseline: Round 42, `npm run lint`,
-  `npm run test` (23 tests across 5 files), and `npm run build` passed on
-  2026-06-02 09:21-09:22 Asia/Shanghai using Node `v20.20.1`.
+  wiring, miniapp smoke/wiring/user-flow replay/payment-flow replay,
+  evidence/runbook non-strict checks, deploy config static checks, production
+  smoke, and backend `8080` read-only inspection.
+- Latest admin-web automated baseline: Round 47, `npm run lint`,
+  `npm run test` (24 tests across 5 files), `npm run build`, 97 behavior
+  wiring checks, and 6 external-preflight checks passed.
 - The MVP is not complete: strict closeout still has 33 unresolved required
   items: 9 launch evidence, 12 miniapp manual QA, and 12 admin-web manual QA.
 - `BACKEND-8080-HARDENING` is pending because ECS-2 still listens on
   `0.0.0.0:8080`; current checks do not prove Alibaba Cloud security-group
   restriction.
-- `CURRENT-BRANCH-DEPLOYED` is pending because this branch has not been pushed
-  or merged to `main` to trigger the GitHub Actions deployment workflow.
+- `CURRENT-BRANCH-DEPLOYED` is pending because local `main` has not been pushed
+  to trigger the GitHub Actions deployment workflow for the latest committed
+  MVP work.
 
 ## Goal Prompt
 
@@ -34,7 +36,7 @@
 1. 读取 AGENTS.md、docs/Agent-Memory.md、docs/Context-Index.md、docs/Project-State.md、docs/MVP-Handoff-Packet.md、docs/MVP-Readiness.md、docs/MVP-Closeout-Audit.md、docs/MVP-Next-Goal-Prompt.md。
 2. 执行 git status --short --branch --untracked-files=all。
 3. 不默认读取 docs/archive/**，除非当前文档明确需要历史材料。
-4. 记住当前事实：Round 39 的 RUN_PRODUCTION=1 scripts/check_mvp_regression.sh 已通过；Round 42 的 admin-web npm run lint/test/build 直接复核已通过；旧的 admin-web _refundId lint 或 3 个测试失败记录已经过期；MVP 仍缺 33 项外部/人工证据。
+4. 记住当前事实：Round 47 的 RUN_PRODUCTION=1 scripts/check_mvp_regression.sh 已在当前本地 main HEAD 8d9b11d 通过；旧的 admin-web _refundId lint 或 3 个测试失败记录已经过期；MVP 仍缺 33 项外部/人工证据。当前本地 main ahead origin/main，未经批准不要 push。
 
 每一轮必须形成闭环：
 1. 先输出本轮最小目标、会影响的证据 ID、风险、是否需要用户审批。
@@ -51,8 +53,8 @@
 - 真实 AppID 只能放在忽略跟踪的 sunflower-miniapp/project.private.config.json；提交态 sunflower-miniapp/project.config.json 必须保持 touristappid。
 
 推荐推进顺序：
-1. 若本轮刚启动，先确认自动基线：scripts/check_mvp_regression.sh；必要时再跑 RUN_PRODUCTION=1 scripts/check_mvp_regression.sh。
-2. 之后每轮只选一个 approval lane：
+1. 若代码、部署或生产状态没有变化，不要再重复刷新自动基线；Round 47 已经完成当前本地 main 的完整回归。
+2. 每轮只选一个 approval lane：
    - MINIAPP-PREVIEW-DOMAIN：微信合法 HTTPS 域名、真实 AppID 私有配置、预览/真机登录、手机号、下单路径。
    - ADMIN-PROD-QA：生产或批准的 staging 管理后台账号、房态/价格/订单/售后人工 QA。
    - BACKEND-8080-HARDENING：只读获取阿里云安全组/防火墙证据，或拿到明确风险豁免。

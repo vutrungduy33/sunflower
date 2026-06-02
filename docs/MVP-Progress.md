@@ -3,6 +3,81 @@
 > Compact round-by-round progress for the current MVP hardening goal. Keep this
 > file factual and update it at the end of each committed round.
 
+## Round 48: Strict Closeout Audit Reconciliation
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: run the strict closeout commands against the current Round 47 baseline
+  and reconcile the handoff/closeout docs so the remaining blockers are precise,
+  approval-gated, and not hidden behind another local baseline refresh.
+- Start evidence:
+  - `git status --short --branch --untracked-files=all`: local `main` is ahead
+    of `origin/main` by 51 commits and has no tracked worktree changes.
+  - HEAD is `d4f5307` (`Refresh current HEAD regression baseline`).
+  - Round 47 full aggregate regression passed on current local `main` HEAD
+    `8d9b11d`, but strict closeout is still expected to fail because launch,
+    miniapp manual QA, and admin manual QA ledgers retain 33 unresolved required
+    external/manual evidence items.
+  - `docs/MVP-Closeout-Audit.md` and `docs/MVP-Handoff-Packet.md` still carry
+    older Round 39/Round 42 baseline wording in several places.
+- Open-source reference check:
+  - Task classification: repository-specific closeout/evidence reconciliation.
+  - Sources checked: not needed; no common product feature, reusable UI, auth,
+    payment, deployment, or infrastructure implementation is being added.
+  - Selected approach: use existing strict checker commands as authoritative
+    evidence, then update only closeout/handoff docs.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: existing local strict closeout checkers and evidence-ledger
+    wording.
+  - Rejected options: changing pending entries to passed/waived without external
+    proof, pushing `main`, dispatching deployment, or running production
+    mutations.
+- Risks:
+  - Strict commands should fail; the round must record the failure as expected
+    incomplete evidence, not as a product regression.
+  - Updating docs must not imply WeChat preview, real payment/refund, admin
+    production QA, backend `8080` hardening, or current-branch deployment has
+    been completed.
+- Acceptance criteria:
+  - Strict launch, miniapp manual QA, admin manual QA, and aggregate closeout
+    checks are run and their unresolved counts are recorded.
+  - `docs/MVP-Closeout-Audit.md`, `docs/MVP-Handoff-Packet.md`, and
+    `docs/MVP-Next-Approval-Request.md` reflect the Round 47 baseline and the
+    exact remaining approval lanes.
+  - Non-strict handoff/approval/closeout checkers pass after doc updates.
+  - The round is committed once.
+- Change summary:
+  - Ran the strict closeout commands and confirmed the expected incomplete
+    evidence shape: 9 pending launch evidence entries, 12 pending miniapp manual
+    QA checks, 12 pending admin-web manual QA checks, and 33 aggregate unresolved
+    required items.
+  - Updated the closeout audit, handoff packet, next approval request, and next
+    goal prompt so they reference the current Round 47 baseline and Round 48
+    strict audit instead of older Round 39/Round 42 branch evidence.
+  - No evidence status, product code, deployment workflow, ECS configuration,
+    production data, or payment/refund state changed.
+- Verification:
+  - `node scripts/check_mvp_launch_evidence.js --strict`: expected non-zero;
+    13 required launch entries, 4 passed, 9 pending.
+  - `node scripts/check_miniapp_manual_qa.js --strict`: expected non-zero;
+    12 required miniapp manual QA checks, all pending.
+  - `node scripts/check_admin_web_manual_qa.js --strict`: expected non-zero;
+    12 required admin-web manual QA checks, all pending.
+  - `node scripts/check_mvp_closeout_readiness.js --strict`: expected
+    non-zero; 33 required closeout items unresolved.
+  - No push, merge, workflow dispatch, deployment, production mutation, real
+    payment, real refund, security-group/firewall mutation, or live-data
+    mutation was performed.
+- Goal correction:
+  - The active MVP goal is not complete. The remaining work is approval-gated
+    external evidence or explicit itemized waiver, not another local automated
+    baseline refresh.
+- Next recommended round:
+  - Request one explicit lane from the user. Recommended first choice:
+    `BACKEND-8080-HARDENING` if they can provide Alibaba Cloud security-group
+    evidence or waive the risk; otherwise `CURRENT-BRANCH-DEPLOYED` if they
+    approve pushing local `main` and post-deploy smoke.
+
 ## Round 47: Current HEAD Full Regression Baseline
 
 - Date: 2026-06-02

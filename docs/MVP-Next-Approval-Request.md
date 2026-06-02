@@ -1,6 +1,6 @@
 # MVP Next Approval Request
 
-> Current as of 2026-06-02 Round 46. This is the visible next-step approval
+> Current as of 2026-06-02 Round 48. This is the visible next-step approval
 > request for MVP closeout. It is not proof that the MVP is complete.
 
 ## 1. Purpose
@@ -10,6 +10,13 @@ closeout still has 33 unresolved required evidence items. Future Codex work
 should not keep refreshing the same local baseline unless the worktree or
 production state changed. The next useful step is to get one explicit user
 approval or waiver lane, then collect sanitized evidence for that lane.
+
+Round 48 strict closeout audit confirmed the unresolved shape:
+
+- Launch evidence strict checker: 9 required entries pending.
+- Miniapp manual QA strict checker: 12 required checks pending.
+- Admin-web manual QA strict checker: 12 required checks pending.
+- Aggregate strict closeout checker: 33 required items unresolved.
 
 Use this file with:
 
@@ -22,19 +29,20 @@ Use this file with:
 
 Unresolved required items: 33
 
-## 2. Round 41 Analysis
+## 2. Latest Analysis
 
-- Round goal: convert the remaining external evidence blockers into a concrete
-  approval request that a human can answer safely.
-- Evidence ids touched: no status changes; this round only organizes the
+- Round 48 goal: reconcile strict closeout audit results with the active
+  approval request.
+- Evidence ids touched: no status changes; this document only organizes the
   approval path for all unresolved ids listed in section 5.
 - Open-source reference check: not needed. This is repository-specific evidence
   and approval documentation, not common feature code or reusable
   infrastructure.
 - Risk: this document does not reduce the pending evidence count by itself.
 - Acceptance: the request names approval lanes, safety boundaries, exact user
-  reply fields, validation commands, and the current deployment approval
-  preflight snapshot without triggering deployment or production mutation.
+  reply fields, validation commands, strict unresolved counts, and the current
+  deployment approval boundary without triggering deployment or production
+  mutation.
 
 ## 3. Recommended User Decision
 
@@ -105,6 +113,9 @@ Latest clean read-only deployment approval preflight before an approved deploy:
 
 Rerun `node scripts/check_deployment_approval_preflight.js` after any new commit
 and before asking the user to approve `CURRENT-BRANCH-DEPLOYED`.
+
+Since this snapshot was taken before the Round 47/Round 48 documentation
+commits, rerun the preflight immediately before any approved deployment action.
 
 ## 7. Evidence Rules
 
