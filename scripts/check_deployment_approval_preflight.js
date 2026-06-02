@@ -9,6 +9,7 @@ const rootDir = path.resolve(__dirname, '..');
 const workflowPath = path.join(rootDir, '.github', 'workflows', 'deploy-backend.yml');
 const launchEvidencePath = path.join(rootDir, 'docs', 'MVP-Launch-Evidence.json');
 const expectedDispatchTargets = ['auto', 'backend', 'admin-web', 'nginx', 'all', 'bootstrap'];
+const expectedDeploymentLanes = ['production', 'nonprod-mock-payment'];
 const backendPatterns = [
   /^sunflower-backend\//,
   /^docker-compose\.backend\.yml$/,
@@ -17,6 +18,7 @@ const backendPatterns = [
   /^scripts\/deploy_backend\.sh$/,
   /^scripts\/deploy_lib\.sh$/,
   /^scripts\/validate_prod_env\.sh$/,
+  /^scripts\/check_nonprod_mock_payment_deploy_lane\.sh$/,
   /^scripts\/start_backend_with_mvp_seed\.sh$/,
   /^scripts\/sync_deploy_bundle\.sh$/,
   /^scripts\/execute_runner_deploy\.sh$/,
@@ -154,6 +156,8 @@ function checkWorkflowShape() {
     'branches:',
     '- main',
     'paths:',
+    'deployment_lane:',
+    'DEPLOYMENT_LANE:',
     'deploy-backend-host:',
     'deploy-web-host:',
     'self-hosted',
@@ -173,7 +177,20 @@ function checkWorkflowShape() {
     }
   }
 
-  pass('deployment workflow exposes push main and workflow_dispatch targets');
+  for (const lane of expectedDeploymentLanes) {
+    if (!workflow.includes(`- ${lane}`)) {
+      fail(`workflow_dispatch deployment_lane options must include ${lane}`);
+    }
+  }
+
+  if (!workflow.includes('deployment_lane="production"')) {
+    fail('deployment workflow must default push/non-dispatch runs to production lane');
+  }
+  if (!workflow.includes('nonprod-mock-payment lane only supports target auto or backend')) {
+    fail('deployment workflow must reject nonprod-mock-payment targets that do not map to backend-only deploys');
+  }
+
+  pass('deployment workflow exposes push main, workflow_dispatch targets, and explicit deployment lanes');
 }
 
 function checkLaunchEvidenceBoundary() {

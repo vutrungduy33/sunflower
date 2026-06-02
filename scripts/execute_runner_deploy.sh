@@ -18,6 +18,7 @@ sanitize_plain() {
 main() {
   local target_path
   local role
+  local deployment_lane
   local pending_release_env_file=".release.env.pending"
   local pending_source_sha_file=".deploy-source-sha.pending"
 
@@ -27,6 +28,7 @@ main() {
   ADMIN_WEB_IMAGE="$(sanitize_image_ref "${ADMIN_WEB_IMAGE:-}")"
   SOURCE_SHA="$(sanitize_plain "${SOURCE_SHA:-}")"
   DEPLOY_TARGET="$(sanitize_plain "${DEPLOY_TARGET:-}")"
+  deployment_lane="$(sanitize_plain "${DEPLOYMENT_LANE:-production}")"
   RUN_SEED="$(normalize_bool "${RUN_SEED:-false}")"
   role="$(normalize_deploy_node_role "${DEPLOY_NODE_ROLE:-}")"
   target_path="$(normalize_deploy_path "${ECS_DEPLOY_PATH:-}")"
@@ -34,6 +36,14 @@ main() {
   [ -n "$SOURCE_SHA" ] || fail "$PREFIX" "SOURCE_SHA is required"
   [ -n "$DEPLOY_TARGET" ] || fail "$PREFIX" "DEPLOY_TARGET is required"
   [ -n "$target_path" ] || fail "$PREFIX" "ECS_DEPLOY_PATH is required"
+
+  case "$deployment_lane" in
+    production|nonprod-mock-payment)
+      ;;
+    *)
+      fail "$PREFIX" "DEPLOYMENT_LANE must be 'production' or 'nonprod-mock-payment', got '${deployment_lane}'"
+      ;;
+  esac
 
   mkdir -p "$target_path"
   cd "$target_path"
@@ -49,6 +59,7 @@ main() {
       ;;
   esac
   [ -f scripts/validate_prod_env.sh ] || fail "$PREFIX" "deploy scripts missing after bundle sync"
+  [ -f scripts/check_nonprod_mock_payment_deploy_lane.sh ] || fail "$PREFIX" "nonprod deploy lane script missing after bundle sync"
 
   printf '%s\n' "$SOURCE_SHA" > "$pending_source_sha_file"
   : > "$pending_release_env_file"
@@ -61,7 +72,16 @@ main() {
   export DEPLOY_NODE_ROLE="$role"
   export RELEASE_ENV_FILE="$pending_release_env_file"
   chmod +x scripts/*.sh
-  ./scripts/validate_prod_env.sh
+  case "$deployment_lane" in
+    production)
+      ./scripts/validate_prod_env.sh
+      ;;
+    nonprod-mock-payment)
+      [ "$role" = "backend" ] || fail "$PREFIX" "nonprod-mock-payment lane only supports backend host validation, got '${role}'"
+      NONPROD_ENV_FILE=".env.nonprod-mock.example" ./scripts/check_nonprod_mock_payment_deploy_lane.sh
+      export PROD_ENV_FILE=".env.nonprod-mock.example"
+      ;;
+  esac
 
   if [ "$DEPLOY_TARGET" = "bootstrap" ]; then
     ./scripts/bootstrap_prod.sh

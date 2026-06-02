@@ -5,6 +5,95 @@
 > This active file keeps only the latest operational rounds. Older rounds are
 > archived in `docs/archive/mvp-progress/`.
 
+## Round 67: Manual Non-Production Mock-Payment Workflow Lane
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: wire the Round 66 non-production/mock-payment backend lane into
+  GitHub Actions as an explicit manual dispatch option while preserving
+  push-to-main and default manual dispatch as production validation.
+- Start evidence:
+  - Local `main` was clean and ahead of `origin/main` by 7 commits.
+  - Round 66 added the non-production/mock-payment env template and local
+    checker, but the GitHub Actions runner path still always called
+    `scripts/validate_prod_env.sh`.
+  - Production real-payment readiness remained blocked by missing ECS-2 WeChat
+    Pay merchant config.
+- Open-source reference check:
+  - Task classification: common CI/CD workflow input and deployment-lane
+    boundary.
+  - Sources checked:
+    - GitHub Actions workflow syntax and `workflow_dispatch` inputs:
+      `https://docs.github.com/actions/using-workflows/workflow-syntax-for-github-actions`.
+    - GitHub Actions environments/deployment protection:
+      `https://docs.github.com/actions/deployment/targeting-different-environments/using-environments-for-deployment`.
+    - Existing repository workflow and runner scripts:
+      `.github/workflows/deploy-backend.yml`,
+      `scripts/execute_runner_deploy.sh`, and
+      `scripts/sync_deploy_bundle.sh`.
+  - License/compatibility: official documentation only; no external code was
+    copied.
+  - Selected approach: add a manual `deployment_lane` choice input with
+    `production` as the default. Push-to-main remains production-only. The
+    non-production lane is limited to backend deployment, with `auto` resolving
+    to backend, so mock-payment validation cannot refresh web/nginx or masquerade
+    as full production readiness.
+  - Rejected options: changing push-to-main behavior, relaxing
+    `validate_prod_env.sh`, or allowing non-production mock-payment to deploy
+    web/nginx targets.
+- Risks:
+  - This creates a dispatchable backend lane but does not push, deploy, or prove
+    current-branch deployment by itself.
+  - Operators must still understand that mock payment is not real
+    payment/refund evidence.
+- Acceptance criteria:
+  - Add `deployment_lane` to `workflow_dispatch` with production default.
+  - Ensure push-triggered deploys always use production validation.
+  - Ensure non-production/mock-payment manual dispatch is accepted only for
+    `auto` or `backend`; `auto` resolves to backend.
+  - Sync `.env.nonprod-mock.example` into the runner deploy bundle.
+  - Teach `scripts/execute_runner_deploy.sh` to select production validation or
+    backend non-production mock-payment validation by lane.
+  - Update deployment docs/state and run focused CI/deploy checks.
+- Change summary:
+  - Added `deployment_lane` workflow input with `production` default and
+    `nonprod-mock-payment` option.
+  - Kept push-to-main production-only by leaving push events on the default
+    `deployment_lane=production`.
+  - Limited non-production/mock-payment dispatch to `target=auto/backend`;
+    `auto` resolves to backend and only the backend host deploy job runs.
+  - Synced `.env.nonprod-mock.example` in the runner deployment bundle.
+  - Updated `scripts/execute_runner_deploy.sh` to run production validation or
+    backend non-production mock-payment validation based on `DEPLOYMENT_LANE`.
+  - Extended `scripts/test_execute_runner_deploy_release_env.sh` to prove
+    failed production validation preserves release metadata and nonprod lane
+    selects nonprod validation/env.
+  - Updated deployment/readiness/state/decision docs.
+- Verification:
+  - `ruby -e 'require "yaml";
+    YAML.load_file(".github/workflows/deploy-backend.yml")'`: passed.
+  - `bash -n scripts/execute_runner_deploy.sh scripts/sync_deploy_bundle.sh
+    scripts/check_deploy_config.sh`: passed.
+  - `node --check scripts/check_deployment_approval_preflight.js`: passed.
+  - `bash scripts/test_execute_runner_deploy_release_env.sh`: passed with both
+    release metadata preservation and nonprod lane selection checks.
+  - `scripts/check_deploy_config.sh`: passed, including workflow YAML parse,
+    compose rendering, shell syntax, nonprod lane example, runner deploy tests,
+    and Node syntax.
+  - `node scripts/check_deployment_approval_preflight.js`: expected non-zero
+    before commit because the worktree was dirty; workflow shape, launch
+    evidence boundary, and deployment impact checks passed. It must be rerun
+    after commit to satisfy the clean-worktree requirement.
+- Goal correction:
+  - The active MVP goal remains incomplete. This round makes a backend-only
+    mock-payment deployment path dispatchable, but it does not push, deploy,
+    prove current local `main` is live, or collect external/manual QA, HTTPS
+    domain, real payment, or refund evidence.
+- Next recommended round:
+  - After committing, rerun deployment approval preflight on the clean worktree.
+    Then either push/dispatch the backend-only nonprod lane with explicit risk
+    recording, or provision real payment config for production-lane deployment.
+
 ## Round 66: Non-Production Mock-Payment Deploy Lane Boundary
 
 - Date: 2026-06-02

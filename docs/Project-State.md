@@ -39,11 +39,13 @@ approval preflight refresh:
   private/local backend bind, real WeChat auth mode, and
   `WECHAT_PAY_MOCK_ENABLED=true`. It is wired into `scripts/check_deploy_config.sh`.
   `PROD_ENV_FILE=.env.nonprod-mock.example bash scripts/validate_prod_env.sh`
-  fails as expected, so production validation remains strict. Current
-  GitHub Actions push-to-main and `workflow_dispatch` runner deploy paths still
-  call `scripts/validate_prod_env.sh`; a non-production/mock-payment cloud
-  deployment needs an explicit workflow/input/runbook decision and is not real
-  payment/refund evidence.
+  fails as expected, so production validation remains strict. Round 67 added a
+  manual GitHub Actions `deployment_lane` input: push-to-main and default
+  `workflow_dispatch` remain production-lane, while manually selecting
+  `deployment_lane=nonprod-mock-payment` supports only `target=auto/backend`
+  and deploys backend-only with `.env.nonprod-mock.example`. This is not real
+  payment/refund evidence and does not by itself prove current-branch
+  deployment.
 - `scripts/check_mvp_regression.sh`: passed in Round 64 on current local
   `main` HEAD `4a3f630f30eb` with the default 5 enabled non-production steps.
   Backend `mvn -B test` passed with 57 tests, 0 failures, 0 errors, and 0

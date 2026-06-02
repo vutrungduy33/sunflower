@@ -56,6 +56,8 @@ PR 门禁 workflow 已移除。仓库当前不再强制：
 - `target`：`auto / backend / admin-web / nginx / all / bootstrap`
 - `image_tag`：可选，指定历史 GHCR tag 进行回滚或重发 fallback
 - `run_seed`：仅 `bootstrap` 目标使用，默认 `false`
+- `deployment_lane`：`production / nonprod-mock-payment`，默认
+  `production`。push 到 `main` 永远使用 `production`。
 
 执行流程：
 
@@ -94,6 +96,11 @@ PR 门禁 workflow 已移除。仓库当前不再强制：
 - 常规 prod 发布不自动导入 `mvp_demo_seed.sql`。
 - web host 的宿主机 Nginx reload 只在 `target=all / nginx / bootstrap` 时执行。
 - 常规 prod 发布主路径不依赖 GitHub Hosted Runner 直连 ECS，也不依赖 ECS 在发布时临时拉取 GHCR。
+- 手动 `deployment_lane=nonprod-mock-payment` 只支持 `target=auto` 或
+  `target=backend`，且 `auto` 会解析为 `backend`。该 lane 只部署/校验
+  backend host，使用 `.env.nonprod-mock.example` 和
+  `scripts/check_nonprod_mock_payment_deploy_lane.sh`；不会刷新 admin-web
+  或 Nginx。
 
 ---
 
@@ -176,10 +183,11 @@ deploy path 必填：
   后端节点、私有/本机 backend 绑定、真实微信登录模式，以及
   `WECHAT_PAY_MOCK_ENABLED=true`。该检查只证明 mock-payment lane 配置形态可用，
   不证明生产支付、退款、HTTPS 域名、当前分支已部署或 MVP 可上线。
-- 当前 `.github/workflows/deploy-backend.yml` 的 push-to-main 和
+- 当前 `.github/workflows/deploy-backend.yml` 的 push-to-main 和默认
   `workflow_dispatch` runner 路径仍调用 `scripts/validate_prod_env.sh`，即
-  生产 lane。若要把 GitHub Actions 接到非生产/mock-payment lane，需要另开
-  明确的 workflow/输入/环境决策，而不是复用生产校验。
+  生产 lane。只有手动选择 `deployment_lane=nonprod-mock-payment` 且目标为
+  `auto/backend` 时，backend runner 才会使用非生产/mock-payment 校验并加载
+  `.env.nonprod-mock.example`。
 - 若需要回滚 backend/admin-web，优先通过 `workflow_dispatch + image_tag=<历史 sha>` 完成，而不是在 ECS 上手工改 compose 文件。
 - `node scripts/check_deployment_approval_preflight.js` 只读分析当前分支相对
   `origin/main`/`main` 的部署影响面和人工审批边界，不会 push、触发

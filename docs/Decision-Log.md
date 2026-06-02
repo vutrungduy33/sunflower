@@ -277,3 +277,16 @@ Append durable decisions here. Keep entries short and include provenance.
 - Provenance: `docs/S19-Prod-Deployment-Config.md`, `docs/CI-CD.md`,
   `.env.nonprod-mock.example`,
   `scripts/check_nonprod_mock_payment_deploy_lane.sh`.
+
+## 2026-06-02: Add Manual Backend-Only Nonprod Deploy Lane
+
+- Decision: Add `deployment_lane` to `.github/workflows/deploy-backend.yml`.
+  Push-to-main and default manual dispatch stay on `production`; manual
+  `nonprod-mock-payment` supports only `target=auto/backend`, with `auto`
+  resolving to backend-only deploy.
+- Rationale: The project needs a deployable path when there is no production
+  merchant config, but mock payment must not refresh web/nginx or be confused
+  with production readiness.
+- Provenance: `.github/workflows/deploy-backend.yml`,
+  `scripts/execute_runner_deploy.sh`, `scripts/sync_deploy_bundle.sh`,
+  `scripts/test_execute_runner_deploy_release_env.sh`, `docs/CI-CD.md`.

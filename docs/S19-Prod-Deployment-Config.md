@@ -148,10 +148,20 @@ Validation:
 bash scripts/check_nonprod_mock_payment_deploy_lane.sh
 ```
 
-Current GitHub Actions runner deploy still calls `scripts/validate_prod_env.sh`;
-therefore push-to-main and normal `workflow_dispatch` remain production-lane
-deployments. A cloud deployment using this non-production lane requires an
-explicit workflow/input/env change or a manual, risk-accepted runbook step.
+GitHub Actions support:
+
+- `push` to `main`: always production lane.
+- `workflow_dispatch` default: production lane.
+- `workflow_dispatch` with `deployment_lane=nonprod-mock-payment` and
+  `target=auto` or `target=backend`: backend-only non-production lane. `auto`
+  resolves to `backend`; admin-web and Nginx are not refreshed in this lane.
+
+Runner behavior:
+
+- production lane runs `scripts/validate_prod_env.sh`.
+- non-production/mock-payment lane runs
+  `scripts/check_nonprod_mock_payment_deploy_lane.sh`, then deploys backend
+  with `PROD_ENV_FILE=.env.nonprod-mock.example`.
 
 ### 3.3 web 节点（ECS-1）
 

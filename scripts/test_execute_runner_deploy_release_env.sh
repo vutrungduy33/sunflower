@@ -37,6 +37,12 @@ cat > "$WORK_DIR/deploy-target/scripts/validate_prod_env.sh" <<'EOF'
 set -euo pipefail
 exit 37
 EOF
+cat > "$WORK_DIR/deploy-target/scripts/check_nonprod_mock_payment_deploy_lane.sh" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+echo "nonprod validation should not run in production lane" >&2
+exit 1
+EOF
 cat > "$WORK_DIR/deploy-target/scripts/deploy_prod.sh" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
@@ -88,3 +94,48 @@ if [ -e "$WORK_DIR/deploy-target/.release.env.pending" ] || [ -e "$WORK_DIR/depl
 fi
 
 echo "[runner-deploy-test] PASS: failed validation preserves committed release metadata"
+
+NONPROD_WORK_DIR="$(mktemp -d "$WORK_DIR/nonprod.XXXXXX")"
+mkdir -p "$NONPROD_WORK_DIR/deploy-target/scripts"
+touch "$NONPROD_WORK_DIR/deploy-target/docker-compose.backend.yml"
+touch "$NONPROD_WORK_DIR/deploy-target/.env.nonprod-mock.example"
+cat > "$NONPROD_WORK_DIR/deploy-target/scripts/validate_prod_env.sh" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+echo "production validation should not run in nonprod lane" >&2
+exit 1
+EOF
+cat > "$NONPROD_WORK_DIR/deploy-target/scripts/check_nonprod_mock_payment_deploy_lane.sh" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+printf '%s\n' "nonprod-validation-ran" > "$TEST_DEPLOY_ROOT/nonprod-validation.log"
+EOF
+cat > "$NONPROD_WORK_DIR/deploy-target/scripts/deploy_prod.sh" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+printf '%s\n' "deploy-ran:$PROD_ENV_FILE:$1" > "$TEST_DEPLOY_ROOT/nonprod-deploy.log"
+EOF
+chmod +x "$NONPROD_WORK_DIR/deploy-target/scripts/"*.sh
+
+TEST_DEPLOY_ROOT="$NONPROD_WORK_DIR" \
+BACKEND_IMAGE="new-backend" \
+ADMIN_WEB_IMAGE="" \
+SOURCE_SHA="new-sha" \
+DEPLOY_TARGET="backend" \
+DEPLOYMENT_LANE="nonprod-mock-payment" \
+RUN_SEED="false" \
+DEPLOY_NODE_ROLE="backend" \
+ECS_DEPLOY_PATH="$NONPROD_WORK_DIR/deploy-target" \
+  bash "$WORK_DIR/execute_runner_deploy.sh" >/dev/null 2>&1
+
+if ! grep -q '^nonprod-validation-ran$' "$NONPROD_WORK_DIR/nonprod-validation.log"; then
+  echo "[runner-deploy-test] ERROR: nonprod validation did not run" >&2
+  exit 1
+fi
+
+if ! grep -q '^deploy-ran:.env.nonprod-mock.example:backend$' "$NONPROD_WORK_DIR/nonprod-deploy.log"; then
+  echo "[runner-deploy-test] ERROR: nonprod deploy did not use the nonprod env file" >&2
+  exit 1
+fi
+
+echo "[runner-deploy-test] PASS: nonprod mock-payment lane selects nonprod validation"
