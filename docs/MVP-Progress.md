@@ -373,6 +373,43 @@
     `deployment_lane=nonprod-mock-payment` for reduced-scope backend deploy
     validation while keeping real payment/refund evidence pending.
 
+## Round 78: Nonprod Mock Backend Deploy Retry
+
+- Date: 2026-06-02
+- Status: in progress
+- Focus: rerun the explicit backend-only nonprod/mock-payment deployment lane on
+  current `main` after production-lane run `26800134363` proved ECS-2 checkout,
+  bundle sync, artifact download, and docker load can succeed.
+- Start evidence:
+  - Local `main` and `origin/main` are aligned at `0c92385`.
+  - `node scripts/check_nonprod_dispatch_readiness.js` passed with 6 checks.
+  - `scripts/dispatch_nonprod_mock_payment_deploy.sh --dry-run` passed and
+    printed the fixed backend-only nonprod/mock command.
+  - Real WeChat Pay production config remains incomplete, so production lane is
+    expected to fail validation before backend recreation.
+- Open-source reference check:
+  - Task classification: common GitHub Actions manual workflow dispatch.
+  - Sources checked: official GitHub workflow dispatch and GitHub CLI
+    `gh workflow run` documentation from prior deployment rounds; no new
+    implementation reference was needed.
+  - License/compatibility: official documentation only; no external code
+    copied.
+  - Selected approach: use the repository-native guarded dispatch helper with
+    `deployment_lane=nonprod-mock-payment`, preserving production validation
+    while collecting reduced-scope backend deploy evidence.
+  - Rejected options: rerunning production lane without real payment config or
+    treating mock payment as real payment/refund evidence.
+- Risks:
+  - The lane is backend-only and will not refresh admin-web or Nginx.
+  - Even if deploy succeeds, it is reduced-scope mock evidence and cannot close
+    real payment/refund or full production deployment evidence.
+- Acceptance criteria:
+  - Execute the guarded helper with `CONFIRM_NONPROD_MOCK_DISPATCH=1`.
+  - Observe the resulting GitHub Actions run through backend deploy conclusion.
+  - If deploy succeeds, run or record appropriate read-only backend smoke
+    evidence; if it fails, record the first failing step and non-secret cause.
+  - Update project state/progress and run focused guards before committing.
+
 ## Round 72: Nonprod Mock Deployment Approval Snapshot
 
 - Date: 2026-06-02
