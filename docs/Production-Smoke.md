@@ -67,7 +67,7 @@ Latest deployment attempt:
 Latest read-only production result:
 
 - `CURL_CONNECT_TIMEOUT=15 scripts/check_production_readonly_audit.sh`: passed
-  in Round 62 with 4 read-only steps.
+  in Round 65 with 4 read-only steps.
 - Deploy config static checks passed.
 - Production public/ECS internal smoke passed with 7 checks and 0 warnings:
   public API health/home/admin ingress worked, ECS-1 reached the private
@@ -78,9 +78,19 @@ Latest read-only production result:
   `172.25.121.83:8080`.
 - Backend payment config readiness check ran in non-strict read-only mode and
   reported 8 sanitized issues listed in Current Production Risks.
+- Strict payment readiness
+  `RUN_INTERNAL=1 ENFORCE_PAYMENT_CONFIG=1
+  scripts/check_backend_payment_config_readiness.sh` exited non-zero as
+  expected because the same 8 real-payment production config issues remain.
 - No deployment, push, workflow dispatch, Nginx reload, ECS mutation, firewall
   mutation, security-group mutation, payment/refund action, or live QA data
   mutation was performed.
+
+Previous read-only production result:
+
+- `CURL_CONNECT_TIMEOUT=15 scripts/check_production_readonly_audit.sh`: passed
+  in Round 62 with 4 read-only steps and the same 7 production smoke passes,
+  5 backend `8080` exposure passes, and 8 sanitized payment config issues.
 
 Previous read-only production result:
 

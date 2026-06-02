@@ -42,7 +42,7 @@
       "requirement": "Production public and internal smoke checks pass.",
       "status": "passed",
       "requiredForMvp": true,
-      "evidence": "Round 58/Round 60 production health remains partially proven after backend 8080 private binding: ECS-2 docker/ss shows backend bound to 172.25.121.83:8080 and private health returns UP. Round 60 follow-up run 26796607775 proved ECS-2 checkout/artifact download/image load, but failed production env validation before deploy because WECHAT_PAY_MCH_ID is missing. Full post-deploy production smoke for current main has not yet passed.",
+      "evidence": "Round 65 CURL_CONNECT_TIMEOUT=15 scripts/check_production_readonly_audit.sh passed with 4 read-only steps: deploy config static checks, production public/ECS internal smoke, backend 8080 exposure checks, and backend payment config readiness. Production smoke had 7 passes and 0 warnings; backend 8080 exposure had 5 passes and 0 warnings and confirmed backend 8080 is bound to 172.25.121.83 and not the public interface. The payment readiness step reported the same 8 sanitized real-payment config issues. Round 60 follow-up run 26796607775 proved ECS-2 checkout/artifact download/image load, but failed production env validation before deploy because WECHAT_PAY_MCH_ID is missing. Full post-deploy production smoke for current local main has not yet passed.",
       "nextAction": "After the payment configuration lane is decided and current-main deployment succeeds, rerun scripts/check_production_readonly_audit.sh and RUN_INTERNAL=1 ENFORCE_RESTRICTED=1 scripts/check_backend_8080_exposure.sh."
     },
     {

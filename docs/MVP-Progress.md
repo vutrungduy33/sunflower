@@ -5,6 +5,61 @@
 > This active file keeps only the latest operational rounds. Older rounds are
 > archived in `docs/archive/mvp-progress/`.
 
+## Round 65: Production Read-Only Smoke Refresh
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: refresh production read-only smoke, backend `8080` exposure, and
+  payment configuration blocker evidence without pushing, deploying, reloading
+  Nginx, or mutating ECS/firewall/security-group state.
+- Start evidence:
+  - Local `main` was clean and ahead of `origin/main` by 5 commits.
+  - Round 64 proved the current local automated baseline but skipped production
+    checks by default.
+  - Round 62 was the latest full read-only production audit in the docs.
+- Open-source reference check:
+  - Task classification: repository-specific validation and documentation
+    refresh.
+  - Sources checked: not needed; no common engineering feature, reusable UI,
+    auth/payment/deployment implementation, or OSS pattern was being built.
+- Risks:
+  - Read-only smoke proves the currently running cloud system is healthy, but
+    it does not prove current local `main` has been deployed.
+  - Strict payment readiness is expected to fail until real WeChat Pay config
+    is provisioned or a non-production/mock-payment lane is explicitly chosen.
+- Acceptance criteria:
+  - Run the production read-only audit wrapper.
+  - Run strict payment configuration readiness and record the expected non-zero
+    result.
+  - Update production/readiness/state/evidence docs without changing pending
+    external/manual evidence to passed.
+  - Run focused evidence/doc checks and commit once.
+- Verification:
+  - `CURL_CONNECT_TIMEOUT=15 scripts/check_production_readonly_audit.sh`:
+    passed with 4 read-only steps. Deploy config static checks passed.
+    Production public/ECS internal smoke passed with 7 passes and 0 warnings.
+    Backend `8080` exposure checks passed with 5 passes and 0 warnings:
+    public backend `8080` was not directly usable, ECS-1 private upstream
+    worked, ECS-2 backend health was present, backend was bound to
+    `172.25.121.83:8080`, and it was not listening on the public interface.
+    Payment config readiness ran in non-strict read-only mode and reported the
+    same 8 sanitized issues.
+  - `RUN_INTERNAL=1 ENFORCE_PAYMENT_CONFIG=1
+    scripts/check_backend_payment_config_readiness.sh`: expected non-zero; it
+    reported missing `WECHAT_PAY_MCH_ID`,
+    `WECHAT_PAY_MERCHANT_SERIAL_NO`, `WECHAT_PAY_PRIVATE_KEY_PATH`,
+    `WECHAT_PAY_PUBLIC_KEY_ID`, `WECHAT_PAY_PUBLIC_KEY_PATH`,
+    `WECHAT_PAY_API_V3_KEY`, and invalid `WECHAT_PAY_PAYMENT_NOTIFY_URL` /
+    `WECHAT_PAY_REFUND_NOTIFY_URL`.
+- Goal correction:
+  - The active MVP goal remains incomplete. Production health and backend
+    `8080` hardening remain green, but current local `main` is not deployed
+    and real payment/domain/manual QA evidence remains pending.
+- Next recommended round:
+  - Choose the deployment/payment lane before pushing: provision the missing
+    real-payment ECS-2 config and rerun strict payment readiness, or explicitly
+    run a non-production/mock-payment deployment with risk acceptance.
+
 ## Round 64: Current HEAD Regression and Deploy Impact Refresh
 
 - Date: 2026-06-02

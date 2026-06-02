@@ -52,6 +52,20 @@ approval preflight refresh:
   `workflow_dispatch`, deployment, Nginx reload, ECS mutation,
   firewall/security-group mutation, payment/refund action, or live QA data
   mutation was performed.
+- Production read-only audit
+  `CURL_CONNECT_TIMEOUT=15 scripts/check_production_readonly_audit.sh`: passed
+  again in Round 65 with 4 read-only steps. Deploy config static checks passed;
+  production public/ECS internal smoke passed with 7 passes and 0 warnings;
+  backend `8080` exposure checks passed with 5 passes and 0 warnings, including
+  confirmation that backend `8080` is bound to `172.25.121.83` and not the
+  public interface; backend payment config readiness reported the same 8
+  sanitized real-payment config issues. Strict mode
+  `RUN_INTERNAL=1 ENFORCE_PAYMENT_CONFIG=1
+  scripts/check_backend_payment_config_readiness.sh` exited non-zero as
+  expected until those payment config items are provisioned or the deployment
+  lane changes. No push, deploy, workflow dispatch, Nginx reload, ECS mutation,
+  firewall/security-group mutation, payment/refund action, or live QA data
+  mutation was performed.
 
 - `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: passed in Round 32 with
   6 enabled steps: backend tests, admin-web lint/test/build, admin behavior and

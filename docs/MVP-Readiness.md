@@ -69,6 +69,21 @@ Latest direct admin-web automated evidence:
 
 Latest production/deployment evidence:
 
+- Round 65 production read-only audit
+  `CURL_CONNECT_TIMEOUT=15 scripts/check_production_readonly_audit.sh` passed
+  with 4 read-only steps: deploy config static checks, production public/ECS
+  internal smoke, backend `8080` exposure checks, and backend payment config
+  readiness. Production smoke had 7 passes/0 warnings; backend `8080` exposure
+  had 5 passes/0 warnings and confirmed the backend is bound to
+  `172.25.121.83:8080`, not the public interface. The payment readiness step
+  reported the same 8 sanitized real-payment config issues. No push, deploy,
+  workflow dispatch, Nginx reload, ECS mutation, firewall/security-group
+  mutation, payment/refund action, or live QA data mutation was performed.
+- Round 65 strict payment readiness
+  `RUN_INTERNAL=1 ENFORCE_PAYMENT_CONFIG=1
+  scripts/check_backend_payment_config_readiness.sh` exited non-zero as
+  expected because the 8 required real-payment config items remain missing or
+  invalid.
 - Round 64 deployment approval preflight passed on local `main` HEAD
   `4a3f630f30eb` with comparison base `origin/main d0af634314d0`. Changed files
   since base were 28, path rules predicted push-to-main deploy target `all`,
