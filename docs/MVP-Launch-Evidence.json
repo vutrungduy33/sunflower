@@ -124,7 +124,7 @@
       "status": "pending",
       "requiredForMvp": true,
       "evidence": "Round 60 attempted the approved push-to-main deployment for commit 98e68e0dd478 through GitHub Actions run 26796051853. detect-targets, build-admin-web, and build-backend succeeded, and ECS-2 self-hosted runner ecs-2-backend was re-registered after GitHub reported its old registration deleted. The deploy-backend-host job then remained stuck in actions/checkout fetching 98e68e0 on ECS-2; an ECS-2 curl probe to https://github.com/vutrungduy33/sunflower timed out after 12 seconds, and ECS-2 .release.env still pointed at older image tag f9185fe257cee1b40850ea35c820afd7fdb82946. The run completed with conclusion `cancelled`; checkout was cancelled after the ECS-2 fetch stall, deploy steps were skipped, and current branch deployment remains unproven.",
-      "nextAction": "Restore reliable ECS-2 outbound access to GitHub/actions checkout or adjust the deployment bundle path to avoid ECS-2 GitHub checkout, then rerun the GitHub Actions deployment for current main and record post-deploy smoke before marking this passed."
+      "nextAction": "Before any further push, merge, or workflow_dispatch, confirm user approval remains valid for triggering deployment. Then restore reliable ECS-2 outbound access to GitHub/actions checkout or adjust the deployment bundle path to avoid ECS-2 GitHub checkout, rerun the GitHub Actions deployment for current main, and record post-deploy smoke before marking this passed."
     }
   ]
 }
