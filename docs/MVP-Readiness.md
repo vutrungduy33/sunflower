@@ -184,6 +184,8 @@ scripts/check_production_readonly_audit.sh
 scripts/check_deploy_config.sh
 RUN_INTERNAL=1 scripts/check_production_smoke.sh
 RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh
+RUN_INTERNAL=1 scripts/check_backend_payment_config_readiness.sh
+RUN_INTERNAL=1 ENFORCE_PAYMENT_CONFIG=1 scripts/check_backend_payment_config_readiness.sh
 ```
 
 Latest production smoke notes live in `docs/Production-Smoke.md`.
@@ -195,9 +197,15 @@ branch cleanliness, changed-file deployment impact against `main`, and the
 deploy, or prove the current branch is live.
 
 `scripts/check_production_readonly_audit.sh` is the production-only read-only
-audit wrapper. It runs deploy config static checks, production smoke, and backend
-`8080` exposure inspection. It does not push, deploy, reload Nginx, change ECS
-configuration, or prove that the current branch is live.
+audit wrapper. It runs deploy config static checks, production smoke, backend
+`8080` exposure inspection, and backend payment config readiness inspection. It
+does not push, deploy, reload Nginx, change ECS configuration, print secrets, or
+prove that the current branch is live.
+
+`scripts/check_backend_payment_config_readiness.sh` is the read-only ECS-2
+WeChat Pay production config preflight. Normal mode reports sanitized missing
+config warnings; `ENFORCE_PAYMENT_CONFIG=1` makes missing required real-payment
+config fail before an operator triggers deployment.
 
 `scripts/check_deploy_config.sh` is a local static deployability check for the
 GitHub Actions workflow, production compose rendering, and deployment shell

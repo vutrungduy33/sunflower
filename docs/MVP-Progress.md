@@ -5,6 +5,116 @@
 > This active file keeps only recent rounds; older rounds are archived in
 > `docs/archive/mvp-progress/MVP-Progress-Rounds-1-47.md`.
 
+## Round 62: Payment Config Readiness Preflight
+
+- Date: 2026-06-02
+- Status: completed
+- Focus: add a repeatable read-only preflight for the ECS-2 WeChat Pay
+  production configuration blocker so future deployment decisions do not need
+  to discover missing payment config only after a GitHub Actions deploy fails.
+- Start evidence:
+  - Local `main` was clean and ahead of `origin/main` by 2 commits.
+  - Round 60 GitHub Actions run `26796607775` failed because
+    `WECHAT_PAY_MCH_ID` was missing from ECS-2 production env while
+    `WECHAT_PAY_MOCK_ENABLED=false`.
+  - Round 61 fixed release metadata promotion but did not change the payment
+    configuration blocker.
+- Open-source reference check:
+  - Task classification: common production configuration/readiness preflight
+    for payment deployment.
+  - Sources checked:
+    - WeChat Pay API v3 merchant/Java SDK docs:
+      `https://pay.wechatpay.cn/doc/v3/merchant/4012076506` and
+      `https://github.com/wechatpay-apiv3/wechatpay-java`.
+    - The Twelve-Factor App config guidance:
+      `https://12factor.net/config`.
+    - Existing repository deployment validation:
+      `scripts/validate_prod_env.sh`, `.env.prod.example`, and
+      `sunflower-backend/src/main/resources/application-prod.yml`.
+  - Selected approach: add a read-only shell preflight that SSHes to ECS-2,
+    sources `.env.prod` locally on the server, reports only presence/shape of
+    required WeChat Pay variables and key files, and never prints secret values.
+  - License/compatibility: no external code copied.
+  - Reused/adapted: repository-native SSH/read-only check style from
+    `scripts/check_backend_8080_exposure.sh` and the required variable list
+    already enforced by `scripts/validate_prod_env.sh`.
+  - Rejected options: committing payment credentials, weakening production
+    payment validation, or making the normal read-only smoke fail by default
+    before the user decides the payment lane.
+- Risks:
+  - The script must not reveal merchant IDs, API v3 keys, private-key paths
+    beyond variable names, or other secrets.
+  - The default read-only audit should surface missing payment config as a
+    warning/report while still allowing health smoke to complete; strict
+    deployment-preflight use can set `ENFORCE_PAYMENT_CONFIG=1`.
+- Acceptance criteria:
+  - Add `scripts/check_backend_payment_config_readiness.sh` with
+    `RUN_INTERNAL=1` ECS-2 inspection and `ENFORCE_PAYMENT_CONFIG=1` strict
+    mode.
+  - Wire the script into shell syntax/deploy config checks.
+  - Wire it into `scripts/check_production_readonly_audit.sh`.
+  - Add bounded retry to the read-only audit wrapper so transient public/SSH
+    failures do not hide later read-only checks.
+  - Update docs so operators know this is a read-only preflight and not proof
+    of real payment/refund.
+  - Run focused checks and commit once.
+- Change summary:
+  - Added `scripts/check_backend_payment_config_readiness.sh`.
+  - Added the script to `scripts/check_deploy_config.sh` shell syntax coverage.
+  - Added the script as a read-only production audit step.
+  - Added `AUDIT_STEP_ATTEMPTS` / `AUDIT_STEP_RETRY_DELAY_SECONDS` bounded
+    retries to `scripts/check_production_readonly_audit.sh`.
+  - Updated deployment/readiness docs and project memory.
+- Verification:
+  - `bash -n scripts/deploy_lib.sh scripts/validate_prod_env.sh
+    scripts/deploy_backend.sh scripts/deploy_admin_web.sh
+    scripts/bootstrap_prod.sh scripts/deploy_prod.sh
+    scripts/reload_host_nginx.sh scripts/sync_deploy_bundle.sh
+    scripts/execute_runner_deploy.sh
+    scripts/test_execute_runner_deploy_release_env.sh
+    scripts/start_backend_with_mvp_seed.sh scripts/start_admin_web.sh
+    scripts/check_backend_payment_config_readiness.sh
+    scripts/check_production_readonly_audit.sh scripts/check_deploy_config.sh`:
+    passed.
+  - `scripts/check_deploy_config.sh`: passed, including workflow YAML parse,
+    backend/web compose rendering, shell syntax, runner release metadata
+    regression, and deployment Node.js syntax.
+  - `node scripts/check_mvp_launch_evidence.js`,
+    `node scripts/check_mvp_closeout_readiness.js`,
+    `node scripts/check_mvp_handoff_packet.js`,
+    `node scripts/check_mvp_next_approval_request.js`, and
+    `node scripts/check_mvp_external_approval_packet.js`: passed in
+    non-strict/handoff modes; unresolved closeout remains 32 required items.
+  - `RUN_INTERNAL=1 scripts/check_backend_payment_config_readiness.sh`:
+    completed with sanitized warnings only. It reported 8 payment config
+    issues on ECS-2: missing `WECHAT_PAY_MCH_ID`,
+    `WECHAT_PAY_MERCHANT_SERIAL_NO`, `WECHAT_PAY_PRIVATE_KEY_PATH`,
+    `WECHAT_PAY_PUBLIC_KEY_ID`, `WECHAT_PAY_PUBLIC_KEY_PATH`,
+    `WECHAT_PAY_API_V3_KEY`, and invalid `WECHAT_PAY_PAYMENT_NOTIFY_URL` /
+    `WECHAT_PAY_REFUND_NOTIFY_URL`.
+  - `RUN_INTERNAL=1 ENFORCE_PAYMENT_CONFIG=1
+    scripts/check_backend_payment_config_readiness.sh`: expected non-zero;
+    it reported the same 8 sanitized issues and exited 1, proving strict mode
+    would block another invalid real-payment deployment attempt.
+  - `CURL_CONNECT_TIMEOUT=15 scripts/check_production_readonly_audit.sh`:
+    passed after bounded audit retry support was added; 4 read-only steps
+    completed: deploy config static checks, production public/ECS internal
+    smoke, backend `8080` exposure checks, and backend payment config readiness
+    check. Production smoke had 7 passes/0 warnings, backend `8080` exposure
+    had 5 passes/0 warnings, and payment readiness reported the same 8
+    sanitized issues without printing secret values.
+  - `git diff --check`: passed.
+- Goal correction:
+  - The active MVP goal remains incomplete. This round makes the current
+    payment configuration blocker easier to verify and hand off, but does not
+    provide real WeChat Pay credentials, perform real payment/refund QA, or
+    prove current branch deployment.
+- Next recommended round:
+  - Decide real-payment config vs non-production/mock-payment deployment lane
+    before the next push. If real-payment production mode is chosen, provision
+    the 8 missing/invalid ECS-2 payment config items, rerun strict payment
+    config preflight, then trigger deployment and smoke.
+
 ## Round 61: Atomic Release Metadata Guard
 
 - Date: 2026-06-02

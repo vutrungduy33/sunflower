@@ -19,9 +19,20 @@ RUN_INTERNAL=1 scripts/check_production_smoke.sh
 ```
 
 The audit wrapper runs deploy config static checks, public production smoke, ECS
-internal smoke, and backend `8080` exposure inspection. It uses the ignored local
-SSH key at `.secrets/aliyun_mba_codex.pem` for ECS checks. It does not push,
-deploy, reload Nginx, or change ECS/firewall/security-group state.
+internal smoke, backend `8080` exposure inspection, and backend WeChat Pay
+configuration readiness inspection. It uses the ignored local SSH key at
+`.secrets/aliyun_mba_codex.pem` for ECS checks. It does not push, deploy, reload
+Nginx, change ECS/firewall/security-group state, or print secret values.
+
+Payment configuration readiness sub-command:
+
+```bash
+RUN_INTERNAL=1 scripts/check_backend_payment_config_readiness.sh
+RUN_INTERNAL=1 ENFORCE_PAYMENT_CONFIG=1 scripts/check_backend_payment_config_readiness.sh
+```
+
+The first command records sanitized readiness warnings; the strict command exits
+non-zero when required real-payment production config is missing.
 
 Latest deployment attempt:
 
@@ -54,6 +65,24 @@ Latest deployment attempt:
   `UP`.
 
 Latest read-only production result:
+
+- `CURL_CONNECT_TIMEOUT=15 scripts/check_production_readonly_audit.sh`: passed
+  in Round 62 with 4 read-only steps.
+- Deploy config static checks passed.
+- Production public/ECS internal smoke passed with 7 checks and 0 warnings:
+  public API health/home/admin ingress worked, ECS-1 reached the private
+  backend upstream, and ECS-2 backend/MySQL/private health were present.
+- Backend `8080` exposure check passed with 5 checks and 0 warnings: public
+  backend `8080` was not directly usable, ECS-1 private upstream worked, ECS-2
+  backend health was present, and listener output showed backend bound to
+  `172.25.121.83:8080`.
+- Backend payment config readiness check ran in non-strict read-only mode and
+  reported 8 sanitized issues listed in Current Production Risks.
+- No deployment, push, workflow dispatch, Nginx reload, ECS mutation, firewall
+  mutation, security-group mutation, payment/refund action, or live QA data
+  mutation was performed.
+
+Previous read-only production result:
 
 - `scripts/check_production_readonly_audit.sh`: last full wrapper pass was in
   Round 46 on local `main` at HEAD `758729091785`.
@@ -182,6 +211,18 @@ Latest Round 46 production read-only audit reconfirmed the same health shape:
 - ECS-2 self-hosted runner checkout/artifact download recovered in run
   `26796607775`; the active blocker is missing/undocumented real WeChat Pay
   production configuration on ECS-2 while `WECHAT_PAY_MOCK_ENABLED=false`.
+- `scripts/check_backend_payment_config_readiness.sh` is now the repeatable
+  read-only preflight for this blocker. It reports variable/file presence and
+  URL/key-length shape only; it does not print merchant credentials or key
+  values.
+- Latest non-strict preflight reported 8 sanitized issues on ECS-2: missing
+  `WECHAT_PAY_MCH_ID`, `WECHAT_PAY_MERCHANT_SERIAL_NO`,
+  `WECHAT_PAY_PRIVATE_KEY_PATH`, `WECHAT_PAY_PUBLIC_KEY_ID`,
+  `WECHAT_PAY_PUBLIC_KEY_PATH`, `WECHAT_PAY_API_V3_KEY`, and invalid
+  `WECHAT_PAY_PAYMENT_NOTIFY_URL` / `WECHAT_PAY_REFUND_NOTIFY_URL`.
+- Strict mode `RUN_INTERNAL=1 ENFORCE_PAYMENT_CONFIG=1
+  scripts/check_backend_payment_config_readiness.sh` exits non-zero until those
+  are provisioned or the deployment lane is explicitly changed.
 - Real WeChat login, phone authorization, payment, refund, SMS, and callback
   delivery still require external-service production validation.
 

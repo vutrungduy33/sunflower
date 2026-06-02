@@ -58,6 +58,7 @@ check_shell_syntax() {
     scripts/start_admin_web.sh
     scripts/check_production_smoke.sh
     scripts/check_backend_8080_exposure.sh
+    scripts/check_backend_payment_config_readiness.sh
     scripts/check_production_readonly_audit.sh
   )
 

@@ -89,6 +89,8 @@ scripts/check_production_readonly_audit.sh
 scripts/check_deploy_config.sh
 RUN_INTERNAL=1 scripts/check_production_smoke.sh
 RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh
+RUN_INTERNAL=1 scripts/check_backend_payment_config_readiness.sh
+RUN_INTERNAL=1 ENFORCE_PAYMENT_CONFIG=1 scripts/check_backend_payment_config_readiness.sh
 ```
 
 Launch evidence:

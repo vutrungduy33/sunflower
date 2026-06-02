@@ -145,10 +145,12 @@ deploy path 必填：
 ## 5. 本地校验命令
 
 - `node scripts/check_deployment_approval_preflight.js`
+- `RUN_INTERNAL=1 scripts/check_backend_payment_config_readiness.sh`
+- `RUN_INTERNAL=1 ENFORCE_PAYMENT_CONFIG=1 scripts/check_backend_payment_config_readiness.sh`
 - `ruby -e 'require "yaml"; YAML.load_file(".github/workflows/deploy-backend.yml")'`
 - `docker compose -f docker-compose.backend.yml --env-file .env.prod.example config`
 - `docker compose -f docker-compose.web.yml --env-file .env.prod.web.example config`
-- `bash -n scripts/deploy_lib.sh scripts/validate_prod_env.sh scripts/deploy_backend.sh scripts/deploy_admin_web.sh scripts/bootstrap_prod.sh scripts/deploy_prod.sh scripts/reload_host_nginx.sh scripts/sync_deploy_bundle.sh scripts/execute_runner_deploy.sh scripts/start_backend_with_mvp_seed.sh scripts/start_admin_web.sh`
+- `bash -n scripts/deploy_lib.sh scripts/validate_prod_env.sh scripts/deploy_backend.sh scripts/deploy_admin_web.sh scripts/bootstrap_prod.sh scripts/deploy_prod.sh scripts/reload_host_nginx.sh scripts/sync_deploy_bundle.sh scripts/execute_runner_deploy.sh scripts/test_execute_runner_deploy_release_env.sh scripts/start_backend_with_mvp_seed.sh scripts/start_admin_web.sh scripts/check_backend_payment_config_readiness.sh`
 - `cd sunflower-backend && mvn -B test`
 - `cd sunflower-admin-web && npm run build`
 
@@ -160,6 +162,10 @@ deploy path 必填：
   `$DEPLOY_PATH/.deploy-source-sha.pending` 供本次部署使用；若校验或部署失败，
   pending 文件会被清理，正式 `.release.env` 和 `.deploy-source-sha` 保持旧值。
   只有部署成功后才会原子替换正式 release metadata。
+- `scripts/check_backend_payment_config_readiness.sh` 是只读支付配置预检：
+  它只报告 ECS-2 `.env.prod` 中微信支付变量和 key 文件是否存在/形态是否合理，
+  不打印密钥值，不推送，不部署。常规模式用于记录阻塞；部署前可用
+  `ENFORCE_PAYMENT_CONFIG=1` 让缺项以非零退出。
 - 若需要回滚 backend/admin-web，优先通过 `workflow_dispatch + image_tag=<历史 sha>` 完成，而不是在 ECS 上手工改 compose 文件。
 - `node scripts/check_deployment_approval_preflight.js` 只读分析当前分支相对
   `origin/main`/`main` 的部署影响面和人工审批边界，不会 push、触发

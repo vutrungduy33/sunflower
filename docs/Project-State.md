@@ -142,6 +142,30 @@ deployment run:
   release metadata and clean pending files. `scripts/check_deploy_config.sh`
   now runs `scripts/test_execute_runner_deploy_release_env.sh` to guard this
   behavior.
+- Round 62 added `scripts/check_backend_payment_config_readiness.sh`, a
+  read-only ECS-2 WeChat Pay production config preflight. It SSHes to the
+  backend host, sources `.env.prod` locally, and reports only whether required
+  payment variables/key files are present plus URL/key-length shape; it does
+  not print merchant credentials or key values. Normal mode reports sanitized
+  warnings, while `ENFORCE_PAYMENT_CONFIG=1` exits non-zero for missing required
+  real-payment config. `scripts/check_production_readonly_audit.sh` now includes
+  the preflight so the current `WECHAT_PAY_MCH_ID`-class blocker is repeatable
+  without triggering GitHub Actions deployment.
+- Round 62 read-only ECS-2 payment config preflight confirmed the current
+  sanitized blocker shape: 8 issues remain for real-payment production mode:
+  missing `WECHAT_PAY_MCH_ID`, `WECHAT_PAY_MERCHANT_SERIAL_NO`,
+  `WECHAT_PAY_PRIVATE_KEY_PATH`, `WECHAT_PAY_PUBLIC_KEY_ID`,
+  `WECHAT_PAY_PUBLIC_KEY_PATH`, `WECHAT_PAY_API_V3_KEY`, plus invalid
+  `WECHAT_PAY_PAYMENT_NOTIFY_URL` and `WECHAT_PAY_REFUND_NOTIFY_URL`. Strict
+  mode `RUN_INTERNAL=1 ENFORCE_PAYMENT_CONFIG=1
+  scripts/check_backend_payment_config_readiness.sh` exits non-zero until those
+  are provisioned or a non-production/mock-payment lane is explicitly chosen.
+- Round 62 `CURL_CONNECT_TIMEOUT=15 scripts/check_production_readonly_audit.sh`
+  passed with 4 read-only steps after bounded audit retries were added:
+  deploy config static checks, production public/ECS internal smoke,
+  backend `8080` exposure checks, and backend payment config readiness. The
+  audit did not push, deploy, reload Nginx, or mutate ECS/firewall/security
+  group state; it reported the same 8 sanitized payment config issues.
 - Round 50 audited the original goal termination criteria against current
   evidence in `docs/MVP-Closeout-Audit.md`. Result: the active MVP goal remains
   incomplete because strict external/manual evidence still has 33 unresolved
