@@ -6,6 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$SCRIPT_DIR/deploy_lib.sh"
 
 PREFIX="nonprod-mock-lane"
+DEFAULT_NONPROD_BASE_ENV_FILE=".env.prod.example"
 DEFAULT_NONPROD_ENV_FILE=".env.nonprod-mock.example"
 
 validate_secret_present_but_not_prod_placeholder() {
@@ -48,12 +49,20 @@ validate_private_backend_bind() {
 }
 
 main() {
+  local base_env_file
   local lane
+  local overlay_env_file
 
   cd "$(project_root)"
-  PROD_ENV_FILE="${NONPROD_ENV_FILE:-$DEFAULT_NONPROD_ENV_FILE}"
+  base_env_file="${NONPROD_BASE_ENV_FILE:-${PROD_ENV_FILE:-$DEFAULT_NONPROD_BASE_ENV_FILE}}"
+  overlay_env_file="${NONPROD_OVERLAY_ENV_FILE:-${NONPROD_ENV_FILE:-${RUNTIME_OVERLAY_ENV_FILE:-$DEFAULT_NONPROD_ENV_FILE}}}"
+  PROD_ENV_FILE="$base_env_file"
+  RUNTIME_OVERLAY_ENV_FILE="$overlay_env_file"
+  RELEASE_ENV_FILE=".env.empty"
   export PROD_ENV_FILE
-  load_prod_env
+  export RUNTIME_OVERLAY_ENV_FILE
+  export RELEASE_ENV_FILE
+  load_runtime_envs
 
   lane="$(printf '%s' "${SUNFLOWER_DEPLOY_LANE:-}" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')"
   [ "$lane" = "nonprod-mock-payment" ] || fail "$PREFIX" "SUNFLOWER_DEPLOY_LANE must be nonprod-mock-payment"
@@ -104,7 +113,7 @@ main() {
   ADMIN_SMS_PROVIDER="$(printf '%s' "$ADMIN_SMS_PROVIDER" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')"
   [ "$ADMIN_SMS_PROVIDER" = "tencent" ] || fail "$PREFIX" "ADMIN_SMS_PROVIDER must be tencent in this lane"
 
-  log_info "$PREFIX" "non-production mock-payment deploy lane validation passed for ${PROD_ENV_FILE}"
+  log_info "$PREFIX" "non-production mock-payment deploy lane validation passed for ${PROD_ENV_FILE} + ${RUNTIME_OVERLAY_ENV_FILE}"
 }
 
 main "$@"

@@ -159,13 +159,30 @@ function checkNonprodEnvShape() {
     'WECHAT_AUTH_MOCK_ENABLED=false',
     'WECHAT_MANUAL_PHONE_BIND_ENABLED=false',
     'WECHAT_PAY_MOCK_ENABLED=true',
+    'WECHAT_PAY_API_V3_KEY=00000000000000000000000000000000',
   ];
 
   for (const snippet of required) {
     requireIncludes(env, snippet, '.env.nonprod-mock.example');
   }
 
-  pass('nonprod mock env template preserves real auth and mock payment boundary');
+  const forbiddenPatterns = [
+    /^MYSQL_/m,
+    /^AUTH_TOKEN_SECRET=/m,
+    /^ADMIN_AUTH_TOKEN_SECRET=/m,
+    /^WECHAT_APP_ID=/m,
+    /^WECHAT_APP_SECRET=/m,
+    /^ADMIN_SMS_/m,
+    /^TENCENT_SMS_/m,
+  ];
+
+  for (const pattern of forbiddenPatterns) {
+    if (pattern.test(env)) {
+      fail(`.env.nonprod-mock.example must stay overlay-only and not define ${pattern}`);
+    }
+  }
+
+  pass('nonprod mock env overlay preserves base DB/auth credentials and enables mock payment');
 }
 
 function runExistingGuards() {

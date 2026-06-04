@@ -222,6 +222,16 @@ Append durable decisions here. Keep entries short and include provenance.
   `docs/MVP-Launch-Evidence.json`,
   `scripts/check_deployment_approval_preflight.js`.
 
+## 2026-06-04: Treat Nonprod Mock Payment Env as Overlay Only
+
+- Decision: Keep ECS-owned `.env.prod` as the base runtime env for backend
+  deployments and apply `.env.nonprod-mock.example` only through
+  `RUNTIME_OVERLAY_ENV_FILE` for the backend-only `nonprod-mock-payment` lane.
+- Rationale: The mock-payment lane must preserve real ECS database/auth/SMS
+  credentials while overriding only the lane marker and mock payment values.
+- Provenance: Round 88 workflow run `26932183311`, Round 89
+  `scripts/test_execute_runner_deploy_release_env.sh`, `docs/CI-CD.md`.
+
 ## 2026-06-02: Prefer Artifact-Based ECS Deploy If Checkout Remains Unstable
 
 - Decision: If ECS self-hosted runner access to GitHub remains unstable, keep

@@ -1,5 +1,6 @@
 x-runtime-env-files: &runtime_env_files
   - ${PROD_ENV_FILE:-.env.prod}
+  - ${RUNTIME_OVERLAY_ENV_FILE:-.env.runtime-overlay.empty}
   - ${RELEASE_ENV_FILE:-.env.empty}
 
 services:

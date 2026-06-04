@@ -113,7 +113,8 @@ PR 门禁 workflow 已移除。仓库当前不再强制：
 - 常规 prod 发布主路径不依赖 GitHub Hosted Runner 直连 ECS，也不依赖 ECS 在发布时临时拉取 GHCR。
 - 手动 `deployment_lane=nonprod-mock-payment` 只支持 `target=auto` 或
   `target=backend`，且 `auto` 会解析为 `backend`。该 lane 只部署/校验
-  backend host，使用 `.env.nonprod-mock.example` 和
+  backend host，使用 ECS 本地 `.env.prod` 作为基础配置，再叠加
+  `.env.nonprod-mock.example` 的 mock-payment overlay，并运行
   `scripts/check_nonprod_mock_payment_deploy_lane.sh`；不会刷新 admin-web
   或 Nginx。
 
@@ -159,8 +160,9 @@ deploy path 必填：
 - web host 的 `.env.prod` 保存 admin-web 端口、内网 backend upstream、Nginx 域名与证书配置。
 - `.release.env` 由 workflow 每次覆盖，只保存镜像与发布元信息。
 - `.env.nonprod-mock.example` 是后端非生产/mock-payment 验收 lane 的
-  示例模板；它必须通过
-  `scripts/check_nonprod_mock_payment_deploy_lane.sh`，但不得被当成生产
+  overlay 模板；它只保存 lane 标记和 mock payment 覆盖值。数据库凭据、
+  token secret、真实微信登录、SMS 等仍来自 ECS 本地 `.env.prod`。它必须通过
+  `scripts/check_nonprod_mock_payment_deploy_lane.sh`，但不得被当成完整生产
   `.env.prod` 或真实支付 readiness。
 
 完整变量清单、首次 bootstrap、回滚与 smoke test 说明见：
@@ -190,6 +192,10 @@ deploy path 必填：
 
 - `.env.prod.example` 与 `.env.prod.web.example` 只用于本地渲染校验与运维对照，不应直接作为线上密钥文件使用。
 - deploy 脚本运行时会固定加载各自 `$DEPLOY_PATH/.release.env`；即使 `.env.prod` 中残留样板 release metadata，也不会覆盖当次发布镜像信息。
+- backend compose 按 `PROD_ENV_FILE`、`RUNTIME_OVERLAY_ENV_FILE`、
+  `RELEASE_ENV_FILE` 的顺序加载 env file。默认 overlay 是
+  `.env.runtime-overlay.empty`；只有 backend-only nonprod/mock-payment lane 会把
+  `RUNTIME_OVERLAY_ENV_FILE` 设置为 `.env.nonprod-mock.example`。
 - runner deploy 会先写 `$DEPLOY_PATH/.release.env.pending` 与
   `$DEPLOY_PATH/.deploy-source-sha.pending` 供本次部署使用；若校验或部署失败，
   pending 文件会被清理，正式 `.release.env` 和 `.deploy-source-sha` 保持旧值。
@@ -199,15 +205,18 @@ deploy path 必填：
   不打印密钥值，不推送，不部署。常规模式用于记录阻塞；部署前可用
   `ENFORCE_PAYMENT_CONFIG=1` 让缺项以非零退出。
 - `scripts/check_nonprod_mock_payment_deploy_lane.sh` 是非生产/mock-payment
-  lane 的配置边界检查：它要求 `SUNFLOWER_DEPLOY_LANE=nonprod-mock-payment`、
-  后端节点、私有/本机 backend 绑定、真实微信登录模式，以及
+  lane 的配置边界检查：默认用 `.env.prod.example` +
+  `.env.nonprod-mock.example` 做本地模板检查；runner 执行时用 ECS
+  `.env.prod` + `.env.nonprod-mock.example`。它要求
+  `SUNFLOWER_DEPLOY_LANE=nonprod-mock-payment`、后端节点、私有/本机
+  backend 绑定、真实微信登录模式，以及
   `WECHAT_PAY_MOCK_ENABLED=true`。该检查只证明 mock-payment lane 配置形态可用，
   不证明生产支付、退款、HTTPS 域名、当前分支已部署或 MVP 可上线。
 - 当前 `.github/workflows/deploy-backend.yml` 的 push-to-main 和默认
   `workflow_dispatch` runner 路径仍调用 `scripts/validate_prod_env.sh`，即
   生产 lane。只有手动选择 `deployment_lane=nonprod-mock-payment` 且目标为
-  `auto/backend` 时，backend runner 才会使用非生产/mock-payment 校验并加载
-  `.env.nonprod-mock.example`。
+  `auto/backend` 时，backend runner 才会使用非生产/mock-payment 校验，并在
+  ECS `.env.prod` 基础上叠加 `.env.nonprod-mock.example`。
 - `scripts/check_workflow_dispatch_lane_matrix.js` 是本地 deployment-lane
   矩阵 guard：它覆盖 production dispatch、nonprod accepted/rejected
   dispatch，以及 push event 默认 production 行为，避免 workflow 手动入口漂移。
@@ -215,7 +224,7 @@ deploy path 必填：
   nonprod/mock-payment 手动 dispatch 前的只读预检：它要求当前分支/工作区适合
   审批讨论、workflow lane 边界存在、approval/handoff 文档写明 reduced-scope
   证据边界、`CURRENT-BRANCH-DEPLOYED` 仍为 pending，并复用 lane matrix 与
-  `.env.nonprod-mock.example` 检查。开发中的 `scripts/check_deploy_config.sh`
+  `.env.nonprod-mock.example` overlay 检查。开发中的 `scripts/check_deploy_config.sh`
   会以 `ALLOW_DIRTY=1` 运行它；真正请求审批前应使用默认严格模式。
 - `scripts/dispatch_nonprod_mock_payment_deploy.sh --dry-run` 是
   backend-only nonprod/mock-payment lane 的人工派发辅助入口。默认只运行

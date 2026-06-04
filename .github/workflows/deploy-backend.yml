@@ -47,6 +47,8 @@ on:
       - ".env.prod.example"
       - ".env.prod.web.example"
       - ".env.empty"
+      - ".env.runtime-overlay.empty"
+      - ".env.nonprod-mock.example"
       - "scripts/deploy_*.sh"
       - "scripts/deploy_lib.sh"
       - "scripts/validate_prod_env.sh"
@@ -184,15 +186,15 @@ jobs:
 
             printf '%s\n' "$changed_files"
 
-            if printf '%s\n' "$changed_files" | grep -Eq '^(sunflower-backend/|docker-compose\.backend\.yml$|\.env\.prod\.example$|\.env\.empty$|scripts/deploy_backend\.sh$|scripts/deploy_lib\.sh$|scripts/validate_prod_env\.sh$|scripts/start_backend_with_mvp_seed\.sh$|scripts/sync_deploy_bundle\.sh$|scripts/execute_runner_deploy\.sh$|scripts/sql/|\.github/workflows/deploy-backend\.yml$)'; then
+            if printf '%s\n' "$changed_files" | grep -Eq '^(sunflower-backend/|docker-compose\.backend\.yml$|\.env\.prod\.example$|\.env\.empty$|\.env\.runtime-overlay\.empty$|\.env\.nonprod-mock\.example$|scripts/deploy_backend\.sh$|scripts/deploy_lib\.sh$|scripts/validate_prod_env\.sh$|scripts/check_nonprod_mock_payment_deploy_lane\.sh$|scripts/start_backend_with_mvp_seed\.sh$|scripts/sync_deploy_bundle\.sh$|scripts/execute_runner_deploy\.sh$|scripts/sql/|\.github/workflows/deploy-backend\.yml$)'; then
               backend_changed=true
             fi
 
-            if printf '%s\n' "$changed_files" | grep -Eq '^(sunflower-admin-web/|docker-compose\.web\.yml$|\.env\.prod\.web\.example$|\.env\.empty$|scripts/deploy_admin_web\.sh$|scripts/deploy_lib\.sh$|scripts/start_admin_web\.sh$|scripts/sync_deploy_bundle\.sh$|scripts/execute_runner_deploy\.sh$|\.github/workflows/deploy-backend\.yml$)'; then
+            if printf '%s\n' "$changed_files" | grep -Eq '^(sunflower-admin-web/|docker-compose\.web\.yml$|\.env\.prod\.web\.example$|\.env\.empty$|\.env\.runtime-overlay\.empty$|scripts/deploy_admin_web\.sh$|scripts/deploy_lib\.sh$|scripts/start_admin_web\.sh$|scripts/sync_deploy_bundle\.sh$|scripts/execute_runner_deploy\.sh$|\.github/workflows/deploy-backend\.yml$)'; then
               admin_web_changed=true
             fi
 
-            if printf '%s\n' "$changed_files" | grep -Eq '^(deploy/nginx/|docker-compose\.web\.yml$|\.env\.prod\.web\.example$|\.env\.empty$|scripts/deploy_prod\.sh$|scripts/bootstrap_prod\.sh$|scripts/deploy_lib\.sh$|scripts/reload_host_nginx\.sh$|scripts/validate_prod_env\.sh$|scripts/sync_deploy_bundle\.sh$|scripts/execute_runner_deploy\.sh$|\.github/workflows/deploy-backend\.yml$)'; then
+            if printf '%s\n' "$changed_files" | grep -Eq '^(deploy/nginx/|docker-compose\.web\.yml$|\.env\.prod\.web\.example$|\.env\.empty$|\.env\.runtime-overlay\.empty$|scripts/deploy_prod\.sh$|scripts/bootstrap_prod\.sh$|scripts/deploy_lib\.sh$|scripts/reload_host_nginx\.sh$|scripts/validate_prod_env\.sh$|scripts/sync_deploy_bundle\.sh$|scripts/execute_runner_deploy\.sh$|\.github/workflows/deploy-backend\.yml$)'; then
               ingress_changed=true
             fi
           fi
@@ -303,6 +305,7 @@ jobs:
           fetch-depth: 1
           sparse-checkout: |
             .env.empty
+            .env.runtime-overlay.empty
             .env.prod.example
             .env.prod.web.example
             .env.nonprod-mock.example

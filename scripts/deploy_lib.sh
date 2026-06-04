@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DEFAULT_PROD_ENV_FILE=".env.prod"
+DEFAULT_RUNTIME_OVERLAY_ENV_FILE=".env.runtime-overlay.empty"
 DEFAULT_RELEASE_ENV_FILE=".release.env"
 BACKEND_COMPOSE_FILE="docker-compose.backend.yml"
 WEB_COMPOSE_FILE="docker-compose.web.yml"
@@ -57,8 +58,10 @@ normalize_deploy_path() {
 
 resolve_env_files() {
   export PROD_ENV_FILE="${PROD_ENV_FILE:-$DEFAULT_PROD_ENV_FILE}"
+  export RUNTIME_OVERLAY_ENV_FILE="${RUNTIME_OVERLAY_ENV_FILE:-$DEFAULT_RUNTIME_OVERLAY_ENV_FILE}"
   export RELEASE_ENV_FILE="${RELEASE_ENV_FILE:-$DEFAULT_RELEASE_ENV_FILE}"
   PROD_ENV_PATH="$ROOT_DIR/$PROD_ENV_FILE"
+  RUNTIME_OVERLAY_ENV_PATH="$ROOT_DIR/$RUNTIME_OVERLAY_ENV_FILE"
   RELEASE_ENV_PATH="$ROOT_DIR/$RELEASE_ENV_FILE"
 }
 
@@ -88,15 +91,38 @@ load_prod_env() {
 }
 
 load_runtime_envs() {
+  local runtime_prod_env_file
+  local runtime_prod_env_path
+  local runtime_overlay_env_file
+  local runtime_overlay_env_path
   local runtime_release_env_file
   local runtime_release_env_path
   resolve_env_files
+  runtime_prod_env_file="$PROD_ENV_FILE"
+  runtime_prod_env_path="$PROD_ENV_PATH"
+  runtime_overlay_env_file="$RUNTIME_OVERLAY_ENV_FILE"
+  runtime_overlay_env_path="$RUNTIME_OVERLAY_ENV_PATH"
   runtime_release_env_file="$RELEASE_ENV_FILE"
   runtime_release_env_path="$RELEASE_ENV_PATH"
   source_env_file "$PROD_ENV_PATH"
+  export PROD_ENV_FILE="$runtime_prod_env_file"
+  PROD_ENV_PATH="$runtime_prod_env_path"
+  export RUNTIME_OVERLAY_ENV_FILE="$runtime_overlay_env_file"
+  RUNTIME_OVERLAY_ENV_PATH="$runtime_overlay_env_path"
+  source_optional_env_file "$RUNTIME_OVERLAY_ENV_PATH"
+  export PROD_ENV_FILE="$runtime_prod_env_file"
+  PROD_ENV_PATH="$runtime_prod_env_path"
+  export RUNTIME_OVERLAY_ENV_FILE="$runtime_overlay_env_file"
+  RUNTIME_OVERLAY_ENV_PATH="$runtime_overlay_env_path"
   export RELEASE_ENV_FILE="$runtime_release_env_file"
   RELEASE_ENV_PATH="$runtime_release_env_path"
   source_optional_env_file "$RELEASE_ENV_PATH"
+  export PROD_ENV_FILE="$runtime_prod_env_file"
+  PROD_ENV_PATH="$runtime_prod_env_path"
+  export RUNTIME_OVERLAY_ENV_FILE="$runtime_overlay_env_file"
+  RUNTIME_OVERLAY_ENV_PATH="$runtime_overlay_env_path"
+  export RELEASE_ENV_FILE="$runtime_release_env_file"
+  RELEASE_ENV_PATH="$runtime_release_env_path"
 }
 
 detect_compose_cmd() {

@@ -67,7 +67,7 @@ S19 之后，生产部署固定采用双 ECS + self-hosted runner 链路：
 
 - backend 节点：[.env.prod.example](/Users/chenyao/dev/miniapp/sunflower/.env.prod.example)
 - web 节点：[.env.prod.web.example](/Users/chenyao/dev/miniapp/sunflower/.env.prod.web.example)
-- 非生产/mock-payment backend lane：
+- 非生产/mock-payment backend overlay：
   [.env.nonprod-mock.example](/Users/chenyao/dev/miniapp/sunflower/.env.nonprod-mock.example)
 
 ### 3.1 backend 节点（ECS-2）
@@ -126,9 +126,13 @@ This lane is only for approved MVP validation when there is no production
 merchant configuration. It is not production payment readiness and must not be
 used to mark real payment/refund evidence as passed.
 
-Committed template:
+Committed overlay template:
 
 - [.env.nonprod-mock.example](/Users/chenyao/dev/miniapp/sunflower/.env.nonprod-mock.example)
+
+The runner keeps ECS-owned `.env.prod` as the base env and applies this file as
+`RUNTIME_OVERLAY_ENV_FILE`. Do not place database credentials, token secrets,
+real WeChat auth credentials, or SMS credentials in this overlay.
 
 Required boundary:
 
@@ -137,7 +141,8 @@ Required boundary:
 - `WECHAT_AUTH_MOCK_ENABLED=false`
 - `WECHAT_MANUAL_PHONE_BIND_ENABLED=false`
 - `WECHAT_PAY_MOCK_ENABLED=true`
-- `BACKEND_BIND_HOST` stays on a private/local interface.
+- `BACKEND_BIND_HOST` stays on a private/local interface from the base
+  `.env.prod`.
 - Payment variables still have placeholder-but-shaped values so the Spring prod
   profile can bind configuration, but the backend must not call WeChat Pay in
   this lane.
@@ -161,7 +166,8 @@ Runner behavior:
 - production lane runs `scripts/validate_prod_env.sh`.
 - non-production/mock-payment lane runs
   `scripts/check_nonprod_mock_payment_deploy_lane.sh`, then deploys backend
-  with `PROD_ENV_FILE=.env.nonprod-mock.example`.
+  with `PROD_ENV_FILE=.env.prod` plus
+  `RUNTIME_OVERLAY_ENV_FILE=.env.nonprod-mock.example`.
 
 ### 3.3 web 节点（ECS-1）
 

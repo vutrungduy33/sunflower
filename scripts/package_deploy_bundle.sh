@@ -36,6 +36,7 @@ main() {
     cd "$ROOT_DIR"
     tar -czf "$temp_file" \
       .env.empty \
+      .env.runtime-overlay.empty \
       .env.prod.example \
       .env.prod.web.example \
       .env.nonprod-mock.example \

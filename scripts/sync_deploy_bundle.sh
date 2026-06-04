@@ -19,6 +19,7 @@ main() {
 
   rm -f \
     "$target_path/.env.empty" \
+    "$target_path/.env.runtime-overlay.empty" \
     "$target_path/.env.prod.example" \
     "$target_path/.env.prod.web.example" \
     "$target_path/.env.nonprod-mock.example" \
@@ -34,6 +35,7 @@ main() {
   [ -f "$target_path/docker-compose.backend.yml" ] || fail "$PREFIX" "backend compose file missing after sync"
   [ -f "$target_path/docker-compose.web.yml" ] || fail "$PREFIX" "web compose file missing after sync"
   [ -f "$target_path/scripts/validate_prod_env.sh" ] || fail "$PREFIX" "deploy scripts missing after sync"
+  [ -f "$target_path/.env.runtime-overlay.empty" ] || fail "$PREFIX" "runtime overlay empty env file missing after sync"
   [ -f "$target_path/.env.nonprod-mock.example" ] || fail "$PREFIX" "nonprod env template missing after sync"
 
   log_info "$PREFIX" "Deployment bundle synchronized to ${target_path}"

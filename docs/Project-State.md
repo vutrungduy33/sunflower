@@ -22,9 +22,10 @@
   and extract that artifact instead of running `actions/checkout` for deploy
   bundle source.
 - Local secrets belong under `.secrets/`, which is ignored by Git.
-- Alibaba Cloud Codeup/Yunxiao is under investigation as a no-new-paid-service
-  fallback control plane. Current ECS evidence does not yet prove Codeup SSH
-  access or a Yunxiao pipeline.
+- Alibaba Cloud Codeup SSH access from this workstation was verified on
+  2026-06-04 after the public key was added: read-only `git ls-remote` against
+  the Codeup `sunflower` repository returned `main` successfully. Yunxiao
+  pipeline setup is not tracked in this MVP thread.
 
 ## Current Architecture
 
@@ -226,6 +227,16 @@
   Current-branch deployment remains pending; the next reduced-scope deploy
   blocker is ECS-2 MySQL app credential alignment, not Buildx, checkout,
   artifact download, or production payment validation.
+- Round 89 fixes the nonprod/mock credential overlay bug locally: the backend
+  compose runtime env order is now `.env.prod` base, optional runtime overlay,
+  then `.release.env`; `.env.nonprod-mock.example` is overlay-only and no
+  longer carries DB/auth/admin/SMS secrets; `execute_runner_deploy.sh` sets
+  `RUNTIME_OVERLAY_ENV_FILE=.env.nonprod-mock.example` instead of replacing
+  `PROD_ENV_FILE`. Focused checks passed, including shell syntax, runner deploy
+  tests, nonprod lane guard, workflow lane matrix, `scripts/check_deploy_config.sh`,
+  compose rendering through `load_runtime_envs`, and deployment bundle contents.
+  This is not yet ECS deployment evidence until a new backend-only
+  nonprod/mock dispatch completes and smoke is recorded.
 - Round 60 pushed `98e68e0dd478` to `main` and triggered GitHub Actions run
   `26796051853`; backend/admin-web images built, but ECS-2 checkout stalled
   before deployment completed.
@@ -265,10 +276,8 @@
 
 - The active MVP goal is still open. Do not mark complete until strict closeout
   evidence passes or the user explicitly waives itemized blockers.
-- Local `main` and `origin/main` were aligned at `158d894` after the Round 85
-  Codeup/Yunxiao feasibility push, before the Round 86 regression-refresh docs
-  update. Future deployment-relevant pushes to `main` can still trigger the
-  production lane unless a manual nonprod lane is explicitly selected.
+- Future deployment-relevant pushes to `main` can still trigger the production
+  lane unless a manual nonprod lane is explicitly selected.
 - Real WeChat payment production config on ECS-2 remains incomplete. Strict
   payment readiness currently fails for missing/invalid merchant variables,
   key paths, API v3 key, and HTTPS notify URLs.
@@ -286,19 +295,14 @@
   such as Docker Hub BuildKit pulls. If this broader path remains unstable,
   move release images/artifacts to Alibaba Cloud-side free resources before the
   deploy cutover, then have ECS pull/load locally.
-- Codeup SSH and Yunxiao pipeline setup still need explicit credential
-  decisions. Do not copy a personal private key into the repo or docs; prefer a
-  dedicated Codeup deploy key/service connection and record only sanitized
-  ownership/permission facts.
 - User confirmed in Round 71 that the real payment private key/config is not
   fully provisioned yet. It is acceptable to use the explicit mock/nonprod lane
   for interim validation, but this must remain recorded as mock evidence and
   must not satisfy real payment/refund launch evidence.
-- Backend-only nonprod/mock deployment currently fails during ECS-2 local
-  backend deploy because the MySQL app credentials available to the deploy
-  environment cannot access the existing `sunflower` database as app user
-  `sunflower`. Investigate and fix credential/overlay alignment without
-  printing or committing secrets before the next nonprod/mock dispatch.
+- Backend-only nonprod/mock deployment still needs a new dispatch after the
+  Round 89 overlay fix. If it still fails at MySQL app credential access, the
+  remaining issue is likely the existing ECS MySQL volume/user state rather
+  than the committed overlay file replacing `.env.prod`.
 - Miniapp real-device/preview evidence is still pending for HTTPS request
   domain, real AppID preview, WeChat login, phone binding, booking path, payment,
   refund, and error states.

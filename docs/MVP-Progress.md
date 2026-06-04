@@ -5,6 +5,98 @@
 > This active file keeps only the latest operational rounds. Older rounds are
 > archived in `docs/archive/mvp-progress/`.
 
+## Round 89: Nonprod Mock Env Overlay Credential Fix
+
+- Date: 2026-06-04
+- Status: completed
+- Focus: fix the backend-only nonprod/mock deployment blocker from Round 88 by
+  preserving ECS-owned `.env.prod` database/auth credentials and applying
+  `.env.nonprod-mock.example` only as a mock-payment overlay.
+- Start evidence:
+  - Local `main` and `origin/main` are aligned at `b10316a`.
+  - Worktree is clean.
+  - Round 88 workflow run `26932183311` passed backend-only dispatch, backend
+    build, artifact transfer/load, image availability, and the nonprod lane
+    guard, then failed in `deploy_backend.sh` because MySQL app credentials
+    from `.env.prod` could not access database `sunflower` as user
+    `sunflower`.
+  - Script inspection shows `execute_runner_deploy.sh` currently sets
+    `PROD_ENV_FILE=.env.nonprod-mock.example` for the nonprod lane, so the
+    bundled example file can replace ECS-local real DB credentials.
+- Open-source reference check:
+  - Task classification: common Docker Compose deployment configuration /
+    env-file overlay handling.
+  - Sources checked: Docker Compose official documentation for `env_file` and
+    environment-variable precedence, plus repository-native deploy scripts and
+    compose files.
+  - License/compatibility: official documentation and local code only; no
+    external code copied.
+  - Selected approach: keep `.env.prod` as the required ECS-owned base env,
+    add an optional runtime overlay env file loaded after the base and before
+    release metadata, and make the nonprod/mock file contain only the payment
+    mock lane overrides instead of DB/auth secrets.
+  - Rejected options: copying real DB secrets into `.env.nonprod-mock.example`,
+    recreating MySQL users from guessed credentials, or weakening the
+    nonprod/mock guard to skip DB access.
+- Risks:
+  - Env-file precedence is security-sensitive: the overlay must not override
+    database credentials, token secrets, real WeChat auth, or admin SMS config.
+  - Deployment remains reduced-scope mock evidence even if this fix lets the
+    lane deploy; real payment/refund, HTTPS legal domain, real-device miniapp
+    QA, and admin QA remain pending.
+  - A deployment-relevant script push to `main` can trigger the production
+    lane; record the expected payment-config failure separately if it happens.
+- Acceptance criteria:
+  - Runtime env loading supports an optional overlay file.
+  - Nonprod/mock dispatch validates `.env.prod` plus the overlay, while Docker
+    Compose uses the same base-plus-overlay env order.
+  - `.env.nonprod-mock.example` no longer carries MySQL/app auth/admin secrets.
+  - Focused deploy config tests pass, including a guard proving nonprod overlay
+    preserves base DB credentials.
+  - Update project/deployment docs, commit, push, and observe any triggered
+    workflow result if deployment-relevant paths trigger Actions.
+- Execution:
+  - Added `.env.runtime-overlay.empty` as the default no-op runtime overlay so
+    compose can always render a stable three-file order.
+  - Changed backend compose and runner deployment scripts so production keeps
+    `PROD_ENV_FILE=.env.prod`, while the backend-only
+    `nonprod-mock-payment` lane sets
+    `RUNTIME_OVERLAY_ENV_FILE=.env.nonprod-mock.example`.
+  - Narrowed `.env.nonprod-mock.example` to lane marker and mock payment
+    overrides only; database credentials, token secrets, real WeChat auth, admin
+    auth, and SMS variables remain owned by ECS `.env.prod`.
+  - Preserved resolved base, overlay, and release env file paths while sourcing
+    env contents so stale sample variables inside an env file cannot change the
+    compose file list for the current run.
+  - Updated workflow path detection, bundle packaging/sync, readiness guards,
+    CI/CD docs, production deployment config docs, launch evidence, readiness,
+    project state, and decision log.
+- Verification:
+  - `bash -n scripts/deploy_lib.sh scripts/execute_runner_deploy.sh scripts/check_nonprod_mock_payment_deploy_lane.sh scripts/test_execute_runner_deploy_release_env.sh scripts/deploy_backend.sh scripts/package_deploy_bundle.sh scripts/sync_deploy_bundle.sh`: passed.
+  - `bash scripts/test_execute_runner_deploy_release_env.sh`: passed, including
+    overlay preservation of base MySQL/auth credentials and env file paths.
+  - `bash scripts/check_nonprod_mock_payment_deploy_lane.sh`: passed for
+    `.env.prod.example + .env.nonprod-mock.example`.
+  - `node scripts/check_workflow_dispatch_lane_matrix.js`: passed 12 checks.
+  - `scripts/check_deploy_config.sh`: passed.
+  - `docker compose -f docker-compose.backend.yml --env-file .env.prod.example config`: passed and rendered the default `.env.runtime-overlay.empty` order.
+  - Deployment-path compose render after `load_runtime_envs` with
+    `RUNTIME_OVERLAY_ENV_FILE=.env.nonprod-mock.example` preserved base
+    `MYSQL_PASSWORD` and rendered `WECHAT_PAY_MOCK_ENABLED=true`.
+  - `scripts/package_deploy_bundle.sh` bundle contents include
+    `.env.runtime-overlay.empty`, `.env.nonprod-mock.example`,
+    `docker-compose.backend.yml`, and the relevant deploy scripts.
+- Outcome:
+  - Local deploy configuration now fixes the committed overlay bug found in
+    Round 88. Actual current-branch deployment remains unproven until a new
+    backend-only `deployment_lane=nonprod-mock-payment` workflow run completes
+    on ECS and post-deploy smoke is recorded.
+- Next recommended round:
+  - Commit and push this deployment-relevant fix, observe the push-triggered
+    production-lane result separately, then run the explicit backend-only
+    nonprod/mock dispatch to validate ECS deployment with the corrected overlay
+    semantics.
+
 ## Round 88: Backend Nonprod Mock Deployment Evidence
 
 - Date: 2026-06-04

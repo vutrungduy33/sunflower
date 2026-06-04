@@ -78,8 +78,8 @@ main() {
       ;;
     nonprod-mock-payment)
       [ "$role" = "backend" ] || fail "$PREFIX" "nonprod-mock-payment lane only supports backend host validation, got '${role}'"
-      NONPROD_ENV_FILE=".env.nonprod-mock.example" ./scripts/check_nonprod_mock_payment_deploy_lane.sh
-      export PROD_ENV_FILE=".env.nonprod-mock.example"
+      export RUNTIME_OVERLAY_ENV_FILE=".env.nonprod-mock.example"
+      NONPROD_BASE_ENV_FILE="${PROD_ENV_FILE:-.env.prod}" NONPROD_OVERLAY_ENV_FILE="$RUNTIME_OVERLAY_ENV_FILE" ./scripts/check_nonprod_mock_payment_deploy_lane.sh
       ;;
   esac
 
