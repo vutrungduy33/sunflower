@@ -349,19 +349,15 @@ jobs:
         id: image_meta
         run: |
           image_ref="${{ needs.detect-targets.outputs.backend_image }}"
-          all_tags="${image_ref}"
+          latest_tag=""
           if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
-            all_tags="${all_tags}"$'\n'"${image_ref%:*}:latest"
+            latest_tag="${image_ref%:*}:latest"
           fi
 
           {
-            echo "all_tags<<EOF"
-            printf '%s\n' "${all_tags}"
-            echo "EOF"
+            echo "primary_tag=${image_ref}"
+            echo "latest_tag=${latest_tag}"
           } >> "${GITHUB_OUTPUT}"
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
 
       - name: Login to GHCR
         uses: docker/login-action@v3
@@ -370,19 +366,30 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push backend image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./sunflower-backend
-          push: true
-          tags: ${{ steps.image_meta.outputs.all_tags }}
-          build-args: |
-            MAVEN_MIRROR=${{ env.BACKEND_MAVEN_MIRROR }}
-          cache-from: type=gha,scope=sunflower-backend
-          cache-to: type=gha,mode=max,scope=sunflower-backend
+      - name: Build backend image
+        env:
+          BACKEND_PRIMARY_TAG: ${{ steps.image_meta.outputs.primary_tag }}
+          BACKEND_LATEST_TAG: ${{ steps.image_meta.outputs.latest_tag }}
+        run: |
+          tags=(--tag "$BACKEND_PRIMARY_TAG")
+          if [ -n "$BACKEND_LATEST_TAG" ]; then
+            tags+=(--tag "$BACKEND_LATEST_TAG")
+          fi
 
-      - name: Pull backend image for artifact packaging
-        run: docker pull "${{ needs.detect-targets.outputs.backend_image }}"
+          docker build \
+            "${tags[@]}" \
+            --build-arg "MAVEN_MIRROR=${BACKEND_MAVEN_MIRROR}" \
+            ./sunflower-backend
+
+      - name: Push backend image
+        env:
+          BACKEND_PRIMARY_TAG: ${{ steps.image_meta.outputs.primary_tag }}
+          BACKEND_LATEST_TAG: ${{ steps.image_meta.outputs.latest_tag }}
+        run: |
+          docker push "$BACKEND_PRIMARY_TAG"
+          if [ -n "$BACKEND_LATEST_TAG" ]; then
+            docker push "$BACKEND_LATEST_TAG"
+          fi
 
       - name: Export backend image artifact
         run: |
@@ -421,19 +428,15 @@ jobs:
         id: image_meta
         run: |
           image_ref="${{ needs.detect-targets.outputs.admin_web_image }}"
-          all_tags="${image_ref}"
+          latest_tag=""
           if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
-            all_tags="${all_tags}"$'\n'"${image_ref%:*}:latest"
+            latest_tag="${image_ref%:*}:latest"
           fi
 
           {
-            echo "all_tags<<EOF"
-            printf '%s\n' "${all_tags}"
-            echo "EOF"
+            echo "primary_tag=${image_ref}"
+            echo "latest_tag=${latest_tag}"
           } >> "${GITHUB_OUTPUT}"
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
 
       - name: Login to GHCR
         uses: docker/login-action@v3
@@ -442,21 +445,32 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push admin web image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./sunflower-admin-web
-          push: true
-          tags: ${{ steps.image_meta.outputs.all_tags }}
-          build-args: |
-            VITE_APP_TITLE=Sunflower Admin Web
-            VITE_API_BASE_URL=/api
-            VITE_API_PROXY_TARGET=http://backend:8080
-          cache-from: type=gha,scope=sunflower-admin-web
-          cache-to: type=gha,mode=max,scope=sunflower-admin-web
+      - name: Build admin web image
+        env:
+          ADMIN_WEB_PRIMARY_TAG: ${{ steps.image_meta.outputs.primary_tag }}
+          ADMIN_WEB_LATEST_TAG: ${{ steps.image_meta.outputs.latest_tag }}
+        run: |
+          tags=(--tag "$ADMIN_WEB_PRIMARY_TAG")
+          if [ -n "$ADMIN_WEB_LATEST_TAG" ]; then
+            tags+=(--tag "$ADMIN_WEB_LATEST_TAG")
+          fi
 
-      - name: Pull admin web image for artifact packaging
-        run: docker pull "${{ needs.detect-targets.outputs.admin_web_image }}"
+          docker build \
+            "${tags[@]}" \
+            --build-arg "VITE_APP_TITLE=Sunflower Admin Web" \
+            --build-arg "VITE_API_BASE_URL=/api" \
+            --build-arg "VITE_API_PROXY_TARGET=http://backend:8080" \
+            ./sunflower-admin-web
+
+      - name: Push admin web image
+        env:
+          ADMIN_WEB_PRIMARY_TAG: ${{ steps.image_meta.outputs.primary_tag }}
+          ADMIN_WEB_LATEST_TAG: ${{ steps.image_meta.outputs.latest_tag }}
+        run: |
+          docker push "$ADMIN_WEB_PRIMARY_TAG"
+          if [ -n "$ADMIN_WEB_LATEST_TAG" ]; then
+            docker push "$ADMIN_WEB_LATEST_TAG"
+          fi
 
       - name: Export admin web image artifact
         run: |

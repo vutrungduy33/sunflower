@@ -194,6 +194,15 @@
   `scripts/check_mvp_regression.sh` run passed all 5 enabled non-production
   steps. No production smoke, workflow dispatch, ECS mutation, payment/refund,
   or live QA was performed.
+- Round 87 hardened `.github/workflows/deploy-backend.yml` after the Round 83
+  BuildKit helper-image timeout: backend/admin-web build jobs now use plain
+  Docker CLI (`docker build`, `docker push`, local `docker save`) instead of
+  `docker/setup-buildx-action` and `docker/build-push-action`. The workflow
+  still builds on GitHub hosted runners and still depends on base-image pulls
+  from external registries, but it no longer pulls
+  `moby/buildkit:buildx-stable-1` before building images. A static guard in
+  `scripts/check_workflow_dispatch_lane_matrix.js` now fails if the Buildx
+  action path is reintroduced.
 - Round 60 pushed `98e68e0dd478` to `main` and triggered GitHub Actions run
   `26796051853`; backend/admin-web images built, but ECS-2 checkout stalled
   before deployment completed.

@@ -259,14 +259,20 @@ artifact/API 下载部署包和镜像 artifact。若该链路继续不稳定，�
    - 该方式减少外部网络依赖，但需要人工或脚本安全投递 artifact，并记录
      sha256、来源 commit、操作者和回滚点。
 
-3. 构建链路加固待办
+3. 构建链路加固
    - Round 83 workflow run `26804961943` 失败在 GitHub hosted runner
      `docker/setup-buildx-action@v3` 拉取 Docker Hub
      `moby/buildkit:buildx-stable-1` 超时，backend image 未构建，未进入 ECS
      部署。
-   - 若继续使用 GitHub hosted runner 构建，应评估预拉/固定 BuildKit 镜像、
-     镜像加速、或把基础/BuildKit 镜像镜像到阿里云侧，避免每次构建依赖
-     Docker Hub 实时可用性。
+   - Round 87 将 backend/admin-web 镜像构建从
+     `docker/setup-buildx-action` / `docker/build-push-action` 改为普通
+     Docker CLI：`docker build`、`docker push`、本地 `docker save` 后上传
+     workflow artifact。这样保留 GHCR 镜像和 artifact 部署拓扑，同时移除
+     每次构建前拉取 BuildKit helper image 的直接依赖。
+   - 该调整不消除所有外部 registry 风险：backend/admin-web Dockerfile 仍
+     需要拉取 Maven、Temurin、Node、Nginx 等基础镜像。若这些基础镜像拉取
+     也不稳定，再评估镜像加速、基础镜像镜像到阿里云侧、或采用第 1/2
+     个备用发布方案。
 
 4. 选择边界
    - 不引入新的付费部署 SaaS。

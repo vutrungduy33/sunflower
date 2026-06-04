@@ -5,6 +5,95 @@
 > This active file keeps only the latest operational rounds. Older rounds are
 > archived in `docs/archive/mvp-progress/`.
 
+## Round 87: GitHub Actions Docker Build Path Hardening
+
+- Date: 2026-06-04
+- Status: completed
+- Focus: remove the workflow dependency on `docker/setup-buildx-action` /
+  `docker/build-push-action` for backend/admin image builds so a transient
+  Docker Hub `moby/buildkit:buildx-stable-1` pull failure does not block image
+  build before ECS deploy.
+- Start evidence:
+  - Local `main` and `origin/main` are aligned at `5a185bd`.
+  - Round 83 workflow run `26804961943` failed in `build-backend` while the
+    GitHub hosted runner tried to pull the BuildKit helper image from Docker
+    Hub; backend image build, ECS deploy, and smoke did not run.
+  - `sunflower-backend/Dockerfile` and `sunflower-admin-web/Dockerfile` are
+    ordinary multi-stage Dockerfiles and do not require Buildx-only features.
+- Open-source reference check:
+  - Task classification: common CI/CD Docker image build/push hardening.
+  - Sources checked: Docker official CLI references for `docker build`,
+    `docker push`, and `docker image save`, plus GitHub Actions/Docker official
+    examples for authenticated registry builds.
+  - License/compatibility: official documentation only; no external code
+    copied.
+  - Selected approach: keep GHCR login and existing image/artifact topology,
+    but use plain Docker CLI build, push, and save steps in the GitHub hosted
+    runner. Add a local static workflow guard so the Buildx action path is not
+    reintroduced accidentally.
+  - Rejected options: adding a paid external builder, changing the ECS deploy
+    topology in the same round, or mirroring BuildKit/base images before first
+    removing the direct Buildx helper-image dependency.
+- Risks:
+  - Plain Docker CLI builds may be slower because the previous GHA cache wiring
+    is removed.
+  - The runner still depends on Docker Hub for base images (`maven`, Temurin,
+    Node, Nginx), so this mitigates the observed BuildKit helper-image failure
+    but does not eliminate every external registry risk.
+  - Pushing a workflow change on `main` matches the deploy workflow path
+    trigger; because the user allowed code merge/push and there is no
+    production environment, this round may trigger a production-lane workflow
+    that should be treated as deployment evidence only if it actually passes
+    the relevant steps.
+- Acceptance criteria:
+  - Backend/admin build jobs use `docker build`, `docker push`, and local
+    `docker save` without `setup-buildx-action` or `build-push-action`.
+  - Static workflow guard fails if Buildx actions are reintroduced.
+  - Update CI/CD, project state, and decision docs with the narrowed risk.
+  - Run focused workflow/document validation, commit once, push, and record the
+    triggered workflow outcome or current status.
+- Execution:
+  - Replaced backend/admin image tag output with explicit `primary_tag` and
+    optional `latest_tag` outputs.
+  - Removed `docker/setup-buildx-action@v3`,
+    `docker/build-push-action@v6`, Buildx/GHA cache wiring, and redundant
+    post-push `docker pull` artifact-packaging steps.
+  - Added plain Docker CLI build/push steps for backend and admin-web, then
+    kept the existing local `docker save | gzip` artifact upload path.
+  - Extended `scripts/check_workflow_dispatch_lane_matrix.js` so deploy config
+    validation fails if the Buildx action path is reintroduced and confirms the
+    Docker CLI build/push/save snippets exist.
+  - Updated `docs/CI-CD.md`, `docs/Project-State.md`,
+    `docs/Decision-Log.md`, `docs/MVP-Readiness.md`, and
+    `docs/MVP-Launch-Evidence.json` with the narrowed deployment risk.
+- Verification:
+  - `ruby -e 'require "yaml"; YAML.load_file(".github/workflows/deploy-backend.yml")'`:
+    passed.
+  - `node scripts/check_workflow_dispatch_lane_matrix.js`: passed 12 checks.
+  - `scripts/check_deploy_config.sh`: passed, including the workflow lane
+    matrix and nonprod dispatch readiness checks.
+  - `node scripts/check_mvp_launch_evidence.js`: passed with the expected 5
+    passed and 8 pending required launch evidence entries.
+  - `node scripts/check_mvp_handoff_packet.js`: passed.
+  - `node scripts/check_mvp_next_approval_request.js`: passed.
+  - `node scripts/check_mvp_external_approval_packet.js`: passed.
+  - `node scripts/check_mvp_closeout_readiness.js`: passed in non-strict mode
+    and still reports the expected 32 unresolved external/manual evidence
+    items.
+  - `git diff --check`: passed.
+- Goal correction:
+  - The BuildKit helper-image blocker is mitigated, but current-branch
+    deployment remains pending until a new workflow run reaches deploy/smoke.
+    Real payment, HTTPS legal-domain, real-device miniapp, and admin QA
+    evidence remain outside this round.
+- Next recommended round:
+  - After this commit is pushed, inspect the triggered push workflow. If it
+    still fails before deploy, use the failure point to decide between another
+    targeted CI hardening pass or the documented Alibaba Cloud-side free
+    artifact fallback. If it reaches production env validation, use the
+    explicit backend-only `deployment_lane=nonprod-mock-payment` dispatch for
+    reduced-scope smoke until real WeChat Pay config is available.
+
 ## Round 86: Current Main Local Regression Refresh
 
 - Date: 2026-06-04

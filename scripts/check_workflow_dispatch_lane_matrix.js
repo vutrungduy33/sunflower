@@ -164,6 +164,15 @@ function checkWorkflowContainsLaneInput() {
     'Download backend deployment bundle artifact',
     'Download web deployment bundle artifact',
     'needs.package-deploy-bundle.result == \'success\'',
+    'Build backend image',
+    'Push backend image',
+    'Build admin web image',
+    'Push admin web image',
+    'docker build',
+    'docker push "$BACKEND_PRIMARY_TAG"',
+    'docker push "$ADMIN_WEB_PRIMARY_TAG"',
+    'docker save "${{ needs.detect-targets.outputs.backend_image }}"',
+    'docker save "${{ needs.detect-targets.outputs.admin_web_image }}"',
   ];
 
   for (const snippet of snippets) {
@@ -178,7 +187,13 @@ function checkWorkflowContainsLaneInput() {
     }
   }
 
-  pass('workflow contains explicit deployment lane input, runner env wiring, and artifact deployment bundle');
+  for (const buildxSnippet of ['docker/setup-buildx-action', 'docker/build-push-action']) {
+    if (workflow.includes(buildxSnippet)) {
+      fail(`workflow must not depend on Buildx action path: ${buildxSnippet}`);
+    }
+  }
+
+  pass('workflow contains lane wiring, artifact bundle deploy, and Docker CLI image build path');
 }
 
 function main() {

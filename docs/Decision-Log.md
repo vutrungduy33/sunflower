@@ -380,3 +380,22 @@ Append durable decisions here. Keep entries short and include provenance.
   ledgers, guard scripts, archive files, and git history preserve traceability.
 - Provenance: `docs/Project-State.md`, `docs/MVP-Progress.md`,
   `docs/Context-Index.md`, `docs/README.md`.
+
+## 2026-06-04: Prefer Docker CLI Builds Over Buildx Actions In Deploy Workflow
+
+- Decision: Build backend/admin-web deployment images in GitHub Actions with
+  plain Docker CLI steps (`docker build`, `docker push`, `docker save`) instead
+  of `docker/setup-buildx-action` and `docker/build-push-action`.
+- Rationale: Round 83 proved the deploy path can fail before any ECS work when
+  the GitHub hosted runner times out pulling the BuildKit helper image
+  `moby/buildkit:buildx-stable-1` from Docker Hub. The project does not
+  currently need multi-arch or Buildx-only Dockerfile features, so removing the
+  action path lowers one external network dependency while preserving GHCR
+  images and workflow image artifacts.
+- Consequences: GitHub hosted builds may be slower because the previous
+  Buildx/GHA cache wiring is removed. Base image pulls still depend on external
+  registries; if those become unstable, use the documented no-new-paid-service
+  fallback rather than reintroducing Buildx helper-image pulls.
+- Provenance: `.github/workflows/deploy-backend.yml`,
+  `scripts/check_workflow_dispatch_lane_matrix.js`,
+  `docs/MVP-Progress.md`, workflow run `26804961943`.
