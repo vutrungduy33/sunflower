@@ -254,6 +254,23 @@ Append durable decisions here. Keep entries short and include provenance.
 - Provenance: `docs/MVP-Progress.md`, `docs/CI-CD.md`,
   `docs/Project-State.md`, workflow run `26804961943`.
 
+## 2026-06-04: Separate Codeup SSH From Yunxiao Pipeline Credentials
+
+- Decision: Treat Codeup repository SSH access and Yunxiao pipeline creation as
+  separate credential tracks. Codeup Git access needs an uploaded SSH public key
+  plus the matching private key at the Git client location. Yunxiao pipeline
+  creation through the console needs logged-in account permissions; creation
+  through OpenAPI needs the required Yunxiao API token/OpenAPI credentials and
+  cannot be authenticated by an ECS SSH key alone.
+- Rationale: Round 85 found the ECS clone at `/opt/sunflower` still points to
+  GitHub HTTPS and the requested `~/.ssh/id_ed25519` is absent from common ECS
+  homes. Mixing host SSH, Git SSH, and cloud API credentials would create an
+  unsafe deployment setup and could lead to committing or spreading personal
+  private keys.
+- Provenance: `docs/MVP-Progress.md`, `docs/Project-State.md`, Alibaba Cloud
+  Codeup/Yunxiao official documentation, read-only ECS inspection on
+  2026-06-04.
+
 ## 2026-06-02: Add MVP Handoff Packet
 
 - Decision: Use `docs/MVP-Handoff-Packet.md` as the compact first-read handoff

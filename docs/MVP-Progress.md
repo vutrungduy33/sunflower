@@ -87,6 +87,70 @@
     artifact fallback script path and validate it without treating mock payment
     as production launch evidence.
 
+## Round 85: Codeup SSH And Yunxiao Pipeline Feasibility
+
+- Date: 2026-06-04
+- Status: completed
+- Focus: verify whether the Alibaba Cloud ECS clone can use local
+  `~/.ssh/id_ed25519` to access the Codeup repository
+  `git@codeup.aliyun.com:6a1e70a56ca3fad97ed1fbab/xiangrikui/sunflower.git`,
+  and clarify whether creating an Alibaba Cloud Yunxiao pipeline needs an API
+  key/token.
+- Start evidence:
+  - Local `main` and `origin/main` are aligned at `3b7d1f4`.
+  - User reported that a GitHub repository clone exists on Alibaba Cloud and
+    asked whether Codeup SSH access and Yunxiao pipeline creation can use local
+    SSH keys or require Alibaba Cloud credentials.
+- Open-source reference check:
+  - Task classification: common CI/CD/source-control integration and cloud
+    pipeline setup.
+  - Sources checked: Alibaba Cloud official Codeup SSH key documentation,
+    Codeup host fingerprint documentation, Yunxiao `CreatePipeline` OpenAPI
+    documentation, Yunxiao pipeline API index, and repository-native deployment
+    docs.
+  - License/compatibility: official documentation and read-only ECS inspection
+    only; no external code copied.
+  - Selected approach: perform read-only ECS checks for existing private keys,
+    cloned repository remotes, and Codeup SSH readiness; do not upload keys,
+    create pipelines, or write cloud resources without explicit credentials and
+    approval.
+  - Rejected options: copying a personal private key to ECS, creating a pipeline
+    from guessed credentials, or treating GitHub HTTPS clone access as proof of
+    Codeup SSH access.
+- Findings:
+  - ECS-2 `/opt/sunflower` exists and is owned by root, but it is detached HEAD
+    with `origin` set to `https://github.com/vutrungduy33/sunflower.git`.
+  - ECS-1 and ECS-2 common user homes do not currently contain
+    `~/.ssh/id_ed25519`; ECS-2 root home also lacks `/root/.ssh/id_ed25519`.
+  - Because the private key is absent on ECS, Codeup SSH authentication with
+    `~/.ssh/id_ed25519` cannot be proven from the current ECS state.
+  - Codeup SSH requires the corresponding public key to be uploaded to the
+    Yunxiao/Codeup account. Pipeline creation through Yunxiao OpenAPI requires
+    a Yunxiao personal access token (`x-yunxiao-token`) for the OAPI endpoint,
+    while broader Alibaba Cloud OpenAPI/SDK access can require AccessKey-based
+    authentication depending on the API family used. Manual console creation
+    requires logged-in Yunxiao permissions rather than an API key.
+- Risks:
+  - Do not commit or paste private keys. Prefer generating a dedicated deploy
+    key/service key for Codeup or configuring a Yunxiao service connection.
+  - A pipeline source that points to Codeup usually needs a service connection
+    or authorized repository binding; an ECS host private key is not a
+    substitute for Yunxiao pipeline API authentication.
+  - Existing ECS clone is not yet the Codeup remote and should not be used as
+    evidence that Codeup mirror/deploy is ready.
+- Verification:
+  - Read-only SSH inspection of ECS-2 `47.120.42.15`: `/root/.ssh/id_ed25519`
+    and `/home/chenyao/.ssh/id_ed25519` are missing.
+  - Read-only SSH inspection of ECS-1 `47.113.223.248`: common
+    `id_ed25519` locations are missing.
+  - Read-only repository scan found ECS-2 `/opt/sunflower`; `git remote -v`
+    reports GitHub HTTPS origin, not Codeup SSH.
+- Next recommended round:
+  - Choose one credential path: upload a dedicated Codeup public key and place
+    the matching private key only where needed for read-only mirror testing, or
+    create a Yunxiao service connection/PAT and build a pipeline through the
+    console/OpenAPI. Record credential ownership without storing secrets.
+
 ## Round 83: Backend Nonprod Mock Deploy Smoke
 
 - Date: 2026-06-02

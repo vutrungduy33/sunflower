@@ -273,3 +273,14 @@ artifact/API 下载部署包和镜像 artifact。若该链路继续不稳定，�
    - 不弱化 production lane 的真实支付、HTTPS 域名、Nginx/8080 安全校验。
    - mock/nonprod lane 仍只能作为 reduced-scope evidence，不能替代真实
      WeChat Pay/refund launch evidence。
+
+5. Codeup / 云效流水线待办
+   - 当前 ECS-2 `/opt/sunflower` 是 GitHub HTTPS clone，尚未切换为 Codeup
+     SSH remote。
+   - 当前 ECS-1/ECS-2 常见用户目录未发现 `~/.ssh/id_ed25519`，因此尚不能
+     证明 ECS 本机密钥可以访问
+     `git@codeup.aliyun.com:6a1e70a56ca3fad97ed1fbab/xiangrikui/sunflower.git`。
+   - Codeup Git SSH 访问需要把对应公钥上传到 Codeup/云效账号，并在执行
+     `git ls-remote` / clone 的机器上配置匹配私钥。
+   - 云效流水线可以通过控制台人工创建；若要通过 OpenAPI 自动创建，需要
+     云效 API token/OpenAPI 凭证，不能仅靠 ECS 主机 SSH key 完成。

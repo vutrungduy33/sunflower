@@ -7,7 +7,7 @@
 
 ## Last Updated
 
-2026-06-02
+2026-06-04
 
 ## Current Workflow
 
@@ -22,6 +22,9 @@
   and extract that artifact instead of running `actions/checkout` for deploy
   bundle source.
 - Local secrets belong under `.secrets/`, which is ignored by Git.
+- Alibaba Cloud Codeup/Yunxiao is under investigation as a no-new-paid-service
+  fallback control plane. Current ECS evidence does not yet prove Codeup SSH
+  access or a Yunxiao pipeline.
 
 ## Current Architecture
 
@@ -172,6 +175,15 @@
   backup. ECS would then pull/load artifacts inside the Alibaba Cloud network
   and run the existing deploy scripts locally, reducing dependence on GitHub
   artifact downloads during the cutover.
+- Round 85 checked Codeup/Yunxiao feasibility. ECS-2 has a clone at
+  `/opt/sunflower`, owned by root, but it is a detached GitHub HTTPS clone with
+  `origin=https://github.com/vutrungduy33/sunflower.git`, not the Codeup SSH
+  remote. ECS-1 and ECS-2 common homes do not currently contain
+  `~/.ssh/id_ed25519`, so Codeup SSH access with the requested key cannot be
+  proven from the current ECS state. Creating a Yunxiao pipeline manually can
+  be done through the console with account permissions; creating it through
+  Yunxiao OpenAPI requires the appropriate Yunxiao API token/OpenAPI
+  credentials and cannot be done with an ECS SSH key alone.
 - Round 60 pushed `98e68e0dd478` to `main` and triggered GitHub Actions run
   `26796051853`; backend/admin-web images built, but ECS-2 checkout stalled
   before deployment completed.
@@ -211,10 +223,10 @@
 
 - The active MVP goal is still open. Do not mark complete until strict closeout
   evidence passes or the user explicitly waives itemized blockers.
-- Current local `main` is aligned with `origin/main` at `b10bb7e` after the
-  Round 83 plan push. Future deployment-relevant pushes to `main` can still
-  trigger the production lane unless a manual nonprod lane is explicitly
-  selected.
+- Local `main` and `origin/main` were aligned at `3b7d1f4` after the Round 84
+  documentation push, before the Round 85 Codeup/Yunxiao feasibility docs
+  update. Future deployment-relevant pushes to `main` can still trigger the
+  production lane unless a manual nonprod lane is explicitly selected.
 - Real WeChat payment production config on ECS-2 remains incomplete. Strict
   payment readiness currently fails for missing/invalid merchant variables,
   key paths, API v3 key, and HTTPS notify URLs.
@@ -232,6 +244,10 @@
   such as Docker Hub BuildKit pulls. If this broader path remains unstable,
   move release images/artifacts to Alibaba Cloud-side free resources before the
   deploy cutover, then have ECS pull/load locally.
+- Codeup SSH and Yunxiao pipeline setup still need explicit credential
+  decisions. Do not copy a personal private key into the repo or docs; prefer a
+  dedicated Codeup deploy key/service connection and record only sanitized
+  ownership/permission facts.
 - User confirmed in Round 71 that the real payment private key/config is not
   fully provisioned yet. It is acceptable to use the explicit mock/nonprod lane
   for interim validation, but this must remain recorded as mock evidence and
