@@ -81,6 +81,13 @@
     and still reports the expected 32 unresolved external/manual evidence
     items.
   - `git diff --check`: passed.
+  - After pushing `7993721` to `main`, workflow run `26931880619` proved the
+    hardened Docker CLI path through backend/admin image build, GHCR push,
+    local image artifact export/upload, ECS deployment bundle download/sync,
+    backend image artifact download/load, and backend image availability check.
+    The run then failed at `Deploy backend host locally` in the production lane
+    with sanitized validation error `WECHAT_PAY_MCH_ID is required`; backend
+    container recreation and smoke did not run.
 - Goal correction:
   - The BuildKit helper-image blocker is mitigated, but current-branch
     deployment remains pending until a new workflow run reaches deploy/smoke.

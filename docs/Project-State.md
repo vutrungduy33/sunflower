@@ -203,6 +203,14 @@
   `moby/buildkit:buildx-stable-1` before building images. A static guard in
   `scripts/check_workflow_dispatch_lane_matrix.js` now fails if the Buildx
   action path is reintroduced.
+- Round 87 push-triggered workflow run `26931880619` for HEAD `7993721` proved
+  the hardened build path and ECS artifact path through backend/admin image
+  build, GHCR push, image artifact export/upload, ECS backend bundle
+  download/sync, backend image artifact download/load, and local backend image
+  availability. The run then failed at `Deploy backend host locally` in the
+  production lane with sanitized validation error `WECHAT_PAY_MCH_ID is
+  required`, so backend container recreation and post-deploy smoke still did
+  not run.
 - Round 60 pushed `98e68e0dd478` to `main` and triggered GitHub Actions run
   `26796051853`; backend/admin-web images built, but ECS-2 checkout stalled
   before deployment completed.
