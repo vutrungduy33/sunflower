@@ -46,8 +46,8 @@
 ## Latest Validation Baselines
 
 - Latest default aggregate local MVP regression:
-  `scripts/check_mvp_regression.sh` passed in Round 71 on local `main` HEAD
-  `2af1ed43dfc9` with backend/admin/miniapp/evidence/deploy-config checks and
+  `scripts/check_mvp_regression.sh` passed in Round 86 on local `main` HEAD
+  `158d894` with backend/admin/miniapp/evidence/deploy-config checks and
   production skipped.
 - Backend baseline from that run: `mvn -B test` passed with 57 tests, 0
   failures, 0 errors, and 0 skipped.
@@ -56,8 +56,9 @@
   external QA preflight (6 checks) passed.
 - Miniapp baseline from that run: smoke, behavior wiring (69 checks), user-flow
   replay (3 scenarios), payment-flow replay (5 scenarios), external preflight,
-  appid guard, and subpage nav guard passed. The default API base remains bare
-  HTTP for local/DevTools validation only.
+  appid guard, and subpage nav guard passed. The run still warns that the
+  default API base remains bare HTTP for local/DevTools validation only and
+  local `project.private.config.json` is absent.
 - Latest production read-only audit: Round 65
   `CURL_CONNECT_TIMEOUT=15 scripts/check_production_readonly_audit.sh` passed
   with deploy config static checks, production public/ECS internal smoke,
@@ -184,6 +185,15 @@
   be done through the console with account permissions; creating it through
   Yunxiao OpenAPI requires the appropriate Yunxiao API token/OpenAPI
   credentials and cannot be done with an ECS SSH key alone.
+- Round 86 refreshed the default local automated MVP regression on HEAD
+  `158d894`. The first run failed only at
+  `scripts/check_nonprod_dispatch_readiness.js` because
+  `CURRENT-BRANCH-DEPLOYED.nextAction` lacked the explicit
+  `workflow_dispatch` / `non-production/mock-payment` approval wording expected
+  by the guard. After updating that evidence text, a full second
+  `scripts/check_mvp_regression.sh` run passed all 5 enabled non-production
+  steps. No production smoke, workflow dispatch, ECS mutation, payment/refund,
+  or live QA was performed.
 - Round 60 pushed `98e68e0dd478` to `main` and triggered GitHub Actions run
   `26796051853`; backend/admin-web images built, but ECS-2 checkout stalled
   before deployment completed.
@@ -223,8 +233,8 @@
 
 - The active MVP goal is still open. Do not mark complete until strict closeout
   evidence passes or the user explicitly waives itemized blockers.
-- Local `main` and `origin/main` were aligned at `3b7d1f4` after the Round 84
-  documentation push, before the Round 85 Codeup/Yunxiao feasibility docs
+- Local `main` and `origin/main` were aligned at `158d894` after the Round 85
+  Codeup/Yunxiao feasibility push, before the Round 86 regression-refresh docs
   update. Future deployment-relevant pushes to `main` can still trigger the
   production lane unless a manual nonprod lane is explicitly selected.
 - Real WeChat payment production config on ECS-2 remains incomplete. Strict

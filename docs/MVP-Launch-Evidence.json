@@ -15,7 +15,7 @@
       "requirement": "Backend automated test suite remains green.",
       "status": "passed",
       "requiredForMvp": true,
-      "evidence": "Round 64 scripts/check_mvp_regression.sh passed on current local main HEAD 4a3f630f30eb. Backend mvn -B test passed with 57 tests, 0 failures, 0 errors, 0 skipped. Production checks were skipped by default.",
+      "evidence": "Round 86 scripts/check_mvp_regression.sh passed on current local main HEAD 158d894. Backend mvn -B test passed with 57 tests, 0 failures, 0 errors, and 0 skipped. Production checks were skipped by default.",
       "nextAction": "Re-run after backend changes or before final closeout."
     },
     {
@@ -24,7 +24,7 @@
       "requirement": "Admin web lint, tests, and production build remain green.",
       "status": "passed",
       "requiredForMvp": true,
-      "evidence": "Round 64 scripts/check_mvp_regression.sh passed on current local main HEAD 4a3f630f30eb. Admin web npm run lint passed, npm run test passed with 24 Vitest tests across 5 files, npm run build passed, behavior wiring passed 97 checks, and admin external QA preflight passed 6 checks. Production checks were skipped by default.",
+      "evidence": "Round 86 scripts/check_mvp_regression.sh passed on current local main HEAD 158d894. Admin web npm run lint passed, npm run test passed with 24 Vitest tests across 5 files, npm run build passed, behavior wiring passed 97 checks, and admin external QA preflight passed 6 checks. Production checks were skipped by default.",
       "nextAction": "Re-run after admin-web changes or before final closeout."
     },
     {
@@ -33,7 +33,7 @@
       "requirement": "Miniapp smoke checks and key JavaScript syntax checks pass.",
       "status": "passed",
       "requiredForMvp": true,
-      "evidence": "Round 64 scripts/check_mvp_regression.sh passed on current local main HEAD 4a3f630f30eb. Miniapp smoke, behavior wiring, user-flow replay, payment-flow replay, external preflight, project config, and subpage nav checks passed. The run still warned that the default API base is bare HTTP for local/devtools validation and local project.private.config.json is absent. Production checks were skipped by default.",
+      "evidence": "Round 86 scripts/check_mvp_regression.sh passed on current local main HEAD 158d894. Miniapp smoke, behavior wiring, user-flow replay, payment-flow replay, external preflight, project config appid guard, and subpage nav guard passed. The run still warned that the default API base is bare HTTP for local/devtools validation and local project.private.config.json is absent. Production checks were skipped by default.",
       "nextAction": "Re-run after miniapp changes or before final closeout; real preview/device evidence remains separate."
     },
     {
@@ -124,7 +124,7 @@
       "status": "pending",
       "requiredForMvp": true,
       "evidence": "Round 60 through Round 82 proved several deployment subpaths but not a complete current-branch deployment: earlier push/manual runs reached backend/admin image builds, ECS checkout or artifact download/load, and in run 26803892859 ECS-2 successfully downloaded/extracted/synced the deployment bundle artifact plus downloaded/loaded the backend image artifact. That run then failed production Deploy backend host locally with sanitized validation error WECHAT_PAY_MCH_ID is required, so the backend container was not recreated and post-deploy smoke did not run. Round 83 committed/pushed b10bb7e and triggered backend-only deployment_lane=nonprod-mock-payment workflow run 26804961943. detect-targets and package-deploy-bundle passed, build-admin-web was skipped as expected, but build-backend failed before ECS deploy because Docker Buildx on the GitHub hosted runner timed out pulling moby/buildkit:buildx-stable-1 from Docker Hub registry-1.docker.io. Backend image build, ECS deploy, and smoke did not run. Current-branch deployment remains unproven. If GitHub-to-ECS artifact/API downloads or GitHub-hosted external registry access remain unstable, the documented no-new-paid-service fallback is to move release images/artifacts to Alibaba Cloud-side free resources such as Alibaba Cloud Container Registry Personal Edition or an ECS-local signed artifact directory, then have ECS pull/load and deploy locally.",
-      "nextAction": "Decide the next deployment lane. For production-like evidence, provision real ECS-2 WeChat Pay variables/key files and rerun production deploy. For reduced-scope evidence, rerun deployment_lane=nonprod-mock-payment after build-path stability is addressed or treated as transient. If GitHub Actions to ECS remains unreliable, implement the Alibaba Cloud-side artifact fallback before further smoke attempts; record it as mock/nonprod until real payment, HTTPS domain, and post-deploy smoke pass."
+      "nextAction": "Decide the next deployment lane and get explicit workflow_dispatch approval before another deploy attempt. For production-like evidence, provision real ECS-2 WeChat Pay variables/key files and rerun production deploy. For reduced-scope evidence, dispatch deployment_lane=nonprod-mock-payment only after build-path stability is addressed or treated as transient; record it as non-production/mock-payment evidence, not real payment readiness. If GitHub Actions to ECS remains unreliable, implement the Alibaba Cloud-side artifact fallback before further smoke attempts; record it as mock/nonprod until real payment, HTTPS domain, and post-deploy smoke pass."
     }
   ]
 }

@@ -5,6 +5,82 @@
 > This active file keeps only the latest operational rounds. Older rounds are
 > archived in `docs/archive/mvp-progress/`.
 
+## Round 86: Current Main Local Regression Refresh
+
+- Date: 2026-06-04
+- Status: completed
+- Focus: refresh the local automated MVP regression baseline on current
+  `main` HEAD after the recent deployment/Codeup documentation rounds, without
+  touching production or external services.
+- Start evidence:
+  - Local `main` and `origin/main` are aligned at `158d894`.
+  - `docs/Project-State.md` still records the latest default aggregate local
+    regression from Round 71 on older HEAD `2af1ed43`.
+  - Strict closeout remains incomplete because external/manual evidence is
+    still pending; this round only refreshes local automated evidence.
+- Open-source reference check:
+  - Task classification: validation/documentation refresh only.
+  - Sources checked: repository-native regression scripts and active docs.
+  - License/compatibility: no external code or dependency reuse.
+  - Selected approach: run `scripts/check_mvp_regression.sh` in default
+    non-production mode, then update the compact state/readiness docs with the
+    actual result.
+  - Rejected options: running production smoke without a specific deployment
+    lane decision, marking external/manual evidence complete, or changing code
+    to make unrelated checks pass.
+- Risks:
+  - The aggregate regression can take several minutes because it includes
+    backend Maven tests and admin-web lint/test/build.
+  - Passing local automation does not prove WeChat real-device flows, real
+    payment/refund, HTTPS legal domain, current-branch deployment, or admin
+    production QA.
+- Acceptance criteria:
+  - Run `scripts/check_mvp_regression.sh` on clean current `main`.
+  - Record pass/fail details in `docs/Project-State.md`,
+    `docs/MVP-Readiness.md`, and this progress entry.
+  - Run focused document/evidence checks and `git diff --check`.
+  - Commit and push the documentation update once.
+- Execution:
+  - First `scripts/check_mvp_regression.sh` run: backend tests passed
+    (57 tests, 0 failures/errors/skips), admin-web lint/test/build passed
+    (24 Vitest tests), miniapp smoke/replay checks passed, and evidence checks
+    passed. The run failed at deploy config static checks because
+    `CURRENT-BRANCH-DEPLOYED.nextAction` did not include the explicit
+    `workflow_dispatch` / `non-production/mock-payment` wording required by
+    `scripts/check_nonprod_dispatch_readiness.js`.
+  - Updated only `docs/MVP-Launch-Evidence.json` next-action wording for
+    `CURRENT-BRANCH-DEPLOYED`; status remains `pending`.
+  - Second full `scripts/check_mvp_regression.sh` run: passed all 5 enabled
+    default non-production steps.
+- Verification:
+  - Backend: `mvn -B test` passed with 57 tests, 0 failures, 0 errors, 0
+    skipped.
+  - Admin web: `npm run lint`, `npm run test` (24 tests across 5 files),
+    `npm run build`, behavior wiring (97 checks), and external QA preflight
+    (6 checks) passed.
+  - Miniapp: smoke, behavior wiring (69 checks), user-flow replay
+    (3 scenarios), payment-flow replay (5 scenarios), external preflight,
+    appid guard, and subpage nav guard passed. Warnings remain for bare HTTP
+    default API base and missing local `project.private.config.json`, both
+    expected until real preview/HTTPS evidence.
+  - Evidence/deploy config: non-strict launch/manual QA/closeout checks passed
+    with the expected 32 unresolved external/manual evidence items; deploy
+    config static checks passed. Production checks were skipped by default.
+- Change summary:
+  - Updated `docs/MVP-Launch-Evidence.json` automatic evidence entries and the
+    current-branch deployment next-action wording.
+  - Refreshed `docs/Project-State.md` and `docs/MVP-Readiness.md` to make
+    Round 86 / HEAD `158d894` the latest local automated baseline.
+- Goal correction:
+  - The active MVP goal remains incomplete. Local automation is green, but
+    current-branch deployment, HTTPS legal domain, real miniapp preview/device
+    evidence, real payment/refund evidence, and admin production/staging manual
+    QA remain pending.
+- Next recommended round:
+  - Pick one external evidence lane instead of rerunning local-only checks:
+    either provision/approve a deploy lane for current-branch smoke, or collect
+    sanitized miniapp/admin manual QA evidence against an approved environment.
+
 ## Round 84: No-New-Paid-Service Deploy Fallback Research
 
 - Date: 2026-06-02
