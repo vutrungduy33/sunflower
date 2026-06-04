@@ -8,7 +8,7 @@
 ## Round 88: Backend Nonprod Mock Deployment Evidence
 
 - Date: 2026-06-04
-- Status: in progress
+- Status: completed
 - Focus: run the approved backend-only `deployment_lane=nonprod-mock-payment`
   workflow path on current `main` after Round 87 proved the Docker CLI build
   path, then record whether it can deploy backend and support reduced-scope
@@ -55,6 +55,59 @@
     fit the lane; otherwise capture the exact failed stage.
   - Update launch evidence/readiness/project state/progress docs, run focused
     evidence checks, commit, and push the docs-only record.
+- Execution:
+  - First strict readiness attempt failed because this Round 88 analysis entry
+    made the worktree dirty. Committed the analysis-only docs update as
+    `d5b9be1` and pushed it; docs-only push did not trigger the deploy
+    workflow.
+  - A second strict readiness attempt exposed a real evidence wording drift:
+    `CURRENT-BRANCH-DEPLOYED.nextAction` did not explicitly mention approval
+    before `push` / `merge` / `workflow_dispatch`. Updated the launch evidence
+    ledger, committed `1c75671`, and pushed it; docs-only push did not trigger
+    the deploy workflow.
+  - Strict `node scripts/check_nonprod_dispatch_readiness.js` passed 6 checks
+    on clean `main` HEAD `1c75671`.
+  - `scripts/dispatch_nonprod_mock_payment_deploy.sh --dry-run --target backend
+    --ref main` passed and printed the backend-only
+    `deployment_lane=nonprod-mock-payment` command.
+  - Executed the helper with
+    `CONFIRM_NONPROD_MOCK_DISPATCH=1 ... --execute --target backend --ref
+    main`, triggering workflow run `26932183311`.
+- Verification:
+  - Workflow run `26932183311` behavior:
+    - `detect-targets` passed and resolved backend-only nonprod/mock dispatch.
+    - `package-deploy-bundle` passed.
+    - `build-backend` passed: build, GHCR push, image artifact export/upload.
+    - `build-admin-web` was skipped as expected.
+    - `deploy-backend-host` passed deployment bundle download/extract/sync,
+      backend image artifact download/load, and image availability check.
+    - The runner deploy step passed
+      `scripts/check_nonprod_mock_payment_deploy_lane.sh`, then failed in
+      `deploy_backend.sh` after MySQL recreate because the MySQL app
+      credentials from `.env.prod` could not access database `sunflower` as
+      user `sunflower`.
+  - Post-failure read-only checks:
+    - `RUN_INTERNAL=1 scripts/check_production_smoke.sh`: passed 7 checks, 0
+      warnings. Public API/admin and ECS internal backend/mysql health remained
+      usable.
+    - `RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh`: passed 5 checks,
+      0 warnings. Backend 8080 remained bound to `172.25.121.83`, not public.
+    - `RUN_INTERNAL=1 scripts/check_backend_payment_config_readiness.sh`:
+      completed with the known 8 real WeChat Pay config issues.
+- Goal correction:
+  - The current branch still is not deployed through the approved path because
+    backend container recreation did not complete and post-deploy smoke did not
+    run. This run is useful reduced-scope diagnostic evidence only.
+  - The next deployment blocker is no longer Buildx, checkout, artifact
+    download, or production payment validation for this lane; it is ECS-2 MySQL
+    app credential alignment for the existing persisted `sunflower` database.
+- Next recommended round:
+  - Diagnose ECS-2 MySQL credential drift without printing secrets: compare
+    non-secret `.env.prod` variable presence, `.env.nonprod-mock.example`
+    overlay behavior, persisted MySQL users, and deployment script assumptions.
+    Prefer a fix that preserves real DB credentials from ECS `.env.prod` while
+    overlaying only the nonprod/mock payment lane variables, then rerun the
+    backend-only nonprod/mock dispatch.
 
 ## Round 87: GitHub Actions Docker Build Path Hardening
 

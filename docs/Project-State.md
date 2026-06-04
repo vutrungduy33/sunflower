@@ -211,6 +211,21 @@
   production lane with sanitized validation error `WECHAT_PAY_MCH_ID is
   required`, so backend container recreation and post-deploy smoke still did
   not run.
+- Round 88 triggered backend-only `deployment_lane=nonprod-mock-payment`
+  workflow run `26932183311` for HEAD `1c75671`. Strict local nonprod dispatch
+  readiness and the dry-run helper passed first. The run proved backend-only
+  target detection, deployment bundle packaging, backend Docker CLI image
+  build/GHCR push/image artifact export/upload, ECS-2 bundle download/sync,
+  backend image artifact download/load, and image availability.
+  `build-admin-web` was skipped as expected, and the runner passed the
+  nonprod/mock lane config guard. The local deploy then failed after MySQL
+  recreate because the MySQL app credentials from `.env.prod` could not access
+  database `sunflower` as user `sunflower`. Post-failure read-only production
+  smoke passed 7/7, backend 8080 exposure check passed 5/5, and payment
+  readiness still reported the known 8 real WeChat Pay config issues.
+  Current-branch deployment remains pending; the next reduced-scope deploy
+  blocker is ECS-2 MySQL app credential alignment, not Buildx, checkout,
+  artifact download, or production payment validation.
 - Round 60 pushed `98e68e0dd478` to `main` and triggered GitHub Actions run
   `26796051853`; backend/admin-web images built, but ECS-2 checkout stalled
   before deployment completed.
@@ -279,6 +294,11 @@
   fully provisioned yet. It is acceptable to use the explicit mock/nonprod lane
   for interim validation, but this must remain recorded as mock evidence and
   must not satisfy real payment/refund launch evidence.
+- Backend-only nonprod/mock deployment currently fails during ECS-2 local
+  backend deploy because the MySQL app credentials available to the deploy
+  environment cannot access the existing `sunflower` database as app user
+  `sunflower`. Investigate and fix credential/overlay alignment without
+  printing or committing secrets before the next nonprod/mock dispatch.
 - Miniapp real-device/preview evidence is still pending for HTTPS request
   domain, real AppID preview, WeChat login, phone binding, booking path, payment,
   refund, and error states.
