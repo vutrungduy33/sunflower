@@ -88,6 +88,12 @@
     `node scripts/check_mvp_closeout_readiness.js`: passed/non-strict, with the
     expected 32 unresolved required closeout items still listed.
   - `git diff --check`: passed.
+  - After commit/push, production-lane workflow run `26937269296` for
+    `f9ac47c` passed detect-targets, deployment bundle packaging, backend
+    Docker build/GHCR push/image artifact export/upload, ECS-2 deployment
+    bundle download/extract/sync, backend image artifact download/load, and
+    image availability. It then failed before backend recreation at the
+    expected production validation blocker: `WECHAT_PAY_MCH_ID is required`.
 - Outcome:
   - Backend service was restored and the schema drift now has a durable Flyway
     migration. Current MVP completion remains blocked by real payment config,

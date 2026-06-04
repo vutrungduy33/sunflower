@@ -251,6 +251,12 @@
   `RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh` passed. The repository
   now carries the durable Flyway repair as
   `V8__align_wechat_lob_columns.sql` plus a static migration guard.
+- Round 90 push-triggered production run `26937269296` for HEAD `f9ac47c`
+  proved the committed V8 backend image build/push/export path and ECS-2
+  deployment bundle plus backend image artifact download/load path. It then
+  failed before backend recreation at the expected production validation
+  blocker `WECHAT_PAY_MCH_ID is required`, so it did not replace the recovered
+  backend container or prove real payment readiness.
 - Round 60 pushed `98e68e0dd478` to `main` and triggered GitHub Actions run
   `26796051853`; backend/admin-web images built, but ECS-2 checkout stalled
   before deployment completed.
