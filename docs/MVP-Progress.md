@@ -5,6 +5,57 @@
 > This active file keeps only the latest operational rounds. Older rounds are
 > archived in `docs/archive/mvp-progress/`.
 
+## Round 88: Backend Nonprod Mock Deployment Evidence
+
+- Date: 2026-06-04
+- Status: in progress
+- Focus: run the approved backend-only `deployment_lane=nonprod-mock-payment`
+  workflow path on current `main` after Round 87 proved the Docker CLI build
+  path, then record whether it can deploy backend and support reduced-scope
+  smoke evidence without claiming real payment readiness.
+- Start evidence:
+  - Local `main` and `origin/main` are aligned at `1595345`.
+  - Worktree is clean.
+  - Latest push workflow run `26931880619` proved backend/admin image build,
+    GHCR push, image artifact export/upload, ECS backend bundle download/sync,
+    backend image artifact download/load, and local backend image availability.
+    It then failed only in the production lane with sanitized validation error
+    `WECHAT_PAY_MCH_ID is required`.
+  - `docs/Project-State.md`, `docs/CI-CD.md`, and
+    `scripts/dispatch_nonprod_mock_payment_deploy.sh` define the reduced-scope
+    lane: backend-only, no admin-web/Nginx refresh, mock payment only, real
+    WeChat auth preserved, and not real payment/refund evidence.
+- Open-source reference check:
+  - Task classification: operational deployment validation using
+    repository-native workflow and scripts.
+  - Sources checked: repository deployment workflow, dispatch helper,
+    readiness guard, CI/CD doc, project state, and launch evidence ledger.
+  - License/compatibility: no external code or dependency reuse.
+  - Selected approach: run the strict local nonprod dispatch readiness guard,
+    execute the existing dispatch helper with the required confirmation env,
+    observe the GitHub Actions run to completion, then record sanitized
+    evidence.
+  - Rejected options: production push/deploy without real payment config,
+    marking real payment/refund evidence passed, or changing the deploy lane
+    in the same round.
+- Risks:
+  - This dispatch mutates ECS-2 backend deployment state and may temporarily
+    run backend with mock payment configuration; it intentionally does not
+    refresh admin-web or Nginx.
+  - If ECS artifact/API downloads or runner local deploy steps fail, the result
+    should stay as diagnostic evidence rather than MVP completion.
+  - Passing this lane still leaves HTTPS legal domain, real device miniapp QA,
+    real payment/refund, admin manual QA, and production payment config pending.
+- Acceptance criteria:
+  - Strict nonprod dispatch readiness and dry-run helper pass on clean `main`.
+  - Execute `workflow_dispatch` with `deployment_lane=nonprod-mock-payment`,
+    `target=backend`, and `run_seed=false`.
+  - Observe the GitHub Actions run to completion and capture sanitized outcome.
+  - If backend deploy succeeds, run relevant read-only smoke/8080 checks that
+    fit the lane; otherwise capture the exact failed stage.
+  - Update launch evidence/readiness/project state/progress docs, run focused
+    evidence checks, commit, and push the docs-only record.
+
 ## Round 87: GitHub Actions Docker Build Path Hardening
 
 - Date: 2026-06-04
