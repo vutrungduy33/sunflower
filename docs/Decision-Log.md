@@ -232,6 +232,20 @@ Append durable decisions here. Keep entries short and include provenance.
 - Provenance: Round 88 workflow run `26932183311`, Round 89
   `scripts/test_execute_runner_deploy_release_env.sh`, `docs/CI-CD.md`.
 
+## 2026-06-04: Align WeChat Payment LOB Columns Through Flyway
+
+- Decision: Keep the WeChat payment/refund/notify JPA `@Lob String` mappings
+  and align the backing MySQL columns to `LONGTEXT` with a new versioned Flyway
+  migration instead of weakening Hibernate schema validation or editing the
+  already-applied V7 migration.
+- Rationale: Existing ECS schema used `TEXT`, which caused backend startup to
+  fail under production schema validation after the backend-only nonprod/mock
+  deploy reached container recreation. A forward migration is the durable and
+  auditable repair path.
+- Provenance: GitHub Actions run `26936565663`, ECS recovery on 2026-06-04,
+  `V8__align_wechat_lob_columns.sql`,
+  `scripts/check_wechat_payment_lob_migration.js`.
+
 ## 2026-06-02: Prefer Artifact-Based ECS Deploy If Checkout Remains Unstable
 
 - Decision: If ECS self-hosted runner access to GitHub remains unstable, keep

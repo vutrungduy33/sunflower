@@ -5,6 +5,95 @@
 > This active file keeps only the latest operational rounds. Older rounds are
 > archived in `docs/archive/mvp-progress/`.
 
+## Round 90: WeChat Payment LOB Schema Recovery
+
+- Date: 2026-06-04
+- Status: completed
+- Focus: recover ECS-2 backend health after the corrected backend-only
+  nonprod/mock deploy reached container recreation but failed Hibernate schema
+  validation because WeChat payment LOB columns were created as `TEXT` while
+  the JPA entities use `@Lob String`.
+- Start evidence:
+  - Local `main` had already committed and pushed Round 89 as `1747a6f`.
+  - Push-triggered production run `26936286888` proved the deployment bundle and
+    backend image artifact path with the new runtime overlay file, then failed
+    before backend recreation at the expected production validation blocker:
+    `WECHAT_PAY_MCH_ID is required`.
+  - Manual backend-only `deployment_lane=nonprod-mock-payment` run
+    `26936565663` proved the Round 89 overlay fix on ECS: `.env.prod` remained
+    the base env, `.env.nonprod-mock.example` supplied only mock-payment
+    overrides, MySQL app credential access passed, and backend deployment
+    reached container recreation. The backend then failed startup with
+    `Schema-validation: wrong column type ... decrypted_body ... found text ...
+    expecting longtext`.
+- Open-source reference check:
+  - Task classification: common Flyway/Spring Boot/Hibernate schema migration
+    repair.
+  - Sources checked: Hibernate ORM User Guide for `@Lob`/materialized `String`
+    LOB mapping, and Redgate/Flyway documentation for versioned SQL migrations.
+  - License/compatibility: official documentation only; no external source code
+    copied.
+  - Selected approach: keep the existing JPA API and add a new Flyway V8 SQL
+    migration that aligns all WeChat payment/refund/notify `@Lob String`
+    columns to `LONGTEXT`.
+  - Rejected options: editing already-applied V7, weakening production schema
+    validation, removing `@Lob`, or fixing only `decrypted_body` and waiting for
+    the next column mismatch.
+- Risks:
+  - This round included an ECS MySQL schema mutation to restore service before
+    committing the equivalent migration. The operation changed only WeChat
+    payment audit/snapshot text columns from `TEXT` to `LONGTEXT`.
+  - Current-branch deployment evidence is still reduced-scope: payment remains
+    mock/nonprod because real WeChat Pay private key/config is incomplete.
+  - Pushing a backend migration to `main` can trigger the production lane, which
+    is still expected to fail real payment validation until payment variables
+    and key files are provisioned.
+- Acceptance criteria:
+  - ECS-2 backend is restored healthy without printing secrets.
+  - Public production smoke and backend 8080 exposure checks pass after
+    recovery.
+  - A committed V8 Flyway migration makes the schema repair durable for future
+    deploys/new databases.
+  - A lightweight static guard covers the expected WeChat LOB columns.
+  - Backend tests and focused deployment/evidence checks pass; docs are updated
+    and the round is committed/pushed.
+- Execution:
+  - On ECS-2 MySQL, altered
+    `wechat_payment_orders.request_snapshot/response_snapshot`,
+    `wechat_refund_orders.request_snapshot/response_snapshot`, and
+    `wechat_notify_events.raw_headers/raw_body/decrypted_body` to `LONGTEXT`.
+  - Restarted backend through `scripts/deploy_backend.sh`; it completed
+    successfully and the backend became healthy.
+  - Confirmed ECS MySQL reports all seven affected columns as `longtext`.
+  - Added `V8__align_wechat_lob_columns.sql` with the same column changes.
+  - Added `scripts/check_wechat_payment_lob_migration.js` and wired it into
+    `scripts/check_deploy_config.sh`.
+- Verification:
+  - `RUN_INTERNAL=1 scripts/check_production_smoke.sh`: passed 7 checks, 0
+    warnings after recovery.
+  - `RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh`: passed 5 checks, 0
+    warnings; public backend 8080 remained unusable and ECS-1 private upstream
+    worked.
+  - `node scripts/check_wechat_payment_lob_migration.js`: passed for 7 expected
+    WeChat payment/refund/notify LOB columns.
+  - `scripts/check_deploy_config.sh`: passed, including the new LOB migration
+    guard.
+  - `cd sunflower-backend && mvn -B test`: passed, 57 tests, 0 failures, 0
+    errors, 0 skipped. The first attempt failed because H2 did not accept
+    multiple `MODIFY` clauses in one `ALTER TABLE`; V8 was changed to one
+    column per statement and the suite then passed.
+  - `node scripts/check_mvp_launch_evidence.js`,
+    `node scripts/check_mvp_handoff_packet.js`,
+    `node scripts/check_mvp_next_approval_request.js`, and
+    `node scripts/check_mvp_closeout_readiness.js`: passed/non-strict, with the
+    expected 32 unresolved required closeout items still listed.
+  - `git diff --check`: passed.
+- Outcome:
+  - Backend service was restored and the schema drift now has a durable Flyway
+    migration. Current MVP completion remains blocked by real payment config,
+    HTTPS legal domain, current-branch deployment evidence, and strict
+    miniapp/admin manual QA evidence.
+
 ## Round 89: Nonprod Mock Env Overlay Credential Fix
 
 - Date: 2026-06-04

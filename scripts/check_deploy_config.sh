@@ -79,7 +79,14 @@ check_node_syntax() {
   node --check "$ROOT_DIR/scripts/check_deployment_approval_preflight.js"
   node --check "$ROOT_DIR/scripts/check_workflow_dispatch_lane_matrix.js"
   node --check "$ROOT_DIR/scripts/check_nonprod_dispatch_readiness.js"
+  node --check "$ROOT_DIR/scripts/check_wechat_payment_lob_migration.js"
   log PASS "deployment Node.js script syntax checked"
+}
+
+check_wechat_payment_lob_migration() {
+  log INFO "checking WeChat payment LOB migration"
+  node "$ROOT_DIR/scripts/check_wechat_payment_lob_migration.js"
+  log PASS "WeChat payment LOB migration checked"
 }
 
 check_runner_deploy_release_metadata() {
@@ -127,6 +134,7 @@ main() {
   check_nonprod_dispatch_readiness
   check_nonprod_dispatch_helper
   check_node_syntax
+  check_wechat_payment_lob_migration
 
   log INFO "deploy config checks completed"
 }

@@ -237,6 +237,20 @@
   compose rendering through `load_runtime_envs`, and deployment bundle contents.
   This is not yet ECS deployment evidence until a new backend-only
   nonprod/mock dispatch completes and smoke is recorded.
+- Round 90 observed Round 89 after push. Production run `26936286888` proved the
+  deployment bundle/image artifact path with `.env.runtime-overlay.empty`, then
+  failed at the expected production payment validation blocker
+  `WECHAT_PAY_MCH_ID is required`. Backend-only nonprod/mock run `26936565663`
+  proved the overlay fix on ECS and reached backend recreation, then exposed a
+  new schema drift: WeChat payment `@Lob String` columns were `TEXT` in the
+  existing MySQL schema while Hibernate expected `LONGTEXT`. ECS-2 MySQL was
+  repaired by altering the seven payment/refund/notify LOB columns to
+  `LONGTEXT`, backend was restarted successfully through
+  `scripts/deploy_backend.sh`, and post-recovery
+  `RUN_INTERNAL=1 scripts/check_production_smoke.sh` plus
+  `RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh` passed. The repository
+  now carries the durable Flyway repair as
+  `V8__align_wechat_lob_columns.sql` plus a static migration guard.
 - Round 60 pushed `98e68e0dd478` to `main` and triggered GitHub Actions run
   `26796051853`; backend/admin-web images built, but ECS-2 checkout stalled
   before deployment completed.
@@ -295,14 +309,19 @@
   such as Docker Hub BuildKit pulls. If this broader path remains unstable,
   move release images/artifacts to Alibaba Cloud-side free resources before the
   deploy cutover, then have ECS pull/load locally.
+- Codeup repository SSH access is readable from the local machine with
+  `~/.ssh/id_ed25519`:
+  `git@codeup.aliyun.com:6a1e70a56ca3fad97ed1fbab/xiangrikui/sunflower.git`
+  exposes `refs/heads/main`. Yunxiao pipeline setup is no longer tracked in
+  this MVP thread.
 - User confirmed in Round 71 that the real payment private key/config is not
   fully provisioned yet. It is acceptable to use the explicit mock/nonprod lane
   for interim validation, but this must remain recorded as mock evidence and
   must not satisfy real payment/refund launch evidence.
 - Backend-only nonprod/mock deployment still needs a new dispatch after the
-  Round 89 overlay fix. If it still fails at MySQL app credential access, the
-  remaining issue is likely the existing ECS MySQL volume/user state rather
-  than the committed overlay file replacing `.env.prod`.
+  Round 90 Flyway V8 repair is committed and pushed. The previous MySQL app
+  credential blocker is fixed; the latest reduced-scope blocker was schema
+  drift, now repaired on ECS and in code.
 - Miniapp real-device/preview evidence is still pending for HTTPS request
   domain, real AppID preview, WeChat login, phone binding, booking path, payment,
   refund, and error states.
