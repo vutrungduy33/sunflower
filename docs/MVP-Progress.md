@@ -331,6 +331,60 @@
     deploy actions, mutate ECS, run payment/refund, log in to admin, or reduce
     the unresolved evidence count.
 
+## Round 112: Miniapp Local Baseline Refresh
+
+- Date: 2026-06-08
+- Status: completed
+- Focus: refresh current `main` miniapp automated validation evidence without
+  changing miniapp code or marking WeChat preview/real-device manual QA
+  complete.
+- Start evidence:
+  - `docs/Miniapp-MVP-QA.md` still said "Current as of 2026-06-02" and its
+    latest local payment-flow result was Round 44.
+  - `docs/Miniapp-Manual-QA.md`, `docs/MVP-Readiness.md`, and
+    `docs/Project-State.md` still recorded the direct miniapp baseline as
+    Round 97 or older.
+- Open-source reference check:
+  - Task classification: repository-local validation evidence refresh.
+  - Sources checked: existing miniapp checker scripts and project QA docs.
+  - License/compatibility: no external code copied.
+  - Selected approach: rerun the established smoke/wiring/replay/guard suite
+    instead of adding device automation before legal-domain/AppID/payment
+    evidence is ready.
+- Risks:
+  - This round must not confuse local Node/stubbed checks with real WeChat
+    preview, phone authorization, legal request-domain, payment, or refund
+    evidence.
+- Acceptance criteria:
+  - Miniapp smoke, behavior wiring, user-flow replay, payment-flow replay,
+    external QA preflight, project config guard, subpage nav guard, and key
+    JavaScript syntax checks pass.
+  - Update active miniapp QA/readiness/state docs with the current facts.
+  - Commit once.
+- Change summary:
+  - Refreshed miniapp local quality evidence to Round 112.
+  - Kept all 12 miniapp manual QA checks pending; no real AppID, WeChat login,
+    phone authorization, payment/refund, or device/manual QA was performed.
+- Verification:
+  - `node scripts/check_miniapp_mvp_smoke.js`: passed with the expected bare
+    HTTP API warning.
+  - `node scripts/check_miniapp_behavior_wiring.js`: passed with 69 checks.
+  - `node scripts/check_miniapp_user_flow_replay.js`: passed with 3 scenarios.
+  - `node scripts/check_miniapp_payment_flow_replay.js`: passed with
+    5 scenarios.
+  - `node scripts/check_miniapp_external_qa_preflight.js`: passed with
+    6 checks and the expected missing-private-config warning.
+  - `bash scripts/check_miniapp_project_config.sh`: passed.
+  - `bash scripts/check_mvp_subpage_nav.sh`: passed.
+  - `node --check` passed for `utils/mvp/api.js`, `utils/mvp/payment.js`,
+    `pages/mvp/home/index.js`, `pages/mvp/login/index.js`,
+    `pages/mvp/order-create/index.js`, and `pages/mvp/order-list/index.js`.
+- Outcome:
+  - Miniapp automated local quality is current on `main`, while WeChat
+    preview/real-device manual QA remains the closeout blocker. This round did
+    not push deploy actions, mutate ECS, run payment/refund, use a real AppID,
+    or reduce the unresolved evidence count.
+
 ## Round 109: Next Goal Prompt Current-Fact Refresh
 
 - Date: 2026-06-08

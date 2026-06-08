@@ -63,11 +63,11 @@
   (6 checks), and admin entry readiness (6 passes with 2 expected HTTP/IP
   warnings). The earlier resumed-goal notes about `_refundId` and 3
   failing/timed-out admin-web tests are stale and did not reproduce.
-- Latest direct miniapp automated baseline: Round 97 on clean local `main` HEAD
-  `2fc543e` passed smoke, behavior wiring (69 checks), user-flow replay (3
-  scenarios), payment-flow replay (5 scenarios), external QA preflight (6
-  checks), and key JavaScript syntax checks for `utils/mvp/api.js`,
-  `utils/mvp/payment.js`, `pages/mvp/home/index.js`,
+- Latest direct miniapp automated baseline: Round 112 on clean local `main`
+  passed smoke, behavior wiring (69 checks), user-flow replay (3 scenarios),
+  payment-flow replay (5 scenarios), external QA preflight (6 checks), project
+  config guard, MVP subpage nav guard, and key JavaScript syntax checks for
+  `utils/mvp/api.js`, `utils/mvp/payment.js`, `pages/mvp/home/index.js`,
   `pages/mvp/login/index.js`, `pages/mvp/order-create/index.js`, and
   `pages/mvp/order-list/index.js`. The run still warns that the default API
   base remains bare HTTP for local/DevTools validation only and local
@@ -147,6 +147,12 @@
   `_refundId`/timed-out-test startup notes remain resolved, but authenticated
   admin manual QA is still pending and the unresolved evidence count is
   unchanged.
+- Round 112 refreshed the direct miniapp automated validation on current
+  `main`: smoke, behavior wiring, user-flow replay, payment-flow replay,
+  external QA preflight, project config guard, subpage nav guard, and key
+  JavaScript syntax checks all passed. This confirms local automated miniapp
+  wiring remains current, but WeChat legal-domain, real AppID preview,
+  phone/login, payment/refund, and manual QA evidence remain pending.
 - Round 50 audited the original goal termination criteria and found the MVP
   incomplete. Round 58 later closed the backend `8080` item, leaving the
   current 32 unresolved required items. The completion conclusion remains

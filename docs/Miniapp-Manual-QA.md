@@ -18,22 +18,22 @@ bash scripts/check_mvp_subpage_nav.sh
 
 Current recorded baseline:
 
-- `node scripts/check_miniapp_mvp_smoke.js`: passed in Round 97 with the
+- `node scripts/check_miniapp_mvp_smoke.js`: passed in Round 112 with the
   expected bare HTTP API warning.
-- `node scripts/check_miniapp_behavior_wiring.js`: passed in Round 97 with 69
+- `node scripts/check_miniapp_behavior_wiring.js`: passed in Round 112 with 69
   key behavior wiring checks across 14 files.
-- `node scripts/check_miniapp_user_flow_replay.js`: passed in Round 97 with 3
+- `node scripts/check_miniapp_user_flow_replay.js`: passed in Round 112 with 3
   replay scenarios covering home/login bootstrap, order creation, and
   order-list actions.
-- `node scripts/check_miniapp_payment_flow_replay.js`: passed in Round 97 with
+- `node scripts/check_miniapp_payment_flow_replay.js`: passed in Round 112 with
   5 replay scenarios covering mock payment, real payment success,
   cancel/failure, and backend confirmation failure handling.
 - `node scripts/check_miniapp_external_qa_preflight.js`: added in Round 21 to
   check AppID/private-config boundaries and external QA readiness without
-  printing private AppID values; latest Round 97 run passed with the expected
+  printing private AppID values; latest Round 112 run passed with the expected
   local `project.private.config.json` absence warning.
-- `bash scripts/check_miniapp_project_config.sh`: passed in Round 92.
-- `bash scripts/check_mvp_subpage_nav.sh`: passed in Round 92.
+- `bash scripts/check_miniapp_project_config.sh`: passed in Round 112.
+- `bash scripts/check_mvp_subpage_nav.sh`: passed in Round 112.
 
 These checks prove project wiring, JavaScript syntax, and key static behavior
 bindings only. They do not prove real WeChat login, phone authorization, legal

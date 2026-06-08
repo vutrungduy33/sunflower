@@ -1,6 +1,6 @@
 # Miniapp MVP QA
 
-> Current as of 2026-06-02. This document records repeatable miniapp checks for
+> Current as of 2026-06-08 Round 112. This document records repeatable miniapp checks for
 > the MVP hardening goal. Automated checks here do not replace WeChat real-device
 > validation.
 
@@ -66,9 +66,25 @@ The payment-flow replay script checks:
 
 Latest local result:
 
-- `node scripts/check_miniapp_payment_flow_replay.js`: passed in Round 44 with
+- `node scripts/check_miniapp_mvp_smoke.js`: passed in Round 112 with the
+  expected bare HTTP API warning for local/DevTools validation.
+- `node scripts/check_miniapp_behavior_wiring.js`: passed in Round 112 with 69
+  key behavior wiring checks across 14 files.
+- `node scripts/check_miniapp_user_flow_replay.js`: passed in Round 112 with 3
+  replay scenarios covering home/login bootstrap, order creation, and
+  order-list actions.
+- `node scripts/check_miniapp_payment_flow_replay.js`: passed in Round 112 with
   5 replay scenarios: mock payment, real payment success, real payment cancel,
   real payment failure, and backend confirmation-pending.
+- `node scripts/check_miniapp_external_qa_preflight.js`: passed in Round 112
+  with 6 checks and the expected local `project.private.config.json` absence
+  warning.
+- `bash scripts/check_miniapp_project_config.sh`: passed in Round 112.
+- `bash scripts/check_mvp_subpage_nav.sh`: passed in Round 112.
+- Key JavaScript `node --check` commands passed in Round 112 for
+  `utils/mvp/api.js`, `utils/mvp/payment.js`, `pages/mvp/home/index.js`,
+  `pages/mvp/login/index.js`, `pages/mvp/order-create/index.js`, and
+  `pages/mvp/order-list/index.js`.
 
 Manual preview/real-device evidence is tracked in:
 
@@ -102,9 +118,9 @@ wx.setStorageSync('SUNFLOWER_API_BASE_URL', 'https://<api-domain>')
 
 Known filed miniapp domain:
 
-- `xiangrikui.cloud` is the miniapp备案 domain provided by the user on
-  2026-06-02. This records the domain fact only; final MVP evidence still needs
-  the concrete HTTPS API host under this domain, certificate validation, and
+- `xiangrikui.cloud` and `sunflower.cloud` are the备案 domains provided by the
+  user. This records the domain facts only; final MVP evidence still needs the
+  concrete HTTPS API host, certificate validation, backend health JSON, and
   WeChat backend legal request-domain configuration before `WECHAT-DOMAIN` or
   `MINIAPP-DOMAIN-HTTPS` can be marked passed.
 
