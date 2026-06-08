@@ -5,6 +5,45 @@
 > This active file keeps only the latest operational rounds. Older rounds are
 > archived in `docs/archive/mvp-progress/`.
 
+## Round 99: Aggregate MVP Regression Refresh
+
+- Date: 2026-06-08
+- Status: completed
+- Focus: rerun the default aggregate MVP regression on the current clean `main`
+  so the repo-wide validation baseline matches the latest admin-web and
+  miniapp refreshes.
+- Start evidence:
+  - Local `main` and `origin/main` were aligned at `af46357` (`0 0` divergence).
+  - Worktree was clean before validation.
+  - `docs/Project-State.md` and `docs/MVP-Readiness.md` still pointed to the
+    older Round 92 aggregate regression as the latest repo-wide baseline.
+- Open-source reference check:
+  - Task classification: repository-local validation baseline refresh.
+  - Sources checked: existing regression scripts, current command output, and
+    the already-established project docs.
+  - License/compatibility: no external code copied.
+  - Selected approach: run the canonical aggregate regression and update the
+    baseline docs only.
+- Risks:
+  - The default aggregate regression skips production smoke, so it cannot
+    replace the separate read-only deployment audit or real preview/manual QA.
+  - The unresolved miniapp/admin/manual/deployment evidence remains pending.
+- Acceptance criteria:
+  - `scripts/check_mvp_regression.sh` passes on current `main`.
+  - `docs/Project-State.md`, `docs/MVP-Readiness.md`, and launch evidence point
+    to the fresh aggregate baseline.
+  - Commit the baseline refresh.
+- Verification:
+  - `scripts/check_mvp_regression.sh`: passed with backend tests, admin-web
+    lint/test/build plus behavior/external preflight, miniapp smoke/wiring/user
+    flow/payment flow/external preflight/appid/nav guards, non-strict evidence
+    checks, and deploy config static checks. Production checks were skipped by
+    default.
+- Outcome:
+  - The repo-wide local MVP regression baseline is current again on `main`.
+    This still leaves external miniapp/admin QA, HTTPS/payment/refund evidence,
+    and production-like current-branch deployment evidence unresolved.
+
 ## Round 98: Deployment Workflow Status Clarification
 
 - Date: 2026-06-08

@@ -51,9 +51,10 @@
 ## Latest Validation Baselines
 
 - Latest default aggregate local MVP regression:
-  `scripts/check_mvp_regression.sh` passed in Round 92 on local `main` HEAD
-  `7cc7e04` with backend/admin/miniapp/evidence/deploy-config checks and
-  production skipped.
+  `scripts/check_mvp_regression.sh` passed in Round 99 on clean local `main`
+  HEAD `af46357`, aligned with `origin/main`, with backend/admin/miniapp,
+  evidence, and deploy-config checks enabled. Production checks were skipped by
+  default.
 - Backend baseline from that run: `mvn -B test` passed with 57 tests, 0
   failures, 0 errors, and 0 skipped.
 - Latest direct admin-web baseline: Round 96 on clean local `main` HEAD

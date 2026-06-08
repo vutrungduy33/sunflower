@@ -41,14 +41,15 @@ waived by the user.
 
 Latest aggregate regression:
 
-- `scripts/check_mvp_regression.sh`: passed in Round 92 on local `main` HEAD
-  `7cc7e04` with the default 5 non-production steps: backend tests
-  (57 tests), admin-web lint/test/build plus behavior/external preflight,
-  miniapp smoke/wiring/user-flow replay/payment-flow replay/external preflight,
-  non-strict evidence checks including the termination audit guard, and deploy
-  config static checks. Production checks were skipped by default. The run
-  still reports 32 unresolved required closeout items in non-strict evidence
-  checks, matching the pending external miniapp/admin/deployment evidence.
+- `scripts/check_mvp_regression.sh`: passed in Round 99 on clean local `main`
+  HEAD `af46357`, aligned with `origin/main`, with the default 5
+  non-production steps: backend tests (57 tests), admin-web lint/test/build
+  plus behavior/external preflight, miniapp smoke/wiring/user-flow
+  replay/payment-flow replay/external preflight/appid/nav guards, non-strict
+  evidence checks including the termination audit guard, and deploy config
+  static checks. Production checks were skipped by default. The run still
+  reports 32 unresolved required closeout items in non-strict evidence checks,
+  matching the pending external miniapp/admin/deployment evidence.
 - `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: last passed in Round 47
   on local `main` HEAD `8d9b11d` with backend, admin-web, miniapp,
   non-strict evidence, deploy config static checks, and production read-only
