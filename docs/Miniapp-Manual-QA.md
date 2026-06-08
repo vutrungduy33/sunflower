@@ -89,6 +89,16 @@ node scripts/check_miniapp_https_domain.js https://<api-domain>
   them as domain context only until a concrete HTTPS API host under the chosen
   domain, certificate result, and WeChat legal request-domain configuration are
   verified.
+- Round 107 read-only domain recheck:
+  - `sunflower.cloud` currently has a trusted GoDaddy certificate valid until
+    2026-10-04 and returns HTTP 200 on `/api/health`, but the response body is
+    an HTML lander redirect rather than the backend health JSON. It is not
+    valid miniapp API evidence yet.
+  - `xiangrikui.cloud`, `api.sunflower.cloud`, and `api.xiangrikui.cloud`
+    still fail TLS handshake or SNI validation in the read-only checker.
+  - `scripts/check_miniapp_https_domain.js` now requires the backend
+    `/api/health` marker by default so certificate-only or landing-page hosts
+    cannot be mistaken for usable API domains.
 - Do not commit real AppID, phone numbers, auth tokens, openId/unionId, merchant
   credentials, payment payloads, transaction ids, raw screenshots with personal
   data, or full order identifiers.

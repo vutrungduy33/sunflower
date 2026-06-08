@@ -119,6 +119,12 @@
   `scripts/check_mvp_termination_audit.js` to derive the current 32-item
   closeout boundary from the active ledgers instead of the older hardcoded
   33-item pre-8080-hardening shape.
+- Round 107 hardened `scripts/check_miniapp_https_domain.js` so the default
+  miniapp domain check now requires backend health JSON at `/api/health`.
+  Read-only rechecks found `sunflower.cloud` has a trusted GoDaddy certificate
+  but serves an HTML lander at `/api/health`; `xiangrikui.cloud`,
+  `api.sunflower.cloud`, and `api.xiangrikui.cloud` still fail TLS/SNI. No DNS,
+  certificate, or WeChat backend setting was changed.
 - Round 50 audited the original goal termination criteria and found the MVP
   incomplete. Round 58 later closed the backend `8080` item, leaving the
   current 32 unresolved required items. The completion conclusion remains
@@ -378,10 +384,12 @@
 - Real WeChat payment production config on ECS-2 remains incomplete. Strict
   payment readiness currently fails for missing/invalid merchant variables,
   key paths, API v3 key, and HTTPS notify URLs.
-- `sunflower.cloud` is备案 according to the user, but current DNS/TLS evidence
-  is not WeChat-ready: the domain records must be pointed to the public ingress,
-  a trusted HTTPS certificate must be installed, TLS must be rechecked, and the
-  chosen API host must be added as a WeChat miniapp legal request domain.
+- `sunflower.cloud` is备案 according to the user and currently has a trusted
+  certificate, but it is not WeChat-ready as a miniapp API domain because
+  `/api/health` returns an HTML lander instead of backend health JSON.
+  `xiangrikui.cloud` and the tested `api.*` candidates still fail TLS/SNI. The
+  chosen API host must point to the public ingress, serve backend API responses
+  over trusted HTTPS, and be added as a WeChat miniapp legal request domain.
 - GitHub Actions self-hosted checkout on ECS-2 has intermittent outbound
   connectivity to GitHub. If this remains unstable, the preferred no-new-paid
   service path is to keep image builds/artifacts on GitHub-hosted runners and

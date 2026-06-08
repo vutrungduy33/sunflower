@@ -1,6 +1,6 @@
 # MVP Launch Evidence
 
-> Current as of 2026-06-02. This is the evidence ledger for the active MVP
+> Current as of 2026-06-08. This is the evidence ledger for the active MVP
 > hardening goal. It complements `docs/MVP-Readiness.md` and prevents external
 > validation gaps from being mistaken for completed launch readiness.
 
@@ -54,6 +54,8 @@ The MVP goal is therefore still open.
 The remaining launch evidence is concentrated in these areas:
 
 - WeChat HTTPS legal request domain and certificate readiness.
+  Current checkers require the chosen host to return backend health JSON at
+  `/api/health`, not just a valid certificate or HTML landing page.
 - WeChat preview or real-device login. Detailed miniapp QA ledger:
   `docs/Miniapp-Manual-QA.md`.
 - Phone authorization and backend phone binding. Detailed miniapp QA ledger:

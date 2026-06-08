@@ -117,6 +117,62 @@
     did not push, dispatch, deploy, mutate ECS, run payment/refund, or reduce
     the unresolved evidence count.
 
+## Round 107: Miniapp HTTPS Domain Recheck
+
+- Date: 2026-06-08
+- Status: completed
+- Focus: recheck the user-provided备案 domains and harden the miniapp HTTPS
+  domain checker so it proves a backend health response, not just certificate
+  validity or a landing page.
+- Start evidence:
+  - `docs/MVP-Launch-Evidence.json` still marked `WECHAT-DOMAIN` pending.
+  - `docs/Miniapp-Manual-QA.json` still recorded no passing HTTPS legal-domain
+    evidence.
+  - The existing checker only verified DNS/TLS/HTTP 200 and could miss an HTML
+    lander page.
+- Open-source reference check:
+  - Task classification: common HTTPS/legal-request-domain validation helper.
+  - Sources checked: existing repository checker style, `docs/Miniapp-Manual-QA.md`,
+    `docs/Architecture.md`, and the official WeChat mini program network /
+    request-domain guidance referenced by the project docs, plus Let's Encrypt
+    ACME certificate automation docs.
+  - License/compatibility: no external code copied.
+  - Selected approach: strengthen the existing read-only checker instead of
+    adding a new dependency or mutating DNS/certificates.
+- Risks:
+  - This round must not claim the domain is ready unless the backend health JSON
+    appears at `/api/health`.
+- Acceptance criteria:
+  - Harden `scripts/check_miniapp_https_domain.js` so the default health check
+    requires backend health JSON.
+  - Rerun read-only domain checks for `xiangrikui.cloud`, `sunflower.cloud`,
+    `api.sunflower.cloud`, and `api.xiangrikui.cloud`.
+  - Update launch/readiness/project-state and miniapp QA docs with the current
+    facts.
+  - Commit once.
+- Change summary:
+  - Added backend-health-body validation to `scripts/check_miniapp_https_domain.js`
+    so certificate-only or landing-page hosts no longer pass the default
+    `/api/health` check.
+  - Rechecked the备案 domains: `sunflower.cloud` has a trusted GoDaddy cert but
+    returns an HTML lander at `/api/health`; `xiangrikui.cloud` and both `api.*`
+    candidates still fail TLS/SNI.
+  - Updated the launch evidence, miniapp QA, readiness, and project-state docs
+    to reflect the current non-ready HTTPS domain evidence.
+- Verification:
+  - `node --check scripts/check_miniapp_https_domain.js`: passed.
+  - `node scripts/check_miniapp_https_domain.js --min-valid-days=1 https://sunflower.cloud`: failed on the HTML lander body, as intended.
+  - `node scripts/check_miniapp_https_domain.js --min-valid-days=1 https://xiangrikui.cloud`: failed TLS handshake.
+  - `node scripts/check_miniapp_https_domain.js --min-valid-days=1 https://api.sunflower.cloud`: failed TLS/SNI.
+  - `node scripts/check_miniapp_https_domain.js --min-valid-days=1 https://api.xiangrikui.cloud`: failed TLS handshake.
+  - `node scripts/check_mvp_launch_evidence.js`: still reports 8 pending launch
+    entries.
+  - `git diff --check`: passed.
+- Outcome:
+  - The checker is now stricter and the current certificate/domain evidence is
+    accurately marked as still pending. No DNS, certificate, or WeChat backend
+    setting was changed.
+
 ## Round 104: Readiness Evidence Count Consistency
 
 - Date: 2026-06-08

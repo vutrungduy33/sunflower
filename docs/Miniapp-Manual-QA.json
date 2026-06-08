@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-06-02",
+  "updatedAt": "2026-06-08",
   "summary": "Manual WeChat DevTools preview / real-device QA ledger for sunflower-miniapp MVP user path. Keep AppID, tokens, phone numbers, payment payloads, screenshots with personal data, and merchant credentials out of Git.",
   "statusValues": ["passed", "pending", "blocked", "waived"],
   "environment": {
@@ -19,8 +19,8 @@
       "relatedApis": ["/api/health", "/api/content/home"],
       "status": "pending",
       "requiredForMvp": true,
-      "evidence": "Not recorded in repo. Default API base remains bare HTTP IP for DevTools/local validation only.",
-      "nextAction": "Set SUNFLOWER_API_BASE_URL to the HTTPS API domain in a local preview build, run node scripts/check_miniapp_https_domain.js https://<api-domain>, and record domain/date/certificate result without secrets."
+      "evidence": "Not recorded as passing in repo. Round 107 reran read-only DNS/TLS/API checks after strengthening scripts/check_miniapp_https_domain.js to require the /api/health backend marker. sunflower.cloud has a trusted GoDaddy certificate and HTTP 200 at /api/health but returns an HTML lander redirect instead of the backend health JSON, so it is not valid miniapp API evidence. xiangrikui.cloud and api.* candidates still fail TLS handshake. Default API base remains bare HTTP IP for DevTools/local validation only.",
+      "nextAction": "Set SUNFLOWER_API_BASE_URL to the HTTPS API domain in a local preview build only after the chosen hostname returns backend health JSON at /api/health, run node scripts/check_miniapp_https_domain.js https://<api-domain>, and record domain/date/certificate result without secrets."
     },
     {
       "id": "MINIAPP-APPID-PREVIEW",

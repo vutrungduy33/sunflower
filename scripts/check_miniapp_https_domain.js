@@ -8,6 +8,7 @@ const net = require('net');
 const DEFAULT_PATH = '/api/health';
 const DEFAULT_TIMEOUT_MS = 8000;
 const DEFAULT_MIN_VALID_DAYS = 14;
+const DEFAULT_EXPECT_BODY = '"status":"UP"';
 
 let passCount = 0;
 let warnCount = 0;
@@ -34,12 +35,13 @@ function fail(message) {
 function printUsage() {
   console.log([
     'Usage:',
-    '  node scripts/check_miniapp_https_domain.js [--path=/api/health] [--timeout-ms=8000] [--min-valid-days=14] https://api.example.com',
+    '  node scripts/check_miniapp_https_domain.js [--path=/api/health] [--timeout-ms=8000] [--min-valid-days=14] [--expect-body=\'"status":"UP"\'] https://api.example.com',
     '',
     'Notes:',
     '  - Hostnames without a scheme are treated as https://<host>.',
     '  - The check is read-only: DNS lookup, HTTPS request, TLS certificate inspection.',
     '  - Successful TLS handshake uses Node certificate and hostname validation.',
+    '  - The default /api/health check requires a backend health response, not just a 200 HTML page.',
   ].join('\n'));
 }
 
@@ -48,6 +50,7 @@ function parseArgs(argv) {
     path: DEFAULT_PATH,
     timeoutMs: DEFAULT_TIMEOUT_MS,
     minValidDays: DEFAULT_MIN_VALID_DAYS,
+    expectBody: DEFAULT_EXPECT_BODY,
     targets: [],
   };
 
@@ -66,6 +69,10 @@ function parseArgs(argv) {
     }
     if (arg.startsWith('--min-valid-days=')) {
       options.minValidDays = Number(arg.slice('--min-valid-days='.length));
+      continue;
+    }
+    if (arg.startsWith('--expect-body=')) {
+      options.expectBody = arg.slice('--expect-body='.length);
       continue;
     }
     options.targets.push(arg);
@@ -119,13 +126,17 @@ function requestHttps(url, timeoutMs) {
       rejectUnauthorized: true,
       timeout: timeoutMs,
     }, (response) => {
+      const chunks = [];
       const certificate = response.socket ? response.socket.getPeerCertificate() : null;
-      response.resume();
+      response.on('data', (chunk) => {
+        chunks.push(Buffer.from(chunk));
+      });
       response.on('end', () => {
         resolve({
           statusCode: response.statusCode,
           statusMessage: response.statusMessage,
           certificate,
+          body: Buffer.concat(chunks).toString('utf8'),
         });
       });
     });
@@ -157,6 +168,22 @@ function certificateSummary(certificate) {
     validTo: certificate.valid_to || '<unknown>',
     daysRemaining,
   };
+}
+
+function bodyMatchesExpected(body, expected) {
+  if (!expected) {
+    return true;
+  }
+
+  if (expected === DEFAULT_EXPECT_BODY) {
+    return /"status"\s*:\s*"UP"/.test(body);
+  }
+
+  return body.includes(expected);
+}
+
+function compactPreview(body) {
+  return body.replace(/\s+/g, ' ').slice(0, 120);
 }
 
 async function checkTarget(rawTarget, options) {
@@ -199,6 +226,12 @@ async function checkTarget(rawTarget, options) {
     pass(`${url.href} returned HTTP ${result.statusCode}`);
   } else {
     fail(`${url.href} returned HTTP ${result.statusCode} ${result.statusMessage || ''}`.trim());
+  }
+
+  if (bodyMatchesExpected(result.body, options.expectBody)) {
+    pass(`${url.href} response body matches expected marker`);
+  } else {
+    fail(`${url.href} response body did not match expected marker ${JSON.stringify(options.expectBody)}; preview=${JSON.stringify(compactPreview(result.body))}`);
   }
 }
 
