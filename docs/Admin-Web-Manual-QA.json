@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-06-02",
+  "updatedAt": "2026-06-08",
   "summary": "Manual production/staging QA ledger for sunflower-admin-web MVP operations. Keep secrets, phone numbers, SMS codes, raw screenshots, and real payment/order payloads out of Git.",
   "statusValues": ["passed", "pending", "blocked", "waived"],
   "environment": {
     "targetName": "production-or-approved-staging",
     "adminEntryUrl": "http://47.113.223.248/",
     "apiEntryUrl": "http://47.113.223.248/api",
-    "notes": "Replace with HTTPS/domain evidence when the production domain is ready. Do not commit account credentials."
+    "notes": "Round 108 read-only entry preflight passed for the temporary HTTP/IP admin entry and API health, but HTTPS/domain evidence and authenticated manual QA remain pending. Replace with HTTPS/domain evidence when the production domain is ready. Do not commit account credentials."
   },
   "checks": [
     {
@@ -51,8 +51,8 @@
       "relatedApis": ["/api/health", "/api/admin/reports/summary"],
       "status": "pending",
       "requiredForMvp": true,
-      "evidence": "Not recorded in repo.",
-      "nextAction": "Record sanitized browser/runtime result and API status summary."
+      "evidence": "Not recorded as passing in repo because authenticated workspace/manual browser QA is still pending. Round 108 read-only entry preflight verified the temporary HTTP/IP admin HTML shell, /healthz, and /api/health without login or data mutation.",
+      "nextAction": "Record sanitized browser/runtime result and API status summary after logging in with a dedicated QA admin account. Keep Round 108 as entry-readiness evidence only, not authenticated workspace QA."
     },
     {
       "id": "ADMIN-ROOM-LIST-EDIT",

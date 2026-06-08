@@ -32,6 +32,7 @@ const requiredCommands = [
   'node scripts/check_mvp_closeout_readiness.js --strict',
   'node scripts/check_mvp_launch_evidence.js --strict',
   'node scripts/check_miniapp_manual_qa.js --strict',
+  'node scripts/check_admin_web_entry_readiness.js',
   'node scripts/check_admin_web_manual_qa.js --strict',
   'node scripts/generate_mvp_external_evidence_template.js',
   'node scripts/check_mvp_external_evidence_template.js',

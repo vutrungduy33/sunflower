@@ -73,6 +73,7 @@ Admin web:
 (cd sunflower-admin-web && npm run lint && npm run test && npm run build)
 node scripts/check_admin_web_behavior_wiring.js
 node scripts/check_admin_web_external_qa_preflight.js
+node scripts/check_admin_web_entry_readiness.js
 ```
 
 Miniapp syntax smoke:
@@ -143,6 +144,7 @@ Admin manual QA evidence:
 ```bash
 node scripts/check_admin_web_manual_qa.js
 node scripts/check_admin_web_manual_qa.js --strict
+node scripts/check_admin_web_entry_readiness.js
 ```
 
 ## Open-Source Reference Trigger

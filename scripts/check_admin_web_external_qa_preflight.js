@@ -185,6 +185,7 @@ function checkDocsContainSafetyRules() {
     'bearer tokens',
     'cookies',
     'explicit user approval',
+    'node scripts/check_admin_web_entry_readiness.js',
   ];
   for (const phrase of qaRequiredPhrases) {
     if (!qaDoc.includes(phrase)) {

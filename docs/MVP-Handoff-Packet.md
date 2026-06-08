@@ -238,6 +238,7 @@ Round 48 strict admin-web manual QA result:
 ```bash
 node scripts/check_mvp_launch_evidence.js --strict
 node scripts/check_miniapp_manual_qa.js --strict
+node scripts/check_admin_web_entry_readiness.js
 node scripts/check_admin_web_manual_qa.js --strict
 node scripts/check_mvp_closeout_readiness.js --strict
 ```
@@ -247,6 +248,7 @@ Non-strict daily summaries:
 ```bash
 node scripts/check_mvp_launch_evidence.js
 node scripts/check_miniapp_manual_qa.js
+node scripts/check_admin_web_entry_readiness.js
 node scripts/check_admin_web_manual_qa.js
 node scripts/check_mvp_next_approval_request.js
 node scripts/check_mvp_next_goal_prompt.js

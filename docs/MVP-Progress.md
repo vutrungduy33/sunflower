@@ -173,6 +173,65 @@
     accurately marked as still pending. No DNS, certificate, or WeChat backend
     setting was changed.
 
+## Round 108: Admin Entry Readiness Probe
+
+- Date: 2026-06-08
+- Status: completed
+- Focus: add and record a read-only admin-web entry readiness probe so future
+  admin manual QA starts from a repeatable public entry/API health check.
+- Start evidence:
+  - `docs/Admin-Web-Manual-QA.json` still had 2026-06-02 environment metadata.
+  - `ADMIN-PROD-QA` remained pending, and the admin manual QA ledger had no
+    recorded external entry-readiness evidence.
+  - Existing `scripts/check_production_smoke.sh` verifies broad production
+    smoke, but there was no admin-specific operator preflight command.
+- Open-source reference check:
+  - Task classification: common admin operations QA / external entry readiness
+    preflight.
+  - Sources checked: existing project smoke and admin preflight scripts,
+    `docs/Admin-Web-MVP-QA.md`, `docs/Admin-Web-Manual-QA.json`, and the
+    Playwright/Testing Library guidance already referenced by the admin QA
+    document.
+  - License/compatibility: no external code copied.
+  - Selected approach: add a small repository-local Node checker that performs
+    only read-only HTTP probes and keep authenticated/manual QA pending.
+- Risks:
+  - The entry probe must not be confused with successful admin login or
+    operator workflow QA.
+  - It must not mutate rooms, prices, orders, after-sale state, SMS, or payment
+    data.
+- Acceptance criteria:
+  - Add `scripts/check_admin_web_entry_readiness.js`.
+  - Verify temporary admin HTML, `/healthz`, and `/api/health` from the recorded
+    admin QA ledger URLs.
+  - Update admin QA/readiness/state/progress docs without changing pending
+    manual QA statuses.
+  - Run focused validators and commit once.
+- Change summary:
+  - Added `scripts/check_admin_web_entry_readiness.js`, which reads
+    `docs/Admin-Web-Manual-QA.json`, checks the admin HTML shell, admin
+    `/healthz`, and API `/health`, and warns when the entry remains HTTP/IP.
+  - Updated admin QA docs, launch evidence, readiness, context index, and
+    project state so the command is part of the operator handoff.
+  - Recorded Round 108 as entry-readiness evidence only; all 12 admin manual QA
+    checks remain pending.
+- Verification:
+  - `node --check scripts/check_admin_web_entry_readiness.js`: passed.
+  - `node scripts/check_admin_web_entry_readiness.js`: passed against
+    `http://47.113.223.248/`, `/healthz`, and `/api/health`, with expected
+    HTTP/IP warnings.
+  - `node scripts/check_admin_web_external_qa_preflight.js`: passed.
+  - `node scripts/check_admin_web_manual_qa.js`: passed in non-strict mode and
+    still reported 12 pending required checks.
+  - `node scripts/check_mvp_launch_evidence.js`: passed in non-strict mode and
+    still reported 8 pending launch entries.
+  - `git diff --check`: passed.
+- Outcome:
+  - Admin external entry readiness is now repeatable and documented, while the
+    authenticated admin-web manual QA blocker remains explicit. This round did
+    not log in, send SMS, mutate data, push deploy actions, or reduce the
+    unresolved evidence count.
+
 ## Round 104: Readiness Evidence Count Consistency
 
 - Date: 2026-06-08

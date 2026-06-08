@@ -1,6 +1,6 @@
 # Admin Web MVP QA
 
-> Current as of 2026-06-02. This document is the admin-web operations QA entry
+> Current as of 2026-06-08. This document is the admin-web operations QA entry
 > point for MVP handoff. It does not store production credentials or raw customer
 > data.
 
@@ -12,29 +12,30 @@ Run from the repository root:
 cd sunflower-admin-web && npm run lint && npm run test && npm run build
 node scripts/check_admin_web_behavior_wiring.js
 node scripts/check_admin_web_external_qa_preflight.js
+node scripts/check_admin_web_entry_readiness.js
 ```
 
 Current recorded baseline:
 
-- `npm run lint`: passed again in Round 45 on local `main` using Node
-  `v20.20.1`.
-- `npm run test`: passed again in Round 45 on local `main` using Node
-  `v20.20.1`, 24 tests across 5 files.
-- `npm run build`: passed again in Round 45 on local `main` using Node
-  `v20.20.1`.
-- `node scripts/check_admin_web_behavior_wiring.js`: passed again in Round 45
-  with 97 key behavior wiring checks across 16 files.
-- `node scripts/check_admin_web_external_qa_preflight.js`: passed again in
-  Round 45 with 6 checks.
-- Previous Round 42 baseline: `npm run lint`, `npm run test` with 23 tests
-  across 5 files.
+- `npm run lint`: passed in Round 96.
+- `npm run test`: passed in Round 96, 24 tests across 5 files.
+- `npm run build`: passed in Round 96.
+- `node scripts/check_admin_web_behavior_wiring.js`: passed in Round 96 with
+  97 key behavior wiring checks across 16 files.
+- `node scripts/check_admin_web_external_qa_preflight.js`: passed in Round 96
+  with 6 checks.
+- `node scripts/check_admin_web_entry_readiness.js`: added in Round 108 and
+  passed against the temporary HTTP/IP admin entry. It verifies only the public
+  admin HTML shell, `/healthz`, and `/api/health` without login or data
+  mutation. It warns that HTTPS/domain evidence remains pending.
 - `node scripts/check_admin_web_external_qa_preflight.js` checks admin manual
   QA environment URLs, required evidence IDs, high-risk mutation next actions,
   sensitive evidence boundaries, and credential/live-data safety wording before
   production or approved-staging QA.
 
 Older notes about an unused `_refundId` lint issue or 3 failing/timed-out
-admin-web tests are stale; the Round 42 direct recheck did not reproduce them.
+admin-web tests are stale; the current Round 96 direct baseline did not
+reproduce them.
 
 The automated tests cover auth page behavior, protected shell routing, room
 management, price/inventory management, order list/detail/actions, after-sale
@@ -56,6 +57,7 @@ Check commands:
 ```bash
 node scripts/check_admin_web_manual_qa.js
 node scripts/check_admin_web_manual_qa.js --strict
+node scripts/check_admin_web_entry_readiness.js
 ```
 
 Use the normal command during development to see unresolved admin QA items. Use
@@ -183,3 +185,10 @@ state before a human starts production or approved-staging admin QA:
 
 The preflight does not log in, mutate data, send SMS, or validate a browser
 session. It only makes the manual QA boundary harder to misread.
+
+`node scripts/check_admin_web_entry_readiness.js` is the read-only runtime entry
+probe for the admin QA operator. It reads `docs/Admin-Web-Manual-QA.json`,
+checks the recorded admin entry URL, `/healthz`, and API `/health`, and warns
+when the entry remains temporary HTTP/IP instead of HTTPS/domain. Passing this
+script does not satisfy `ADMIN-PROD-QA`; authenticated browser QA and safe data
+operations still need manual evidence or explicit waivers.

@@ -125,6 +125,11 @@
   but serves an HTML lander at `/api/health`; `xiangrikui.cloud`,
   `api.sunflower.cloud`, and `api.xiangrikui.cloud` still fail TLS/SNI. No DNS,
   certificate, or WeChat backend setting was changed.
+- Round 108 added `scripts/check_admin_web_entry_readiness.js` and wired it
+  into the admin QA docs and preflight checks. The script verifies the temporary
+  HTTP/IP admin entry, `/healthz`, and `/api/health` without login or data
+  mutation. It is entry-readiness evidence only and does not satisfy
+  authenticated admin manual QA.
 - Round 50 audited the original goal termination criteria and found the MVP
   incomplete. Round 58 later closed the backend `8080` item, leaving the
   current 32 unresolved required items. The completion conclusion remains
