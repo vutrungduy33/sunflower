@@ -112,6 +112,13 @@
   unresolved required evidence items, backend `8080` hardening passed, and
   current-branch deployment gated by explicit approval plus clean deployment
   preflight. This did not change ledger status.
+- Round 106 added `scripts/check_mvp_next_goal_prompt.js` and wired it into
+  `scripts/check_mvp_regression.sh` evidence checks so the fresh-goal handoff
+  prompt is now machine-checked for current facts, approval lanes, safety
+  boundaries, commands, and stale wording. The same round updated
+  `scripts/check_mvp_termination_audit.js` to derive the current 32-item
+  closeout boundary from the active ledgers instead of the older hardcoded
+  33-item pre-8080-hardening shape.
 - Round 50 audited the original goal termination criteria and found the MVP
   incomplete. Round 58 later closed the backend `8080` item, leaving the
   current 32 unresolved required items. The completion conclusion remains

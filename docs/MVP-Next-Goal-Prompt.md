@@ -35,7 +35,7 @@
 ## Goal Prompt
 
 ```text
-在 /Users/chenyao/dev/miniapp/sunflower 继续有限 MVP 收口目标：把小程序、admin-web、后端和部署链路推进到“主要功能真实可用、证据可验证、交接可复现”的上线可用状态。不要无休止优化；只围绕剩余 MVP 证据、必要缺陷修复和安全交接推进。
+在 /Users/chenyao/dev/miniapp/sunflower 继续有限 MVP 收口目标：把小程序、admin-web、后端和部署链路推进到“主要功能真实可用、证据可验证、交接可复现”的上线可用状态。keep the full objective intact，不要把成功标准缩小到已经完成的局部；不要无休止优化；只围绕剩余 MVP 证据、必要缺陷修复和安全交接推进。
 
 启动动作：
 1. 读取 AGENTS.md、docs/Agent-Memory.md、docs/Context-Index.md、docs/Project-State.md、docs/MVP-Handoff-Packet.md、docs/MVP-Readiness.md、docs/MVP-Closeout-Audit.md、docs/MVP-Next-Goal-Prompt.md。

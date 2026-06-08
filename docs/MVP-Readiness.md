@@ -213,6 +213,7 @@ node scripts/generate_mvp_external_evidence_template.js
 node scripts/check_mvp_external_evidence_template.js
 node scripts/check_mvp_external_approval_packet.js
 node scripts/check_mvp_next_approval_request.js
+node scripts/check_mvp_next_goal_prompt.js
 node scripts/check_mvp_handoff_packet.js
 node scripts/check_mvp_termination_audit.js
 node scripts/check_mvp_closeout_readiness.js
@@ -319,6 +320,11 @@ external/manual evidence remains pending.
 `docs/MVP-Next-Approval-Request.md` still names every unresolved evidence id,
 approval lane, safety boundary, and validation command needed for the next
 human-approved evidence round.
+
+`node scripts/check_mvp_next_goal_prompt.js` verifies
+`docs/MVP-Next-Goal-Prompt.md` still reflects the current finite-goal handoff
+facts, approval lanes, safety boundaries, and command set, while rejecting
+stale baseline/count/backend-8080-pending wording.
 
 When HTTPS/domain is ready, also verify:
 

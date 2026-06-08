@@ -65,6 +65,58 @@
     This was a docs-only handoff round; it did not push, dispatch, deploy,
     mutate ECS, run payment/refund, or reduce the unresolved evidence count.
 
+## Round 106: Next Goal Prompt Guard
+
+- Date: 2026-06-08
+- Status: completed
+- Focus: add an automated guard for `docs/MVP-Next-Goal-Prompt.md` so the fresh
+  goal handoff prompt cannot silently drift back to stale baseline, unresolved
+  count, or backend `8080` pending wording.
+- Start evidence:
+  - Round 105 refreshed the prompt, but no dedicated checker enforced it.
+  - `scripts/check_mvp_regression.sh` already guarded handoff, approval,
+    evidence, manual QA, closeout, and termination docs in the evidence step.
+- Open-source reference check:
+  - Task classification: repository-local evidence/document checker.
+  - Sources checked: existing checker scripts
+    `scripts/check_mvp_handoff_packet.js`,
+    `scripts/check_mvp_next_approval_request.js`, and
+    `scripts/check_mvp_external_approval_packet.js`.
+  - License/compatibility: no external code copied.
+  - Selected approach: follow the existing Node checker pattern and wire the
+    new guard into the aggregate MVP regression evidence step.
+- Risks:
+  - The checker must verify the prompt without changing ledger status or
+    narrowing the goal.
+- Acceptance criteria:
+  - Add `scripts/check_mvp_next_goal_prompt.js`.
+  - Wire it into `scripts/check_mvp_regression.sh` evidence checks.
+  - Update current command docs and progress/state docs.
+  - Run focused checker/regression evidence validation and commit once.
+- Change summary:
+  - Added `scripts/check_mvp_next_goal_prompt.js` to machine-check the fresh
+    goal prompt against the current unresolved evidence count, current facts,
+    approval lanes, commands, and safety boundaries.
+  - Wired the new prompt checker into the MVP regression evidence step and kept
+    `scripts/check_mvp_handoff_packet.js` in sync with the new command.
+  - Refreshed `docs/MVP-Next-Goal-Prompt.md`, `docs/MVP-Handoff-Packet.md`,
+    `docs/MVP-Readiness.md`, `docs/Context-Index.md`, `docs/Project-State.md`,
+    and `docs/MVP-Closeout-Audit.md` so the active docs and the closeout audit
+    all point at the current 32-item evidence boundary.
+- Verification:
+  - `node scripts/check_mvp_next_goal_prompt.js`: passed.
+  - `node scripts/check_mvp_handoff_packet.js`: passed.
+  - `node scripts/check_mvp_termination_audit.js`: passed after replacing the
+    stale hardcoded 33-item assumption with ledger-derived counts.
+  - `RUN_BACKEND=0 RUN_ADMIN=0 RUN_MINIAPP=0 RUN_DEPLOY_CONFIG=0 scripts/check_mvp_regression.sh`: passed with evidence checks enabled.
+  - `git diff --check`: passed.
+- Outcome:
+  - The next-goal prompt is now machine-checked, the handoff packet and
+    termination audit are synchronized with the active 32-item closeout shape,
+    and the round is complete. This was a docs-and-checker maintenance round; it
+    did not push, dispatch, deploy, mutate ECS, run payment/refund, or reduce
+    the unresolved evidence count.
+
 ## Round 104: Readiness Evidence Count Consistency
 
 - Date: 2026-06-08

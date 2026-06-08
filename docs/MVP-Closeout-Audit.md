@@ -1,6 +1,6 @@
 # MVP Closeout Audit
 
-> Audit date: 2026-06-02. This is a requirement-by-requirement evidence check
+> Audit date: 2026-06-08. This is a requirement-by-requirement evidence check
 > for the active MVP hardening goal.
 
 ## 1. Completion Summary
@@ -9,13 +9,11 @@ The repository is substantially closer to MVP readiness, but the full goal is
 not complete yet because several explicit launch requirements depend on
 external production/mobile validation that is not currently proven.
 
-Round 56 completion audit result: **not complete and local-only progress is
-exhausted**. The current worktree was clean on local `main` at commit
-`d9db23166dba` before the Round 56 documentation update, but the strict closeout
-evidence requirements are still unresolved: 9 launch evidence entries, 12
-miniapp manual QA checks, and 12 admin-web manual QA checks remain pending.
-This preserves the Round 50 conclusion as a historical invariant: Round 50
-completion audit result: **not complete**.
+Current completion audit result: **not complete and local-only completion is
+not enough**. The strict closeout evidence requirements are still unresolved:
+8 launch evidence entries, 12 miniapp manual QA checks, and 12 admin-web manual
+QA checks remain pending. This preserves the Round 50 conclusion as a
+historical invariant: Round 50 completion audit result: **not complete**.
 
 Round 58 update: `BACKEND-8080-HARDENING` passed after backend `8080` was
 rebound to ECS-2 private IP `172.25.121.83` and
@@ -28,12 +26,12 @@ miniapp manual QA checks, and 12 admin-web manual QA checks.
 
 | Termination criterion | Current evidence | Result |
 | --- | --- | --- |
-| Backend tests pass and core API health check is usable. | Backend `mvn -B test` passed with 57 tests in the Round 47 aggregate baseline. Production `/api/health` and `/api/content/home` read-only smoke passed in production checks. | Proven locally and read-only production healthy. Keep green after future backend changes. |
-| Admin-web lint/test/build pass and main operations are usable. | Round 47 aggregate baseline passed `npm run lint`, `npm run test` with 24 Vitest tests across 5 files, `npm run build`, 97 behavior wiring checks, and 6 external QA preflight checks. Manual production or approved-staging admin QA remains pending. | Automated readiness proven; manual operational evidence not complete. |
-| Miniapp main user path has explicit verification record and key JS has no syntax errors. | Round 47 miniapp smoke, behavior wiring, user-flow replay, payment-flow replay, project config, subpage nav, and key JS syntax checks passed. WeChat preview/real-device login, phone binding, HTTPS domain, payment, refund, and order-path manual QA entries remain pending. | Local/replay readiness proven; real WeChat evidence not complete. |
-| GitHub automatic deployment pipeline is preserved/explainable, and production smoke is recorded. | `docs/CI-CD.md` and `docs/Architecture.md` describe the single GitHub Actions deploy workflow. Round 46 read-only production audit and Round 47 production checks passed. Round 49 deployment approval preflight passed for local `main` HEAD `a072612b94a6`, but no push/dispatch/deploy was performed. | Pipeline and smoke are documented; current-branch deployment evidence not complete. |
-| `docs/Project-State.md`, `docs/MVP-Readiness.md`, and `docs/Decision-Log.md` reflect current facts. | Project-state and readiness are maintained as current active state docs; decision log records durable process and evidence decisions. Round 50 reconciles the closeout audit and readiness facts. | Proven after Round 50 doc update. |
-| Worktree is clean and final round has committed code. | At Round 50 start, `git status --short --branch --untracked-files=all` showed clean local `main` ahead of `origin/main` by 53 commits at `3e0618b`. | Must be rechecked after Round 50 commit. |
+| Backend tests pass and core API health check is usable. | Round 99 default aggregate regression reran backend `mvn -B test`: 57 tests passed with 0 failures/errors/skips. Round 100 read-only production audit passed public/ECS internal smoke. | Proven locally and read-only production healthy. Keep green after future backend changes. |
+| Admin-web lint/test/build pass and main operations are usable. | Round 96 direct admin-web validation passed `npm run lint`, `npm run test` with 24 Vitest tests across 5 files, `npm run build`, 97 behavior wiring checks, and 6 external QA preflight checks. Manual production or approved-staging admin QA remains pending. | Automated readiness proven; manual operational evidence not complete. |
+| Miniapp main user path has explicit verification record and key JS has no syntax errors. | Round 97 direct miniapp validation passed smoke, behavior wiring, user-flow replay, payment-flow replay, external preflight, and key JavaScript syntax checks. WeChat preview/real-device login, phone binding, HTTPS domain, payment, refund, and order-path manual QA entries remain pending. | Local/replay readiness proven; real WeChat evidence not complete. |
+| GitHub automatic deployment pipeline is preserved/explainable, and production smoke is recorded. | `docs/CI-CD.md` and `docs/Architecture.md` describe the single GitHub Actions deploy workflow. Round 100 production read-only audit passed, and Round 91 backend-only `deployment_lane=nonprod-mock-payment` proved reduced-scope backend deployment. Full current-branch production-like deployment evidence remains pending. | Pipeline and smoke are documented; current-branch deployment evidence not complete. |
+| `docs/Project-State.md`, `docs/MVP-Readiness.md`, and `docs/Decision-Log.md` reflect current facts. | Project-state and readiness are maintained as current active state docs; decision log records durable process and evidence decisions. Round 103 refreshed architecture/CI-CD facts and Round 104/Round 105 aligned readiness and fresh-goal handoff facts. | Current docs are maintained; keep them synchronized after each round. |
+| Worktree is clean and final round has committed code. | Each round must recheck `git status --short --branch --untracked-files=all` before closeout. The active goal cannot be complete while this round has uncommitted changes. | Must be rechecked after the final commit. |
 
 Completion conclusion: the active MVP goal cannot be marked complete until the
 manual/external evidence is collected or explicitly waived and the strict
@@ -43,27 +41,17 @@ closeout commands pass.
 
 Local automated checks:
 
-- `scripts/check_mvp_regression.sh`: passed with backend/admin/miniapp/evidence
-  checks enabled and production checks skipped by default.
+- `scripts/check_mvp_regression.sh`: passed in Round 99 with backend/admin/miniapp/evidence checks enabled and production checks skipped by default.
 - `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: passed again in Round 39
   on 2026-06-02 08:58 Asia/Shanghai at pre-commit HEAD `255558f001e9` with
   backend/admin/miniapp/evidence/deploy-config/production checks enabled.
 - `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh`: passed again in Round 47
-  on current local `main` HEAD `8d9b11d` with 6 enabled steps:
-  backend/admin/miniapp/evidence/deploy-config/production read-only checks.
-- `cd sunflower-backend && mvn -B test`: passed, 57 tests, 0 failures, 0
-  errors, 0 skipped.
-- `cd sunflower-admin-web && npm run lint`: passed.
-- `cd sunflower-admin-web && npm run test`: passed in the latest Round 47
-  aggregate regression, 24 tests across 5 files.
-- `cd sunflower-admin-web && npm run build`: passed.
-- Round 42 direct admin-web recheck on 2026-06-02 09:21-09:22 Asia/Shanghai
-  passed `npm run lint`, `npm run test` with 23 tests across 5 files, and
-  `npm run build` using Node `v20.20.1`; the older `_refundId`/3-test-failure
-  notes are stale.
-- `node scripts/check_miniapp_mvp_smoke.js`: passed with expected warning that
-  the default API base is bare HTTP and only suitable for local/devtools
-  validation.
+  on local `main` HEAD `8d9b11d` with production read-only checks enabled.
+- `cd sunflower-backend && mvn -B test`: passed in the Round 99 aggregate baseline, 57 tests, 0 failures, 0 errors, 0 skipped.
+- `cd sunflower-admin-web && npm run lint`: passed in Round 96.
+- `cd sunflower-admin-web && npm run test`: passed in Round 96, 24 tests across 5 files.
+- `cd sunflower-admin-web && npm run build`: passed in Round 96.
+- `node scripts/check_miniapp_mvp_smoke.js`: passed in Round 97 with expected warning that the default API base is bare HTTP and only suitable for local/devtools validation.
 - `bash scripts/check_miniapp_project_config.sh`: passed.
 - `bash scripts/check_mvp_subpage_nav.sh`: passed.
 
@@ -74,12 +62,12 @@ Production smoke:
   backend `8080` read-only exposure checks enabled.
 - Production checks inside the Round 47
   `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh` run passed again on
-  current local `main` HEAD `8d9b11d`.
-- `RUN_INTERNAL=1 scripts/check_production_smoke.sh`: passed with 7 checks and
-  1 known backend-bind warning.
-- `RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh`: passed read-only
-  checks with 3 passes and 2 warnings; this does not prove security group
-  restriction.
+  local `main` HEAD `8d9b11d`.
+- Round 100 `scripts/check_production_readonly_audit.sh` passed production
+  smoke with 7 passes and 0 warnings.
+- Round 100 backend `8080` exposure checks passed with 5 passes and 0 warnings,
+  confirming the backend is bound to `172.25.121.83:8080` rather than the
+  public interface.
 - `http://47.113.223.248/api/health`: 200.
 - `http://47.113.223.248/api/content/home`: 200.
 - `http://47.113.223.248/healthz`: 200.
@@ -106,12 +94,12 @@ Workflow and docs:
 - `node scripts/check_mvp_closeout_readiness.js` now summarizes launch,
   miniapp manual QA, and admin-web manual QA closeout status in one place.
 - `docs/MVP-Handoff-Packet.md` now gives the next operator a compact,
-  machine-checked entry point for the 33 unresolved required closeout items.
+  machine-checked entry point for the 32 unresolved required closeout items.
 
 ## 3. Latest Strict Closeout Result
 
-Round 48 reran the strict closeout commands after the Round 47 automated
-baseline:
+Historical pre-hardening baseline: Round 48 reran the strict closeout commands
+after the Round 47 automated baseline:
 
 - `node scripts/check_mvp_launch_evidence.js --strict`: expected non-zero,
   because 9 required launch evidence entries remain pending.
@@ -122,12 +110,12 @@ baseline:
 - `node scripts/check_mvp_closeout_readiness.js --strict`: expected non-zero,
   because 33 required closeout items remain unresolved.
 
-These strict failures are not new automated-regression failures. They are the
-current authoritative proof that the MVP cannot be marked complete without
-external evidence or explicit itemized waivers.
+These historical strict failures were not automated-regression failures. They
+showed the same evidence-gated completion boundary before backend `8080`
+hardening reduced the current launch-evidence blocker count.
 
 Round 50 reran the non-strict closeout/evidence summaries and confirmed the
-same unresolved shape remains authoritative:
+same historical unresolved shape:
 
 - Launch evidence: 13 required entries, 4 passed, 9 pending.
 - Miniapp manual QA: 12 required checks, 0 passed, 12 pending.
@@ -135,7 +123,8 @@ same unresolved shape remains authoritative:
 - Aggregate closeout: 33 unresolved required items.
 
 Round 56 reran the strict closeout commands on local `main` HEAD
-`d9db23166dba` and confirmed the same unresolved shape still blocks completion:
+`d9db23166dba` and confirmed the same historical unresolved shape still blocked
+completion at that time:
 
 - `node scripts/check_mvp_launch_evidence.js --strict`: failed because 9
   required launch entries remain pending.
@@ -157,6 +146,10 @@ Round 58 changed the launch-evidence shape:
 - Admin-web manual QA: 12 required checks, 0 passed, 12 pending.
 - Aggregate closeout: 32 unresolved required items.
 
+Round 106 keeps the current closeout shape machine-checked by deriving the
+termination-audit guard from the three active ledgers instead of hardcoding the
+older pre-8080-hardening 33-item count.
+
 ## 4. Requirements Still Not Proven
 
 - WeChat real-device or preview validation for login, phone authorization, and
@@ -169,16 +162,17 @@ Round 58 changed the launch-evidence shape:
 - Backend `8080` hardening passed in Round 58. ECS-2 now publishes backend only
   on private IP `172.25.121.83:8080`, ECS-1 private upstream remains healthy,
   and public direct backend `8080` is not usable.
-- Current local `main` is ahead of `origin/main`; it has not been pushed, so
-  current repository commits have not triggered production deploy.
+- Current-branch deployment evidence remains pending until an approved push,
+  merge, or workflow dispatch is verified with clean deployment preflight and
+  post-deploy smoke.
 - Admin web production manual QA with a real admin account is not recorded as
   passed in this repository.
 - `node scripts/check_admin_web_manual_qa.js --strict` currently fails because
   12 required admin manual QA checks remain pending.
 - `node scripts/check_mvp_launch_evidence.js --strict` currently fails because
-  9 required launch evidence entries remain pending.
+  8 required launch evidence entries remain pending.
 - `node scripts/check_mvp_closeout_readiness.js --strict` currently fails
-  because 33 required closeout items remain unresolved across launch, miniapp
+  because 32 required closeout items remain unresolved across launch, miniapp
   manual QA, and admin-web manual QA ledgers.
 
 ## 5. Goal Status

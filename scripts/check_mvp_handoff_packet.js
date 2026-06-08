@@ -37,6 +37,7 @@ const requiredCommands = [
   'node scripts/check_mvp_external_evidence_template.js',
   'node scripts/check_mvp_external_approval_packet.js',
   'node scripts/check_mvp_next_approval_request.js',
+  'node scripts/check_mvp_next_goal_prompt.js',
   'node scripts/check_deployment_approval_preflight.js',
   'node scripts/check_workflow_dispatch_lane_matrix.js',
   'bash scripts/check_nonprod_mock_payment_deploy_lane.sh',
