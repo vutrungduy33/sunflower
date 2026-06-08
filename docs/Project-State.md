@@ -25,7 +25,7 @@
 - Alibaba Cloud Codeup SSH access from this workstation was verified on
   2026-06-04 after the public key was added: read-only `git ls-remote` against
   the Codeup `sunflower` repository returned `main` successfully. Yunxiao
-  pipeline setup is not tracked in this MVP thread.
+  migration is planned in `docs/Codeup-Yunxiao-Migration-Plan.md`.
 
 ## Current Architecture
 
@@ -318,8 +318,9 @@
 - Codeup repository SSH access is readable from the local machine with
   `~/.ssh/id_ed25519`:
   `git@codeup.aliyun.com:6a1e70a56ca3fad97ed1fbab/xiangrikui/sunflower.git`
-  exposes `refs/heads/main`. Yunxiao pipeline setup is no longer tracked in
-  this MVP thread.
+  exposes `refs/heads/main`. The selected migration route is Codeup + Yunxiao
+  Flow + existing Alibaba Cloud ECS + ECS-local artifacts, with no image
+  registry in v1; see `docs/Codeup-Yunxiao-Migration-Plan.md`.
 - User confirmed in Round 71 that the real payment private key/config is not
   fully provisioned yet. It is acceptable to use the explicit mock/nonprod lane
   for interim validation, but this must remain recorded as mock evidence and

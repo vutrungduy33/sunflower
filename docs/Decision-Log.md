@@ -295,6 +295,22 @@ Append durable decisions here. Keep entries short and include provenance.
   Codeup/Yunxiao official documentation, read-only ECS inspection on
   2026-06-04.
 
+## 2026-06-04: Plan Yunxiao Migration With ECS-Local Artifacts
+
+- Decision: Plan the GitHub Actions migration around Alibaba Cloud Codeup +
+  Yunxiao Flow + the existing Alibaba Cloud ECS hosts, using ECS-local release
+  artifacts for v1 instead of introducing GHCR, ACR, SWR, or another image
+  registry as the normal deployment path.
+- Rationale: The current reliability issue is the GitHub Actions/ECS artifact
+  and external network path, while the runtime hosts remain Alibaba Cloud ECS.
+  Keeping the CI/CD control plane and deployment targets in Alibaba Cloud
+  reduces cross-cloud network and security-group complexity. Reusing the
+  existing bundle/image-tar + `scripts/execute_runner_deploy.sh` path preserves
+  ECS-owned `.env.prod` secrets and keeps the first migration narrowly scoped.
+- Provenance: `docs/Codeup-Yunxiao-Migration-Plan.md`, `docs/CI-CD.md`,
+  `docs/Project-State.md`, Alibaba Cloud Yunxiao Flow/Codeup official
+  documentation, and read-only Codeup/Yunxiao credential checks on 2026-06-04.
+
 ## 2026-06-02: Add MVP Handoff Packet
 
 - Decision: Use `docs/MVP-Handoff-Packet.md` as the compact first-read handoff

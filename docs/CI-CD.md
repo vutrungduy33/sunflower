@@ -180,6 +180,7 @@ deploy path 必填：
 - `bash scripts/check_nonprod_mock_payment_deploy_lane.sh`
 - `node scripts/check_workflow_dispatch_lane_matrix.js`
 - `node scripts/check_nonprod_dispatch_readiness.js`
+- `node scripts/check_codeup_yunxiao_migration_plan.js`
 - `scripts/dispatch_nonprod_mock_payment_deploy.sh --dry-run`
 - `ruby -e 'require "yaml"; YAML.load_file(".github/workflows/deploy-backend.yml")'`
 - `docker compose -f docker-compose.backend.yml --env-file .env.prod.example config`
@@ -289,13 +290,14 @@ artifact/API 下载部署包和镜像 artifact。若该链路继续不稳定，�
    - mock/nonprod lane 仍只能作为 reduced-scope evidence，不能替代真实
      WeChat Pay/refund launch evidence。
 
-5. Codeup / 云效流水线待办
-   - 当前 ECS-2 `/opt/sunflower` 是 GitHub HTTPS clone，尚未切换为 Codeup
-     SSH remote。
-   - 当前 ECS-1/ECS-2 常见用户目录未发现 `~/.ssh/id_ed25519`，因此尚不能
-     证明 ECS 本机密钥可以访问
-     `git@codeup.aliyun.com:6a1e70a56ca3fad97ed1fbab/xiangrikui/sunflower.git`。
-   - Codeup Git SSH 访问需要把对应公钥上传到 Codeup/云效账号，并在执行
-     `git ls-remote` / clone 的机器上配置匹配私钥。
-   - 云效流水线可以通过控制台人工创建；若要通过 OpenAPI 自动创建，需要
-     云效 API token/OpenAPI 凭证，不能仅靠 ECS 主机 SSH key 完成。
+5. Codeup / 云效迁移计划
+   - 迁移目标文档：
+     [Codeup-Yunxiao-Migration-Plan.md](/Users/chenyao/dev/miniapp/sunflower/docs/Codeup-Yunxiao-Migration-Plan.md)。
+   - 已选路线：Codeup + 云效 Flow + 现有阿里云 ECS + ECS 本地制品；v1 不
+     引入 GHCR/ACR/SWR 等镜像仓库。
+   - 已验证：本机 `~/.ssh/id_ed25519` 可只读访问 Codeup `sunflower` 仓库
+     `main`；云效 OpenAPI 可读取 `向日葵民宿开发部`
+     (`6a1e70a56ca3fad97ed1fbab`) 组织和流水线列表，当前流水线列表为空。
+   - 待人工配置：在云效 Flow 创建流水线、确认 Codeup 仓库 UI 可选、接入
+     ECS-1/ECS-2 主机组、配置非业务密钥变量、设置制品保留和首次手动
+     nonprod/mock 验证。

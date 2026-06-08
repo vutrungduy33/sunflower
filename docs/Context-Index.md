@@ -14,7 +14,7 @@
 
 | Task | Read |
 | --- | --- |
-| Architecture / deployment | `docs/Architecture.md`, `docs/CI-CD.md`, `docs/S19-Prod-Deployment-Config.md`, compose files, and deployment scripts. Load `docs/Production-Smoke.md` only for production-smoke evidence/history. |
+| Architecture / deployment | `docs/Architecture.md`, `docs/CI-CD.md`, `docs/S19-Prod-Deployment-Config.md`, `docs/Codeup-Yunxiao-Migration-Plan.md`, compose files, and deployment scripts. Load `docs/Production-Smoke.md` only for production-smoke evidence/history. |
 | Backend API / contracts | `docs/API.md`, `docs/API-Schemas.md`, `sunflower-backend/src/main/java/**`, backend tests. Load `docs/Backend-MVP-QA.md` only for QA checklist updates. |
 | Database / persistence | `docs/DB-Design.md`, `docs/DataDictionary.md`, Flyway migrations, seed SQL |
 | Admin web | `sunflower-admin-web/src/**`, admin web tests, `docs/Web-Admin-Plan.md` only for architecture/scope, and `docs/Admin-Web-MVP-QA.md` only for QA checklist updates. |
@@ -100,6 +100,7 @@ scripts/check_production_readonly_audit.sh
 scripts/check_deploy_config.sh
 node scripts/check_workflow_dispatch_lane_matrix.js
 node scripts/check_nonprod_dispatch_readiness.js
+node scripts/check_codeup_yunxiao_migration_plan.js
 node scripts/check_wechat_payment_lob_migration.js
 scripts/dispatch_nonprod_mock_payment_deploy.sh --dry-run
 RUN_INTERNAL=1 scripts/check_production_smoke.sh
