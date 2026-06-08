@@ -82,8 +82,14 @@
   incomplete. Current unresolved required closeout evidence is 32 items: 8
   launch evidence entries, 12 miniapp manual QA checks, and 12 admin-web manual
   QA checks.
+- Current operator entry docs were refreshed in Round 101 to align with the
+  Round 99 aggregate regression and Round 100 read-only production audit:
+  `docs/MVP-Handoff-Packet.md`, `docs/MVP-Next-Approval-Request.md`, and
+  `docs/MVP-External-Approval-Packet.md`. This did not change any evidence
+  status or unresolved count.
 - Round 50 audited the original goal termination criteria and found the MVP
-  still incomplete with 33 unresolved required items; that conclusion remains
+  incomplete. Round 58 later closed the backend `8080` item, leaving the
+  current 32 unresolved required items. The completion conclusion remains
   approval/evidence gated until strict closeout evidence passes or itemized
   waivers are recorded.
 

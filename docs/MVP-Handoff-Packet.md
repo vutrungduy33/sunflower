@@ -1,6 +1,6 @@
 # MVP Handoff Packet
 
-> Current as of 2026-06-02. Start here before continuing the MVP hardening
+> Current as of 2026-06-08. Start here before continuing the MVP hardening
 > goal. This packet is a compact operator handoff, not proof that the MVP is
 > complete.
 
@@ -15,28 +15,31 @@ the user explicitly waives the remaining external evidence.
 
 ## 2. Proven Baseline
 
-- Round 71 `scripts/check_mvp_regression.sh` passed on local `main` HEAD
-  `2af1ed43dfc9` with the default 5 non-production steps:
-  backend/admin-web/miniapp/evidence/deploy-config checks. Production checks
-  were skipped by default.
-- Round 47 `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh` remains the
-  latest aggregate regression that also included production read-only checks.
+- Round 99 `scripts/check_mvp_regression.sh` passed on clean local `main`
+  HEAD `af46357`, aligned with `origin/main`, with the default 5
+  non-production steps: backend/admin-web/miniapp/evidence/deploy-config
+  checks. Production checks were skipped by default.
+- Round 100 `scripts/check_production_readonly_audit.sh` passed on current
+  `main` with deploy config static checks, production public/ECS internal
+  smoke, backend `8080` exposure checks, and backend payment-config readiness.
 - Backend local tests have passed with 57 tests.
 - Admin web lint, unit tests, build, behavior wiring, and external QA preflight
-  have passed. The latest aggregate admin-web baseline was Round 47 with
+  have passed. The latest direct admin-web baseline was Round 96 with
   `npm run lint`, `npm run test` (24 Vitest tests across 5 files), `npm run
   build`, 97 behavior wiring checks, and 6 external-preflight checks.
 - Miniapp syntax/smoke, behavior wiring, project config, navigation, and
-  external QA preflight have passed. Round 47 also includes user-flow and
+  external QA preflight have passed. Round 97 also includes user-flow and
   payment-flow replay checks.
 - Production read-only checks have passed for public health/admin/API smoke,
-  ECS private upstream checks, and backend `8080` exposure inspection.
-- Deployment config static checks and deployment approval preflight exist. Round
-  60 pushed current `main` commit `98e68e0dd478` and restored the deleted ECS-2
-  runner registration. The first deploy job stalled in ECS-2 `actions/checkout`;
-  follow-up run `26796607775` for `d0af634314d0` passed checkout/artifact
-  download/image load, then failed production env validation because
-  `WECHAT_PAY_MCH_ID` is missing. Current-branch deployment remains pending.
+  ECS private upstream checks, and backend `8080` exposure inspection. The
+  latest payment-config readiness still reports the known sanitized real
+  payment blockers.
+- Deployment config static checks and deployment approval preflight exist. The
+  latest successful backend-only nonprod/mock deployment remains Round 91 run
+  `27112433529` for `d10d11e`; it proved the reduced-scope backend lane and
+  post-deploy smoke, but not real payment/refund or admin-web/Nginx refresh.
+  The latest production-lane evidence still fails on missing real WeChat Pay
+  config, so current-branch deployment remains pending.
 - Rounds 66-68 added an explicit backend-only non-production/mock-payment
   deployment lane. Manual `workflow_dispatch` with
   `deployment_lane=nonprod-mock-payment` and `target=auto` or `target=backend`
@@ -44,10 +47,12 @@ the user explicitly waives the remaining external evidence.
   `main` and default `workflow_dispatch` remain production-lane. This nonprod
   lane can support approved MVP operator validation, but it is not real
   payment/refund evidence and does not refresh admin-web or Nginx.
-- Round 72 deployment approval preflight passed on clean local `main` HEAD
-  `5a836f4704b7`; push-to-main still predicts target `all`, so the recommended
-  interim path while real payment private key/config is incomplete is explicit
-  manual backend-only nonprod/mock-payment dispatch after approval.
+- The latest clean deployment preflight snapshot is still the earlier Round 75
+  capture; rerun `node scripts/check_deployment_approval_preflight.js` before
+  any approved deploy because the current branch has changed since that
+  snapshot. The recommended interim path while real payment private key/config
+  is incomplete is explicit manual backend-only nonprod/mock-payment dispatch
+  after approval.
 - Round 58 backend `8080` hardening passed after ECS-2 backend host port was
   rebound to private IP `172.25.121.83`.
 - Latest strict closeout shape confirms the goal is still incomplete:
@@ -77,7 +82,7 @@ node scripts/check_mvp_external_approval_packet.js
 ```
 
 Do not rerun the full aggregate baseline unless code, deployment state, or
-production state changed; Round 71 refreshed the current local default
+production state changed; Round 99 refreshed the current local default
 baseline. Before the `CURRENT-BRANCH-DEPLOYED` lane, rerun:
 
 ```bash

@@ -1,6 +1,6 @@
 # MVP External Approval Packet
 
-> Current as of 2026-06-02. Compact approval boundary for the remaining MVP
+> Current as of 2026-06-08. Compact approval boundary for the remaining MVP
 > external evidence. This is not proof that any evidence has passed.
 
 ## Current Count
@@ -9,6 +9,12 @@ Unresolved required items: 32
 
 Backend `8080` hardening passed in Round 58. Revalidate it after backend
 redeploys or network changes, but it is no longer an unresolved item.
+
+Round 100 read-only production audit passed, but real WeChat Pay private
+key/config remains incomplete. Backend-only nonprod/mock deployment evidence is
+useful for operator validation and smoke, but it does not close real payment,
+real refund, admin-web/Nginx refresh, or full production current-branch
+deployment evidence.
 
 ## Global Safety Rules
 

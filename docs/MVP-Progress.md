@@ -5,6 +5,62 @@
 > This active file keeps only the latest operational rounds. Older rounds are
 > archived in `docs/archive/mvp-progress/`.
 
+## Round 101: Handoff and Approval Doc Refresh
+
+- Date: 2026-06-08
+- Status: completed
+- Focus: refresh the compact handoff and approval entry documents so they point
+  at the latest Round 99/100 validation facts instead of older Round 72/47
+  wording.
+- Start evidence:
+  - `docs/MVP-Handoff-Packet.md`, `docs/MVP-Next-Approval-Request.md`, and
+    `docs/MVP-External-Approval-Packet.md` still referenced 2026-06-02 and
+    older round numbers.
+  - `docs/Project-State.md` and `docs/MVP-Readiness.md` already reflected the
+    latest regression and read-only production audit facts.
+- Open-source reference check:
+  - Task classification: repository-local documentation and state refresh.
+  - Sources checked: current project docs and the existing validation scripts.
+  - License/compatibility: no external code copied.
+  - Selected approach: keep the canonical docs compact and update only the
+    stale operator entry points instead of creating new docs.
+- Risks:
+  - This round must not invent new deployment evidence or reduce the unresolved
+    count; it should only align the operator-facing docs with the current
+    verified state.
+- Acceptance criteria:
+  - Update the stale handoff/approval packets to the latest validated facts.
+  - Keep the unresolved evidence counts unchanged.
+  - Run the packet validators and the closeout guard.
+  - Commit the refresh cleanly.
+- Change summary:
+  - Updated `docs/MVP-Handoff-Packet.md` from the older Round 71/72 wording to
+    the current Round 99 aggregate regression, Round 100 production read-only
+    audit, Round 91 backend-only nonprod/mock deployment evidence, and the
+    still-pending full production current-branch deployment boundary.
+  - Updated `docs/MVP-Next-Approval-Request.md` to show 8 pending launch
+    evidence entries and 32 total unresolved required closeout items.
+  - Updated `docs/MVP-External-Approval-Packet.md` with the current date and
+    an explicit reminder that backend-only mock deployment does not close real
+    payment/refund, admin-web/Nginx, or production current-branch evidence.
+  - Updated `docs/Project-State.md` so future runs know the operator entry
+    docs are aligned to the latest facts.
+- Verification:
+  - `node scripts/check_mvp_handoff_packet.js`: passed, covering 32 unresolved
+    required items.
+  - `node scripts/check_mvp_next_approval_request.js`: passed, covering 32
+    unresolved items and the deployment lane boundaries.
+  - `node scripts/check_mvp_external_approval_packet.js`: passed, covering 32
+    unresolved items and the approval lanes.
+  - `node scripts/check_mvp_closeout_readiness.js`: passed in non-strict mode
+    and still reported 32 unresolved required closeout items.
+  - `node scripts/check_mvp_launch_evidence.js`: passed in non-strict mode and
+    still reported 13 total launch items, 5 passed, and 8 pending.
+- Outcome:
+  - The compact handoff/approval docs now match the latest evidence baseline.
+    This was a docs-only clarity round; it did not push, dispatch, deploy,
+    mutate ECS, run payment/refund, or reduce the pending evidence count.
+
 ## Round 100: Production Read-Only Audit Refresh
 
 - Date: 2026-06-08

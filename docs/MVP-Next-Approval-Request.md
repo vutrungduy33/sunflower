@@ -1,6 +1,6 @@
 # MVP Next Approval Request
 
-> Current as of 2026-06-02 Round 72. This is the visible next-step approval
+> Current as of 2026-06-08 Round 100. This is the visible next-step approval
 > request for MVP closeout. It is not proof that the MVP is complete.
 
 ## 1. Purpose
@@ -11,12 +11,13 @@ should not keep refreshing the same local baseline unless the worktree or
 production state changed. The next useful step is to get one explicit user
 approval or waiver lane, then collect sanitized evidence for that lane.
 
-Round 48 strict closeout audit confirmed the unresolved shape:
+Round 48 strict closeout audit confirmed the unresolved shape, and Round 58
+reduced the total by one:
 
-- Launch evidence strict checker: 9 required entries pending.
+- Launch evidence strict checker: 8 required entries pending.
 - Miniapp manual QA strict checker: 12 required checks pending.
 - Admin-web manual QA strict checker: 12 required checks pending.
-- Aggregate strict closeout checker: 33 required items unresolved.
+- Aggregate strict closeout checker: 32 required items unresolved.
 
 Round 58 completed `BACKEND-8080-HARDENING`, reducing current unresolved
 required items to 32.
@@ -34,15 +35,14 @@ Unresolved required items: 32
 
 ## 2. Latest Analysis
 
-- Round 72 goal: refresh the current local `main` deployment approval preflight
-  snapshot after the Round 71 current-HEAD regression refresh and the user
-  clarification that real payment private key/config is not fully provisioned.
+- Round 100 goal: keep the approval entry current after the Round 99 aggregate
+  regression refresh and Round 100 read-only production audit.
 - Evidence ids touched: no status changes; this document only organizes the
   approval path for all unresolved ids listed in section 5 and updates the
   `CURRENT-BRANCH-DEPLOYED` preflight boundary.
 - Open-source reference check: GitHub Actions official workflow syntax and
-  deployment documentation were used as reference; no external code was copied.
-  The selected approach keeps the existing repository-native
+  deployment documentation were used as reference earlier; no external code
+  was copied. The selected approach keeps the existing repository-native
   `deployment_lane` workflow input and local guard scripts.
 - Risk: this document does not reduce the pending evidence count by itself and
   does not authorize push, workflow dispatch, or deployment.
@@ -61,7 +61,7 @@ Recommended first choices:
    legal HTTPS request domain, and allowed preview/real-device QA scope.
 2. `CURRENT-BRANCH-DEPLOYED`: approve workflow dispatch and post-deploy
    read-only audit if the current branch should be validated in cloud. Because
-   the real payment private key/config is not fully provisioned yet, the
+   the real payment private key/config is still not fully provisioned, the
    recommended interim deploy choice is manual backend-only
    `deployment_lane=nonprod-mock-payment` with `target=auto` or
    `target=backend`; this is reduced-scope evidence and is not real
@@ -129,8 +129,9 @@ Latest clean read-only deployment approval preflight before an approved deploy:
 Rerun `node scripts/check_deployment_approval_preflight.js` after any new commit
 and before asking the user to approve `CURRENT-BRANCH-DEPLOYED`.
 
-This snapshot was taken before the Round 72 documentation commit itself, so
-rerun the preflight immediately before any approved deployment action.
+This snapshot is the last captured preflight and predates the current Round 100
+documentation refresh, so rerun the preflight immediately before any approved
+deployment action.
 
 Current deploy-lane options:
 
