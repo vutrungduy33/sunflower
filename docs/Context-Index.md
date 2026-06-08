@@ -84,6 +84,7 @@ node ../scripts/check_miniapp_behavior_wiring.js
 node ../scripts/check_miniapp_user_flow_replay.js
 node ../scripts/check_miniapp_payment_flow_replay.js
 node ../scripts/check_miniapp_external_qa_preflight.js
+node ../scripts/check_miniapp_https_domain.js https://<api-domain>
 node --check utils/mvp/api.js
 node --check utils/mvp/payment.js
 node --check pages/mvp/home/index.js
@@ -133,6 +134,7 @@ Miniapp manual QA evidence:
 ```bash
 node scripts/check_miniapp_manual_qa.js
 node scripts/check_miniapp_manual_qa.js --strict
+node scripts/check_miniapp_https_domain.js https://<api-domain>
 ```
 
 Admin manual QA evidence:

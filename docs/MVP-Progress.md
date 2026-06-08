@@ -5,6 +5,63 @@
 > This active file keeps only the latest operational rounds. Older rounds are
 > archived in `docs/archive/mvp-progress/`.
 
+## Round 93: Miniapp HTTPS Domain Checker
+
+- Date: 2026-06-08
+- Status: completed
+- Focus: add a repeatable read-only checker for candidate miniapp HTTPS API
+  domains so `WECHAT-DOMAIN` / `MINIAPP-DOMAIN-HTTPS` evidence can be collected
+  consistently when DNS, certificate, and WeChat backend configuration are
+  ready.
+- Start evidence:
+  - Local `main` and `origin/main` were aligned at `d145e2b`.
+  - Worktree was clean before implementation.
+  - The 32 unresolved closeout items still include HTTPS legal request-domain
+    evidence and miniapp preview/real-device evidence.
+- Open-source reference check:
+  - Task classification: common infrastructure validation for HTTPS request
+    domains and TLS certificates.
+  - Sources checked: WeChat Mini Program network/request-domain documentation,
+    Node.js official `https`, `tls`, and `dns` APIs, and repository-native
+    read-only checker style.
+  - License/compatibility: official documentation and local code only; no
+    external source code copied.
+  - Selected approach: add a small dependency-free Node checker using DNS
+    lookup, trusted HTTPS request, Node hostname/certificate validation,
+    certificate expiry inspection, and an API health response check.
+  - Rejected options: adding a new third-party TLS library, weakening cert
+    validation for self-signed domains, or wiring the check into default local
+    regression before a real HTTPS API domain exists.
+- Risks:
+  - This checker proves only DNS/TLS/API shape for a supplied URL; it cannot
+    prove the domain has been configured in the WeChat backend as a legal
+    request domain.
+  - Running the checker against current备案 domains is expected to fail until
+    DNS points to ECS-1 and a trusted certificate is deployed.
+  - The script is not part of default aggregate regression because it depends
+    on an external domain that is still pending.
+- Acceptance criteria:
+  - Add a read-only `scripts/check_miniapp_https_domain.js` helper.
+  - Document it in the miniapp QA and context entry points.
+  - Verify syntax, CLI help, and a positive HTTPS/TLS/API path without
+    contacting production.
+  - Keep all external evidence statuses unchanged.
+- Verification:
+  - `node --check scripts/check_miniapp_https_domain.js`: passed.
+  - `node scripts/check_miniapp_https_domain.js --help`: passed.
+  - Local positive smoke with a temporary trusted HTTPS server:
+    `NODE_EXTRA_CA_CERTS=/tmp/sunflower-miniapp-domain-ip.crt node scripts/check_miniapp_https_domain.js https://127.0.0.1:34443 --path=/api/health --min-valid-days=1`
+    passed 4 checks: DNS resolution, trusted TLS certificate, certificate
+    validity window, and HTTP 200. The temporary server and certificate were
+    local-only and not committed.
+- Outcome:
+  - Future `WECHAT-DOMAIN` evidence can use
+    `node scripts/check_miniapp_https_domain.js https://<api-domain>` before
+    recording sanitized manual QA evidence. MVP completion remains blocked by
+    HTTPS legal request-domain configuration, miniapp real-device QA, real
+    payment/refund evidence, admin manual QA, and production-like deployment
+    evidence.
+
 ## Round 92: Current Main Aggregate Regression Refresh
 
 - Date: 2026-06-08

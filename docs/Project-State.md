@@ -22,6 +22,8 @@
   and extract that artifact instead of running `actions/checkout` for deploy
   bundle source.
 - Local secrets belong under `.secrets/`, which is ignored by Git.
+- `scripts/check_miniapp_https_domain.js` is the read-only DNS/TLS/API helper
+  for collecting future miniapp HTTPS legal request-domain evidence.
 - Alibaba Cloud Codeup SSH access from this workstation was verified on
   2026-06-04 after the public key was added: read-only `git ls-remote` against
   the Codeup `sunflower` repository returned `main` successfully. Yunxiao

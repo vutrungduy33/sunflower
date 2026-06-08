@@ -2,6 +2,16 @@
 
 Append durable decisions here. Keep entries short and include provenance.
 
+## 2026-06-08: Add Miniapp HTTPS Domain Checker
+
+- Decision: Use `scripts/check_miniapp_https_domain.js` as the read-only
+  preflight for candidate WeChat miniapp HTTPS API request domains.
+- Rationale: `WECHAT-DOMAIN` evidence needs repeatable DNS, trusted TLS
+  certificate, certificate-expiry, and API health checks without mutating ECS
+  or storing secrets.
+- Provenance: `docs/Miniapp-Manual-QA.md`,
+  `scripts/check_miniapp_https_domain.js`.
+
 ## 2026-06-02: Remove Stage Gate as Active Workflow
 
 - Decision: Stage-first workflow, pre/post stage guard, branch prefix, commit
