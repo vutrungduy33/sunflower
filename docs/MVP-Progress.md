@@ -385,6 +385,48 @@
     not push deploy actions, mutate ECS, run payment/refund, use a real AppID,
     or reduce the unresolved evidence count.
 
+## Round 113: Next Approval Request Refresh
+
+- Date: 2026-06-08
+- Status: completed
+- Focus: refresh the human approval entry after Round 111/112 validation
+  updates so the next external evidence lane starts from current facts.
+- Start evidence:
+  - `docs/MVP-Next-Approval-Request.md` still said Round 100 and contained an
+    old deployment preflight snapshot with 39 changed files and predicted
+    push-to-main target `all`.
+  - `docs/MVP-External-Validation-Runbook.md` still said 2026-06-02 and treated
+    backend `8080` as remaining external evidence instead of passed/recheck.
+- Open-source reference check:
+  - Task classification: repository-local approval/handoff document refresh.
+  - Sources checked: `docs/MVP-Next-Approval-Request.md`,
+    `docs/MVP-External-Validation-Runbook.md`,
+    `scripts/check_mvp_next_approval_request.js`, active ledgers, and the
+    latest deployment preflight output.
+  - License/compatibility: no external code copied.
+  - Selected approach: update the existing approval entry and strengthen its
+    checker against stale Round 100 deployment snapshots.
+- Risks:
+  - This round must not authorize deployment, real payment/refund, production
+    data mutation, or mark any external/manual evidence passed.
+- Acceptance criteria:
+  - Approval request reflects Round 111 admin-web and Round 112 miniapp local
+    baselines.
+  - Approval request includes the latest clean preflight snapshot:
+    `c78fb9b5a645`, 0 changed files, deploy target `none`.
+  - Checker rejects the stale Round 100 snapshot.
+  - Run focused approval/handoff/evidence checks and commit once.
+- Change summary:
+  - Updated the approval request to Round 113 current facts and latest
+    deployment preflight snapshot.
+  - Updated the external validation runbook header and backend `8080` wording.
+  - Strengthened `scripts/check_mvp_next_approval_request.js` with current-text
+    and stale-text assertions.
+- Verification:
+  - Pending.
+- Outcome:
+  - Pending.
+
 ## Round 109: Next Goal Prompt Current-Fact Refresh
 
 - Date: 2026-06-08

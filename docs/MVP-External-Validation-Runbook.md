@@ -1,21 +1,22 @@
 # MVP External Validation Runbook
 
-> Current as of 2026-06-02. This is the operator handoff runbook for the
+> Current as of 2026-06-08 Round 113. This is the operator handoff runbook for the
 > remaining external MVP evidence. It does not replace the machine-readable
 > ledgers; it tells a human how to execute and record them safely.
 
 ## 1. Purpose
 
 The local repository already has green automated checks for backend, admin web,
-miniapp syntax/smoke, production smoke, and deployment config syntax. Final MVP
-completion still needs external evidence that cannot be proven by local tests
-alone:
+miniapp syntax/smoke/replay, production read-only smoke, and deployment config
+syntax. Final MVP completion still needs external evidence that cannot be
+proven by local tests alone:
 
 - WeChat legal HTTPS request domain and preview/real-device execution.
 - Real AppID, login, phone authorization, order path, payment, and refund
   evidence.
 - Admin web production or approved-staging QA with a dedicated account.
-- Backend `8080` security-group/firewall evidence or explicit risk waiver.
+- Backend `8080` hardening is already passed; recheck it after backend redeploys
+  or topology changes.
 - Current branch deployment through the approved GitHub Actions path, or an
   explicit out-of-scope decision.
 
@@ -52,9 +53,9 @@ scripts/check_deploy_config.sh
 2. Prepare external environment evidence:
    - Confirm the HTTPS API domain, certificate, ICP/domain eligibility, and
      WeChat legal request-domain configuration.
-     User-provided miniapp备案 domain: `xiangrikui.cloud`; this is not by itself
-     proof that the concrete HTTPS API host is configured as a WeChat legal
-     request domain.
+     User-provided备案 domains: `xiangrikui.cloud` and `sunflower.cloud`; these
+     are not by themselves proof that the concrete HTTPS API host is configured
+     as a WeChat legal request domain.
    - Confirm the local preview uses a real AppID without committing it.
    - Confirm backend, admin web, WeChat, SMS, payment, and callback configuration
      are the intended environment.

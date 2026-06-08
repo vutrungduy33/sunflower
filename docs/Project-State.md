@@ -153,6 +153,12 @@
   JavaScript syntax checks all passed. This confirms local automated miniapp
   wiring remains current, but WeChat legal-domain, real AppID preview,
   phone/login, payment/refund, and manual QA evidence remain pending.
+- Round 113 refreshed `docs/MVP-Next-Approval-Request.md` and
+  `docs/MVP-External-Validation-Runbook.md` to the current Round 111/112 local
+  validation facts and the latest clean deployment preflight snapshot:
+  local `main` HEAD `c78fb9b5a645`, `origin/main` at the same SHA, 0 changed
+  files, and predicted push-to-main deploy target `none`. No evidence statuses
+  changed.
 - Round 50 audited the original goal termination criteria and found the MVP
   incomplete. Round 58 later closed the backend `8080` item, leaving the
   current 32 unresolved required items. The completion conclusion remains

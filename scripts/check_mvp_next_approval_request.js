@@ -81,6 +81,26 @@ const requiredNonprodDeployText = [
   'reduced-scope evidence',
 ];
 
+const requiredCurrentText = [
+  'Current as of 2026-06-08 Round 113',
+  'Round 111',
+  'Round 112',
+  'HEAD checked: `c78fb9b5a645`',
+  'Changed files since base: 0',
+  'Predicted push-to-main deploy target: `none`',
+  'no branch delta',
+];
+
+const staleText = [
+  'Current as of 2026-06-08 Round 100',
+  'Round 100 goal',
+  'HEAD checked: `5a836f4704b7`',
+  'Changed files since base: 39',
+  'Predicted push-to-main deploy target: `all`',
+  'Impact counts: backend 4 files, admin-web 3 files, ingress 3 files',
+  'predates the current Round 100',
+];
+
 function fail(message) {
   console.error(`[next-approval] ERROR: ${message}`);
   process.exit(1);
@@ -109,6 +129,12 @@ function searchableText(text) {
 function requireIncludes(text, snippet, label) {
   if (!text.includes(snippet) && !searchableText(text).includes(snippet)) {
     fail(`next approval request is missing ${label}: ${snippet}`);
+  }
+}
+
+function requireExcludes(text, snippet) {
+  if (text.includes(snippet) || searchableText(text).includes(snippet)) {
+    fail(`next approval request still contains stale text: ${snippet}`);
   }
 }
 
@@ -156,8 +182,16 @@ function main() {
     requireIncludes(request, text, 'nonprod deploy boundary');
   }
 
+  for (const text of requiredCurrentText) {
+    requireIncludes(request, text, 'current text');
+  }
+
+  for (const text of staleText) {
+    requireExcludes(request, text);
+  }
+
   console.log(
-    `[next-approval] PASS: next approval request covers ${requiredLanes.length} lane(s), ${unresolved.length} unresolved item(s), ${requiredSafetyText.length} safety text item(s), ${requiredCommands.length} command(s), and ${requiredNonprodDeployText.length} nonprod deploy boundary item(s)`,
+    `[next-approval] PASS: next approval request covers ${requiredLanes.length} lane(s), ${unresolved.length} unresolved item(s), ${requiredSafetyText.length} safety text item(s), ${requiredCommands.length} command(s), ${requiredNonprodDeployText.length} nonprod deploy boundary item(s), and ${requiredCurrentText.length} current text item(s)`,
   );
 }
 

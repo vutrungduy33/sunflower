@@ -1,15 +1,16 @@
 # MVP Next Approval Request
 
-> Current as of 2026-06-08 Round 100. This is the visible next-step approval
+> Current as of 2026-06-08 Round 113. This is the visible next-step approval
 > request for MVP closeout. It is not proof that the MVP is complete.
 
 ## 1. Purpose
 
-The automated and read-only production baseline is green, but final MVP
-closeout still has 32 unresolved required evidence items. Future Codex work
-should not keep refreshing the same local baseline unless the worktree or
-production state changed. The next useful step is to get one explicit user
-approval or waiver lane, then collect sanitized evidence for that lane.
+The latest backend/admin/miniapp automated baselines and read-only production
+audit are recorded, but final MVP closeout still has 32 unresolved required
+evidence items. Future Codex work should not keep refreshing the same local
+baseline unless the worktree or runtime state changed. The next useful step is
+to get one explicit user approval or waiver lane, then collect sanitized
+evidence for that lane.
 
 Round 48 strict closeout audit confirmed the unresolved shape, and Round 58
 reduced the total by one:
@@ -35,17 +36,27 @@ Unresolved required items: 32
 
 ## 2. Latest Analysis
 
-- Round 100 goal: keep the approval entry current after the Round 99 aggregate
-  regression refresh and Round 100 read-only production audit.
+- Round 113 goal: keep the approval entry current after the Round 111 admin-web
+  local baseline refresh and Round 112 miniapp local baseline refresh.
 - Evidence ids touched: no status changes; this document only organizes the
   approval path for all unresolved ids listed in section 5 and updates the
-  `CURRENT-BRANCH-DEPLOYED` preflight boundary.
+  `CURRENT-BRANCH-DEPLOYED` preflight snapshot.
 - Open-source reference check: GitHub Actions official workflow syntax and
   deployment documentation were used as reference earlier; no external code
   was copied. The selected approach keeps the existing repository-native
   `deployment_lane` workflow input and local guard scripts.
+- Current automated/read-only facts:
+  - Backend automated baseline remains Round 99 / 57 tests green.
+  - Admin-web direct baseline is Round 111: lint, 24 Vitest tests, build,
+    behavior wiring, external QA preflight, and entry readiness passed.
+  - Miniapp direct baseline is Round 112: smoke, behavior wiring, user-flow
+    replay, payment-flow replay, external QA preflight, project config guard,
+    subpage nav guard, and key JavaScript syntax checks passed.
+  - Production read-only audit remains Round 100; real payment config and HTTPS
+    legal request-domain evidence remain pending.
 - Risk: this document does not reduce the pending evidence count by itself and
-  does not authorize push, workflow dispatch, or deployment.
+  does not authorize push, workflow dispatch, deployment, real payment/refund,
+  or live data mutation.
 - Acceptance: the request names approval lanes, safety boundaries, exact user
   reply fields, validation commands, strict unresolved counts, and the current
   deployment approval boundary without triggering deployment or production
@@ -108,30 +119,28 @@ refund, and no live production data mutation.
 
 ## 6. Current Deployment Preflight Snapshot
 
-Latest clean read-only deployment approval preflight before an approved deploy:
+Latest clean read-only deployment approval preflight:
 
 - Command: `node scripts/check_deployment_approval_preflight.js`
 - Branch: local `main`
-- HEAD checked: `5a836f4704b7`
-- Base: `origin/main` at `d0af634314d0`
-- Changed files since base: 39
-- Predicted push-to-main deploy target: `all`
-- Impact counts: backend 4 files, admin-web 3 files, ingress 3 files
+- HEAD checked: `c78fb9b5a645`
+- Base: `origin/main` at `c78fb9b5a645`
+- Changed files since base: 0
+- Predicted push-to-main deploy target: `none`
 - Result: passed 4 checks
 - Actions taken: no push, no merge, no `workflow_dispatch`, no deploy, no ECS
   mutation
-- Important boundary: the branch is `main`; pushing these deployment-relevant
-  local commits can trigger production deployment. Production lane is expected
-  to remain blocked until real payment private key/config is provisioned or the
-  operator explicitly accepts that production deploy will fail before backend
-  recreation.
+- Important boundary: the branch is `main`; there is currently no branch delta
+  against `origin/main`, so deployment may be unnecessary unless an operator
+  explicitly chooses `workflow_dispatch` with a target. Production lane remains
+  blocked until real payment private key/config is provisioned or the operator
+  explicitly accepts the production-lane limitation.
 
 Rerun `node scripts/check_deployment_approval_preflight.js` after any new commit
 and before asking the user to approve `CURRENT-BRANCH-DEPLOYED`.
 
-This snapshot is the last captured preflight and predates the current Round 100
-documentation refresh, so rerun the preflight immediately before any approved
-deployment action.
+This snapshot is informational only. Rerun the preflight immediately before any
+approved deployment action.
 
 Current deploy-lane options:
 
