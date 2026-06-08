@@ -24,7 +24,7 @@
       "requirement": "Admin web lint, tests, and production build remain green.",
       "status": "passed",
       "requiredForMvp": true,
-      "evidence": "Round 92 scripts/check_mvp_regression.sh passed on current local main HEAD 7cc7e04, aligned with origin/main. Admin web npm run lint passed, npm run test passed with 24 Vitest tests across 5 files, npm run build passed, behavior wiring passed 97 checks, and admin external QA preflight passed 6 checks. Production checks were skipped by default.",
+      "evidence": "Round 96 direct admin-web validation passed on clean local main HEAD c329835. Admin web npm run lint passed, npm run test passed with 24 Vitest tests across 5 files, npm run build passed, behavior wiring passed 97 checks, and admin external QA preflight passed 6 checks. The earlier resumed-goal notes about _refundId and 3 failing/timed-out admin-web tests are stale and did not reproduce.",
       "nextAction": "Re-run after admin-web changes or before final closeout."
     },
     {

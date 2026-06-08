@@ -5,6 +5,53 @@
 > This active file keeps only the latest operational rounds. Older rounds are
 > archived in `docs/archive/mvp-progress/`.
 
+## Round 96: Admin Web Validation Baseline Refresh
+
+- Date: 2026-06-08
+- Status: completed
+- Focus: refresh the direct admin-web validation baseline on the current clean
+  `main` so the MVP readiness docs reflect the real lint/test/build state
+  instead of the earlier stale failure note.
+- Start evidence:
+  - Local `main` and `origin/main` were aligned at `c329835`.
+  - Worktree was clean before validation.
+  - The startup baseline still mentioned an old `_refundId` lint note and 3
+    admin-web test failures/timeouts, but that no longer matched the current
+    code state.
+- Open-source reference check:
+  - Task classification: repo-local validation refresh for a common admin web
+    React/Vitest/ESLint setup.
+  - Sources checked: existing repository tests, ESLint/Vitest/Vite usage, and
+    the current admin-web package scripts.
+  - License/compatibility: no external code copied.
+  - Selected approach: run the canonical admin-web lint/test/build commands
+    plus the repo's behavior wiring and external QA preflight checks, then
+    update the readiness/docs baseline.
+- Risks:
+  - This proves the current automated admin-web baseline only; it does not
+    replace deployed-browser manual QA or backend/API compatibility checks.
+  - The wider MVP closeout still has unresolved miniapp, payment, and
+    deployment evidence.
+- Acceptance criteria:
+  - `npm run lint`, `npm run test`, and `npm run build` pass on admin-web.
+  - Admin behavior wiring and external QA preflight still pass.
+  - `docs/MVP-Readiness.md`, `docs/Project-State.md`, and launch evidence are
+    updated to the current state.
+  - Commit the documentation refresh.
+- Verification:
+  - `cd sunflower-admin-web && npm run lint`: passed.
+  - `cd sunflower-admin-web && npm run test`: passed with 24 tests across 5
+    files.
+  - `cd sunflower-admin-web && npm run build`: passed.
+  - `node scripts/check_admin_web_behavior_wiring.js`: passed with 97 checks
+    across 16 files.
+  - `node scripts/check_admin_web_external_qa_preflight.js`: passed with 6
+    checks.
+- Outcome:
+  - The admin-web automated baseline is green again on the current branch.
+    This round only refreshes evidence and does not close the remaining MVP
+    manual QA and deployment gaps.
+
 ## Round 95: Production Read-Only Audit Refresh
 
 - Date: 2026-06-08

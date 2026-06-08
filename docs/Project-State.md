@@ -56,9 +56,11 @@
   production skipped.
 - Backend baseline from that run: `mvn -B test` passed with 57 tests, 0
   failures, 0 errors, and 0 skipped.
-- Admin-web baseline from that run: `npm run lint`, `npm run test` (24 Vitest
-  tests across 5 files), `npm run build`, behavior wiring (97 checks), and
-  external QA preflight (6 checks) passed.
+- Latest direct admin-web baseline: Round 96 on clean local `main` HEAD
+  `c329835` passed `npm run lint`, `npm run test` (24 Vitest tests across 5
+  files), `npm run build`, behavior wiring (97 checks), and external QA
+  preflight (6 checks). The earlier resumed-goal notes about `_refundId` and 3
+  failing/timed-out admin-web tests are stale and did not reproduce.
 - Miniapp baseline from that run: smoke, behavior wiring (69 checks), user-flow
   replay (3 scenarios), payment-flow replay (5 scenarios), external preflight,
   appid guard, and subpage nav guard passed. The run still warns that the
