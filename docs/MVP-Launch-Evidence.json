@@ -52,7 +52,7 @@
       "status": "pending",
       "requiredForMvp": true,
       "evidence": "Round 81 investigated user-provided备案 domains sunflower.cloud and xiangrikui.cloud plus common www/api/admin subdomains. Local and public DNS resolvers returned 198.18.x.x reserved benchmarking/test addresses rather than the ECS-1 public ingress 47.113.223.248. TLS probes did not return a usable certificate chain for the target API/admin hostnames, so the current state is DNS/certificate not deployable rather than a proven expired certificate. Detailed miniapp QA ledger exists at docs/Miniapp-Manual-QA.json.",
-      "nextAction": "Choose the final WeChat API hostname, point its DNS record to ECS-1 public ingress, install or renew a trusted HTTPS certificate such as Let's Encrypt/Certbot or a cloud-provider free DV certificate, verify the certificate chain/TLS with curl/openssl, configure the hostname as a WeChat miniapp legal request domain, then record domain, verification date, issuer/expiry, and non-secret evidence summary in docs/Miniapp-Manual-QA.json."
+      "nextAction": "Choose the final WeChat API hostname, point its DNS record to ECS-1 public ingress, install or renew a trusted HTTPS certificate such as Let's Encrypt/Certbot or a cloud-provider free DV certificate, run node scripts/check_miniapp_https_domain.js https://<api-domain> to verify DNS/TLS/API health, configure the hostname as a WeChat miniapp legal request domain, then record domain, verification date, issuer/expiry, and non-secret evidence summary in docs/Miniapp-Manual-QA.json."
     },
     {
       "id": "WECHAT-PREVIEW-LOGIN",

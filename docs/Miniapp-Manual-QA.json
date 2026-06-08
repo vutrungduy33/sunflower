@@ -20,7 +20,7 @@
       "status": "pending",
       "requiredForMvp": true,
       "evidence": "Not recorded in repo. Default API base remains bare HTTP IP for DevTools/local validation only.",
-      "nextAction": "Set SUNFLOWER_API_BASE_URL to the HTTPS API domain in a local preview build and record domain/date/certificate result without secrets."
+      "nextAction": "Set SUNFLOWER_API_BASE_URL to the HTTPS API domain in a local preview build, run node scripts/check_miniapp_https_domain.js https://<api-domain>, and record domain/date/certificate result without secrets."
     },
     {
       "id": "MINIAPP-APPID-PREVIEW",

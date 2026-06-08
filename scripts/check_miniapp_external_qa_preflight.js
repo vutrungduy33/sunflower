@@ -188,6 +188,9 @@ function checkManualQaLedger() {
   if (!domain.nextAction.includes('HTTPS')) {
     fail('MINIAPP-DOMAIN-HTTPS nextAction must mention HTTPS domain evidence');
   }
+  if (!domain.nextAction.includes('scripts/check_miniapp_https_domain.js')) {
+    fail('MINIAPP-DOMAIN-HTTPS nextAction must point operators to scripts/check_miniapp_https_domain.js');
+  }
   if (!appid.nextAction.toLowerCase().includes('appid')) {
     fail('MINIAPP-APPID-PREVIEW nextAction must mention AppID handling');
   }

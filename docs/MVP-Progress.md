@@ -5,6 +5,54 @@
 > This active file keeps only the latest operational rounds. Older rounds are
 > archived in `docs/archive/mvp-progress/`.
 
+## Round 94: Miniapp HTTPS Evidence Boundary Tightening
+
+- Date: 2026-06-08
+- Status: completed
+- Focus: align the miniapp HTTPS/domain evidence boundary across the manual QA
+  ledger, launch evidence ledger, QA preflight, and project memory so future
+  operators consistently run the same read-only checker before recording
+  `WECHAT-DOMAIN` evidence.
+- Start evidence:
+  - Local `main` and `origin/main` were aligned at `7d939df`.
+  - Worktree was clean before the documentation and guard updates.
+  - The new checker from Round 93 already existed and passed local positive
+    smoke against a temporary loopback HTTPS server.
+- Open-source reference check:
+  - Task classification: documentation and quality-gate alignment for a common
+    HTTPS certificate/domain readiness workflow.
+  - Sources checked: existing round 93 outputs, `docs/Miniapp-Manual-QA.md`,
+    `docs/MVP-Launch-Evidence.json`, `scripts/check_miniapp_external_qa_preflight.js`,
+    and repository-native memory docs.
+  - License/compatibility: local repository text only; no external code copied.
+  - Selected approach: tighten the evidence nextAction text and the preflight
+    guard so the new domain checker is the canonical preflight for `WECHAT-DOMAIN`.
+- Risks:
+  - This round changes only evidence-gating text and helper scripts; it does
+    not move any unresolved external evidence to passed.
+  - The production domain still remains unproven until DNS, TLS, WeChat legal
+    request-domain setup, and a real API health response are available.
+- Acceptance criteria:
+  - `MINIAPP-DOMAIN-HTTPS` nextAction mentions
+    `scripts/check_miniapp_https_domain.js`.
+  - `scripts/check_miniapp_external_qa_preflight.js` enforces that mention.
+  - `docs/Context-Index.md`, `docs/Project-State.md`,
+    `docs/Decision-Log.md`, and `docs/Miniapp-Manual-QA.md` reflect the helper.
+  - Targeted validation passes and the round is committed/pushed.
+- Verification:
+  - `node scripts/check_miniapp_external_qa_preflight.js`: passed.
+  - `node scripts/check_miniapp_manual_qa.js`: passed in non-strict mode with
+    the unchanged 12 pending checks.
+  - `node scripts/check_mvp_launch_evidence.js`: passed in non-strict mode with
+    the unchanged 8 pending launch evidence entries.
+  - `node scripts/check_mvp_closeout_readiness.js`: passed in non-strict mode
+    with 32 unresolved required closeout items.
+  - `git diff --check`: passed.
+- Outcome:
+  - `WECHAT-DOMAIN` evidence now has a canonical read-only preflight path and
+    the project memory points to it. MVP completion remains blocked by the same
+    external miniapp, payment/refund, admin, and deployment evidence items.
+
 ## Round 93: Miniapp HTTPS Domain Checker
 
 - Date: 2026-06-08
