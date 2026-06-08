@@ -17,24 +17,25 @@ node scripts/check_admin_web_entry_readiness.js
 
 Current recorded baseline:
 
-- `npm run lint`: passed in Round 96.
-- `npm run test`: passed in Round 96, 24 tests across 5 files.
-- `npm run build`: passed in Round 96.
-- `node scripts/check_admin_web_behavior_wiring.js`: passed in Round 96 with
+- `npm run lint`: passed in Round 111.
+- `npm run test`: passed in Round 111, 24 tests across 5 files.
+- `npm run build`: passed in Round 111.
+- `node scripts/check_admin_web_behavior_wiring.js`: passed in Round 111 with
   97 key behavior wiring checks across 16 files.
-- `node scripts/check_admin_web_external_qa_preflight.js`: passed in Round 96
+- `node scripts/check_admin_web_external_qa_preflight.js`: passed in Round 111
   with 6 checks.
 - `node scripts/check_admin_web_entry_readiness.js`: added in Round 108 and
-  passed against the temporary HTTP/IP admin entry. It verifies only the public
-  admin HTML shell, `/healthz`, and `/api/health` without login or data
-  mutation. It warns that HTTPS/domain evidence remains pending.
+  passed again in Round 111 against the temporary HTTP/IP admin entry. It
+  verifies only the public admin HTML shell, `/healthz`, and `/api/health`
+  without login or data mutation. It warns that HTTPS/domain evidence remains
+  pending.
 - `node scripts/check_admin_web_external_qa_preflight.js` checks admin manual
   QA environment URLs, required evidence IDs, high-risk mutation next actions,
   sensitive evidence boundaries, and credential/live-data safety wording before
   production or approved-staging QA.
 
 Older notes about an unused `_refundId` lint issue or 3 failing/timed-out
-admin-web tests are stale; the current Round 96 direct baseline did not
+admin-web tests are stale; the current Round 111 direct baseline did not
 reproduce them.
 
 The automated tests cover auth page behavior, protected shell routing, room

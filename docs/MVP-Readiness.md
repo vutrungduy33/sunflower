@@ -1,6 +1,6 @@
 # MVP Readiness
 
-> Current as of 2026-06-08 Round 110. This is the compact launch-readiness
+> Current as of 2026-06-08 Round 111. This is the compact launch-readiness
 > board for the MVP hardening goal. It is not a stage gate, and it should not
 > duplicate the full round history.
 
@@ -26,7 +26,7 @@ and deployment path are all verified with current evidence:
 | Area | Current evidence | Status | Next action |
 | --- | --- | --- | --- |
 | Backend local quality | Round 99 aggregate regression passed `mvn -B test` with 57 tests, 0 failures/errors/skips. Backend `8080` hardening was closed in Round 58 and rechecked in Round 100 production read-only audit. | Ready locally | Keep `mvn -B test` and backend `8080` exposure checks green after backend/deploy changes. |
-| Admin web local quality | Round 96 passed `npm run lint`, `npm run test` with 24 Vitest tests, `npm run build`, behavior wiring, and external QA preflight. | Ready locally | Rerun admin lint/test/build after admin-web changes. |
+| Admin web local quality | Round 111 refreshed the current `main` baseline: `npm run lint`, `npm run test` with 24 Vitest tests, `npm run build`, behavior wiring with 97 checks, external QA preflight with 6 checks, and entry readiness with 6 passes/2 expected HTTP-IP warnings all passed. | Ready locally | Rerun admin lint/test/build after admin-web changes. |
 | Admin entry / manual QA | Round 108 added and passed `node scripts/check_admin_web_entry_readiness.js` for the temporary HTTP/IP admin entry, `/healthz`, and `/api/health`. This is not authenticated operator QA. | Partially verified | Run entry readiness first, then record safe authenticated admin evidence and require `node scripts/check_admin_web_manual_qa.js --strict`. |
 | Miniapp automated checks | Round 97 passed smoke, behavior wiring, user-flow replay, payment-flow replay, external QA preflight, and key JavaScript syntax checks. The committed default API base remains HTTP for local/DevTools validation only. | Partially verified | Record real AppID preview/real-device evidence, legal HTTPS domain, login, phone binding, booking, payment/refund, and error-state QA. |
 | Miniapp HTTPS domain | Round 107 made `node scripts/check_miniapp_https_domain.js` require backend health JSON at `/api/health`. `sunflower.cloud` has a trusted GoDaddy cert valid until 2026-10-04 but returns an HTML lander; `xiangrikui.cloud`, `api.sunflower.cloud`, and `api.xiangrikui.cloud` fail TLS/SNI. | Not ready | Point the chosen ICP-filed API hostname to ECS-1, install/renew a trusted certificate, return backend health JSON, configure the WeChat legal request domain, and rerun the domain checker. |

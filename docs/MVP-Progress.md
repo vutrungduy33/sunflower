@@ -283,6 +283,54 @@
     mutate ECS, run payment/refund, log in to admin, or reduce the unresolved
     evidence count.
 
+## Round 111: Admin Web Local Baseline Refresh
+
+- Date: 2026-06-08
+- Status: completed
+- Focus: refresh current `main` admin-web automated validation evidence without
+  changing admin-web code or marking authenticated manual QA complete.
+- Start evidence:
+  - `docs/Project-State.md`, `docs/MVP-Readiness.md`, and
+    `docs/Admin-Web-MVP-QA.md` still recorded the direct admin-web baseline as
+    Round 96.
+  - Startup notes still mentioned stale `_refundId` lint and timed-out test
+    failures, so current evidence needed to remain explicit.
+- Open-source reference check:
+  - Task classification: repository-local validation evidence refresh.
+  - Sources checked: existing admin-web package scripts and project QA docs.
+  - License/compatibility: no external code copied.
+  - Selected approach: rerun the established lint/test/build and repository
+    guards instead of adding a new test framework or browser automation.
+- Risks:
+  - This round must not confuse automated/local checks or read-only entry
+    readiness with authenticated production/staging admin manual QA.
+- Acceptance criteria:
+  - `npm run lint`, `npm run test`, and `npm run build` pass in
+    `sunflower-admin-web`.
+  - Admin behavior wiring, external QA preflight, and entry readiness pass.
+  - Update active state/readiness/admin QA docs with the current facts.
+  - Commit once.
+- Change summary:
+  - Refreshed admin-web local quality evidence to Round 111.
+  - Kept all 12 admin manual QA checks pending; no credentials, SMS, browser
+    login, room/pricing/order mutations, payment/refund, or live data actions
+    were performed.
+- Verification:
+  - `cd sunflower-admin-web && npm run lint`: passed.
+  - `cd sunflower-admin-web && npm run test`: passed with 24 tests across 5
+    files.
+  - `cd sunflower-admin-web && npm run build`: passed.
+  - `node scripts/check_admin_web_behavior_wiring.js`: passed with 97 checks.
+  - `node scripts/check_admin_web_external_qa_preflight.js`: passed with
+    6 checks.
+  - `node scripts/check_admin_web_entry_readiness.js`: passed with 6 checks and
+    2 expected HTTP/IP warnings.
+- Outcome:
+  - Admin-web automated local quality is current on `main`, while authenticated
+    admin-web manual QA remains the closeout blocker. This round did not push
+    deploy actions, mutate ECS, run payment/refund, log in to admin, or reduce
+    the unresolved evidence count.
+
 ## Round 109: Next Goal Prompt Current-Fact Refresh
 
 - Date: 2026-06-08

@@ -57,10 +57,11 @@
   default.
 - Backend baseline from that run: `mvn -B test` passed with 57 tests, 0
   failures, 0 errors, and 0 skipped.
-- Latest direct admin-web baseline: Round 96 on clean local `main` HEAD
-  `c329835` passed `npm run lint`, `npm run test` (24 Vitest tests across 5
-  files), `npm run build`, behavior wiring (97 checks), and external QA
-  preflight (6 checks). The earlier resumed-goal notes about `_refundId` and 3
+- Latest direct admin-web baseline: Round 111 on clean local `main` passed
+  `npm run lint`, `npm run test` (24 Vitest tests across 5 files),
+  `npm run build`, behavior wiring (97 checks), external QA preflight
+  (6 checks), and admin entry readiness (6 passes with 2 expected HTTP/IP
+  warnings). The earlier resumed-goal notes about `_refundId` and 3
   failing/timed-out admin-web tests are stale and did not reproduce.
 - Latest direct miniapp automated baseline: Round 97 on clean local `main` HEAD
   `2fc543e` passed smoke, behavior wiring (69 checks), user-flow replay (3
@@ -140,6 +141,12 @@
   `docs/MVP-Progress.md`, this state file, and the JSON ledgers; the readiness
   page now keeps target, status matrix, closeout boundary, verification
   commands, and next best rounds. No unresolved evidence counts changed.
+- Round 111 refreshed the direct admin-web automated validation on current
+  `main`: lint, Vitest, production build, behavior wiring, external QA
+  preflight, and admin entry readiness all passed. This confirms the stale
+  `_refundId`/timed-out-test startup notes remain resolved, but authenticated
+  admin manual QA is still pending and the unresolved evidence count is
+  unchanged.
 - Round 50 audited the original goal termination criteria and found the MVP
   incomplete. Round 58 later closed the backend `8080` item, leaving the
   current 32 unresolved required items. The completion conclusion remains
