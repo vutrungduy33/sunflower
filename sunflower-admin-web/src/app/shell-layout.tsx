@@ -104,7 +104,7 @@ export function ShellLayout({ children }: ShellLayoutProps) {
             <p>{currentRoute.description}</p>
           </div>
 
-          <Space align="center" size={16}>
+          <Space align="center" className="admin-layout__actions" size={12} wrap>
             <Tag color="blue">
               {currentRoute.statusLabel}
             </Tag>

@@ -80,6 +80,10 @@ select {
   background: transparent;
 }
 
+.admin-layout.ant-layout-has-sider {
+  flex-direction: row;
+}
+
 .admin-layout__aside {
   position: sticky;
   top: 24px;
@@ -197,8 +201,13 @@ select {
   flex: 1;
   flex-direction: column;
   gap: 20px;
+  width: 100%;
   min-width: 0;
   background: transparent;
+}
+
+.admin-layout.ant-layout-has-sider > .admin-layout__main {
+  width: 100%;
 }
 
 .admin-layout__header,
@@ -207,6 +216,8 @@ select {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  width: 100%;
+  height: auto;
   min-height: auto;
   padding: 20px 24px;
   border: 1px solid var(--line);
@@ -214,10 +225,12 @@ select {
   background: var(--surface);
   box-shadow: var(--shadow-sm);
   color: var(--text-muted);
+  line-height: normal;
 }
 
 .admin-layout__header-copy {
   display: grid;
+  flex: 1 1 auto;
   gap: 8px;
   min-width: 0;
 }
@@ -246,9 +259,17 @@ select {
   font-size: 13px;
 }
 
+.admin-layout__actions {
+  flex: 0 0 auto;
+  justify-content: flex-end;
+  max-width: 100%;
+  min-width: 0;
+}
+
 .admin-layout__account-copy {
   display: grid;
   gap: 2px;
+  min-width: 112px;
   text-align: right;
 }
 
@@ -1166,16 +1187,19 @@ select {
 }
 
 @media (max-width: 1280px) {
-  .admin-layout {
+  .admin-layout,
+  .admin-layout.ant-layout-has-sider {
     flex-direction: column;
   }
 
   .admin-layout__aside {
     position: static;
+    flex: none !important;
     width: 100% !important;
     max-width: none !important;
     min-width: 0 !important;
     height: auto;
+    overflow: visible;
   }
 
   .workspace-hero,
@@ -1190,6 +1214,14 @@ select {
   .admin-layout__header {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .admin-layout__actions {
+    justify-content: flex-start;
+  }
+
+  .admin-layout__account-copy {
+    text-align: left;
   }
 }
 
