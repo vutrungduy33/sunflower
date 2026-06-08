@@ -55,8 +55,8 @@
   HEAD `af46357`, aligned with `origin/main`, with backend/admin/miniapp,
   evidence, and deploy-config checks enabled. Production checks were skipped by
   default.
-- Backend baseline from that run: `mvn -B test` passed with 57 tests, 0
-  failures, 0 errors, and 0 skipped.
+- Latest direct backend baseline: Round 114 on clean local `main` passed
+  `mvn -B test` with 57 tests, 0 failures, 0 errors, and 0 skipped.
 - Latest direct admin-web baseline: Round 111 on clean local `main` passed
   `npm run lint`, `npm run test` (24 Vitest tests across 5 files),
   `npm run build`, behavior wiring (97 checks), external QA preflight
@@ -159,6 +159,11 @@
   local `main` HEAD `c78fb9b5a645`, `origin/main` at the same SHA, 0 changed
   files, and predicted push-to-main deploy target `none`. No evidence statuses
   changed.
+- Round 114 refreshed the direct backend automated validation on current
+  `main`: `mvn -B test` passed with 57 tests, 0 failures, 0 errors, and
+  0 skipped. This confirms local backend/API/Flyway test-profile quality
+  remains current, but real WeChat/SMS/payment/refund and production callback
+  evidence remain external closeout items.
 - Round 50 audited the original goal termination criteria and found the MVP
   incomplete. Round 58 later closed the backend `8080` item, leaving the
   current 32 unresolved required items. The completion conclusion remains

@@ -423,9 +423,58 @@
   - Strengthened `scripts/check_mvp_next_approval_request.js` with current-text
     and stale-text assertions.
 - Verification:
-  - Pending.
+  - `node --check scripts/check_mvp_next_approval_request.js`: passed.
+  - `node scripts/check_mvp_next_approval_request.js`: passed.
+  - `node scripts/check_mvp_external_runbook.js`: passed.
+  - `node scripts/check_mvp_handoff_packet.js`: passed.
+  - `node scripts/check_mvp_closeout_readiness.js`: passed in non-strict mode
+    and still reported 32 unresolved required closeout items.
+  - `git diff --check`: passed.
 - Outcome:
-  - Pending.
+  - The approval entry now reflects the current local validation facts and the
+    latest clean preflight snapshot. This was a docs/checker handoff round; it
+    did not push deploy actions, mutate ECS, run payment/refund, or reduce the
+    unresolved evidence count.
+
+## Round 114: Backend Local Baseline Refresh
+
+- Date: 2026-06-08
+- Status: completed
+- Focus: refresh current `main` backend automated validation evidence without
+  changing backend code or claiming real external-service readiness.
+- Start evidence:
+  - `docs/Backend-MVP-QA.md` still said "Current as of 2026-06-02" and listed
+    the latest backend result as Round 28.
+  - `docs/MVP-Readiness.md`, `docs/Project-State.md`, and
+    `docs/MVP-Launch-Evidence.json` still pointed backend local quality at the
+    older Round 99 aggregate baseline.
+- Open-source reference check:
+  - Task classification: repository-local validation evidence refresh.
+  - Sources checked: existing backend Maven test command,
+    `docs/Backend-MVP-QA.md`, `docs/MVP-Readiness.md`, and
+    `docs/MVP-Launch-Evidence.json`.
+  - License/compatibility: no external code copied.
+  - Selected approach: rerun the established Maven suite instead of adding new
+    backend tests in a documentation/evidence refresh round.
+- Risks:
+  - This round must not treat test-profile coverage as real WeChat login, SMS,
+    payment/refund, callback, or production readiness evidence.
+- Acceptance criteria:
+  - `cd sunflower-backend && mvn -B test` passes.
+  - Update backend QA/readiness/state/evidence docs with the current facts.
+  - Run focused evidence/doc validation and commit once.
+- Change summary:
+  - Refreshed backend local quality evidence to Round 114.
+  - Kept real WeChat/SMS/payment/refund and production callback evidence
+    external and pending.
+- Verification:
+  - `cd sunflower-backend && mvn -B test`: passed with 57 tests, 0 failures,
+    0 errors, and 0 skipped.
+- Outcome:
+  - Backend automated local quality is current on `main`, while external
+    service and manual closeout evidence remains pending. This round did not
+    push deploy actions, mutate ECS, run real WeChat/SMS/payment/refund, or
+    reduce the unresolved evidence count.
 
 ## Round 109: Next Goal Prompt Current-Fact Refresh
 

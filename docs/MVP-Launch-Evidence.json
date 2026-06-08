@@ -15,7 +15,7 @@
       "requirement": "Backend automated test suite remains green.",
       "status": "passed",
       "requiredForMvp": true,
-      "evidence": "Round 99 scripts/check_mvp_regression.sh passed on clean local main HEAD af46357, aligned with origin/main. Backend mvn -B test passed with 57 tests, 0 failures, 0 errors, and 0 skipped. Production checks were skipped by default.",
+      "evidence": "Round 114 direct backend validation on clean local main passed mvn -B test with 57 tests, 0 failures, 0 errors, and 0 skipped. The earlier Round 99 aggregate regression also passed backend tests on clean local main HEAD af46357 with production checks skipped by default.",
       "nextAction": "Re-run after backend changes or before final closeout."
     },
     {

@@ -1,6 +1,6 @@
 # Backend MVP QA
 
-> Current as of 2026-06-02. This document records repeatable backend/API checks
+> Current as of 2026-06-08 Round 114. This document records repeatable backend/API checks
 > for the MVP hardening goal.
 
 ## 1. Automated Checks
@@ -11,7 +11,7 @@ Run from the repository root:
 cd sunflower-backend && mvn -B test
 ```
 
-Latest Round 28 result:
+Latest Round 114 result:
 
 - `mvn -B test`: passed.
 - Tests run: 57.

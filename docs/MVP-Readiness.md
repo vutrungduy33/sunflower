@@ -1,6 +1,6 @@
 # MVP Readiness
 
-> Current as of 2026-06-08 Round 112. This is the compact launch-readiness
+> Current as of 2026-06-08 Round 114. This is the compact launch-readiness
 > board for the MVP hardening goal. It is not a stage gate, and it should not
 > duplicate the full round history.
 
@@ -25,7 +25,7 @@ and deployment path are all verified with current evidence:
 
 | Area | Current evidence | Status | Next action |
 | --- | --- | --- | --- |
-| Backend local quality | Round 99 aggregate regression passed `mvn -B test` with 57 tests, 0 failures/errors/skips. Backend `8080` hardening was closed in Round 58 and rechecked in Round 100 production read-only audit. | Ready locally | Keep `mvn -B test` and backend `8080` exposure checks green after backend/deploy changes. |
+| Backend local quality | Round 114 refreshed the current `main` backend baseline: `mvn -B test` passed with 57 tests, 0 failures, 0 errors, and 0 skipped. Backend `8080` hardening was closed in Round 58 and rechecked in Round 100 production read-only audit. | Ready locally | Keep `mvn -B test` and backend `8080` exposure checks green after backend/deploy changes. |
 | Admin web local quality | Round 111 refreshed the current `main` baseline: `npm run lint`, `npm run test` with 24 Vitest tests, `npm run build`, behavior wiring with 97 checks, external QA preflight with 6 checks, and entry readiness with 6 passes/2 expected HTTP-IP warnings all passed. | Ready locally | Rerun admin lint/test/build after admin-web changes. |
 | Admin entry / manual QA | Round 108 added and passed `node scripts/check_admin_web_entry_readiness.js` for the temporary HTTP/IP admin entry, `/healthz`, and `/api/health`. This is not authenticated operator QA. | Partially verified | Run entry readiness first, then record safe authenticated admin evidence and require `node scripts/check_admin_web_manual_qa.js --strict`. |
 | Miniapp automated checks | Round 112 refreshed the current `main` baseline: smoke passed with the expected bare HTTP warning, behavior wiring passed 69 checks, user-flow replay passed 3 scenarios, payment-flow replay passed 5 scenarios, external QA preflight passed with the expected missing-private-config warning, project config/nav guards passed, and key JavaScript syntax checks passed. | Partially verified | Record real AppID preview/real-device evidence, legal HTTPS domain, login, phone binding, booking, payment/refund, and error-state QA. |
