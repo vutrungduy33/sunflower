@@ -1,10 +1,10 @@
 # Production Smoke
 
-> Latest deployment/smoke evidence: 2026-06-08 Round 91. This records observed
-> deployment/smoke facts for the MVP hardening goal. Round 91 proves current
-> `main` backend deployment through the reduced-scope backend-only
-> `nonprod-mock-payment` lane; it does not prove real WeChat Pay/refund,
-> HTTPS legal-domain readiness, or admin-web/Nginx refresh.
+> Latest deployment/smoke evidence: 2026-06-08 Round 95. This records observed
+> deployment/smoke facts for the MVP hardening goal. Round 95 refreshes the
+> production read-only audit; Round 91 remains the latest current-backend
+> reduced-scope `nonprod-mock-payment` deploy evidence. Neither proves real
+> WeChat Pay/refund, HTTPS legal-domain readiness, or admin-web/Nginx refresh.
 
 ## 0. Repeatable Script
 
@@ -87,8 +87,9 @@ Latest deployment attempt:
 
 Latest read-only production result:
 
-- `CURL_CONNECT_TIMEOUT=15 scripts/check_production_readonly_audit.sh`: passed
-  in Round 65 with 4 read-only steps.
+- `scripts/check_production_readonly_audit.sh`: passed in Round 95 with 4
+  read-only steps. The first sandboxed attempt could not connect to the public
+  API; the approved network run passed.
 - Deploy config static checks passed.
 - Production public/ECS internal smoke passed with 7 checks and 0 warnings:
   public API health/home/admin ingress worked, ECS-1 reached the private
@@ -106,6 +107,12 @@ Latest read-only production result:
 - No deployment, push, workflow dispatch, Nginx reload, ECS mutation, firewall
   mutation, security-group mutation, payment/refund action, or live QA data
   mutation was performed.
+
+Previous read-only production result:
+
+- `CURL_CONNECT_TIMEOUT=15 scripts/check_production_readonly_audit.sh`: passed
+  in Round 65 with 4 read-only steps and the same 7 production smoke passes,
+  5 backend `8080` exposure passes, and 8 sanitized payment config issues.
 
 Previous read-only production result:
 

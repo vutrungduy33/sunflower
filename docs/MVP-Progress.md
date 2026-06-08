@@ -5,6 +5,56 @@
 > This active file keeps only the latest operational rounds. Older rounds are
 > archived in `docs/archive/mvp-progress/`.
 
+## Round 95: Production Read-Only Audit Refresh
+
+- Date: 2026-06-08
+- Status: completed
+- Focus: refresh the read-only production smoke/audit evidence on the current
+  branch without pushing, deploying, or mutating ECS so the deployment and
+  security baselines stay current.
+- Start evidence:
+  - Local `main` and `origin/main` were aligned at `d687370`.
+  - Worktree was clean before validation.
+  - `docs/Production-Smoke.md`, `docs/MVP-Readiness.md`, and
+    `docs/Project-State.md` still referenced Round 65 as the latest read-only
+    production audit.
+- Open-source reference check:
+  - Task classification: production-read-only audit using existing repo-native
+    smoke scripts.
+  - Sources checked: `docs/Architecture.md`, `docs/CI-CD.md`, existing smoke
+    scripts, and current command output.
+  - License/compatibility: local repository scripts only; no external code
+    copied.
+  - Selected approach: run the canonical read-only production audit wrapper and
+    update the evidence docs with the approved-network result.
+- Risks:
+  - The audit is read-only, but it still depends on live ECS/public network
+    reachability, so a sandbox-only run may fail while the approved-network run
+    passes.
+  - The audit does not prove real payment readiness, HTTPS legal-domain setup,
+    or current-branch deployment through the production lane.
+- Acceptance criteria:
+  - `scripts/check_production_readonly_audit.sh` passes on the current branch.
+  - `docs/Project-State.md`, `docs/MVP-Readiness.md`,
+    `docs/MVP-Launch-Evidence.json`, and `docs/Production-Smoke.md` reflect the
+    refreshed audit.
+  - Keep unresolved MVP evidence pending and document the new latest production
+    read-only result.
+- Verification:
+  - First sandboxed run of `scripts/check_production_readonly_audit.sh` could
+    not connect to the public API health endpoint.
+  - Approved-network rerun of `scripts/check_production_readonly_audit.sh`
+    passed all 4 read-only steps: deploy config static checks, public and ECS
+    internal smoke, backend `8080` exposure checks, and backend payment config
+    readiness. The smoke returned 7 passes, 0 warnings; backend `8080`
+    exposure returned 5 passes, 0 warnings; payment readiness still reported
+    the known 8 sanitized real-payment config issues.
+- Outcome:
+  - Latest read-only production audit is now Round 95. The audit confirms the
+    current public runtime is reachable from the approved network and the known
+    payment blockers remain unchanged; it does not change the unresolved MVP
+    external evidence count.
+
 ## Round 94: Miniapp HTTPS Evidence Boundary Tightening
 
 - Date: 2026-06-08
