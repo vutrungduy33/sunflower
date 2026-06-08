@@ -101,7 +101,7 @@
 - **后端**：Java / Spring Boot（单体，开发环境基于 docker-compose）  
 - **数据库**：MySQL  
 - **前端**：微信小程序（原生）  
-- **后台管理**：Web（`React 18 + TypeScript + Vite + TDesign React`，骨架参考 `TDesign React Starter`；前置依赖与约束见 `docs/Web-Admin-Plan.md`）
+- **后台管理**：Web（`React 18 + TypeScript + Vite + Ant Design 5 + ProComponents`；前置依赖与约束见 `docs/Web-Admin-Plan.md`）
 
 ### 4.1 架构模式
 - **前端**：微信小程序  

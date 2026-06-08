@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
-import { Button, Card, Input, Space, Tag } from 'tdesign-react'
+import { Button, Card, Input, Space, Tag } from '@/app/admin-components'
 import { getAdminAuthErrorMessage, resetAdminPassword, sendAdminSmsCode } from '@/features/auth/auth-service'
 import { useAdminAuth } from '@/features/auth/auth-store'
 
@@ -78,13 +78,24 @@ export function ResetPasswordPage() {
   return (
     <div className="login-shell">
       <div className="login-grid">
+        <section className="login-intro">
+          <div className="brand-mark">SF</div>
+          <h1>恢复后台访问</h1>
+          <p>已激活账号可以通过短信验证码重置密码，重置后直接进入运营后台。</p>
+          <div className="login-intro__facts">
+            <span>身份校验</span>
+            <span>旧会话失效</span>
+            <span>立即恢复访问</span>
+          </div>
+        </section>
+
         <Card className="login-panel">
           <div className="login-panel__hero">
-            <Tag theme="warning" variant="light-outline">
-              S17 管理端真实账号登录
+            <Tag theme="primary" variant="light-outline">
+              密码重置
             </Tag>
             <h1>重置后台密码</h1>
-            <p>通过短信验证码校验身份后，可以立即重置密码并恢复后台访问。</p>
+            <p>通过短信验证码校验身份后，可以立即设置新的后台密码。</p>
           </div>
 
           <form className="login-form" onSubmit={handleSubmit}>
@@ -149,14 +160,6 @@ export function ResetPasswordPage() {
               </div>
             </Space>
           </form>
-        </Card>
-
-        <Card className="login-side-panel" title="重置说明">
-          <ul className="bullet-list">
-            <li>仅已激活的后台账号支持短信重置密码。</li>
-            <li>重置成功后旧登录态立即失效。</li>
-            <li>密码需为 8-32 位，并同时包含字母和数字。</li>
-          </ul>
         </Card>
       </div>
     </div>

@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, Card, Input, Space, Tag } from 'tdesign-react'
+import { Button, Card, Input, Space, Tag } from '@/app/admin-components'
 import { changeAdminPassword, getAdminAuthErrorMessage } from '@/features/auth/auth-service'
 import { useAdminAuth } from '@/features/auth/auth-store'
 
@@ -36,8 +36,8 @@ export function ChangePasswordPage() {
       <Card className="panel-card">
         <div className="page-header-inline">
           <div>
-            <Tag theme="warning" variant="light-outline">
-              S17
+            <Tag theme="primary" variant="light-outline">
+              账号安全
             </Tag>
             <h3>修改密码</h3>
             <p>当前账号：{account?.phone || '未知账号'}</p>

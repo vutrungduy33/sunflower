@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { Button, Card, Input, Space, Tag } from 'tdesign-react'
-import { appEnv } from '@/config/env'
+import { Button, Card, Input, Space, Tag } from '@/app/admin-components'
 import {
   getAdminAuthErrorMessage,
   loginWithAdminPassword,
@@ -64,20 +63,24 @@ export function LoginPage() {
   return (
     <div className="login-shell">
       <div className="login-grid">
+        <section className="login-intro">
+          <div className="brand-mark">SF</div>
+          <h1>Sunflower 运营后台</h1>
+          <p>用于单店民宿的房型、房态、价格、订单和售后处理。账号登录后即可进入日常运营工作台。</p>
+          <div className="login-intro__facts">
+            <span>手机号密码登录</span>
+            <span>短信激活与重置</span>
+            <span>受保护运营页面</span>
+          </div>
+        </section>
+
         <Card className="login-panel">
           <div className="login-panel__hero">
-            <Tag theme="warning" variant="light-outline">
-              S17 管理端真实账号登录
+            <Tag theme="primary" variant="light-outline">
+              后台账号
             </Tag>
-            <h1>管理端登录</h1>
-            <p>
-              使用手机号 + 密码登录，前端会自动恢复后台会话、注入
-              `Authorization: Bearer &lt;token&gt;`，并在登录态失效后自动清理本地会话。
-            </p>
-            <div className="login-panel__meta">
-              <span>应用标题：{appEnv.appTitle}</span>
-              <span>API 地址：{appEnv.apiBaseUrl}</span>
-            </div>
+            <h1>登录管理后台</h1>
+            <p>使用已激活的手机号和后台密码登录。登录态失效后会自动回到本页。</p>
           </div>
 
           <form className="login-form" onSubmit={handleSubmit}>
@@ -116,24 +119,12 @@ export function LoginPage() {
               >
                 登录后台
               </Button>
-              <p className="login-form__hint">
-                当前账号体系支持首次激活、短信重置密码、会话恢复与最小角色 `admin/operator`。
-              </p>
               <div className="auth-form__links">
                 <Link to="/activate">首次激活</Link>
                 <Link to="/reset-password">忘记密码</Link>
               </div>
             </Space>
           </form>
-        </Card>
-
-        <Card className="login-side-panel" title="本阶段已交付能力">
-          <ul className="bullet-list">
-            <li>手机号 + 密码登录与失败提示。</li>
-            <li>首次激活与短信重置密码。</li>
-            <li>会话恢复、401 失效清理与退出登录。</li>
-            <li>`admin/operator` 最小角色收口。</li>
-          </ul>
         </Card>
       </div>
     </div>

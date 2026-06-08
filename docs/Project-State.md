@@ -35,7 +35,7 @@
 
 - Miniapp: `sunflower-miniapp`, native WeChat mini program, MVP pages under
   `pages/mvp`.
-- Admin web: `sunflower-admin-web`, React + TypeScript + Vite + TDesign React.
+- Admin web: `sunflower-admin-web`, React + TypeScript + Vite + Ant Design 5 + ProComponents.
 - Backend: `sunflower-backend`, Spring Boot monolith with MySQL + Flyway.
 - Production topology:
   - ECS-1 `47.113.223.248` / `172.25.121.84`: host Nginx, admin-web, public API
@@ -57,12 +57,14 @@
   default.
 - Latest direct backend baseline: Round 114 on clean local `main` passed
   `mvn -B test` with 57 tests, 0 failures, 0 errors, and 0 skipped.
-- Latest direct admin-web baseline: Round 111 on clean local `main` passed
-  `npm run lint`, `npm run test` (24 Vitest tests across 5 files),
-  `npm run build`, behavior wiring (97 checks), external QA preflight
-  (6 checks), and admin entry readiness (6 passes with 2 expected HTTP/IP
-  warnings). The earlier resumed-goal notes about `_refundId` and 3
-  failing/timed-out admin-web tests are stale and did not reproduce.
+- Latest direct admin-web baseline: 2026-06-08 uncommitted Ant Design 5 +
+  ProComponents UI refactor passed `npm run lint`, `npm run test`
+  (24 Vitest tests across 5 files), `npm run build`, behavior wiring
+  (97 checks), external QA preflight (6 checks), admin entry readiness
+  (6 passes with 2 expected HTTP/IP warnings), and mocked Playwright desktop /
+  mobile visual QA for login, workspace, room, pricing, and order paths. The
+  build still reports the known Vite large-chunk warning for the AntD/
+  ProComponents bundle.
 - Latest direct miniapp automated baseline: Round 112 on clean local `main`
   passed smoke, behavior wiring (69 checks), user-flow replay (3 scenarios),
   payment-flow replay (5 scenarios), external QA preflight (6 checks), project
@@ -472,6 +474,10 @@
   domain, real AppID preview, WeChat login, phone binding, booking path, payment,
   refund, and error states.
 - Admin-web production or approved-staging manual QA remains pending.
+- Admin-web now uses Ant Design 5 + ProComponents rather than TDesign React.
+  AntD 6 is deferred until ProComponents officially supports it; the current
+  production build warns that the admin component bundle exceeds Vite's default
+  500 kB chunk-size threshold.
 - Real AppID must stay only in ignored
   `sunflower-miniapp/project.private.config.json`; committed
   `sunflower-miniapp/project.config.json` must remain `touristappid`.

@@ -12,7 +12,7 @@ import {
 } from '@/features/rooms/admin-room-service'
 import { RoomManagementPage } from '@/pages/room-management-page'
 
-vi.mock('tdesign-react', () => {
+vi.mock('@/app/admin-components', () => {
   const MessagePlugin = {
     success: vi.fn(),
     error: vi.fn(),

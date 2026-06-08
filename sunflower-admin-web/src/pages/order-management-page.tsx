@@ -13,7 +13,7 @@ import {
   Tag,
   Textarea,
   type TableProps,
-} from 'tdesign-react'
+} from '@/app/admin-components'
 import {
   approveAdminAfterSaleRequest,
   checkInAdminOrder,
@@ -1332,11 +1332,11 @@ export function OrderManagementPage() {
       <section className="hero-panel order-hero">
         <div className="hero-panel__copy">
           <Tag theme="success" variant="light-outline">
-            S15 订单状态机
+            订单履约与售后
           </Tag>
           <h3>订单分层状态、售后审批与入住履约</h3>
           <p>
-            当前页面已接入订单主状态、支付状态、售后申请状态和入住/离店/失约流程，支持在抽屉内完成审批与履约处理。
+            当前页面展示订单主状态、支付状态、售后申请状态和入住/离店/失约流程，支持在抽屉内完成审批与履约处理。
           </p>
         </div>
         <div className="order-stat-grid">
@@ -1441,7 +1441,7 @@ export function OrderManagementPage() {
               </p>
             </div>
             <Tag theme="warning" variant="light-outline">
-              S15 API 已接入
+              接口已联通
             </Tag>
           </div>
           <Table

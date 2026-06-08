@@ -13,7 +13,7 @@ import {
   type TableProps,
   Tag,
   Textarea,
-} from 'tdesign-react'
+} from '@/app/admin-components'
 import {
   createAdminRoom,
   fetchAdminRooms,
@@ -426,11 +426,11 @@ export function RoomManagementPage() {
       <section className="hero-panel room-hero">
         <div className="hero-panel__copy">
           <Tag theme="success" variant="light-outline">
-            S11 管理后台房型管理
+            房型管理
           </Tag>
           <h3>房型基础信息维护</h3>
           <p>
-            当前页面已接入管理端房型列表、创建/编辑和上下架操作，后续 `S12` 将在此基础上补齐价格日历与库存批量编辑。
+            当前页面支持房型列表、创建/编辑和上下架操作，可继续配合价格库存页完成完整运营维护。
           </p>
         </div>
         <div className="room-stat-grid">
@@ -500,7 +500,7 @@ export function RoomManagementPage() {
               <p>当前筛选结果 {filteredRooms.length} 条，支持创建、编辑和上/下架。</p>
             </div>
             <Tag theme="warning" variant="light-outline">
-              S7 API 已接入
+              接口已联通
             </Tag>
           </div>
           <Table

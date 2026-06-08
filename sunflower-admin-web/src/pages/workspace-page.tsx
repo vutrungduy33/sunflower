@@ -1,49 +1,43 @@
+import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Button, Card, Space, Tag } from 'tdesign-react'
+import { Button, Card, Space, Tag } from '@/app/admin-components'
 import { appEnv } from '@/config/env'
 import { useAdminAuth } from '@/features/auth/auth-store'
+import { fetchAdminOrderOverview } from '@/features/orders/admin-order-service'
+import { fetchAdminRooms } from '@/features/rooms/admin-room-service'
 import { fetchHealth } from '@/services/health'
 
-const installedCapabilities = [
-  '手机号密码登录',
-  '首次激活',
-  '短信重置密码',
-  '受保护路由',
-  '统一菜单配置',
-  'Axios 鉴权注入',
-  '登录态恢复与 401 清理',
-  '订单筛选与详情抽屉',
-  '后台改期与退款处理',
-  '真实微信支付 / 退款流水对接',
-]
-
-const nextSteps = [
-  { label: 'MVP QA', title: '小程序真机验证与生产 smoke' },
-  { label: 'Security', title: 'HTTPS 域名与后端端口收敛' },
-]
-
-function maskToken(token: string) {
-  if (token.length <= 6) {
-    return `${token.slice(0, 2)}***`
+function formatCurrency(amount?: number) {
+  if (typeof amount !== 'number') {
+    return '--'
   }
 
-  return `${token.slice(0, 4)}***${token.slice(-2)}`
+  return `¥${amount.toLocaleString('zh-CN')}`
 }
 
 export function WorkspacePage() {
-  const { token, account } = useAdminAuth()
+  const { account } = useAdminAuth()
   const healthQuery = useQuery({
     queryKey: ['health'],
     queryFn: fetchHealth,
   })
+  const roomsQuery = useQuery({
+    queryKey: ['admin-rooms'],
+    queryFn: fetchAdminRooms,
+  })
+  const orderOverviewQuery = useQuery({
+    queryKey: ['admin-order-overview'],
+    queryFn: fetchAdminOrderOverview,
+  })
 
+  const rooms = roomsQuery.data ?? []
+  const activeRoomCount = rooms.filter((room) => room.status === 'ACTIVE').length
   const healthTheme =
     healthQuery.isSuccess && healthQuery.data.status === 'UP'
       ? 'success'
       : healthQuery.isError
         ? 'danger'
         : 'warning'
-
   const healthLabel =
     healthQuery.isSuccess && healthQuery.data.status
       ? healthQuery.data.status
@@ -51,55 +45,59 @@ export function WorkspacePage() {
         ? 'UNAVAILABLE'
         : 'CHECKING'
 
+  const metrics = [
+    {
+      label: '房型在售',
+      value: roomsQuery.isPending ? '--' : activeRoomCount,
+      detail: `共 ${rooms.length} 个房型`,
+    },
+    {
+      label: '待入住',
+      value: orderOverviewQuery.data?.pendingCheckInCount ?? '--',
+      detail: '需关注今日及近期到店订单',
+    },
+    {
+      label: '订单总数',
+      value: orderOverviewQuery.data?.orderCount ?? '--',
+      detail: '后台可处理订单',
+    },
+    {
+      label: '成交额',
+      value: formatCurrency(orderOverviewQuery.data?.revenueAmount),
+      detail: '已支付和部分退款订单口径',
+    },
+  ]
+
   return (
     <div className="page-stack">
-      <section className="hero-panel">
+      <section className="hero-panel workspace-hero">
         <div className="hero-panel__copy">
-          <Tag theme="success" variant="light-outline">
-            MVP 核心运营能力已接入
-          </Tag>
-          <h3>管理工作台</h3>
+          <h3>今日运营总览</h3>
           <p>
-            当前阶段已补齐手机号 + 密码登录、首次激活、短信重置密码、修改密码与会话恢复，并沿用现有房型、价格库存、订单售后主链路。
+            面向前台和运营的日常工作台：快速确认房型在售、待入住订单、收入概览和接口健康状态。
           </p>
         </div>
-        <div className="hero-panel__meta">
-          <span>标题：{appEnv.appTitle}</span>
-          <span>代理目标：{appEnv.apiProxyTarget}</span>
-          <span>当前账号：{account?.phone || '未恢复'}</span>
-          <span>角色：{account?.roleLabel || '未知'}</span>
-          <span>当前 token：{maskToken(token)}</span>
+        <div className="workspace-hero__account">
+          <Tag theme="success" variant="light-outline">
+            {account?.roleLabel || '后台账号'}
+          </Tag>
+          <strong>{account?.phone || '当前账号'}</strong>
+          <span>接口入口：{appEnv.apiBaseUrl}</span>
         </div>
       </section>
 
-      <section className="dashboard-grid">
-        <Card className="panel-card" title="登录态概览">
-          <div className="status-panel">
-            <Tag theme="success" variant="light-outline">
-              已登录
-            </Tag>
-            <dl className="status-list">
-              <div>
-                <dt>鉴权模式</dt>
-                <dd>后台会话 Token</dd>
-              </div>
-              <div>
-                <dt>当前账号</dt>
-                <dd>{account?.phone || '未恢复'}</dd>
-              </div>
-              <div>
-                <dt>当前角色</dt>
-                <dd>{account?.roleLabel || '未知'}</dd>
-              </div>
-              <div>
-                <dt>受保护页面</dt>
-                <dd>经营概览 / 房型管理 / 价格库存 / 订单售后 / 修改密码</dd>
-              </div>
-            </dl>
-          </div>
-        </Card>
+      <section className="ops-metric-grid">
+        {metrics.map((item) => (
+          <article key={item.label} className="ops-metric-card">
+            <span>{item.label}</span>
+            <strong>{item.value}</strong>
+            <small>{item.detail}</small>
+          </article>
+        ))}
+      </section>
 
-        <Card className="panel-card" title="后端连通性">
+      <section className="dashboard-grid">
+        <Card className="panel-card" title="系统健康">
           <div className="status-panel">
             <Space align="center" size={12}>
               <Tag theme={healthTheme} variant="light-outline">
@@ -121,7 +119,7 @@ export function WorkspacePage() {
                   <dd>{healthQuery.data.service || 'unknown'}</dd>
                 </div>
                 <div>
-                  <dt>时间戳</dt>
+                  <dt>最近响应</dt>
                   <dd>{healthQuery.data.timestamp || 'n/a'}</dd>
                 </div>
               </dl>
@@ -129,39 +127,29 @@ export function WorkspacePage() {
 
             {healthQuery.isError ? (
               <p className="status-error">
-                无法访问 `/api/health`，请确认后端已启动。
+                无法访问 `/api/health`，请确认后端服务和反向代理可用。
               </p>
             ) : null}
           </div>
         </Card>
 
-        <Card className="panel-card" title="当前已接入能力">
+        <Card className="panel-card" title="常用操作">
+          <div className="quick-action-list">
+            <Link to="/rooms">维护房型资料与上下架状态</Link>
+            <Link to="/pricing">发布价格与库存</Link>
+            <Link to="/orders">处理订单、入住、退款与售后</Link>
+            <Link to="/account/password">修改当前后台账号密码</Link>
+          </div>
+        </Card>
+
+        <Card className="panel-card" title="运营关注">
           <ul className="bullet-list">
-            {[
-              ...installedCapabilities,
-              '房型列表与创建编辑',
-              '房型上下架与状态反馈',
-              '价格日历按窗口查询',
-              '按日期区间批量更新价格与库存',
-              '订单列表筛选与经营概览',
-              '订单详情抽屉与售后反馈',
-            ].map((item) => (
-              <li key={item}>{item}</li>
-            ))}
+            <li>上线前请用真实后台账号完成登录、房型维护、价格库存发布和订单售后全链路验收。</li>
+            <li>真实支付、退款和小程序合法 HTTPS 域名仍需按外部验证清单完成记录。</li>
+            <li>生产操作前确认订单、房态和退款动作都有对应的人工审批边界。</li>
           </ul>
         </Card>
       </section>
-
-      <Card className="panel-card" title="上线前重点">
-        <div className="roadmap-grid">
-          {nextSteps.map((item) => (
-            <article key={item.label} className="roadmap-card">
-              <span className="roadmap-card__stage">{item.label}</span>
-              <h3>{item.title}</h3>
-            </article>
-          ))}
-        </div>
-      </Card>
     </div>
   )
 }

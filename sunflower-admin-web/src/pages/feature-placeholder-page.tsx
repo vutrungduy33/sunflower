@@ -1,15 +1,15 @@
-import { Card, Tag } from 'tdesign-react'
+import { Card, Tag } from '@/app/admin-components'
 
 interface FeaturePlaceholderPageProps {
   title: string
-  stage: string
+  label: string
   summary: string
   bulletPoints: string[]
 }
 
 export function FeaturePlaceholderPage({
   title,
-  stage,
+  label,
   summary,
   bulletPoints,
 }: FeaturePlaceholderPageProps) {
@@ -17,8 +17,8 @@ export function FeaturePlaceholderPage({
     <div className="page-stack">
       <Card className="panel-card placeholder-card">
         <div className="placeholder-card__head">
-          <Tag theme="warning" variant="light-outline">
-            {stage}
+          <Tag theme="primary" variant="light-outline">
+            {label}
           </Tag>
           <h3>{title}</h3>
           <p>{summary}</p>

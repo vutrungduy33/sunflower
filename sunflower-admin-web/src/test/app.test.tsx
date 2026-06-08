@@ -25,7 +25,7 @@ import { ActivatePage } from '@/pages/activate-page'
 import { LoginPage } from '@/pages/login-page'
 import { ResetPasswordPage } from '@/pages/reset-password-page'
 
-vi.mock('tdesign-react', () => {
+vi.mock('@/app/admin-components', () => {
   function LayoutLike({
     children,
     className,
@@ -327,7 +327,7 @@ describe('admin auth flow', () => {
     await user.click(screen.getByRole('button', { name: '登录后台' }))
 
     expect(await screen.findByRole('alert')).toHaveTextContent('手机号或密码错误')
-    expect(screen.getByRole('heading', { level: 1, name: '管理端登录' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: '登录管理后台' })).toBeInTheDocument()
   })
 
   it('activates account after sending sms code', async () => {

@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { QueryClientProvider } from '@tanstack/react-query'
+import { App as AntdApp, ConfigProvider } from 'antd'
+import zhCN from 'antd/locale/zh_CN'
 import { RouterProvider, type RouterProviderProps } from 'react-router-dom'
 import { createAppQueryClient } from '@/app/query-client'
 import { createAppRouter } from '@/app/router'
@@ -29,10 +31,38 @@ function App({ router }: AppProps) {
   const [appRouter] = useState(() => router ?? createAppRouter())
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AdminAuthBootstrap />
-      <RouterProvider router={appRouter} future={{ v7_startTransition: true }} />
-    </QueryClientProvider>
+    <ConfigProvider
+      locale={zhCN}
+      theme={{
+        token: {
+          colorPrimary: '#2563eb',
+          borderRadius: 8,
+          colorText: '#172033',
+          colorBgLayout: '#f5f7fb',
+          fontFamily:
+            'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif',
+        },
+        components: {
+          Layout: {
+            bodyBg: '#f5f7fb',
+            headerBg: '#ffffff',
+            siderBg: '#111827',
+          },
+          Menu: {
+            darkItemBg: '#111827',
+            darkSubMenuItemBg: '#111827',
+            darkItemSelectedBg: '#2563eb',
+          },
+        },
+      }}
+    >
+      <AntdApp>
+        <QueryClientProvider client={queryClient}>
+          <AdminAuthBootstrap />
+          <RouterProvider router={appRouter} future={{ v7_startTransition: true }} />
+        </QueryClientProvider>
+      </AntdApp>
+    </ConfigProvider>
   )
 }
 

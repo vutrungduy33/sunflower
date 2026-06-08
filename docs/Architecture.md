@@ -26,7 +26,7 @@ flowchart LR
 ## 2. Repository Layout
 
 - `sunflower-miniapp/`: WeChat mini program, native miniapp pages plus TDesign miniprogram components.
-- `sunflower-admin-web/`: admin web, React 18 + TypeScript + Vite + TDesign React.
+- `sunflower-admin-web/`: admin web, React 18 + TypeScript + Vite + Ant Design 5 + ProComponents.
 - `sunflower-backend/`: Spring Boot monolith, Java 11, Spring Boot 2.7, Spring MVC, JPA, Flyway, MySQL.
 - `deploy/nginx/`: host Nginx template for public admin/API ingress.
 - `scripts/`: deployment and validation scripts used by the GitHub deployment workflow.
@@ -52,7 +52,7 @@ flowchart LR
 
 ### Admin Web
 
-- Built with React, Vite, TypeScript, React Router, TanStack Query, Axios, and TDesign React.
+- Built with React, Vite, TypeScript, React Router, TanStack Query, Axios, Ant Design 5, and ProComponents.
 - Local dev uses Vite proxy for `/api` to the backend.
 - Production image serves static assets from Nginx inside the `sunflower-admin-web` container.
 - Browser API calls use same-origin `/api`, which host Nginx proxies to ECS-2 backend.

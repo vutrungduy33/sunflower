@@ -1,6 +1,14 @@
 import type { ReactNode } from 'react'
 import { useLocation, useMatches, useNavigate } from 'react-router-dom'
-import { Avatar, Breadcrumb, Button, Layout, Menu, Space, Tag } from 'tdesign-react'
+import {
+  AppstoreOutlined,
+  CalendarOutlined,
+  DashboardOutlined,
+  HomeOutlined,
+  SafetyCertificateOutlined,
+  ShoppingOutlined,
+} from '@ant-design/icons'
+import { Avatar, Breadcrumb, Button, Layout, Menu, Space, Tag } from 'antd'
 import { appEnv } from '@/config/env'
 import { navigationItems, type RouteHandle, resolveNavigation } from '@/app/navigation'
 import { logoutAdmin } from '@/features/auth/auth-service'
@@ -16,6 +24,14 @@ function readRouteHandle(matches: ReturnType<typeof useMatches>, pathname: strin
 
 interface ShellLayoutProps {
   children: ReactNode
+}
+
+const navigationIconMap: Record<string, ReactNode> = {
+  foundations: <SafetyCertificateOutlined />,
+  orders: <ShoppingOutlined />,
+  overview: <DashboardOutlined />,
+  pricing: <CalendarOutlined />,
+  rooms: <HomeOutlined />,
 }
 
 export function ShellLayout({ children }: ShellLayoutProps) {
@@ -40,51 +56,48 @@ export function ShellLayout({ children }: ShellLayoutProps) {
 
   return (
     <Layout className="admin-layout">
-      <Layout.Aside className="admin-layout__aside">
+      <Layout.Sider className="admin-layout__aside" width={248}>
         <div className="admin-brand">
           <div className="brand-mark">SF</div>
           <div>
-            <p className="eyebrow">Sunflower Admin</p>
-            <h1>{appEnv.appTitle}</h1>
+            <p className="eyebrow">Sunflower</p>
+            <h1>运营后台</h1>
           </div>
         </div>
 
         <Menu
           className="admin-menu"
-          theme="light"
-          value={currentRoute.value}
-          width="100%"
-          onChange={handleMenuChange}
-        >
-          {navigationItems.map((item) => (
-            <Menu.MenuItem
-              key={item.value}
-              value={item.value}
-              content={
+          items={navigationItems.map((item) => ({
+            icon: navigationIconMap[item.value] ?? <AppstoreOutlined />,
+            key: item.value,
+            label: (
                 <div className="admin-menu__item">
                   <span>{item.label}</span>
-                  <small>{item.stage}</small>
+                  <small>{item.statusLabel}</small>
                 </div>
-              }
-            />
-          ))}
-        </Menu>
+            ),
+          }))}
+          mode="inline"
+          selectedKeys={[currentRoute.value]}
+          theme="dark"
+          onClick={({ key }) => handleMenuChange(key)}
+        />
 
         <div className="admin-layout__aside-footer">
-          <Tag theme="success" variant="light-outline">
+          <Tag color="green">
             {account?.roleLabel || '已登录'}
           </Tag>
-          <p>{account?.phone || '当前后台账号'} 已登录，未登录访问业务页将自动跳转到登录页。</p>
+          <p>{account?.phone || '当前后台账号'}</p>
         </div>
-      </Layout.Aside>
+      </Layout.Sider>
 
       <Layout className="admin-layout__main">
         <Layout.Header className="admin-layout__header">
           <div className="admin-layout__header-copy">
             <Breadcrumb
-              options={[
-                { content: '管理后台' },
-                { content: currentRoute.label },
+              items={[
+                { title: '管理后台' },
+                { title: currentRoute.label },
               ]}
             />
             <h2>{currentRoute.label}</h2>
@@ -92,18 +105,18 @@ export function ShellLayout({ children }: ShellLayoutProps) {
           </div>
 
           <Space align="center" size={16}>
-            <Tag theme="warning" variant="light-outline">
-              {currentRoute.stage}
+            <Tag color="blue">
+              {currentRoute.statusLabel}
             </Tag>
-            <Avatar size="40px">{(account?.roleLabel || '管').slice(0, 1)}</Avatar>
+            <Avatar size={40}>{(account?.roleLabel || '管').slice(0, 1)}</Avatar>
             <div className="admin-layout__account-copy">
               <strong>{account?.phone || '未命名账号'}</strong>
               <span>{account?.roleLabel || '后台账号'}</span>
             </div>
-            <Button variant="outline" theme="default" onClick={() => void navigate('/account/password')}>
+            <Button onClick={() => void navigate('/account/password')}>
               修改密码
             </Button>
-            <Button variant="outline" theme="primary" onClick={() => void handleLogout()}>
+            <Button type="primary" onClick={() => void handleLogout()}>
               退出登录
             </Button>
           </Space>
@@ -114,8 +127,8 @@ export function ShellLayout({ children }: ShellLayoutProps) {
         </Layout.Content>
 
         <Layout.Footer className="admin-layout__footer">
-          <span>当前 API：{appEnv.apiBaseUrl}</span>
-          <span>未登录不可访问后台业务页</span>
+          <span>接口入口：{appEnv.apiBaseUrl}</span>
+          <span>{appEnv.appTitle}</span>
         </Layout.Footer>
       </Layout>
     </Layout>

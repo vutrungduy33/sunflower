@@ -8,7 +8,7 @@ import {
   Select,
   Space,
   Tag,
-} from 'tdesign-react'
+} from '@/app/admin-components'
 import {
   fetchAdminRooms,
   getAdminRoomErrorMessage,
@@ -353,7 +353,7 @@ export function PricingManagementPage() {
               暂无房型
             </Tag>
             <h3>请先创建可维护的房型</h3>
-            <p>当前管理端还没有房型数据，完成 S11 房型创建后即可在这里批量维护价格与库存。</p>
+            <p>当前管理端还没有房型数据，完成房型创建后即可在这里批量维护价格与库存。</p>
           </div>
         </Card>
       </div>
@@ -366,7 +366,7 @@ export function PricingManagementPage() {
         <div className="hero-panel__copy">
           <Space align="center" size={12}>
             <Tag theme="success" variant="light-outline">
-              S12 价格日历与库存
+              价格日历与库存
             </Tag>
             {renderRoomStatus(selectedRoom)}
           </Space>
@@ -465,10 +465,10 @@ export function PricingManagementPage() {
           <div className="room-table-card__header">
             <div>
               <h3>价格库存日历</h3>
-              <p>参考主流网页日历的月视图排布：显式切月、固定周标题、整月补齐空白占位，并保留批量价格库存发布。</p>
+              <p>参考主流网页日历的月视图排布：显式切月、固定周标题、整月补齐空白日期，并保留批量价格和库存发布。</p>
             </div>
             <Tag theme="warning" variant="light-outline">
-              公共日历读取 + S7 批量写入
+              公共日历读取 + 后台批量写入
             </Tag>
           </div>
 

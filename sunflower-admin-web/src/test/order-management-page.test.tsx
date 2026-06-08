@@ -26,7 +26,7 @@ const { messageSuccess, messageError } = vi.hoisted(() => ({
   messageError: vi.fn(),
 }))
 
-vi.mock('tdesign-react', () => {
+vi.mock('@/app/admin-components', () => {
   function Button({
     children,
     disabled,

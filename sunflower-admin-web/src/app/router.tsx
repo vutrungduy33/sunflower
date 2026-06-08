@@ -106,7 +106,7 @@ export const appRoutes: RouteObject[] = [
           path: '/account/password',
           label: '修改密码',
           description: '更新当前后台账号密码，并让旧登录态自动失效。',
-          stage: 'S17',
+          statusLabel: '安全操作',
         } satisfies RouteHandle,
       },
     ],

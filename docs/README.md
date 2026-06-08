@@ -21,7 +21,7 @@
 - 前端：微信小程序（原生框架）
 - 后端：Spring Boot 单体（开发环境基于 docker-compose）
 - 数据库：MySQL（见数据字典与索引设计）
-- 管理后台：Web（`React 18 + TypeScript + Vite + TDesign React`，详见 `docs/Web-Admin-Plan.md`）
+- 管理后台：Web（`React 18 + TypeScript + Vite + Ant Design 5 + ProComponents`，详见 `docs/Web-Admin-Plan.md`）
 - 生产部署：GitHub Actions + 双阿里云 ECS + self-hosted runner（详见 `docs/Architecture.md`）
 
 说明：根目录提供单机联调 `docker-compose.yml`，以及生产双节点拆分用的 `docker-compose.backend.yml` / `docker-compose.web.yml`。

@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
-import { Button, Card, Input, Space, Tag } from 'tdesign-react'
+import { Button, Card, Input, Space, Tag } from '@/app/admin-components'
 import { activateAdminAccount, getAdminAuthErrorMessage, sendAdminSmsCode } from '@/features/auth/auth-service'
 import { useAdminAuth } from '@/features/auth/auth-store'
 
@@ -78,13 +78,24 @@ export function ActivatePage() {
   return (
     <div className="login-shell">
       <div className="login-grid">
+        <section className="login-intro">
+          <div className="brand-mark">SF</div>
+          <h1>开通后台账号</h1>
+          <p>允许名单内的手机号可通过短信验证码完成首次开通，开通后自动进入运营后台。</p>
+          <div className="login-intro__facts">
+            <span>短信验证</span>
+            <span>密码初始化</span>
+            <span>自动建立会话</span>
+          </div>
+        </section>
+
         <Card className="login-panel">
           <div className="login-panel__hero">
-            <Tag theme="warning" variant="light-outline">
-              S17 管理端真实账号登录
+            <Tag theme="primary" variant="light-outline">
+              账号开通
             </Tag>
             <h1>首次激活后台账号</h1>
-            <p>允许名单内的手机号可通过短信验证码完成首次激活，并直接进入管理后台。</p>
+            <p>输入手机号、验证码和新密码完成账号开通。</p>
           </div>
 
           <form className="login-form" onSubmit={handleSubmit}>
@@ -149,14 +160,6 @@ export function ActivatePage() {
               </div>
             </Space>
           </form>
-        </Card>
-
-        <Card className="login-side-panel" title="激活说明">
-          <ul className="bullet-list">
-            <li>仅允许白名单内手机号首次激活后台账号。</li>
-            <li>验证码固定 5 分钟有效，60 秒内不可重复发送。</li>
-            <li>激活成功后会自动建立后台会话并进入工作台。</li>
-          </ul>
         </Card>
       </div>
     </div>

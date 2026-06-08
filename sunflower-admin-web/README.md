@@ -1,11 +1,11 @@
 # Sunflower Admin Web
 
-Sunflower MVP management console for guesthouse operations. This is the active
-React admin web app, not a stage skeleton.
+Sunflower management console for guesthouse operations. This is the active
+React admin web app for operator workflows.
 
 ## Current Scope
 
-Implemented MVP operator paths:
+Implemented operator paths:
 
 - Admin activation, login, logout, password reset, and password change.
 - Protected workspace with account/session recovery.
@@ -22,7 +22,7 @@ operations have been validated.
 ## Stack
 
 - React 18 + TypeScript + Vite
-- TDesign React
+- Ant Design 5 + ProComponents
 - React Router
 - TanStack Query
 - Axios

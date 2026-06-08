@@ -2,6 +2,22 @@
 
 Append durable decisions here. Keep entries short and include provenance.
 
+## 2026-06-08: Adopt Ant Design 5 + ProComponents for Admin Web
+
+- Decision: Use `Ant Design 5 + ProComponents` as the admin-web UI base while
+  retaining Vite, React Router, TanStack Query, Axios, the existing auth guard,
+  and the existing API service layer.
+- Rationale: The admin web is a single-store operations console whose main
+  needs are dense tables, filters, forms, drawers, descriptions, calendars, and
+  status workflows. AntD/ProComponents gives the best maturity-to-migration
+  balance. AntD 6 was researched but deferred because
+  `@ant-design/pro-components@2.8.10` does not list AntD 6 in its peer
+  dependency range.
+- Provenance: User-approved admin framework refactor plan on 2026-06-08,
+  `sunflower-admin-web/package.json`, `docs/Web-Admin-Plan.md`,
+  `npm view antd version peerDependencies --json`, and
+  `npm view @ant-design/pro-components version peerDependencies license --json`.
+
 ## 2026-06-08: Keep MVP Readiness Compact
 
 - Decision: Keep `docs/MVP-Readiness.md` as a compact current-state launch
