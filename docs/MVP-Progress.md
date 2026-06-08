@@ -5,6 +5,66 @@
 > This active file keeps only the latest operational rounds. Older rounds are
 > archived in `docs/archive/mvp-progress/`.
 
+## Round 105: Next Goal Prompt Refresh
+
+- Date: 2026-06-08
+- Status: completed
+- Focus: refresh `docs/MVP-Next-Goal-Prompt.md`, which is the handoff prompt
+  for fresh Codex goals, so it no longer carries stale baseline, closeout-count,
+  or backend `8080` pending facts.
+- Start evidence:
+  - The prompt still carried the early-June baseline.
+  - It referenced an older production-enabled aggregate baseline, the
+    pre-8080-hardening unresolved count, pending backend `8080` hardening, and
+    local `main` ahead of `origin/main`.
+  - Current project state is Round 104: `main` aligned with `origin/main`, 32
+    unresolved required items, `BACKEND-8080-HARDENING` passed, and
+    `CURRENT-BRANCH-DEPLOYED` requires explicit approval plus clean deployment
+    preflight.
+- Open-source reference check:
+  - Task classification: repository-local goal/handoff prompt refresh.
+  - Sources checked: `docs/MVP-Next-Goal-Prompt.md`,
+    `docs/Project-State.md`, `docs/MVP-Readiness.md`,
+    `docs/MVP-Launch-Evidence.json`, and current checker output.
+  - License/compatibility: no external code copied.
+  - Selected approach: update the existing finite prompt instead of creating a
+    new goal document.
+- Risks:
+  - This round must not narrow the original goal or mark pending external
+    evidence complete; it only refreshes the prompt for future handoff.
+- Acceptance criteria:
+  - Prompt current date/baseline matches Round 104 facts.
+  - Prompt says 32 unresolved required items and treats backend `8080`
+    hardening as passed.
+  - Prompt preserves approval boundaries for deploy/payment/refund/production
+    data and points current-branch deployment at clean preflight.
+  - Run handoff/evidence guards and commit once.
+- Change summary:
+  - Updated the current baseline to Round 99 aggregate, Round 100 production
+    read-only audit, Round 96 admin-web, and Round 97 miniapp automated
+    evidence.
+  - Replaced the old 33-item closeout shape with the current 8 launch, 12
+    miniapp, 12 admin-web unresolved evidence shape.
+  - Marked `BACKEND-8080-HARDENING` as passed and preserved it as a revalidate
+    after redeploy/topology-change item.
+  - Updated `CURRENT-BRANCH-DEPLOYED` guidance to require explicit approval and
+    clean deployment approval preflight.
+- Verification:
+  - Stale prompt scan found no remaining old aggregate-baseline,
+    closeout-count, backend-8080-pending, or ahead-of-origin wording in
+    `docs/MVP-Next-Goal-Prompt.md`.
+  - `node scripts/check_mvp_handoff_packet.js`: passed, covering 32 unresolved
+    required items.
+  - `node scripts/check_mvp_closeout_readiness.js`: passed in non-strict mode
+    and still reported 32 unresolved required closeout items.
+  - `node scripts/check_mvp_launch_evidence.js`: passed in non-strict mode and
+    still reported 13 total launch items, 5 passed, and 8 pending.
+  - `git diff --check`: passed.
+- Outcome:
+  - The fresh-goal handoff prompt now matches the current Round 104 baseline.
+    This was a docs-only handoff round; it did not push, dispatch, deploy,
+    mutate ECS, run payment/refund, or reduce the unresolved evidence count.
+
 ## Round 104: Readiness Evidence Count Consistency
 
 - Date: 2026-06-08

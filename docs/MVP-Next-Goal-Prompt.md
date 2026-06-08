@@ -1,31 +1,36 @@
 # MVP Next Goal Prompt
 
-> Current as of 2026-06-02. Use this prompt to continue the finite MVP
+> Current as of 2026-06-08 Round 104. Use this prompt to continue the finite MVP
 > closeout goal in a fresh Codex goal/thread. It intentionally separates
 > automated work from approval-gated external evidence.
 
 ## Current Baseline
 
-- Current branch: local `main`, ahead of `origin/main`; do not push without
-  explicit production deployment approval.
-- Latest production-enabled aggregate baseline: Round 47,
-  `RUN_PRODUCTION=1 scripts/check_mvp_regression.sh` passed on current local
-  `main` HEAD `8d9b11d`.
-- The baseline covered backend 57 tests, admin-web lint/test/build and behavior
-  wiring, miniapp smoke/wiring/user-flow replay/payment-flow replay,
-  evidence/runbook non-strict checks, deploy config static checks, production
-  smoke, and backend `8080` read-only inspection.
-- Latest admin-web automated baseline: Round 47, `npm run lint`,
+- Current branch: local `main`, aligned with `origin/main` after Round 104.
+- Latest default aggregate baseline: Round 99
+  `scripts/check_mvp_regression.sh` passed on clean local `main` HEAD
+  `af46357`, with production checks skipped by default.
+- Latest production read-only audit: Round 100
+  `scripts/check_production_readonly_audit.sh` passed with deploy config static
+  checks, public/ECS internal smoke, backend `8080` exposure checks, and
+  sanitized payment-config readiness blockers.
+- Latest direct admin-web automated baseline: Round 96, `npm run lint`,
   `npm run test` (24 tests across 5 files), `npm run build`, 97 behavior
   wiring checks, and 6 external-preflight checks passed.
-- The MVP is not complete: strict closeout still has 33 unresolved required
-  items: 9 launch evidence, 12 miniapp manual QA, and 12 admin-web manual QA.
-- `BACKEND-8080-HARDENING` is pending because ECS-2 still listens on
-  `0.0.0.0:8080`; current checks do not prove Alibaba Cloud security-group
-  restriction.
-- `CURRENT-BRANCH-DEPLOYED` is pending because local `main` has not been pushed
-  to trigger the GitHub Actions deployment workflow for the latest committed
-  MVP work.
+- Latest direct miniapp automated baseline: Round 97, miniapp smoke, behavior
+  wiring, user-flow replay, payment-flow replay, external preflight, and key JS
+  syntax checks passed.
+- The MVP is not complete: strict closeout still has 32 unresolved required
+  items: 8 launch evidence entries, 12 miniapp manual QA checks, and 12
+  admin-web manual QA checks.
+- `BACKEND-8080-HARDENING` passed in Round 58. Revalidate after backend
+  redeploys or topology changes, but it is no longer an unresolved launch item.
+- `CURRENT-BRANCH-DEPLOYED` remains pending for full production-like evidence.
+  Round 91 proved only backend-only `deployment_lane=nonprod-mock-payment`
+  reduced-scope deployment for `d10d11e`; it does not prove real
+  payment/refund or admin-web/Nginx refresh. Any push/merge/workflow_dispatch
+  or deploy intended to close this entry requires explicit user approval and a
+  clean `node scripts/check_deployment_approval_preflight.js` run first.
 
 ## Goal Prompt
 
@@ -36,7 +41,7 @@
 1. 读取 AGENTS.md、docs/Agent-Memory.md、docs/Context-Index.md、docs/Project-State.md、docs/MVP-Handoff-Packet.md、docs/MVP-Readiness.md、docs/MVP-Closeout-Audit.md、docs/MVP-Next-Goal-Prompt.md。
 2. 执行 git status --short --branch --untracked-files=all。
 3. 不默认读取 docs/archive/**，除非当前文档明确需要历史材料。
-4. 记住当前事实：Round 47 的 RUN_PRODUCTION=1 scripts/check_mvp_regression.sh 已在当前本地 main HEAD 8d9b11d 通过；旧的 admin-web _refundId lint 或 3 个测试失败记录已经过期；MVP 仍缺 33 项外部/人工证据。当前本地 main ahead origin/main，未经批准不要 push。
+4. 记住当前事实：Round 99 的 scripts/check_mvp_regression.sh 已通过，Round 100 的 scripts/check_production_readonly_audit.sh 已通过；旧的 admin-web _refundId lint 或 3 个测试失败记录已经过期；MVP 仍缺 32 项外部/人工证据。当前 main 与 origin/main 已对齐；用于关闭 CURRENT-BRANCH-DEPLOYED 的 push、merge、workflow_dispatch 或 deploy 必须先获得明确批准并运行干净工作区的 node scripts/check_deployment_approval_preflight.js。
 
 每一轮必须形成闭环：
 1. 先输出本轮最小目标、会影响的证据 ID、风险、是否需要用户审批。
@@ -45,20 +50,20 @@
 4. 完成本轮代码或证据后，更新 docs/MVP-Progress.md，必要时同步 docs/Project-State.md、docs/Decision-Log.md、docs/Context-Index.md、证据 JSON 和对应 QA/安全/生产文档。
 5. 做目标纠偏：说明本轮解决了什么、剩余什么、下一轮推荐 lane、goal 是否需要修改。
 6. 运行与改动匹配的自动验证。普通代码优先 scripts/check_mvp_regression.sh；生产只读证据可用 RUN_PRODUCTION=1 scripts/check_mvp_regression.sh 或 scripts/check_production_readonly_audit.sh；证据收口运行对应 strict checker。
-7. 每轮结束必须 git add 并本地 commit 一次。不要自动 push、merge、workflow_dispatch 或部署。
+7. 每轮结束必须 git add 并本地 commit 一次。若只是 docs-only 且路径过滤不会触发部署，可按用户已给的代码推送授权推送；不要自动 workflow_dispatch 或部署。任何用于关闭 CURRENT-BRANCH-DEPLOYED 的 push/merge/deploy 仍需先走明确审批。
 
 安全边界：
-- 未经用户明确批准，不允许 push 到 main、merge main、workflow_dispatch、触发生产部署、修改阿里云安全组/防火墙、执行真实支付/真实退款、修改生产数据。
+- 未经用户明确批准，不允许用 push 到 main、merge main、workflow_dispatch 或部署来关闭 CURRENT-BRANCH-DEPLOYED；不允许触发生产部署、修改阿里云安全组/防火墙、执行真实支付/真实退款、修改生产数据。
 - 不提交密钥、真实 AppID、token、cookie、短信码、密码、手机号、openid/unionid、商户凭据、完整订单号/支付号/退款号、私钥或含个人信息的截图。
 - 真实 AppID 只能放在忽略跟踪的 sunflower-miniapp/project.private.config.json；提交态 sunflower-miniapp/project.config.json 必须保持 touristappid。
 
 推荐推进顺序：
-1. 若代码、部署或生产状态没有变化，不要再重复刷新自动基线；Round 47 已经完成当前本地 main 的完整回归。
+1. 若代码、部署或生产状态没有变化，不要再重复刷新自动基线；Round 99 已经完成当前本地 main 的默认聚合回归，Round 100 已经刷新生产只读审计。
 2. 每轮只选一个 approval lane：
    - MINIAPP-PREVIEW-DOMAIN：微信合法 HTTPS 域名、真实 AppID 私有配置、预览/真机登录、手机号、下单路径。
    - ADMIN-PROD-QA：生产或批准的 staging 管理后台账号、房态/价格/订单/售后人工 QA。
-   - BACKEND-8080-HARDENING：只读获取阿里云安全组/防火墙证据，或拿到明确风险豁免。
-   - CURRENT-BRANCH-DEPLOYED：经用户批准后 push/merge/workflow_dispatch，随后跑部署后只读审计。
+   - BACKEND-8080-HARDENING：已通过；仅在 backend redeploy 或网络拓扑变化后重新验证。
+   - CURRENT-BRANCH-DEPLOYED：经用户批准并通过 clean deployment approval preflight 后，再执行 push/merge/workflow_dispatch/deploy，随后跑部署后只读审计。
    - WECHAT-PAYMENT-REFUND：经用户批准后做低金额真实支付/退款或记录逐项豁免。
    - EVIDENCE-WAIVER：用户对无法执行的外部证据逐项书面豁免。
 3. 开始任何 lane 前，阅读 docs/MVP-External-Approval-Packet.md 并运行 node scripts/check_mvp_external_approval_packet.js；涉及生产变更、真实支付、真实退款、安全组、防火墙或部署时，先输出审批请求、风险、回滚方案并停止等待确认。
@@ -90,7 +95,8 @@ step is usually to prepare and request approval for either:
 
 - `MINIAPP-PREVIEW-DOMAIN`: WeChat preview/domain evidence, if the operator can
   provide real AppID/private config and legal HTTPS domain context.
-- `BACKEND-8080-HARDENING`: Alibaba Cloud security-group evidence or an explicit
-  risk waiver, because current read-only checks cannot prove restriction.
-- `CURRENT-BRANCH-DEPLOYED`: approved push/merge/deploy plus read-only
-  post-deploy audit, if the user wants the current branch live.
+- `ADMIN-PROD-QA`: production or approved-staging admin evidence, if the
+  operator can provide a dedicated QA admin account and safe QA data scope.
+- `CURRENT-BRANCH-DEPLOYED`: approved clean-preflight deploy plus read-only
+  post-deploy audit, after real payment config/domain blockers are accepted,
+  provisioned, or explicitly waived.

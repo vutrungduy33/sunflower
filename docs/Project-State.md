@@ -107,6 +107,11 @@
   `docs/Miniapp-Manual-QA.md` match the current ledger: 8 pending launch
   evidence entries, 32 unresolved required closeout items, and both
   `xiangrikui.cloud` and `sunflower.cloud` recorded as备案 domain context.
+- Round 105 refreshed `docs/MVP-Next-Goal-Prompt.md` to the same current facts:
+  Round 99 aggregate baseline, Round 100 production read-only audit, 32
+  unresolved required evidence items, backend `8080` hardening passed, and
+  current-branch deployment gated by explicit approval plus clean deployment
+  preflight. This did not change ledger status.
 - Round 50 audited the original goal termination criteria and found the MVP
   incomplete. Round 58 later closed the backend `8080` item, leaving the
   current 32 unresolved required items. The completion conclusion remains
