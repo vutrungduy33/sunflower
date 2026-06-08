@@ -135,6 +135,11 @@
   including the Round 107 stricter miniapp HTTPS checker/domain results and the
   Round 108 `node scripts/check_admin_web_entry_readiness.js` command. No
   unresolved evidence counts changed.
+- Round 110 compacted `docs/MVP-Readiness.md` from a long history document into
+  a current-state launch board. Historical detail remains in
+  `docs/MVP-Progress.md`, this state file, and the JSON ledgers; the readiness
+  page now keeps target, status matrix, closeout boundary, verification
+  commands, and next best rounds. No unresolved evidence counts changed.
 - Round 50 audited the original goal termination criteria and found the MVP
   incomplete. Round 58 later closed the backend `8080` item, leaving the
   current 32 unresolved required items. The completion conclusion remains

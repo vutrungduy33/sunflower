@@ -232,6 +232,57 @@
     not log in, send SMS, mutate data, push deploy actions, or reduce the
     unresolved evidence count.
 
+## Round 110: MVP Readiness Compaction
+
+- Date: 2026-06-08
+- Status: completed
+- Focus: simplify `docs/MVP-Readiness.md` into a compact current-state launch
+  board instead of a long history document.
+- Start evidence:
+  - `docs/MVP-Readiness.md` was 410 lines and duplicated deployment history,
+    command explanations, and blocker details already covered by
+    `docs/Project-State.md`, `docs/MVP-Progress.md`, and the JSON ledgers.
+  - The active docs list still keeps several purpose-built operator docs, so
+    the readiness page should point to them instead of reprinting them.
+- Open-source reference check:
+  - Task classification: repository-local documentation compaction.
+  - Sources checked: `docs/MVP-Readiness.md`, `docs/Project-State.md`,
+    `docs/Context-Index.md`, `docs/MVP-Handoff-Packet.md`, and active evidence
+    ledgers.
+  - License/compatibility: no external code copied.
+  - Selected approach: rewrite the existing canonical readiness doc as a
+    concise status board and keep history in progress/state docs.
+- Risks:
+  - Compaction must not drop launch blockers, strict closeout commands, or the
+    32-item incomplete-evidence boundary.
+- Acceptance criteria:
+  - `docs/MVP-Readiness.md` keeps MVP target, current status, closeout boundary,
+    verification commands, and next best rounds.
+  - The doc avoids stale early deployment history and points to authoritative
+    ledgers/operator docs.
+  - Update state/decision/context docs if the active doc role changes.
+  - Run handoff/goal/closeout checks and commit once.
+- Change summary:
+  - Replaced the long readiness history with a compact table covering backend,
+    admin, miniapp, domain, payment, deployment, and security status.
+  - Kept the 8 launch + 12 miniapp + 12 admin-web unresolved evidence boundary
+    explicit.
+  - Retained final verification commands while pointing detailed evidence to
+    the JSON ledgers and operator handoff docs.
+- Verification:
+  - `node scripts/check_mvp_next_goal_prompt.js`: passed.
+  - `node scripts/check_mvp_handoff_packet.js`: passed.
+  - `node scripts/check_mvp_termination_audit.js`: passed.
+  - `node scripts/check_mvp_closeout_readiness.js`: passed in non-strict mode
+    and still reported 32 unresolved required closeout items.
+  - `RUN_BACKEND=0 RUN_ADMIN=0 RUN_MINIAPP=0 RUN_DEPLOY_CONFIG=0 scripts/check_mvp_regression.sh`: passed with evidence checks enabled.
+  - `git diff --check`: passed.
+- Outcome:
+  - `docs/MVP-Readiness.md` is now a compact current-state launch board. This
+    was a documentation-compaction round; it did not push deploy actions,
+    mutate ECS, run payment/refund, log in to admin, or reduce the unresolved
+    evidence count.
+
 ## Round 109: Next Goal Prompt Current-Fact Refresh
 
 - Date: 2026-06-08

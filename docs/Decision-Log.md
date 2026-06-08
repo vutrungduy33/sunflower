@@ -2,6 +2,16 @@
 
 Append durable decisions here. Keep entries short and include provenance.
 
+## 2026-06-08: Keep MVP Readiness Compact
+
+- Decision: Keep `docs/MVP-Readiness.md` as a compact current-state launch
+  board rather than a detailed deployment or round-history document.
+- Rationale: MVP closeout already has purpose-built evidence ledgers, handoff
+  docs, project state, and progress history; duplicating that detail in the
+  readiness page makes handoff slower and increases stale-fact risk.
+- Provenance: `docs/MVP-Readiness.md`, `docs/Project-State.md`,
+  `docs/MVP-Progress.md` Round 110.
+
 ## 2026-06-08: Add Miniapp HTTPS Domain Checker
 
 - Decision: Use `scripts/check_miniapp_https_domain.js` as the read-only

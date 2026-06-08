@@ -49,6 +49,8 @@
   current facts and `docs/MVP-Progress.md` with only recent round summaries.
 - Do not create new status/runbook docs unless an existing canonical doc cannot
   carry the information.
+- Keep `docs/MVP-Readiness.md` as a compact current-state launch board, not a
+  deployment-history or round-history document.
 - Historical planning, old stage material, and old round detail are cold
   context under `docs/archive/` or git history.
 
