@@ -12,6 +12,18 @@ Append durable decisions here. Keep entries short and include provenance.
 - Provenance: `docs/Miniapp-Manual-QA.md`,
   `scripts/check_miniapp_https_domain.js`.
 
+## 2026-06-08: Require Approval Preflight for Current-Branch Deploy Evidence
+
+- Decision: Any push, merge, `workflow_dispatch`, or deploy intended to satisfy
+  `CURRENT-BRANCH-DEPLOYED` must have explicit user approval and a clean
+  `node scripts/check_deployment_approval_preflight.js` run first.
+- Rationale: The project is allowed to push code, but current-branch deployment
+  evidence can affect GitHub Actions and ECS; the ledger should keep approval,
+  deployment impact, and path-filter behavior machine-checkable.
+- Provenance: `docs/MVP-Launch-Evidence.json`,
+  `scripts/check_deployment_approval_preflight.js`,
+  `docs/MVP-Progress.md` Round 102.
+
 ## 2026-06-02: Remove Stage Gate as Active Workflow
 
 - Decision: Stage-first workflow, pre/post stage guard, branch prefix, commit

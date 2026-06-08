@@ -95,6 +95,14 @@
   base `origin/main 167cae7`, with 3 changed files and predicted push-to-main
   deploy target `none`. No push, workflow dispatch, deploy, ECS mutation,
   payment/refund action, or live QA data mutation was performed.
+- Round 103 refreshed canonical architecture/CI-CD docs to the same facts:
+  backend `8080` is hardened on the ECS-2 private IP,备案 domains are known but
+  HTTPS legal-domain evidence remains pending, backend-only nonprod/mock
+  deployment does not prove real payment/refund or admin-web/Nginx readiness,
+  and current-branch deploy evidence requires explicit approval plus clean
+  deployment preflight. Focused verification passed with
+  `node scripts/check_deployment_approval_preflight.js`,
+  `node scripts/check_mvp_launch_evidence.js`, and `git diff --check`.
 - Round 50 audited the original goal termination criteria and found the MVP
   incomplete. Round 58 later closed the backend `8080` item, leaving the
   current 32 unresolved required items. The completion conclusion remains

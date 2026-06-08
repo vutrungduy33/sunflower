@@ -61,6 +61,62 @@
     This was a docs-only clarity round; it did not push, dispatch, deploy,
     mutate ECS, run payment/refund, or reduce the pending evidence count.
 
+## Round 103: Architecture and CI/CD Fact Refresh
+
+- Date: 2026-06-08
+- Status: completed
+- Focus: refresh canonical architecture and CI/CD docs so they match the
+  current MVP deployment facts instead of older 2026-06-02 wording.
+- Start evidence:
+  - `docs/Architecture.md` still said current as of 2026-06-02 and did not
+    describe the backend-only nonprod/mock-payment lane or the latest
+    current-branch deployment evidence boundary.
+  - `docs/CI-CD.md` already described the artifact-based workflow and lane
+    inputs, but it did not explicitly state that docs-only path changes do not
+    trigger deploys or that `CURRENT-BRANCH-DEPLOYED` requires explicit
+    approval plus clean preflight.
+- Open-source reference check:
+  - Task classification: repository-local canonical documentation refresh.
+  - Sources checked: hot project docs, `docs/Architecture.md`,
+    `docs/CI-CD.md`, `docs/MVP-Launch-Evidence.json`, and current validation
+    scripts.
+  - License/compatibility: no external code copied.
+  - Selected approach: update existing canonical docs and decision log without
+    creating another runbook.
+- Risks:
+  - This round must not imply the missing HTTPS domain, real payment/refund,
+    admin-web/Nginx refresh, or full production current-branch deployment
+    evidence has passed.
+- Acceptance criteria:
+  - Update `docs/Architecture.md` to current date and latest topology/deploy
+    evidence boundaries.
+  - Update `docs/CI-CD.md` with docs-only path-filter and approval-preflight
+    boundaries.
+  - Record the durable approval-preflight decision in `docs/Decision-Log.md`.
+  - Run focused documentation/deployment guards and commit once.
+- Change summary:
+  - Updated `docs/Architecture.md` to 2026-06-08 with current miniapp HTTPS
+    legal-domain pending status,备案 domains, backend `8080` hardening,
+    Round 100 read-only audit result, deployment lanes, and current-branch
+    deployment evidence boundary.
+  - Updated `docs/CI-CD.md` with current date, docs-only path-filter behavior,
+    and the approval/preflight requirement before using deploy actions to close
+    `CURRENT-BRANCH-DEPLOYED`.
+  - Added a `docs/Decision-Log.md` entry for requiring explicit approval plus
+    clean deployment preflight before current-branch deploy evidence actions.
+  - Updated `docs/Project-State.md` with the canonical doc refresh.
+- Verification:
+  - `node scripts/check_deployment_approval_preflight.js`: passed on clean
+    local `main` after commit; changed files since `origin/main` were docs
+    only and predicted push-to-main deploy target was `none`.
+  - `node scripts/check_mvp_launch_evidence.js`: passed in non-strict mode and
+    still reported 13 total launch items, 5 passed, and 8 pending.
+  - `git diff --check`: passed.
+- Outcome:
+  - The canonical architecture/CI-CD docs now match the latest deploy evidence
+    boundary. This was a docs-only round; it did not push, dispatch, deploy,
+    mutate ECS, run payment/refund, or reduce the unresolved evidence count.
+
 ## Round 102: Deployment Preflight Boundary Fix
 
 - Date: 2026-06-08

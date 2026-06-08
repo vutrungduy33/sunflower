@@ -1,5 +1,7 @@
 # GitHub Actions CI/CD
 
+> Current as of 2026-06-08.
+
 ## 1. 工作流总览
 
 当前保留一个部署工作流：
@@ -25,6 +27,8 @@ PR 门禁 workflow 已移除。仓库当前不再强制：
   `sunflower-miniapp/project.private.config.json`，只在该私有配置中填写真实
   AppID；不要修改已提交的 `project.config.json`。
 - 推送到 `main` 仍会触发 `deploy-backend.yml` 自动部署。
+- 但 workflow 仍受路径过滤影响；仅修改 `docs/**` 等非部署路径时不会触发
+  部署。
 
 ---
 
@@ -246,6 +250,9 @@ deploy path 必填：
 - `node scripts/check_deployment_approval_preflight.js` 只读分析当前分支相对
   `origin/main`/`main` 的部署影响面和人工审批边界，不会 push、触发
   `workflow_dispatch` 或修改生产。
+- 在任何用于关闭 `CURRENT-BRANCH-DEPLOYED` 的 push、merge、
+  `workflow_dispatch` 或 deploy 前，必须先取得明确人工批准，并在干净工作区
+  运行 `node scripts/check_deployment_approval_preflight.js`。
 
 ## 6. 零新增付费服务的备用发布方案
 

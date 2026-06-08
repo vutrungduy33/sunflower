@@ -1,6 +1,6 @@
 # Architecture
 
-> Current as of 2026-06-02.
+> Current as of 2026-06-08.
 
 This project is a WeChat mini program plus admin web system for Sunflower
 guesthouse booking, operations, payments, and private-domain customer service.
@@ -12,7 +12,7 @@ flowchart LR
   user["WeChat user"] --> miniapp["sunflower-miniapp\nWeChat mini program"]
   admin["Operator"] --> adminWeb["sunflower-admin-web\nReact admin web"]
 
-  miniapp --> publicApi["Public API entry\nhttp://47.113.223.248/api/*\nHTTPS domain when ready"]
+  miniapp --> publicApi["Public API entry\nhttp://47.113.223.248/api/*\nHTTPS legal domain pending"]
   adminWeb --> sameOriginApi["Same-origin /api"]
 
   publicApi --> nginx["ECS-1 Nginx\n47.113.223.248\n172.25.121.84"]
@@ -42,8 +42,13 @@ flowchart LR
 - Main MVP pages live under `sunflower-miniapp/pages/mvp/*`.
 - API calls go through `sunflower-miniapp/utils/mvp/api.js`.
 - Default API base is defined in `sunflower-miniapp/utils/mvp/runtime-config.js`.
-- Current default is `http://47.113.223.248`, used for deployment validation in WeChat DevTools.
-- Real device / preview builds should use a legal HTTPS request domain configured in WeChat.
+- Current default is `http://47.113.223.248`, used for local/DevTools
+  validation only.
+- Preview/release builds must use a legal HTTPS request domain configured in
+  the WeChat miniapp backend. User-provided备案 domains are
+  `xiangrikui.cloud` and `sunflower.cloud`, but the final API hostname,
+  trusted certificate, DNS, and WeChat legal request-domain configuration are
+  still pending evidence.
 
 ### Admin Web
 
@@ -87,9 +92,14 @@ Current observed status:
 
 - ECS-1: Alibaba Cloud Linux 3, Nginx active, `sunflower-admin-web` healthy on `127.0.0.1:18080`.
 - ECS-2: Ubuntu 22.04, `sunflower-backend` and `sunflower-mysql` healthy.
-- Backend host port `8080` is bound to ECS-2 private IP
-  `172.25.121.83:8080`, preserving ECS-1 private upstream access while direct
-  public backend `8080` is not usable from the local probe network.
+- Backend host port `8080` is hardened by binding the published port to ECS-2
+  private IP `172.25.121.83:8080`, preserving ECS-1 private upstream access
+  while direct public backend `8080` is not usable from the local probe
+  network.
+- Latest read-only production audit passed in Round 100, including public/ECS
+  internal smoke and backend `8080` exposure checks. Real WeChat Pay
+  production config is still incomplete, so payment/refund evidence remains
+  pending.
 
 ## 5. Deployment Pipeline
 
@@ -100,7 +110,10 @@ Only one GitHub Actions workflow is active:
 Triggers:
 
 - Push to `main` for deployment-relevant paths.
-- Manual `workflow_dispatch` with target `auto`, `backend`, `admin-web`, `nginx`, `all`, or `bootstrap`.
+- Manual `workflow_dispatch` with target `auto`, `backend`, `admin-web`,
+  `nginx`, `all`, or `bootstrap`.
+- Manual `workflow_dispatch` also supports `deployment_lane=production` and the
+  backend-only `deployment_lane=nonprod-mock-payment` lane.
 
 High-level flow:
 
@@ -114,6 +127,20 @@ High-level flow:
 6. ECS-1 self-hosted runner downloads the deployment bundle/image artifacts and
    deploys admin-web.
 7. ECS-1 reloads host Nginx for ingress changes or full deployments.
+
+Deployment evidence boundary:
+
+- Push to `main` and default manual dispatch remain production-lane.
+- The backend-only nonprod/mock-payment lane validates and deploys only ECS-2
+  backend with mock payment overlay; it does not refresh admin-web/Nginx and
+  does not prove real payment or refund readiness.
+- Current full production current-branch deployment remains pending until real
+  WeChat Pay config/key files, HTTPS legal domain, and post-deploy smoke are
+  recorded or explicitly waived.
+- Before any push, merge, `workflow_dispatch`, or deploy intended to satisfy
+  `CURRENT-BRANCH-DEPLOYED`, run
+  `node scripts/check_deployment_approval_preflight.js` on a clean worktree and
+  obtain explicit approval.
 
 There is no active GitHub PR gate workflow. Historical stage gates and PR guard
 documents are archived under `docs/archive/`.
