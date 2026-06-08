@@ -71,14 +71,13 @@
   `pages/mvp/order-list/index.js`. The run still warns that the default API
   base remains bare HTTP for local/DevTools validation only and local
   `project.private.config.json` is absent.
-- Latest production read-only audit: Round 95
+- Latest production read-only audit: Round 100
   `scripts/check_production_readonly_audit.sh` passed with deploy config static
   checks, production public/ECS internal smoke, backend `8080` exposure checks,
-  and payment-config readiness reporting the known sanitized blockers. The
-  first sandboxed attempt could not connect to the public API, while the
-  approved network run passed; no push, deploy, workflow dispatch, Nginx reload,
-  ECS mutation, firewall/security-group mutation, payment/refund action, or live
-  QA data mutation was performed.
+  and payment-config readiness reporting the known sanitized blockers. No push,
+  deploy, workflow dispatch, Nginx reload, ECS mutation, firewall/security-
+  group mutation, payment/refund action, or live QA data mutation was
+  performed.
 - Latest strict closeout boundary: Round 56/Round 58 evidence shape remains
   incomplete. Current unresolved required closeout evidence is 32 items: 8
   launch evidence entries, 12 miniapp manual QA checks, and 12 admin-web manual

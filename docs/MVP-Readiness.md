@@ -92,17 +92,16 @@ Latest direct miniapp automated evidence:
 
 Latest production/deployment evidence:
 
-- Round 95 production read-only audit
+- Round 100 production read-only audit
   `scripts/check_production_readonly_audit.sh` passed with 4 read-only steps:
   deploy config static checks, production public/ECS internal smoke, backend
   `8080` exposure checks, and backend payment config readiness. Production
   smoke had 7 passes/0 warnings; backend `8080` exposure had 5 passes/0
   warnings and confirmed the backend is bound to `172.25.121.83:8080`, not the
   public interface. The payment readiness step reported the same 8 sanitized
-  real-payment config issues. The first sandboxed attempt could not connect to
-  the public API, while the approved network run passed. No push, deploy,
-  workflow dispatch, Nginx reload, ECS mutation, firewall/security-group
-  mutation, payment/refund action, or live QA data mutation was performed.
+  real-payment config issues. No push, deploy, workflow dispatch, Nginx reload,
+  ECS mutation, firewall/security-group mutation, payment/refund action, or
+  live QA data mutation was performed.
 - Round 90 post-recovery smoke after the WeChat payment LOB schema repair:
   `RUN_INTERNAL=1 scripts/check_production_smoke.sh` passed 7 checks with 0
   warnings, and `RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh` passed
