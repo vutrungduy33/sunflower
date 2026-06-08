@@ -83,12 +83,13 @@
   incomplete. Current unresolved required closeout evidence is 32 items: 8
   launch evidence entries, 12 miniapp manual QA checks, and 12 admin-web manual
   QA checks.
-- Current operator entry docs are aligned through Round 115 for the latest
+- Current operator entry docs are aligned through Round 116 for the latest
   direct backend/admin/miniapp baselines and production read-only audit:
   `docs/MVP-Handoff-Packet.md` and `docs/MVP-Next-Approval-Request.md` were
-  refreshed in Round 115; `docs/MVP-External-Approval-Packet.md` remains the
-  approval packet companion. This did not change any evidence status or
-  unresolved count.
+  refreshed in Round 115, and `docs/MVP-Next-Goal-Prompt.md` was refreshed in
+  Round 116 for fresh-goal handoff. `docs/MVP-External-Approval-Packet.md`
+  remains the approval packet companion. This did not change any evidence
+  status or unresolved count.
 - Round 102 updated `docs/MVP-Launch-Evidence.json` so
   `CURRENT-BRANCH-DEPLOYED.nextAction` explicitly requires approval before
   push/merge/workflow_dispatch and tells operators to run
@@ -173,6 +174,11 @@
   reports the known 8 real WeChat Pay config issues. No push, deploy, workflow
   dispatch, Nginx reload, ECS mutation, firewall/security-group mutation,
   payment/refund action, or live QA data mutation was performed.
+- Round 116 refreshed `docs/MVP-Next-Goal-Prompt.md` and
+  `scripts/check_mvp_next_goal_prompt.js` so a fresh Codex goal starts from the
+  Round 114 backend baseline, Round 111 admin-web baseline, Round 112 miniapp
+  baseline, Round 115 production read-only audit, and current
+  `main`/`origin/main` alignment. No evidence statuses changed.
 - Round 50 audited the original goal termination criteria and found the MVP
   incomplete. Round 58 later closed the backend `8080` item, leaving the
   current 32 unresolved required items. The completion conclusion remains

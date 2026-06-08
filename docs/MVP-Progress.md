@@ -5,6 +5,59 @@
 > This active file keeps only the latest operational rounds. Older rounds are
 > archived in `docs/archive/mvp-progress/`.
 
+## Round 116: Next Goal Prompt Current-Fact Refresh
+
+- Date: 2026-06-08
+- Status: completed
+- Focus: refresh `docs/MVP-Next-Goal-Prompt.md` and its checker so a fresh
+  Codex goal/thread starts from the current Round 114/115 evidence instead of
+  the older Round 109/Round 100 snapshot.
+- Start evidence:
+  - `docs/MVP-Next-Goal-Prompt.md` still said "Current as of 2026-06-08 Round
+    109".
+  - The prompt still named Round 100 as the latest production read-only audit,
+    Round 96 as the admin-web baseline, and Round 97 as the miniapp baseline.
+  - `scripts/check_mvp_next_goal_prompt.js` enforced the same stale facts.
+- Open-source reference check:
+  - Task classification: repository-local handoff prompt and evidence checker
+    refresh.
+  - Sources checked: `docs/MVP-Next-Goal-Prompt.md`,
+    `scripts/check_mvp_next_goal_prompt.js`, `docs/Project-State.md`,
+    `docs/MVP-Handoff-Packet.md`, and `docs/MVP-Next-Approval-Request.md`.
+  - License/compatibility: no external code copied.
+  - Selected approach: update the existing finite prompt/checker instead of
+    creating another handoff document.
+- Risks:
+  - This must not be treated as new MVP evidence or as approval to deploy,
+    mutate production data, or run real payment/refund.
+- Acceptance criteria:
+  - Prompt current facts mention Round 114 backend, Round 111 admin-web, Round
+    112 miniapp, Round 115 production read-only audit, and current
+    `main`/`origin/main` alignment.
+  - Checker rejects the stale Round 109/Round 100/Round 96/Round 97 prompt
+    wording.
+  - Run focused handoff/evidence guards and commit once.
+- Change summary:
+  - Refreshed the next-goal prompt to Round 116 current facts.
+  - Updated the next-goal prompt checker to require the current baseline and
+    stale-text exclusions.
+  - Updated project state with the new fresh-goal handoff status.
+- Verification:
+  - `node --check scripts/check_mvp_next_goal_prompt.js`: passed.
+  - `node scripts/check_mvp_next_goal_prompt.js`: passed.
+  - `node scripts/check_mvp_handoff_packet.js`: passed.
+  - `node scripts/check_mvp_next_approval_request.js`: passed.
+  - `node scripts/check_mvp_closeout_readiness.js`: passed in non-strict mode.
+  - `git diff --check`: passed.
+- Outcome:
+  - Fresh-goal handoff now starts from the same current facts as the active
+    project state. The MVP remains incomplete with 32 unresolved required
+    external/manual evidence items.
+- Next recommended round:
+  - Choose a real evidence lane instead of another baseline refresh. The useful
+    next moves remain HTTPS legal-domain readiness, admin authenticated QA, or
+    an explicitly approved reduced-scope backend nonprod/mock deployment.
+
 ## Round 115: Production Read-Only Audit Refresh
 
 - Date: 2026-06-08
