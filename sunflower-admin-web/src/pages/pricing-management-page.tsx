@@ -363,19 +363,28 @@ export function PricingManagementPage() {
   return (
     <div className="page-stack">
       <section className="hero-panel pricing-hero">
-        <div className="hero-panel__copy">
-          <Space align="center" size={12}>
-            <Tag theme="success" variant="light-outline">
-              价格日历与库存
-            </Tag>
-            {renderRoomStatus(selectedRoom)}
-          </Space>
-          <h3>按月切换、按周排布，直接在月历上选范围</h3>
-          <p>
-            参考主流日历产品的月视图结构，当前页面改为可切换月份、周一到周日固定 7 列排布，并保留两次点击成区间的批量操作方式。
-          </p>
+        <div className="pricing-hero__main">
+          <div className="hero-panel__copy">
+            <Space align="center" size={12}>
+              <Tag theme="success" variant="light-outline">
+                价格日历与库存
+              </Tag>
+              {renderRoomStatus(selectedRoom)}
+            </Space>
+            <h3>价格与库存日历</h3>
+            <p>
+              按房型和月份查看整月价格库存，在日历上直接圈选日期范围，再批量发布价格或库存。
+            </p>
+          </div>
+
+          <div className="pricing-hero__steps" aria-label="价格库存操作步骤">
+            <span>1 选择房型</span>
+            <span>2 圈选日期</span>
+            <span>3 批量发布</span>
+          </div>
         </div>
-        <div className="room-stat-grid">
+
+        <div className="room-stat-grid pricing-hero__stats">
           <article className="room-stat-card">
             <small>当前房型</small>
             <strong>{selectedRoom?.name ?? (roomListQuery.isPending ? '加载中' : '未选择')}</strong>
@@ -385,34 +394,36 @@ export function PricingManagementPage() {
             <strong>{formatMonthLabel(selectedMonth)}</strong>
           </article>
           <article className="room-stat-card">
-            <small>最近一次发布</small>
-            <strong>{latestUpdatedCount}</strong>
+            <small>已选日期</small>
+            <strong>{batchDates.length ? `${batchDates.length} 天` : '未选择'}</strong>
           </article>
         </div>
       </section>
 
       <Card className="panel-card pricing-toolbar-card">
         <div className="pricing-toolbar">
-          <label className="room-field">
-            <span className="room-field__label">房型</span>
-            <Select
-              value={effectiveSelectedRoomId}
-              options={rooms.map((room) => ({
-                label: `${room.name} · ¥${room.basePrice}`,
-                value: room.id,
-              }))}
-              onChange={(value) => handleRoomChange(String(value))}
-            />
-          </label>
+          <div className="pricing-toolbar__filters">
+            <label className="room-field">
+              <span className="room-field__label">房型</span>
+              <Select
+                value={effectiveSelectedRoomId}
+                options={rooms.map((room) => ({
+                  label: `${room.name} · ¥${room.basePrice}`,
+                  value: room.id,
+                }))}
+                onChange={(value) => handleRoomChange(String(value))}
+              />
+            </label>
 
-          <label className="room-field">
-            <span className="room-field__label">选择月份</span>
-            <Select
-              value={selectedMonth}
-              options={monthOptions}
-              onChange={(value) => handleMonthChange(String(value))}
-            />
-          </label>
+            <label className="room-field">
+              <span className="room-field__label">选择月份</span>
+              <Select
+                value={selectedMonth}
+                options={monthOptions}
+                onChange={(value) => handleMonthChange(String(value))}
+              />
+            </label>
+          </div>
 
           <article className="pricing-window-panel">
             <small>当前月视图</small>
@@ -421,15 +432,17 @@ export function PricingManagementPage() {
           </article>
 
           <div className="pricing-toolbar__actions">
-            <Button variant="outline" onClick={() => handleShiftMonth(-1)}>
-              上个月
-            </Button>
-            <Button variant="outline" onClick={handleJumpToCurrentMonth}>
-              回到本月
-            </Button>
-            <Button variant="outline" onClick={() => handleShiftMonth(1)}>
-              下个月
-            </Button>
+            <div className="pricing-month-actions">
+              <Button variant="outline" onClick={() => handleShiftMonth(-1)}>
+                上个月
+              </Button>
+              <Button variant="outline" onClick={handleJumpToCurrentMonth}>
+                回到本月
+              </Button>
+              <Button variant="outline" onClick={() => handleShiftMonth(1)}>
+                下个月
+              </Button>
+            </div>
             <Button
               variant="outline"
               loading={roomListQuery.isFetching || roomCalendarQuery.isFetching}
@@ -443,6 +456,9 @@ export function PricingManagementPage() {
             >
               刷新日历
             </Button>
+            {latestUpdatedCount ? (
+              <span className="pricing-toolbar__last-update">最近发布 {latestUpdatedCount} 天</span>
+            ) : null}
           </div>
         </div>
       </Card>
