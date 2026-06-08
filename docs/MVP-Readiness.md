@@ -27,7 +27,7 @@ verified, and documented enough for handoff:
 | --- | --- | --- | --- |
 | Backend local quality | Round 92 default aggregate regression reran `mvn -B test` on local `main` HEAD `7cc7e04`: passed, 57 tests, 0 failures/errors/skips. Round 28 added public order ownership isolation across current-user list/detail/pay preparation/pay confirmation/cancel/reschedule/refund actions. | Ready locally | Keep green after future backend changes. |
 | Admin web local quality | Round 96 direct admin-web validation reran `npm run lint`, `npm run test` (24 tests across 5 files), and `npm run build`: passed. Behavior wiring passed 97 checks and admin external QA preflight passed 6 checks. Order tests cover check-in, check-out, no-show, after-sale rejection, failed refund retry, and invalid check-in date-range feedback/query blocking. | Ready locally | Keep green after future admin changes. |
-| Miniapp syntax/smoke | Round 92 default aggregate regression reran miniapp smoke, behavior wiring, user-flow replay, payment-flow replay, external preflight, project config appid guard, and subpage nav checks: passed. The run still warns that the default API base is bare HTTP for local/devtools validation and local `project.private.config.json` is absent. | Partially verified | Real-device login/phone/payment evidence still required. |
+| Miniapp syntax/smoke | Round 97 direct miniapp validation reran smoke, behavior wiring, user-flow replay, payment-flow replay, external preflight, and key JavaScript syntax checks: passed. The run still warns that the default API base is bare HTTP for local/devtools validation and local `project.private.config.json` is absent. | Partially verified | Real-device login/phone/payment evidence still required. |
 | Miniapp real user path | Code supports real API, WeChat login, phone binding, `wx.requestPayment`, order and after-sale flows; manual QA ledger now exists. | Needs real-device evidence | Run `node scripts/check_miniapp_manual_qa.js --strict` after recording preview/real-device evidence. |
 | WeChat pay/refund | Backend has WeChat payment/refund gateway, callbacks, records, retry, and mock only when explicitly configured; miniapp payment QA ledger now exists. User confirmed in Round 71 that real payment private key/config is not fully provisioned yet, so interim validation may use mock/nonprod evidence only. | Needs production evidence | Use explicit mock/nonprod lane for interim validation if needed, but keep real payment/refund evidence pending until merchant config, private keys, and callback domain are ready. |
 | Admin operations path | Core pages and tests exist for auth, room, price/inventory, and order management; manual QA ledger now exists. | Partially verified | Run `node scripts/check_admin_web_manual_qa.js --strict` against deployed admin web after recording safe evidence. |
@@ -68,6 +68,26 @@ Latest direct admin-web automated evidence:
   with 6 checks.
 - The earlier resumed-goal notes about `_refundId` or 3 failing/timed-out admin
   tests are stale and did not reproduce on the current worktree.
+
+Latest direct miniapp automated evidence:
+
+- `cd sunflower-miniapp && node ../scripts/check_miniapp_mvp_smoke.js`: passed
+  in Round 97 with the expected bare HTTP API warning.
+- `cd sunflower-miniapp && node ../scripts/check_miniapp_behavior_wiring.js`:
+  passed in Round 97 with 69 checks across 14 files.
+- `cd sunflower-miniapp && node ../scripts/check_miniapp_user_flow_replay.js`:
+  passed in Round 97 with 3 replay scenarios.
+- `cd sunflower-miniapp && node ../scripts/check_miniapp_payment_flow_replay.js`:
+  passed in Round 97 with 5 replay scenarios.
+- `cd sunflower-miniapp && node ../scripts/check_miniapp_external_qa_preflight.js`:
+  passed in Round 97 with 6 checks and the expected local private-config
+  absence warning.
+- `cd sunflower-miniapp && node --check ...`: passed in Round 97 for
+  `utils/mvp/api.js`, `utils/mvp/payment.js`, `pages/mvp/home/index.js`,
+  `pages/mvp/login/index.js`, `pages/mvp/order-create/index.js`, and
+  `pages/mvp/order-list/index.js`.
+- This automated baseline does not replace legal HTTPS domain, real AppID
+  preview/real-device, phone binding, payment/refund, or manual QA evidence.
 
 Latest production/deployment evidence:
 

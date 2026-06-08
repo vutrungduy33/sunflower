@@ -33,7 +33,7 @@
       "requirement": "Miniapp smoke checks and key JavaScript syntax checks pass.",
       "status": "passed",
       "requiredForMvp": true,
-      "evidence": "Round 92 scripts/check_mvp_regression.sh passed on current local main HEAD 7cc7e04, aligned with origin/main. Miniapp smoke, behavior wiring, user-flow replay, payment-flow replay, external preflight, project config appid guard, and subpage nav guard passed. The run still warned that the default API base is bare HTTP for local/devtools validation and local project.private.config.json is absent. Production checks were skipped by default.",
+      "evidence": "Round 97 direct miniapp validation passed on clean local main HEAD 2fc543e. Miniapp smoke, behavior wiring, user-flow replay, payment-flow replay, external QA preflight, and key JavaScript syntax checks passed. The run still warned that the default API base is bare HTTP for local/devtools validation and local project.private.config.json is absent.",
       "nextAction": "Re-run after miniapp changes or before final closeout; real preview/device evidence remains separate."
     },
     {

@@ -5,6 +5,64 @@
 > This active file keeps only the latest operational rounds. Older rounds are
 > archived in `docs/archive/mvp-progress/`.
 
+## Round 97: Miniapp Automated Path Baseline Refresh
+
+- Date: 2026-06-08
+- Status: completed
+- Focus: refresh the miniapp automated smoke, behavior wiring, user-flow replay,
+  payment-flow replay, external preflight, and key JavaScript syntax baseline on
+  the current clean `main`.
+- Start evidence:
+  - Local `main` and `origin/main` were aligned at `2fc543e`.
+  - Worktree was clean before validation.
+  - `docs/Project-State.md`, `docs/MVP-Readiness.md`,
+    `docs/Miniapp-Manual-QA.md`, and `docs/MVP-Launch-Evidence.json` still
+    recorded the miniapp automated baseline mainly from Round 92/Round 93.
+- Open-source reference check:
+  - Task classification: repo-local verification baseline refresh for existing
+    miniapp scripts and QA docs.
+  - Sources checked: `docs/Miniapp-Manual-QA.md`,
+    `docs/Miniapp-Manual-QA.json`, current miniapp pages/utilities, and the
+    existing miniapp replay/preflight scripts.
+  - License/compatibility: no external code copied.
+  - Selected approach: run the canonical repository miniapp checks and update
+    only evidence/status docs. No new dependency or device automation was
+    introduced.
+- Risks:
+  - The replay checks validate page methods, wiring, payment handling branches,
+    and key syntax in a local harness; they do not prove WeChat preview,
+    real-device login, legal HTTPS request-domain setup, real payment, or real
+    refund.
+  - The default API base still warns as bare HTTP and remains acceptable only
+    for local/DevTools validation.
+- Acceptance criteria:
+  - Miniapp smoke, behavior wiring, user-flow replay, payment-flow replay,
+    external QA preflight, and key JavaScript syntax checks pass.
+  - `docs/Project-State.md`, `docs/MVP-Readiness.md`,
+    `docs/MVP-Launch-Evidence.json`, and `docs/Miniapp-Manual-QA.md` reflect
+    the refreshed baseline.
+  - Keep all manual/external miniapp evidence pending.
+- Verification:
+  - `cd sunflower-miniapp && node ../scripts/check_miniapp_mvp_smoke.js`:
+    passed with the expected bare HTTP API warning.
+  - `cd sunflower-miniapp && node ../scripts/check_miniapp_behavior_wiring.js`:
+    passed with 69 checks across 14 files.
+  - `cd sunflower-miniapp && node ../scripts/check_miniapp_user_flow_replay.js`:
+    passed 3 replay scenarios covering home/login bootstrap, order creation,
+    and order-list actions.
+  - `cd sunflower-miniapp && node ../scripts/check_miniapp_payment_flow_replay.js`:
+    passed 5 replay scenarios covering mock payment, real payment success,
+    cancel/failure, and backend confirm failure handling.
+  - `cd sunflower-miniapp && node ../scripts/check_miniapp_external_qa_preflight.js`:
+    passed 6 checks with the expected local private-config absence warning.
+  - `cd sunflower-miniapp && node --check ...`: passed for `utils/mvp/api.js`,
+    `utils/mvp/payment.js`, and the key home/login/order-create/order-list
+    page files.
+- Outcome:
+  - The miniapp automated main-path baseline is current on `main`. The MVP
+    still requires legal HTTPS domain, real AppID preview/real-device, phone,
+    booking, payment/refund, and error-state evidence before final closeout.
+
 ## Round 96: Admin Web Validation Baseline Refresh
 
 - Date: 2026-06-08

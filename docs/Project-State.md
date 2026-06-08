@@ -61,11 +61,15 @@
   files), `npm run build`, behavior wiring (97 checks), and external QA
   preflight (6 checks). The earlier resumed-goal notes about `_refundId` and 3
   failing/timed-out admin-web tests are stale and did not reproduce.
-- Miniapp baseline from that run: smoke, behavior wiring (69 checks), user-flow
-  replay (3 scenarios), payment-flow replay (5 scenarios), external preflight,
-  appid guard, and subpage nav guard passed. The run still warns that the
-  default API base remains bare HTTP for local/DevTools validation only and
-  local `project.private.config.json` is absent.
+- Latest direct miniapp automated baseline: Round 97 on clean local `main` HEAD
+  `2fc543e` passed smoke, behavior wiring (69 checks), user-flow replay (3
+  scenarios), payment-flow replay (5 scenarios), external QA preflight (6
+  checks), and key JavaScript syntax checks for `utils/mvp/api.js`,
+  `utils/mvp/payment.js`, `pages/mvp/home/index.js`,
+  `pages/mvp/login/index.js`, `pages/mvp/order-create/index.js`, and
+  `pages/mvp/order-list/index.js`. The run still warns that the default API
+  base remains bare HTTP for local/DevTools validation only and local
+  `project.private.config.json` is absent.
 - Latest production read-only audit: Round 95
   `scripts/check_production_readonly_audit.sh` passed with deploy config static
   checks, production public/ECS internal smoke, backend `8080` exposure checks,
