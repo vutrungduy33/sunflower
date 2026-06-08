@@ -47,8 +47,8 @@
 ## Latest Validation Baselines
 
 - Latest default aggregate local MVP regression:
-  `scripts/check_mvp_regression.sh` passed in Round 86 on local `main` HEAD
-  `158d894` with backend/admin/miniapp/evidence/deploy-config checks and
+  `scripts/check_mvp_regression.sh` passed in Round 92 on local `main` HEAD
+  `7cc7e04` with backend/admin/miniapp/evidence/deploy-config checks and
   production skipped.
 - Backend baseline from that run: `mvn -B test` passed with 57 tests, 0
   failures, 0 errors, and 0 skipped.
@@ -271,6 +271,14 @@
   `RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh` passed 5/5. This is
   reduced-scope backend current-branch deployment evidence only; it does not
   refresh admin-web/Nginx or prove real payment/refund readiness.
+- Round 92 refreshed the default local automated MVP regression on clean local
+  `main` HEAD `7cc7e04`, aligned with `origin/main`. The run passed all 5
+  default non-production steps: backend tests, admin-web lint/test/build plus
+  behavior/external preflight, miniapp smoke/wiring/user-flow/payment-flow
+  replays plus external preflight/appid/nav guards, non-strict evidence ledger
+  checks, and deploy config static checks. Production checks were skipped by
+  default, and strict closeout still reports 32 unresolved required evidence
+  items.
 - Round 60 pushed `98e68e0dd478` to `main` and triggered GitHub Actions run
   `26796051853`; backend/admin-web images built, but ECS-2 checkout stalled
   before deployment completed.

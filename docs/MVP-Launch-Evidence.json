@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-06-04",
+  "updatedAt": "2026-06-08",
   "summary": "Launch evidence ledger for the active MVP hardening goal. Keep external evidence compact and do not store secrets or raw payment payloads.",
   "statusValues": [
     "passed",
@@ -15,7 +15,7 @@
       "requirement": "Backend automated test suite remains green.",
       "status": "passed",
       "requiredForMvp": true,
-      "evidence": "Round 86 scripts/check_mvp_regression.sh passed on current local main HEAD 158d894. Backend mvn -B test passed with 57 tests, 0 failures, 0 errors, and 0 skipped. Production checks were skipped by default.",
+      "evidence": "Round 92 scripts/check_mvp_regression.sh passed on current local main HEAD 7cc7e04, aligned with origin/main. Backend mvn -B test passed with 57 tests, 0 failures, 0 errors, and 0 skipped. Production checks were skipped by default.",
       "nextAction": "Re-run after backend changes or before final closeout."
     },
     {
@@ -24,7 +24,7 @@
       "requirement": "Admin web lint, tests, and production build remain green.",
       "status": "passed",
       "requiredForMvp": true,
-      "evidence": "Round 86 scripts/check_mvp_regression.sh passed on current local main HEAD 158d894. Admin web npm run lint passed, npm run test passed with 24 Vitest tests across 5 files, npm run build passed, behavior wiring passed 97 checks, and admin external QA preflight passed 6 checks. Production checks were skipped by default.",
+      "evidence": "Round 92 scripts/check_mvp_regression.sh passed on current local main HEAD 7cc7e04, aligned with origin/main. Admin web npm run lint passed, npm run test passed with 24 Vitest tests across 5 files, npm run build passed, behavior wiring passed 97 checks, and admin external QA preflight passed 6 checks. Production checks were skipped by default.",
       "nextAction": "Re-run after admin-web changes or before final closeout."
     },
     {
@@ -33,7 +33,7 @@
       "requirement": "Miniapp smoke checks and key JavaScript syntax checks pass.",
       "status": "passed",
       "requiredForMvp": true,
-      "evidence": "Round 86 scripts/check_mvp_regression.sh passed on current local main HEAD 158d894. Miniapp smoke, behavior wiring, user-flow replay, payment-flow replay, external preflight, project config appid guard, and subpage nav guard passed. The run still warned that the default API base is bare HTTP for local/devtools validation and local project.private.config.json is absent. Production checks were skipped by default.",
+      "evidence": "Round 92 scripts/check_mvp_regression.sh passed on current local main HEAD 7cc7e04, aligned with origin/main. Miniapp smoke, behavior wiring, user-flow replay, payment-flow replay, external preflight, project config appid guard, and subpage nav guard passed. The run still warned that the default API base is bare HTTP for local/devtools validation and local project.private.config.json is absent. Production checks were skipped by default.",
       "nextAction": "Re-run after miniapp changes or before final closeout; real preview/device evidence remains separate."
     },
     {

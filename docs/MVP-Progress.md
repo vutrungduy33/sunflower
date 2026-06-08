@@ -5,6 +5,57 @@
 > This active file keeps only the latest operational rounds. Older rounds are
 > archived in `docs/archive/mvp-progress/`.
 
+## Round 92: Current Main Aggregate Regression Refresh
+
+- Date: 2026-06-08
+- Status: completed
+- Focus: refresh the default local automated MVP regression baseline on the
+  current clean `main` after the V8 schema repair, Codeup/Yunxiao plan, and
+  backend-only nonprod/mock deploy evidence commits.
+- Start evidence:
+  - Local `main` and `origin/main` were aligned at `7cc7e04`.
+  - Worktree was clean before validation.
+  - `docs/Project-State.md` and `docs/MVP-Readiness.md` still recorded Round
+    86 / HEAD `158d894` as the latest default aggregate local regression, so
+    the validation baseline was stale.
+- Open-source reference check:
+  - Task classification: verification and documentation-only baseline refresh.
+  - Sources checked: repository hot context, `docs/Architecture.md`,
+    `docs/CI-CD.md`, existing regression scripts, and current command output.
+  - License/compatibility: no external code or dependency reused.
+  - Selected approach: rerun the existing aggregate regression script and update
+    only the durable validation/evidence docs.
+- Risks:
+  - The default aggregate regression is local/non-production only; it skips
+    production read-only smoke unless `RUN_PRODUCTION=1` is set.
+  - Passing non-strict evidence checks does not satisfy the 32 unresolved
+    required external closeout items.
+  - Real WeChat Pay config, HTTPS legal request domain, miniapp real-device QA,
+    admin manual QA, and full production-like deployment evidence remain
+    pending.
+- Acceptance criteria:
+  - `scripts/check_mvp_regression.sh` passes on current `main`.
+  - `docs/Project-State.md`, `docs/MVP-Readiness.md`, and
+    `docs/MVP-Launch-Evidence.json` record the new local automated baseline
+    without changing external pending evidence to passed.
+  - Evidence/handoff/closeout guards and `git diff --check` pass.
+  - Commit and push the round record.
+- Verification:
+  - `scripts/check_mvp_regression.sh`: passed 5 enabled non-production steps.
+    Backend `mvn -B test` passed 57 tests with 0 failures, 0 errors, and 0
+    skipped. Admin-web `npm run lint`, `npm run test` (24 tests across 5
+    files), `npm run build`, behavior wiring (97 checks), and external QA
+    preflight (6 checks) passed. Miniapp smoke, behavior wiring (69 checks),
+    user-flow replay (3 scenarios), payment-flow replay (5 scenarios),
+    external preflight, appid guard, and subpage nav guard passed. Evidence
+    ledger checks and deploy config static checks passed. Production checks
+    were skipped by default.
+- Outcome:
+  - Current local automated MVP baseline is refreshed to `main` HEAD
+    `7cc7e04`. MVP completion remains blocked by the same 32 required external
+    evidence items: 8 launch evidence entries, 12 miniapp manual QA checks, and
+    12 admin-web manual QA checks.
+
 ## Round 90: WeChat Payment LOB Schema Recovery
 
 - Date: 2026-06-04
