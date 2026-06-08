@@ -85,10 +85,10 @@ wx.setStorageSync('SUNFLOWER_API_BASE_URL', 'https://<api-domain>')
 node scripts/check_miniapp_https_domain.js https://<api-domain>
 ```
 
-- User-provided miniapp备案 domain: `xiangrikui.cloud` (recorded on
-  2026-06-02). Treat this as domain context only until a concrete HTTPS API
-  host under the domain, certificate result, and WeChat legal request-domain
-  configuration are verified.
+- User-provided备案 domains: `xiangrikui.cloud` and `sunflower.cloud`. Treat
+  them as domain context only until a concrete HTTPS API host under the chosen
+  domain, certificate result, and WeChat legal request-domain configuration are
+  verified.
 - Do not commit real AppID, phone numbers, auth tokens, openId/unionId, merchant
   credentials, payment payloads, transaction ids, raw screenshots with personal
   data, or full order identifiers.

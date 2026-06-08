@@ -5,6 +5,58 @@
 > This active file keeps only the latest operational rounds. Older rounds are
 > archived in `docs/archive/mvp-progress/`.
 
+## Round 104: Readiness Evidence Count Consistency
+
+- Date: 2026-06-08
+- Status: completed
+- Focus: align the MVP readiness and miniapp manual QA docs with the current
+  closeout evidence ledger so operators do not see stale closeout counts or a
+  single-domain备案 statement.
+- Start evidence:
+  - `docs/MVP-Readiness.md` still described the pre-8080-hardening strict
+    closeout count, even though the current ledger/checkers report 8 pending
+    launch entries and 32 unresolved closeout items after
+    `BACKEND-8080-HARDENING` passed.
+  - `docs/Miniapp-Manual-QA.md` still named only `xiangrikui.cloud`, while the
+    current project state and architecture docs include both `xiangrikui.cloud`
+    and `sunflower.cloud`.
+- Open-source reference check:
+  - Task classification: repository-local evidence/document consistency
+    refresh.
+  - Sources checked: `docs/MVP-Readiness.md`,
+    `docs/Miniapp-Manual-QA.md`, `docs/MVP-Launch-Evidence.json`, and current
+    checker output.
+  - License/compatibility: no external code copied.
+  - Selected approach: update existing canonical docs without changing ledger
+    status.
+- Risks:
+  - This round must not mark any external evidence passed. It only corrects
+    stale prose to match the current ledger.
+- Acceptance criteria:
+  - `docs/MVP-Readiness.md` uses 8 launch pending / 32 unresolved wording.
+  - `docs/Miniapp-Manual-QA.md` names both备案 domains as context only.
+  - Run evidence/manual-QA guards and commit once.
+- Change summary:
+  - Updated the readiness matrix backend baseline to Round 99.
+  - Updated latest strict closeout prose from 9/33 to 8/32.
+  - Updated miniapp manual QA domain context to include both `xiangrikui.cloud`
+    and `sunflower.cloud`.
+- Verification:
+  - `node scripts/check_mvp_closeout_readiness.js`: passed in non-strict mode
+    and reported 32 unresolved required closeout items.
+  - `node scripts/check_mvp_launch_evidence.js`: passed in non-strict mode and
+    reported 13 total launch items, 5 passed, and 8 pending.
+  - `node scripts/check_miniapp_manual_qa.js`: passed in non-strict mode and
+    reported 12 pending miniapp manual QA checks.
+  - Stale-count/domain scan found no remaining old active wording after the
+    round note was normalized.
+  - `git diff --check`: passed.
+- Outcome:
+  - Readiness and miniapp QA docs now match the current ledger counts and
+    domain context. This was a docs-only consistency round; it did not push,
+    dispatch, deploy, mutate ECS, run payment/refund, or reduce the unresolved
+    evidence count.
+
 ## Round 101: Handoff and Approval Doc Refresh
 
 - Date: 2026-06-08

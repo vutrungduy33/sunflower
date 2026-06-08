@@ -25,7 +25,7 @@ verified, and documented enough for handoff:
 
 | Area | Evidence | Status | Next action |
 | --- | --- | --- | --- |
-| Backend local quality | Round 92 default aggregate regression reran `mvn -B test` on local `main` HEAD `7cc7e04`: passed, 57 tests, 0 failures/errors/skips. Round 28 added public order ownership isolation across current-user list/detail/pay preparation/pay confirmation/cancel/reschedule/refund actions. | Ready locally | Keep green after future backend changes. |
+| Backend local quality | Round 99 default aggregate regression reran `mvn -B test` on clean local `main` HEAD `af46357`: passed, 57 tests, 0 failures/errors/skips. Round 28 added public order ownership isolation across current-user list/detail/pay preparation/pay confirmation/cancel/reschedule/refund actions. | Ready locally | Keep green after future backend changes. |
 | Admin web local quality | Round 96 direct admin-web validation reran `npm run lint`, `npm run test` (24 tests across 5 files), and `npm run build`: passed. Behavior wiring passed 97 checks and admin external QA preflight passed 6 checks. Order tests cover check-in, check-out, no-show, after-sale rejection, failed refund retry, and invalid check-in date-range feedback/query blocking. | Ready locally | Keep green after future admin changes. |
 | Miniapp syntax/smoke | Round 97 direct miniapp validation reran smoke, behavior wiring, user-flow replay, payment-flow replay, external preflight, and key JavaScript syntax checks: passed. The run still warns that the default API base is bare HTTP for local/devtools validation and local `project.private.config.json` is absent. | Partially verified | Real-device login/phone/payment evidence still required. |
 | Miniapp real user path | Code supports real API, WeChat login, phone binding, `wx.requestPayment`, order and after-sale flows; manual QA ledger now exists. | Needs real-device evidence | Run `node scripts/check_miniapp_manual_qa.js --strict` after recording preview/real-device evidence. |
@@ -162,14 +162,17 @@ Latest production/deployment evidence:
 
 Latest strict closeout evidence:
 
-- Round 56 reran `node scripts/check_mvp_launch_evidence.js --strict`,
+- Round 56/Round 58 established the strict closeout evidence shape, and later
+  non-strict checks continue to confirm the same current blockers. The strict
+  commands are:
+  `node scripts/check_mvp_launch_evidence.js --strict`,
   `node scripts/check_miniapp_manual_qa.js --strict`,
   `node scripts/check_admin_web_manual_qa.js --strict`, and
-  `node scripts/check_mvp_closeout_readiness.js --strict` on local `main` HEAD
-  `d9db23166dba`.
-- The strict commands failed as expected because 9 launch entries, 12 miniapp
-  manual QA checks, and 12 admin-web manual QA checks remain unresolved. These
-  are approval/evidence blockers, not local automated code regressions.
+  `node scripts/check_mvp_closeout_readiness.js --strict`.
+- The strict commands fail as expected because 8 launch entries, 12 miniapp
+  manual QA checks, and 12 admin-web manual QA checks remain unresolved.
+  Non-strict closeout currently reports 32 unresolved required items. These are
+  approval/evidence blockers, not local automated code regressions.
 - No further local-only reruns can make the strict closeout commands pass
   without user-approved evidence, waivers, or deployment action.
 

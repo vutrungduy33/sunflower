@@ -103,6 +103,10 @@
   deployment preflight. Focused verification passed with
   `node scripts/check_deployment_approval_preflight.js`,
   `node scripts/check_mvp_launch_evidence.js`, and `git diff --check`.
+- Round 104 refreshed readiness prose so `docs/MVP-Readiness.md` and
+  `docs/Miniapp-Manual-QA.md` match the current ledger: 8 pending launch
+  evidence entries, 32 unresolved required closeout items, and both
+  `xiangrikui.cloud` and `sunflower.cloud` recorded as备案 domain context.
 - Round 50 audited the original goal termination criteria and found the MVP
   incomplete. Round 58 later closed the backend `8080` item, leaving the
   current 32 unresolved required items. The completion conclusion remains
