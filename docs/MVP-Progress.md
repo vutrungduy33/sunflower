@@ -232,6 +232,55 @@
     not log in, send SMS, mutate data, push deploy actions, or reduce the
     unresolved evidence count.
 
+## Round 109: Next Goal Prompt Current-Fact Refresh
+
+- Date: 2026-06-08
+- Status: completed
+- Focus: refresh `docs/MVP-Next-Goal-Prompt.md` and its guard after the Round
+  107 miniapp-domain recheck and Round 108 admin-entry readiness probe.
+- Start evidence:
+  - The fresh-goal prompt still said "Current as of Round 104".
+  - The prompt did not mention the stricter miniapp HTTPS checker, the current
+    `sunflower.cloud`/`api.*` domain findings, or the new admin entry readiness
+    command.
+- Open-source reference check:
+  - Task classification: repository-local handoff prompt/checker refresh.
+  - Sources checked: `docs/MVP-Next-Goal-Prompt.md`,
+    `scripts/check_mvp_next_goal_prompt.js`, `docs/Project-State.md`,
+    `docs/MVP-Handoff-Packet.md`, and current evidence ledgers.
+  - License/compatibility: no external code copied.
+  - Selected approach: update the existing finite prompt and guard instead of
+    creating another handoff document.
+- Risks:
+  - This round must not narrow the original goal or imply that domain/admin
+    manual QA evidence has passed.
+- Acceptance criteria:
+  - Prompt current date/baseline matches the Round 109 handoff refresh while
+    carrying the Round 107/108 facts.
+  - Prompt and guard include Round 107 miniapp domain findings.
+  - Prompt and guard include Round 108 admin entry readiness command.
+  - Run focused prompt/handoff/evidence validation and commit once.
+- Change summary:
+  - Updated the fresh-goal prompt from Round 104 to Round 109.
+  - Added Round 107 domain facts: `sunflower.cloud` has a trusted GoDaddy cert
+    but returns an HTML lander at `/api/health`; `xiangrikui.cloud` and `api.*`
+    candidates still fail TLS/SNI.
+  - Added Round 108 admin entry readiness facts and the
+    `node scripts/check_admin_web_entry_readiness.js` command.
+  - Tightened `scripts/check_mvp_next_goal_prompt.js` so stale Round 104 header
+    wording is rejected.
+- Verification:
+  - `node scripts/check_mvp_next_goal_prompt.js`: passed.
+  - `node scripts/check_mvp_handoff_packet.js`: passed.
+  - `RUN_BACKEND=0 RUN_ADMIN=0 RUN_MINIAPP=0 RUN_DEPLOY_CONFIG=0 scripts/check_mvp_regression.sh`: passed with evidence checks enabled.
+  - `git diff --check`: passed.
+- Outcome:
+  - Fresh-goal handoff now points at the current Round 109 handoff state while
+    keeping the Round 107/108 domain/admin-entry facts and the 32 unresolved
+    required evidence items explicit. This was a docs/checker handoff round; it
+    did not push deploy actions, mutate ECS, run payment or refund, log in to
+    admin, or reduce the unresolved evidence count.
+
 ## Round 104: Readiness Evidence Count Consistency
 
 - Date: 2026-06-08

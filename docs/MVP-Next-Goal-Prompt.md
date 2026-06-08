@@ -1,12 +1,12 @@
 # MVP Next Goal Prompt
 
-> Current as of 2026-06-08 Round 104. Use this prompt to continue the finite MVP
+> Current as of 2026-06-08 Round 109. Use this prompt to continue the finite MVP
 > closeout goal in a fresh Codex goal/thread. It intentionally separates
 > automated work from approval-gated external evidence.
 
 ## Current Baseline
 
-- Current branch: local `main`, aligned with `origin/main` after Round 104.
+- Current branch: local `main`, aligned with `origin/main` after Round 109.
 - Latest default aggregate baseline: Round 99
   `scripts/check_mvp_regression.sh` passed on clean local `main` HEAD
   `af46357`, with production checks skipped by default.
@@ -31,6 +31,18 @@
   payment/refund or admin-web/Nginx refresh. Any push/merge/workflow_dispatch
   or deploy intended to close this entry requires explicit user approval and a
   clean `node scripts/check_deployment_approval_preflight.js` run first.
+- Round 107 hardened `node scripts/check_miniapp_https_domain.js`: the default
+  check now requires backend health JSON at `/api/health`. `sunflower.cloud`
+  has a trusted GoDaddy certificate valid until 2026-10-04 but returns an HTML
+  lander at `/api/health`; `xiangrikui.cloud`, `api.sunflower.cloud`, and
+  `api.xiangrikui.cloud` still fail TLS/SNI. `WECHAT-DOMAIN` remains pending.
+- Round 108 added `node scripts/check_admin_web_entry_readiness.js`; it passed
+  against the temporary HTTP/IP admin entry, `/healthz`, and `/api/health` with
+  expected HTTP/IP warnings. This is entry-readiness evidence only; authenticated
+  admin manual QA remains pending.
+- Round 109 refreshed this prompt and its checker so the next fresh goal thread
+  sees the Round 107/108 facts and the new admin entry readiness command. No
+  unresolved evidence counts changed.
 
 ## Goal Prompt
 
@@ -41,7 +53,7 @@
 1. 读取 AGENTS.md、docs/Agent-Memory.md、docs/Context-Index.md、docs/Project-State.md、docs/MVP-Handoff-Packet.md、docs/MVP-Readiness.md、docs/MVP-Closeout-Audit.md、docs/MVP-Next-Goal-Prompt.md。
 2. 执行 git status --short --branch --untracked-files=all。
 3. 不默认读取 docs/archive/**，除非当前文档明确需要历史材料。
-4. 记住当前事实：Round 99 的 scripts/check_mvp_regression.sh 已通过，Round 100 的 scripts/check_production_readonly_audit.sh 已通过；旧的 admin-web _refundId lint 或 3 个测试失败记录已经过期；MVP 仍缺 32 项外部/人工证据。当前 main 与 origin/main 已对齐；用于关闭 CURRENT-BRANCH-DEPLOYED 的 push、merge、workflow_dispatch 或 deploy 必须先获得明确批准并运行干净工作区的 node scripts/check_deployment_approval_preflight.js。
+4. 记住当前事实：Round 99 的 scripts/check_mvp_regression.sh 已通过，Round 100 的 scripts/check_production_readonly_audit.sh 已通过；旧的 admin-web _refundId lint 或 3 个测试失败记录已经过期；MVP 仍缺 32 项外部/人工证据。Round 107 证明当前备案域名还不能作为小程序 API 合法域名：sunflower.cloud 有可信 GoDaddy 证书但 /api/health 是 HTML lander，不是后端 health JSON；xiangrikui.cloud 和两个 api.* 候选仍有 TLS/SNI 问题。Round 108 证明临时 HTTP/IP admin 入口、/healthz、/api/health 可达，但登录后 admin 人工 QA 仍 pending。Round 109 将这两条新事实刷新进 fresh-goal prompt；当前 main 与 origin/main 已对齐；用于关闭 CURRENT-BRANCH-DEPLOYED 的 push、merge、workflow_dispatch 或 deploy 必须先获得明确批准并运行干净工作区的 node scripts/check_deployment_approval_preflight.js。
 
 每一轮必须形成闭环：
 1. 先输出本轮最小目标、会影响的证据 ID、风险、是否需要用户审批。
@@ -61,7 +73,7 @@
 1. 若代码、部署或生产状态没有变化，不要再重复刷新自动基线；Round 99 已经完成当前本地 main 的默认聚合回归，Round 100 已经刷新生产只读审计。
 2. 每轮只选一个 approval lane：
    - MINIAPP-PREVIEW-DOMAIN：微信合法 HTTPS 域名、真实 AppID 私有配置、预览/真机登录、手机号、下单路径。
-   - ADMIN-PROD-QA：生产或批准的 staging 管理后台账号、房态/价格/订单/售后人工 QA。
+   - ADMIN-PROD-QA：先运行 node scripts/check_admin_web_entry_readiness.js，再使用生产或批准的 staging 管理后台账号执行房态/价格/订单/售后人工 QA。
    - BACKEND-8080-HARDENING：已通过；仅在 backend redeploy 或网络拓扑变化后重新验证。
    - CURRENT-BRANCH-DEPLOYED：经用户批准并通过 clean deployment approval preflight 后，再执行 push/merge/workflow_dispatch/deploy，随后跑部署后只读审计。
    - WECHAT-PAYMENT-REFUND：经用户批准后做低金额真实支付/退款或记录逐项豁免。
@@ -74,6 +86,7 @@
 - RUN_PRODUCTION=1 scripts/check_mvp_regression.sh 或部署后的 scripts/check_production_readonly_audit.sh 通过。
 - node scripts/check_mvp_launch_evidence.js --strict 通过。
 - node scripts/check_miniapp_manual_qa.js --strict 通过。
+- node scripts/check_admin_web_entry_readiness.js 通过。
 - node scripts/check_admin_web_manual_qa.js --strict 通过。
 - node scripts/check_mvp_closeout_readiness.js --strict 通过。
 - node scripts/check_mvp_handoff_packet.js 通过。

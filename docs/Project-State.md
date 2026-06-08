@@ -130,6 +130,11 @@
   HTTP/IP admin entry, `/healthz`, and `/api/health` without login or data
   mutation. It is entry-readiness evidence only and does not satisfy
   authenticated admin manual QA.
+- Round 109 refreshed `docs/MVP-Next-Goal-Prompt.md` and
+  `scripts/check_mvp_next_goal_prompt.js` to the current handoff state,
+  including the Round 107 stricter miniapp HTTPS checker/domain results and the
+  Round 108 `node scripts/check_admin_web_entry_readiness.js` command. No
+  unresolved evidence counts changed.
 - Round 50 audited the original goal termination criteria and found the MVP
   incomplete. Round 58 later closed the backend `8080` item, leaving the
   current 32 unresolved required items. The completion conclusion remains

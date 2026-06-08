@@ -30,6 +30,14 @@ the user explicitly waives the remaining external evidence.
 - Miniapp syntax/smoke, behavior wiring, project config, navigation, and
   external QA preflight have passed. Round 97 also includes user-flow and
   payment-flow replay checks.
+- Round 107 hardened the miniapp HTTPS domain checker so `/api/health` must
+  return backend health JSON. `sunflower.cloud` currently has a trusted GoDaddy
+  certificate but returns an HTML lander at `/api/health`, while
+  `xiangrikui.cloud`, `api.sunflower.cloud`, and `api.xiangrikui.cloud` still
+  fail TLS/SNI; `WECHAT-DOMAIN` remains pending.
+- Round 108 added `node scripts/check_admin_web_entry_readiness.js`, which
+  passed for the temporary HTTP/IP admin entry, `/healthz`, and `/api/health`
+  with expected HTTP/IP warnings. This is not authenticated admin manual QA.
 - Production read-only checks have passed for public health/admin/API smoke,
   ECS private upstream checks, and backend `8080` exposure inspection. The
   latest payment-config readiness still reports the known sanitized real

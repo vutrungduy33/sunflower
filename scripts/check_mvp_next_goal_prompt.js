@@ -27,13 +27,23 @@ const ledgers = [
 ];
 
 const requiredCurrentFacts = [
-  'Current as of 2026-06-08 Round 104',
+  'Current as of 2026-06-08 Round 109',
   'Round 99',
   'scripts/check_mvp_regression.sh',
   'Round 100',
   'scripts/check_production_readonly_audit.sh',
   'Round 96',
   'Round 97',
+  'Round 107',
+  'sunflower.cloud',
+  'GoDaddy',
+  'HTML lander',
+  'api.sunflower.cloud',
+  'api.xiangrikui.cloud',
+  'Round 108',
+  'Round 109',
+  'node scripts/check_admin_web_entry_readiness.js',
+  'No unresolved evidence counts changed',
   '32 unresolved required',
   '8 launch evidence entries',
   '12 miniapp manual QA checks',
@@ -53,6 +63,7 @@ const requiredCommands = [
   'scripts/check_production_readonly_audit.sh',
   'node scripts/check_mvp_launch_evidence.js --strict',
   'node scripts/check_miniapp_manual_qa.js --strict',
+  'node scripts/check_admin_web_entry_readiness.js',
   'node scripts/check_admin_web_manual_qa.js --strict',
   'node scripts/check_mvp_closeout_readiness.js --strict',
   'node scripts/check_mvp_handoff_packet.js',
@@ -85,6 +96,8 @@ const requiredSafetyText = [
 
 const staleText = [
   'Current as of 2026-06-02',
+  'Current as of 2026-06-08 Round 104',
+  'Current as of 2026-06-08 Round 108',
   'Round 47',
   '33 unresolved',
   '33 项',
