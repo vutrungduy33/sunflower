@@ -7,7 +7,7 @@
 
 ## Last Updated
 
-2026-06-04
+2026-06-08
 
 ## Current Workflow
 
@@ -257,6 +257,20 @@
   failed before backend recreation at the expected production validation
   blocker `WECHAT_PAY_MCH_ID is required`, so it did not replace the recovered
   backend container or prove real payment readiness.
+- Round 91 first committed/pushed the existing Codeup/Yunxiao migration-plan
+  work as `d10d11e`; this docs/scripts-only push did not create a new
+  deployment workflow run. It then triggered backend-only manual
+  `deployment_lane=nonprod-mock-payment` workflow run `27112433529` for HEAD
+  `d10d11e`. The run passed detect-targets, deployment bundle packaging,
+  backend Docker build/GHCR push/image artifact export/upload, skipped
+  admin-web as expected, passed ECS-2 deployment bundle download/extract/sync,
+  backend image artifact download/load, image availability, nonprod/mock lane
+  validation for `.env.prod + .env.nonprod-mock.example`, MySQL/backend
+  recreation, backend health wait, and backend deploy completion. Post-deploy
+  `RUN_INTERNAL=1 scripts/check_production_smoke.sh` passed 7/7, and
+  `RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh` passed 5/5. This is
+  reduced-scope backend current-branch deployment evidence only; it does not
+  refresh admin-web/Nginx or prove real payment/refund readiness.
 - Round 60 pushed `98e68e0dd478` to `main` and triggered GitHub Actions run
   `26796051853`; backend/admin-web images built, but ECS-2 checkout stalled
   before deployment completed.
@@ -325,10 +339,10 @@
   fully provisioned yet. It is acceptable to use the explicit mock/nonprod lane
   for interim validation, but this must remain recorded as mock evidence and
   must not satisfy real payment/refund launch evidence.
-- Backend-only nonprod/mock deployment still needs a new dispatch after the
-  Round 90 Flyway V8 repair is committed and pushed. The previous MySQL app
-  credential blocker is fixed; the latest reduced-scope blocker was schema
-  drift, now repaired on ECS and in code.
+- Backend-only nonprod/mock deployment for current `main` has passed after the
+  Round 90 Flyway V8 repair. Remaining deployment blockers are production-like
+  real payment config, HTTPS legal domain, and strict external/manual QA
+  evidence; the mock lane must not be treated as real payment/refund evidence.
 - Miniapp real-device/preview evidence is still pending for HTTPS request
   domain, real AppID preview, WeChat login, phone binding, booking path, payment,
   refund, and error states.

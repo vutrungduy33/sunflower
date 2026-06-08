@@ -1,8 +1,10 @@
 # Production Smoke
 
-> Latest deployment attempt: 2026-06-02 Round 60. This records observed
-> deployment/smoke facts for the MVP hardening goal. It does not prove current
-> `main` is deployed until the workflow and post-deploy smoke complete.
+> Latest deployment/smoke evidence: 2026-06-08 Round 91. This records observed
+> deployment/smoke facts for the MVP hardening goal. Round 91 proves current
+> `main` backend deployment through the reduced-scope backend-only
+> `nonprod-mock-payment` lane; it does not prove real WeChat Pay/refund,
+> HTTPS legal-domain readiness, or admin-web/Nginx refresh.
 
 ## 0. Repeatable Script
 
@@ -35,6 +37,25 @@ The first command records sanitized readiness warnings; the strict command exits
 non-zero when required real-payment production config is missing.
 
 Latest deployment attempt:
+
+- GitHub Actions workflow_dispatch run `27112433529` deployed `main` HEAD
+  `d10d11e27aff2cd3875dffb8de1d9f74ce86db04` through the backend-only
+  `deployment_lane=nonprod-mock-payment` lane.
+- The run passed `detect-targets`, `package-deploy-bundle`, backend Docker
+  build/GHCR push/image artifact export/upload, ECS-2 deployment bundle
+  download/extract/sync, backend image artifact download/load, image
+  availability, nonprod/mock lane validation for `.env.prod +
+  .env.nonprod-mock.example`, backend recreation, backend health wait, and
+  deploy completion.
+- `build-admin-web` and `deploy-web-host` were skipped by design. No host Nginx
+  refresh occurred.
+- Post-deploy `RUN_INTERNAL=1 scripts/check_production_smoke.sh` passed 7
+  checks with 0 warnings.
+- Post-deploy `RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh` passed 5
+  checks with 0 warnings.
+- `RUN_INTERNAL=1 scripts/check_backend_payment_config_readiness.sh` still
+  reports the known 8 real WeChat Pay production config issues, so this is
+  reduced-scope mock-payment evidence only.
 
 - GitHub Actions run `26796051853` was triggered by push to `main` at commit
   `98e68e0dd478`.

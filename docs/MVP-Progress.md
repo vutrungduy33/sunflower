@@ -100,6 +100,73 @@
     HTTPS legal domain, current-branch deployment evidence, and strict
     miniapp/admin manual QA evidence.
 
+## Round 91: Backend Current-Branch Nonprod Deploy Evidence
+
+- Date: 2026-06-08
+- Status: completed
+- Focus: prove the V8-fixed current `main` can deploy backend through the
+  approved backend-only `deployment_lane=nonprod-mock-payment` GitHub Actions
+  path, then record post-deploy smoke without claiming real payment readiness.
+- Start evidence:
+  - Local `main` and `origin/main` were aligned at `b908625`.
+  - Worktree initially contained uncommitted Codeup/Yunxiao migration-plan
+    docs/scripts. These were verified with
+    `node scripts/check_codeup_yunxiao_migration_plan.js`,
+    `scripts/check_deploy_config.sh`, and `git diff --check`, then committed
+    and pushed as `d10d11e`.
+  - The docs/scripts-only push did not create a new `deploy-backend.yml` run.
+  - Strict `node scripts/check_nonprod_dispatch_readiness.js` passed on clean
+    `main` HEAD `d10d11e`.
+- Open-source reference check:
+  - Task classification: operational deployment validation using existing
+    repository workflow/scripts.
+  - Sources checked: local workflow, `docs/CI-CD.md`, readiness guard,
+    dispatch helper, and GitHub Actions run output.
+  - License/compatibility: no external code or dependency reused.
+  - Selected approach: execute the existing approved dispatch helper for
+    `target=backend`, `deployment_lane=nonprod-mock-payment`, and `ref=main`.
+  - Rejected options: production lane rerun before real WeChat Pay config,
+    marking real payment/refund evidence passed, or refreshing admin-web/Nginx
+    in this backend-only lane.
+- Risks:
+  - This lane mutates ECS-2 backend state and enables mock payment through the
+    explicit runtime overlay; it is not production payment/refund evidence.
+  - Admin-web and host Nginx are intentionally skipped.
+  - Production payment config remains incomplete and strict payment readiness
+    still reports 8 sanitized issues.
+- Acceptance criteria:
+  - Strict nonprod dispatch readiness passes on a clean `main`.
+  - The workflow run succeeds through backend build, artifact transfer/load,
+    nonprod/mock lane validation, backend recreation, and backend health wait.
+  - Post-deploy production smoke and backend 8080 exposure checks pass.
+  - Real payment readiness remains recorded as incomplete.
+  - Update project/evidence docs, run focused checks, and commit/push the
+    round record.
+- Execution:
+  - Triggered
+    `CONFIRM_NONPROD_MOCK_DISPATCH=1 scripts/dispatch_nonprod_mock_payment_deploy.sh --execute --target backend --ref main`.
+  - GitHub Actions run `27112433529` ran against HEAD `d10d11e`.
+  - `detect-targets` passed, `package-deploy-bundle` passed, `build-backend`
+    passed, and `build-admin-web` was skipped as expected.
+  - ECS-2 `deploy-backend-host` passed deployment bundle download/extract/sync,
+    backend image artifact download/load, image availability, nonprod/mock lane
+    validation for `.env.prod + .env.nonprod-mock.example`, MySQL/backend
+    recreation, backend health wait, and deploy completion.
+- Verification:
+  - `RUN_INTERNAL=1 scripts/check_production_smoke.sh`: passed 7 checks, 0
+    warnings.
+  - `RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh`: passed 5 checks, 0
+    warnings; public backend 8080 remained unusable, ECS-1 private upstream
+    worked, and ECS-2 backend 8080 remained bound to `172.25.121.83`.
+  - `RUN_INTERNAL=1 scripts/check_backend_payment_config_readiness.sh`:
+    completed in non-strict read-only mode with the known 8 real WeChat Pay
+    production config issues.
+- Outcome:
+  - Current `main` backend has successful reduced-scope deploy evidence through
+    the approved GitHub Actions nonprod/mock lane. MVP completion remains
+    blocked by real WeChat Pay/refund config/evidence, HTTPS legal domain,
+    miniapp real-device QA, admin manual QA, and full strict closeout evidence.
+
 ## Round 89: Nonprod Mock Env Overlay Credential Fix
 
 - Date: 2026-06-04
