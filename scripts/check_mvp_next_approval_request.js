@@ -82,7 +82,9 @@ const requiredNonprodDeployText = [
 ];
 
 const requiredCurrentText = [
-  'Current as of 2026-06-08 Round 113',
+  'Current as of 2026-06-08 Round 115',
+  'Round 114',
+  'Round 115',
   'Round 111',
   'Round 112',
   'HEAD checked: `c78fb9b5a645`',
@@ -93,6 +95,9 @@ const requiredCurrentText = [
 
 const staleText = [
   'Current as of 2026-06-08 Round 100',
+  'Current as of 2026-06-08 Round 113',
+  'Production read-only audit remains Round 100',
+  'Backend automated baseline remains Round 99',
   'Round 100 goal',
   'HEAD checked: `5a836f4704b7`',
   'Changed files since base: 39',

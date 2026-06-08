@@ -1,6 +1,6 @@
 # Backend 8080 Security Evidence
 
-> Current as of 2026-06-02. This document tracks whether ECS-2 backend port
+> Current as of 2026-06-08 Round 115. This document tracks whether ECS-2 backend port
 > `8080` is restricted to ECS-1 or accepted as a launch risk. The checks here
 > are read-only and do not change Alibaba Cloud security groups, host firewall,
 > Docker, or deployment configuration.
@@ -24,7 +24,21 @@ Modes:
 
 ## 2. Current Result
 
-Latest hardening result from Round 58 on 2026-06-02:
+Latest read-only recheck from Round 115 on 2026-06-08:
+
+- `RUN_INTERNAL=1 scripts/check_production_readonly_audit.sh` ran the backend
+  `8080` exposure step and passed with 5 checks and 0 warnings.
+- Public direct probe `http://47.120.42.15:8080/api/health` was not directly
+  usable from the local network.
+- ECS-1 can reach ECS-2 backend through private upstream
+  `http://172.25.121.83:8080/api/health`.
+- ECS-2 backend container and private health are present.
+- Listener output shows backend `8080` bound to private address
+  `172.25.121.83` and not listening on the public interface.
+- No Alibaba Cloud security group, host firewall, Docker, or deployment
+  configuration was changed.
+
+Hardening result from Round 58 on 2026-06-02:
 
 - User explicitly approved closing backend `8080`.
 - ECS-2 deployment directory: `/home/chenyao/sunflower`.

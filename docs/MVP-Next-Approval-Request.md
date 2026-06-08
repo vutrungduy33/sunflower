@@ -1,6 +1,6 @@
 # MVP Next Approval Request
 
-> Current as of 2026-06-08 Round 113. This is the visible next-step approval
+> Current as of 2026-06-08 Round 115. This is the visible next-step approval
 > request for MVP closeout. It is not proof that the MVP is complete.
 
 ## 1. Purpose
@@ -36,8 +36,8 @@ Unresolved required items: 32
 
 ## 2. Latest Analysis
 
-- Round 113 goal: keep the approval entry current after the Round 111 admin-web
-  local baseline refresh and Round 112 miniapp local baseline refresh.
+- Round 115 goal: keep the approval entry current after the Round 114 backend
+  local baseline refresh and Round 115 production read-only audit refresh.
 - Evidence ids touched: no status changes; this document only organizes the
   approval path for all unresolved ids listed in section 5 and updates the
   `CURRENT-BRANCH-DEPLOYED` preflight snapshot.
@@ -46,13 +46,16 @@ Unresolved required items: 32
   was copied. The selected approach keeps the existing repository-native
   `deployment_lane` workflow input and local guard scripts.
 - Current automated/read-only facts:
-  - Backend automated baseline remains Round 99 / 57 tests green.
+  - Backend direct baseline is Round 114: `mvn -B test` passed with 57 tests,
+    0 failures, 0 errors, and 0 skipped.
   - Admin-web direct baseline is Round 111: lint, 24 Vitest tests, build,
     behavior wiring, external QA preflight, and entry readiness passed.
   - Miniapp direct baseline is Round 112: smoke, behavior wiring, user-flow
     replay, payment-flow replay, external QA preflight, project config guard,
     subpage nav guard, and key JavaScript syntax checks passed.
-  - Production read-only audit remains Round 100; real payment config and HTTPS
+  - Production read-only audit is Round 115: deploy config static checks,
+    production public/ECS internal smoke, backend `8080` exposure checks, and
+    non-strict payment-config readiness passed. Real payment config and HTTPS
     legal request-domain evidence remain pending.
 - Risk: this document does not reduce the pending evidence count by itself and
   does not authorize push, workflow dispatch, deployment, real payment/refund,

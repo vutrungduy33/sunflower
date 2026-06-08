@@ -1,7 +1,7 @@
 # Production Smoke
 
-> Latest deployment/smoke evidence: 2026-06-08 Round 100. This records observed
-> deployment/smoke facts for the MVP hardening goal. Round 100 refreshes the
+> Latest deployment/smoke evidence: 2026-06-08 Round 115. This records observed
+> deployment/smoke facts for the MVP hardening goal. Round 115 refreshes the
 > production read-only audit; Round 91 remains the latest current-backend
 > reduced-scope `nonprod-mock-payment` deploy evidence. Neither proves real
 > WeChat Pay/refund, HTTPS legal-domain readiness, or admin-web/Nginx refresh.
@@ -87,7 +87,8 @@ Latest deployment attempt:
 
 Latest read-only production result:
 
-- `scripts/check_production_readonly_audit.sh`: passed in Round 100 with 4
+- `RUN_INTERNAL=1 scripts/check_production_readonly_audit.sh`: passed in
+  Round 115 with 4
   read-only steps on the current local network. The public and ECS internal
   smoke, backend `8080` exposure, and backend payment config readiness checks
   all passed.

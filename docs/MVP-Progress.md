@@ -5,6 +5,72 @@
 > This active file keeps only the latest operational rounds. Older rounds are
 > archived in `docs/archive/mvp-progress/`.
 
+## Round 115: Production Read-Only Audit Refresh
+
+- Date: 2026-06-08
+- Status: completed
+- Focus: refresh current production/cloud read-only evidence without deploying,
+  mutating ECS, or touching payment/refund/live QA data.
+- Start evidence:
+  - `docs/Production-Smoke.md`, `docs/MVP-Readiness.md`,
+    `docs/MVP-Handoff-Packet.md`, and `docs/MVP-Next-Approval-Request.md`
+    still pointed some operator-facing facts at the older Round 100 production
+    read-only audit.
+  - Remaining closeout needs current service health evidence while
+    `CURRENT-BRANCH-DEPLOYED`, HTTPS legal-domain, real payment/refund, and
+    manual QA remain separate approval-gated blockers.
+- Open-source reference check:
+  - Task classification: repository-local read-only production validation
+    evidence refresh.
+  - Sources checked: existing production audit scripts/docs:
+    `scripts/check_production_readonly_audit.sh`,
+    `docs/Production-Smoke.md`, `docs/Backend-8080-Security.md`,
+    `docs/MVP-Launch-Evidence.json`, and the handoff/approval packet checkers.
+  - License/compatibility: no external code copied.
+  - Selected approach: rerun and record the existing read-only audit wrapper
+    instead of dispatching GitHub Actions or mutating ECS.
+- Risks:
+  - This evidence must not be mistaken for current-branch deployment, HTTPS
+    legal-domain readiness, real payment/refund readiness, or authenticated
+    manual QA.
+- Acceptance criteria:
+  - `RUN_INTERNAL=1 scripts/check_production_readonly_audit.sh` passes.
+  - Record current public/ECS smoke, backend `8080` exposure, and sanitized
+    payment-config readiness.
+  - Update production/state/readiness/handoff/approval/evidence docs and commit
+    once.
+- Change summary:
+  - Refreshed production read-only audit evidence to Round 115.
+  - Updated `docs/Production-Smoke.md`, `docs/Backend-8080-Security.md`,
+    `docs/MVP-Readiness.md`, `docs/MVP-Handoff-Packet.md`,
+    `docs/MVP-Next-Approval-Request.md`, `docs/MVP-Launch-Evidence.json`, and
+    `docs/Project-State.md` to the same current facts.
+  - Preserved the known real WeChat Pay config blockers and the pending
+    current-branch deployment boundary.
+- Verification:
+  - `RUN_INTERNAL=1 scripts/check_production_readonly_audit.sh`: passed with 4
+    read-only audit steps.
+  - Deploy config static checks: passed.
+  - Production public/ECS internal smoke: passed with 7 checks and 0 warnings.
+  - Backend `8080` exposure checks: passed with 5 checks and 0 warnings.
+  - Backend payment config readiness: completed in non-strict read-only mode
+    and still reported the known 8 real WeChat Pay config issues.
+  - `node scripts/check_mvp_launch_evidence.js`: passed.
+  - `node scripts/check_mvp_closeout_readiness.js`: passed in non-strict mode.
+  - `node scripts/check_mvp_handoff_packet.js`: passed.
+  - `node scripts/check_mvp_next_approval_request.js`: passed.
+  - `git diff --check`: passed.
+- Outcome:
+  - Production runtime health and backend `8080` hardening are freshly
+    rechecked, while current-branch deployment, HTTPS legal-domain, real
+    payment/refund, and manual QA remain pending. No deploy/ECS/firewall/
+    payment/live-data mutation was performed.
+- Next recommended round:
+  - Stop refreshing already-green local baselines and choose one external
+    evidence lane from `docs/MVP-Next-Approval-Request.md`, preferably HTTPS
+    legal-domain readiness, admin authenticated QA, or an approved reduced-scope
+    backend nonprod/mock deployment.
+
 ## Round 105: Next Goal Prompt Refresh
 
 - Date: 2026-06-08

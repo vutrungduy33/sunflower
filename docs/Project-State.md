@@ -72,7 +72,7 @@
   `pages/mvp/order-list/index.js`. The run still warns that the default API
   base remains bare HTTP for local/DevTools validation only and local
   `project.private.config.json` is absent.
-- Latest production read-only audit: Round 100
+- Latest production read-only audit: Round 115
   `scripts/check_production_readonly_audit.sh` passed with deploy config static
   checks, production public/ECS internal smoke, backend `8080` exposure checks,
   and payment-config readiness reporting the known sanitized blockers. No push,
@@ -83,11 +83,12 @@
   incomplete. Current unresolved required closeout evidence is 32 items: 8
   launch evidence entries, 12 miniapp manual QA checks, and 12 admin-web manual
   QA checks.
-- Current operator entry docs were refreshed in Round 101 to align with the
-  Round 99 aggregate regression and Round 100 read-only production audit:
-  `docs/MVP-Handoff-Packet.md`, `docs/MVP-Next-Approval-Request.md`, and
-  `docs/MVP-External-Approval-Packet.md`. This did not change any evidence
-  status or unresolved count.
+- Current operator entry docs are aligned through Round 115 for the latest
+  direct backend/admin/miniapp baselines and production read-only audit:
+  `docs/MVP-Handoff-Packet.md` and `docs/MVP-Next-Approval-Request.md` were
+  refreshed in Round 115; `docs/MVP-External-Approval-Packet.md` remains the
+  approval packet companion. This did not change any evidence status or
+  unresolved count.
 - Round 102 updated `docs/MVP-Launch-Evidence.json` so
   `CURRENT-BRANCH-DEPLOYED.nextAction` explicitly requires approval before
   push/merge/workflow_dispatch and tells operators to run
@@ -164,6 +165,14 @@
   0 skipped. This confirms local backend/API/Flyway test-profile quality
   remains current, but real WeChat/SMS/payment/refund and production callback
   evidence remain external closeout items.
+- Round 115 refreshed the production read-only audit:
+  `RUN_INTERNAL=1 scripts/check_production_readonly_audit.sh` passed deploy
+  config static checks, production public/ECS internal smoke (7 passes,
+  0 warnings), backend `8080` exposure checks (5 passes, 0 warnings), and
+  non-strict backend payment-config readiness. The payment readiness step still
+  reports the known 8 real WeChat Pay config issues. No push, deploy, workflow
+  dispatch, Nginx reload, ECS mutation, firewall/security-group mutation,
+  payment/refund action, or live QA data mutation was performed.
 - Round 50 audited the original goal termination criteria and found the MVP
   incomplete. Round 58 later closed the backend `8080` item, leaving the
   current 32 unresolved required items. The completion conclusion remains

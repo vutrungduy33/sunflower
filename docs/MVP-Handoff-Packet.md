@@ -1,6 +1,6 @@
 # MVP Handoff Packet
 
-> Current as of 2026-06-08. Start here before continuing the MVP hardening
+> Current as of 2026-06-08 Round 115. Start here before continuing the MVP hardening
 > goal. This packet is a compact operator handoff, not proof that the MVP is
 > complete.
 
@@ -19,17 +19,21 @@ the user explicitly waives the remaining external evidence.
   HEAD `af46357`, aligned with `origin/main`, with the default 5
   non-production steps: backend/admin-web/miniapp/evidence/deploy-config
   checks. Production checks were skipped by default.
-- Round 100 `scripts/check_production_readonly_audit.sh` passed on current
-  `main` with deploy config static checks, production public/ECS internal
-  smoke, backend `8080` exposure checks, and backend payment-config readiness.
-- Backend local tests have passed with 57 tests.
-- Admin web lint, unit tests, build, behavior wiring, and external QA preflight
-  have passed. The latest direct admin-web baseline was Round 96 with
-  `npm run lint`, `npm run test` (24 Vitest tests across 5 files), `npm run
-  build`, 97 behavior wiring checks, and 6 external-preflight checks.
-- Miniapp syntax/smoke, behavior wiring, project config, navigation, and
-  external QA preflight have passed. Round 97 also includes user-flow and
-  payment-flow replay checks.
+- Round 115 `RUN_INTERNAL=1 scripts/check_production_readonly_audit.sh` passed
+  with deploy config static checks, production public/ECS internal smoke,
+  backend `8080` exposure checks, and backend payment-config readiness. No
+  push, dispatch, deploy, ECS mutation, firewall/security-group mutation,
+  payment/refund action, or live QA data mutation was performed.
+- Backend local tests have passed with 57 tests. The latest direct backend
+  baseline is Round 114.
+- Admin web lint, unit tests, build, behavior wiring, external QA preflight,
+  and entry readiness have passed. The latest direct admin-web baseline is
+  Round 111 with `npm run lint`, `npm run test` (24 Vitest tests across 5
+  files), `npm run build`, 97 behavior wiring checks, 6 external-preflight
+  checks, and 6 entry-readiness passes with 2 expected HTTP/IP warnings.
+- Miniapp syntax/smoke, behavior wiring, project config, navigation, external
+  QA preflight, user-flow replay, and payment-flow replay have passed. The
+  latest direct miniapp automated baseline is Round 112.
 - Round 107 hardened the miniapp HTTPS domain checker so `/api/health` must
   return backend health JSON. `sunflower.cloud` currently has a trusted GoDaddy
   certificate but returns an HTML lander at `/api/health`, while
@@ -39,7 +43,8 @@ the user explicitly waives the remaining external evidence.
   passed for the temporary HTTP/IP admin entry, `/healthz`, and `/api/health`
   with expected HTTP/IP warnings. This is not authenticated admin manual QA.
 - Production read-only checks have passed for public health/admin/API smoke,
-  ECS private upstream checks, and backend `8080` exposure inspection. The
+  ECS private upstream checks, and backend `8080` exposure inspection. Round
+  115 had 7 production smoke passes, 5 backend `8080` exposure passes, and the
   latest payment-config readiness still reports the known sanitized real
   payment blockers.
 - Deployment config static checks and deployment approval preflight exist. The
@@ -55,12 +60,13 @@ the user explicitly waives the remaining external evidence.
   `main` and default `workflow_dispatch` remain production-lane. This nonprod
   lane can support approved MVP operator validation, but it is not real
   payment/refund evidence and does not refresh admin-web or Nginx.
-- The latest clean deployment preflight snapshot is still the earlier Round 75
-  capture; rerun `node scripts/check_deployment_approval_preflight.js` before
-  any approved deploy because the current branch has changed since that
-  snapshot. The recommended interim path while real payment private key/config
-  is incomplete is explicit manual backend-only nonprod/mock-payment dispatch
-  after approval.
+- The latest recorded clean deployment preflight snapshot in the approval entry
+  is Round 113: local `main` and `origin/main` were both at `c78fb9b5a645`,
+  changed files since base were 0, and predicted push-to-main deploy target was
+  `none`. Rerun `node scripts/check_deployment_approval_preflight.js` after
+  any new commit and before any approved deploy. The recommended interim path
+  while real payment private key/config is incomplete is explicit manual
+  backend-only nonprod/mock-payment dispatch after approval.
 - Round 58 backend `8080` hardening passed after ECS-2 backend host port was
   rebound to private IP `172.25.121.83`.
 - Latest strict closeout shape confirms the goal is still incomplete:
