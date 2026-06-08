@@ -57,14 +57,18 @@
   default.
 - Latest direct backend baseline: Round 114 on clean local `main` passed
   `mvn -B test` with 57 tests, 0 failures, 0 errors, and 0 skipped.
-- Latest direct admin-web baseline: 2026-06-08 uncommitted Ant Design 5 +
-  ProComponents UI refactor passed `npm run lint`, `npm run test`
+- Latest direct admin-web baseline: 2026-06-08 Ant Design 5 + ProComponents UI
+  refactor at `main` HEAD `713ea3f` passed `npm run lint`, `npm run test`
   (24 Vitest tests across 5 files), `npm run build`, behavior wiring
   (97 checks), external QA preflight (6 checks), admin entry readiness
   (6 passes with 2 expected HTTP/IP warnings), and mocked Playwright desktop /
   mobile visual QA for login, workspace, room, pricing, and order paths. The
-  build still reports the known Vite large-chunk warning for the AntD/
-  ProComponents bundle.
+  push-triggered GitHub Actions run `27125932964` for workflow
+  `Deploy Services To ECS` completed successfully: `detect-targets`,
+  `package-deploy-bundle`, `build-admin-web`, and `deploy-web-host` passed;
+  backend build/deploy were skipped by path rules. The local production build
+  still reports the known Vite large-chunk warning for the AntD/ProComponents
+  bundle.
 - Latest direct miniapp automated baseline: Round 112 on clean local `main`
   passed smoke, behavior wiring (69 checks), user-flow replay (3 scenarios),
   payment-flow replay (5 scenarios), external QA preflight (6 checks), project
