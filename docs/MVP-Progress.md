@@ -5,6 +5,55 @@
 > This active file keeps only the latest operational rounds. Older rounds are
 > archived in `docs/archive/mvp-progress/`.
 
+## Round 98: Deployment Workflow Status Clarification
+
+- Date: 2026-06-08
+- Status: completed
+- Focus: inspect the current GitHub Actions deployment workflow state after the
+  recent documentation/evidence commits, and clarify whether those pushes
+  should have triggered ECS deployment.
+- Start evidence:
+  - Local `main` and `origin/main` were aligned at `291305d`.
+  - Worktree was clean before validation.
+  - The latest successful deploy evidence was still Round 91 workflow run
+    `27112433529` for `main` HEAD `d10d11e`.
+- Open-source reference check:
+  - Task classification: repository-specific CI/CD status inspection and
+    evidence clarification.
+  - Sources checked: `.github/workflows/deploy-backend.yml`, current `gh run`
+    output, git history, and path diffs between `d10d11e` and `HEAD`.
+  - License/compatibility: no external code copied.
+  - Selected approach: use `gh run list` / `gh run view` plus local path diff
+    checks instead of changing workflow logic.
+- Risks:
+  - This round is read-only with respect to GitHub Actions and ECS; it does not
+    dispatch, deploy, mutate ECS, or prove production payment readiness.
+  - It clarifies deployment trigger state but does not close the pending
+    current-branch production deployment evidence requirement.
+- Acceptance criteria:
+  - Confirm the latest deployment workflow run visible from GitHub Actions.
+  - Confirm whether the recent docs/checker commits changed any deploy-trigger
+    paths.
+  - Update project state/progress with the resulting deployment explanation.
+- Verification:
+  - `gh run list --workflow deploy-backend.yml --limit 10`: latest listed run
+    remained `27112433529`, `workflow_dispatch`, `success`, created
+    `2026-06-08T02:21:17Z`.
+  - `gh run view 27112433529 --json ...`: confirmed run `27112433529` completed
+    successfully for `main` head SHA `d10d11e27aff2cd3875dffb8de1d9f74ce86db04`.
+  - `git diff --name-only d10d11e..HEAD`: only docs plus
+    `scripts/check_miniapp_external_qa_preflight.js` and
+    `scripts/check_miniapp_https_domain.js` changed.
+  - `git diff --name-only d10d11e..HEAD -- <deploy workflow paths>`: no files
+    changed under the push-trigger path list from `.github/workflows/deploy-backend.yml`.
+- Outcome:
+  - The recent Round 92-97 documentation/evidence/checker commits did not
+    require or trigger ECS deployment under the active workflow path filters.
+    Latest deploy evidence remains Round 91 reduced-scope backend
+    nonprod/mock-payment deployment; production-like closeout still needs real
+    payment config, HTTPS legal domain, external QA, and production deployment
+    evidence or explicit waivers.
+
 ## Round 97: Miniapp Automated Path Baseline Refresh
 
 - Date: 2026-06-08

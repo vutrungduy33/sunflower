@@ -282,6 +282,12 @@
   `RUN_INTERNAL=1 scripts/check_backend_8080_exposure.sh` passed 5/5. This is
   reduced-scope backend current-branch deployment evidence only; it does not
   refresh admin-web/Nginx or prove real payment/refund readiness.
+- Round 98 checked GitHub Actions after later documentation/evidence commits.
+  The latest `deploy-backend.yml` run remained successful workflow_dispatch run
+  `27112433529` for `d10d11e`; no newer runs were created by the docs-only
+  pushes. `git diff --name-only d10d11e..HEAD -- <deploy workflow paths>`
+  returned no files, so current `main` HEAD `291305d` has no application or
+  deployment-path changes after the reduced-scope backend deployment evidence.
 - Round 92 refreshed the default local automated MVP regression on clean local
   `main` HEAD `7cc7e04`, aligned with `origin/main`. The run passed all 5
   default non-production steps: backend tests, admin-web lint/test/build plus
