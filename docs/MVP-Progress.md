@@ -61,6 +61,58 @@
     This was a docs-only clarity round; it did not push, dispatch, deploy,
     mutate ECS, run payment/refund, or reduce the pending evidence count.
 
+## Round 102: Deployment Preflight Boundary Fix
+
+- Date: 2026-06-08
+- Status: completed
+- Focus: fix the deployment-approval evidence wording so
+  `node scripts/check_deployment_approval_preflight.js` can validate the
+  `CURRENT-BRANCH-DEPLOYED` boundary on the current `main`.
+- Start evidence:
+  - The current `main` branch was clean and aligned with `origin/main` at
+    `167cae7`.
+  - `node scripts/check_deployment_approval_preflight.js` failed only because
+    `CURRENT-BRANCH-DEPLOYED.nextAction` did not yet mention approval before
+    `push/merge/workflow_dispatch`, while the deployment workflow and launch
+    boundary checks already passed.
+- Open-source reference check:
+  - Task classification: repository-local evidence wording and validation
+    refresh.
+  - Sources checked: the preflight script, `docs/MVP-Launch-Evidence.json`,
+    and the current approval packets.
+  - License/compatibility: no external code copied.
+  - Selected approach: repair the current-branch deployment evidence text
+    instead of widening the approval surface.
+- Risks:
+  - The fix must not imply a deploy was run; it only makes the preflight ledger
+    honest and machine-checkable.
+- Acceptance criteria:
+  - Add the explicit approval-before-push/merge/workflow_dispatch wording to
+    `CURRENT-BRANCH-DEPLOYED.nextAction`.
+  - Re-run the deployment approval preflight on a clean worktree.
+  - Update `docs/Project-State.md` with the verified preflight result.
+- Change summary:
+  - Updated `docs/MVP-Launch-Evidence.json` so
+    `CURRENT-BRANCH-DEPLOYED.nextAction` requires explicit user approval before
+    push, merge, `workflow_dispatch`, or deploy, and requires a clean-worktree
+    deployment approval preflight.
+  - Recorded the refreshed deployment preflight state in
+    `docs/Project-State.md`.
+- Verification:
+  - First `node scripts/check_deployment_approval_preflight.js` run failed as
+    expected because the launch evidence wording did not yet mention approval
+    before `push/merge/workflow_dispatch`.
+  - After fixing the ledger and committing, a clean-worktree
+    `node scripts/check_deployment_approval_preflight.js` run passed with 4
+    checks on local `main` HEAD `9dd2b1a`, base `origin/main 167cae7`, 3
+    changed files, and predicted push-to-main deploy target `none`.
+  - `node scripts/check_mvp_launch_evidence.js` passed in non-strict mode and
+    still reported 13 total launch items, 5 passed, and 8 pending.
+- Outcome:
+  - The deployment approval preflight boundary is now machine-checkable again
+    on the current branch. This round did not push, dispatch, deploy, mutate
+    ECS, run payment/refund, or reduce the unresolved evidence count.
+
 ## Round 100: Production Read-Only Audit Refresh
 
 - Date: 2026-06-08
